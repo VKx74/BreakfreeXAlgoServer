@@ -1,0 +1,18 @@
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Data Source=SQL6003.SmarterASP.NET;Initial Catalog=DB_A290EC_algoserver;User Id=DB_A290EC_algo_admin;Password=123;"
+  },
+  "Logging": {
+    "IncludeScopes": false,
+    "LogLevel": {
+      "Default": "Warning"
+    }
+  },
+  "Certificates": {
+    "HTTPS": {
+      "Source": "File",
+      "Path": "localhost.pfx",
+      "Password": "1234"
+    }
+  }
+}

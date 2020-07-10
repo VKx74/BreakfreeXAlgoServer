@@ -1,0 +1,222 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ATP.StorageService.API</name>
+    </assembly>
+    <members>
+        <member name="T:ATP.StorageService.API.Controllers.DataController">
+            <summary>
+            Working with file storage
+            </summary>
+        </member>
+        <member name="M:ATP.StorageService.API.Controllers.DataController.GetAsync">
+            <summary>
+            Download a default user photo
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ATP.StorageService.API.Controllers.DataController.GetAsync(System.String)">
+            <summary>
+            Download a file
+            </summary>
+            <param name="id">Id of file</param>
+            <returns></returns>
+        </member>
+        <member name="M:ATP.StorageService.API.Controllers.DataController.GetSizedDataAsync(System.String,DataSizeType)">
+            <summary>
+            Download a file
+            </summary>
+            <param name="id">Id of file</param>
+            <returns></returns>
+        </member>
+        <member name="M:ATP.StorageService.API.Controllers.DataController.GetInfoAsync(System.String)">
+            <summary>
+            Get info about file
+            </summary>
+            <param name="id">Data id</param>
+            <returns></returns>
+        </member>
+        <member name="M:ATP.StorageService.API.Controllers.DataController.PostAsync(Microsoft.AspNetCore.Http.IFormData,System.Int64)">
+            <summary>
+            Uploading a file
+            </summary>
+            <param name="uploadedData">Data</param>
+            <param name="lifeTime">The time (minutes) it takes to delete the file. Default: 0 - file will be not removed automatically</param>
+            <returns></returns>
+        </member>
+        <member name="M:ATP.StorageService.API.Controllers.DataController.PostVideoAsync(System.Int64)">
+            <summary>
+            Uploading a video file.
+            </summary>
+            <param name="lifeTime">The time (minutes) it takes to delete the file. Default: 0 - file will be not removed automatically</param>
+            <returns></returns>
+        </member>
+        <member name="M:ATP.StorageService.API.Controllers.DataController.PostVideoAsync(Microsoft.AspNetCore.Http.IFormData,System.String)">
+            <summary>
+            Uploading a video file.
+            </summary>
+            <param name="uploadedData">Data</param>
+            <param name="creatorId">Identifier of current file's creator</param>
+            <returns></returns>
+        </member>
+        <member name="M:ATP.StorageService.API.Controllers.DataController.PostImageAsync(Microsoft.AspNetCore.Http.IFormData,System.Int64)">
+            <summary>
+            Uploading image file
+            </summary>
+            <param name="uploadedData">Data</param>
+            <param name="lifeTime">The time (minutes) it takes to delete the file. Default: 0 - file will be not removed automatically</param>
+            <returns></returns>
+        </member>
+        <member name="M:ATP.StorageService.API.Controllers.DataController.PostBase64DataAsync(System.Int64,ATP.StorageService.API.Models.Base64Data)">
+            <summary>
+            Post files in base64 format
+            </summary>
+            <param name="lifeTime">The time (minutes) it takes to delete the file. Default: 0 - file will be not removed automatically</param>
+            <param name="base64Data">Base64 string</param>
+            <returns></returns>
+        </member>
+        <member name="M:ATP.StorageService.API.Controllers.DataController.PostBase64ImageAsync(System.Int64,ATP.StorageService.API.Models.Base64Data)">
+            <summary>
+            Post image in base64 format
+            </summary>
+            <param name="lifeTime">The time (minutes) it takes to delete the file. Default: 0 - file will be not removed automatically</param>
+            <param name="base64Data">Base64 string</param>
+            <returns></returns>
+        </member>
+        <member name="M:ATP.StorageService.API.Controllers.DataController.PutAsync(System.String,System.Int64)">
+            <summary>
+            Update a information about file
+            </summary>
+            <param name="id">Id file</param>
+            <param name="lifeTime">The time (minutes) it takes to delete the file. Default: 0 - file will be not removed automatically</param>
+            <returns></returns>
+        </member>
+        <member name="M:ATP.StorageService.API.Controllers.DataController.DeleteAsync(System.String)">
+            <summary>
+            Delete of file
+            </summary>
+            <param name="id">Id file</param>
+            <returns></returns>
+        </member>
+        <member name="T:ATP.StorageService.API.Controllers.V2.DataController">
+            <summary>
+            Working with file storage
+            </summary>
+        </member>
+        <member name="M:ATP.StorageService.API.Controllers.V2.DataController.ConvertV1IdToV2Id(System.String)">
+            <summary>
+            Convert V1Id To V2Id(only for not resized files)
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ATP.StorageService.API.Controllers.V2.DataController.GetAsync">
+            <summary>
+            Download a default user photo
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ATP.StorageService.API.Controllers.V2.DataController.GetInfoAsync(System.String)">
+            <summary>
+            Get info about file
+            </summary>
+            <param name="id">Data id</param>
+            <returns></returns>
+        </member>
+        <member name="M:ATP.StorageService.API.Controllers.V2.DataController.GetAsync(System.String)">
+            <summary>
+            Download a file
+            </summary>
+            <param name="id">Id of file</param>
+            <returns></returns>
+        </member>
+        <member name="M:ATP.StorageService.API.Controllers.V2.DataController.GetSizedDataAsync(System.String,DataSizeType)">
+            <summary>
+            Download a file
+            </summary>
+            <param name="id">Id of file</param>
+            <param name="size">Child type: None = 0, Small = 1, Middle = 2, Large = 3 (Defaulte = None)</param>
+            <returns></returns>
+        </member>
+        <member name="M:ATP.StorageService.API.Controllers.V2.DataController.PostAsync(Microsoft.AspNetCore.Http.IFormData,System.Int64)">
+            <summary>
+            Uploading a file
+            </summary>
+            <param name="uploadedData">Data</param>
+            <param name="lifeTime">The time (minutes) it takes to delete the file. Default: 0 - file will be not removed automatically</param>
+            <returns></returns>
+        </member>
+        <member name="M:ATP.StorageService.API.Controllers.V2.DataController.PostImageAsync(Microsoft.AspNetCore.Http.IFormData,System.Int64)">
+            <summary>
+            Uploading image file
+            </summary>
+            <param name="uploadedData">Data</param>
+            <param name="lifeTime">The time (minutes) it takes to delete the file. Default: 0 - file will be not removed automatically</param>
+            <returns></returns>
+        </member>
+        <member name="M:ATP.StorageService.API.Controllers.V2.DataController.PostBase64DataAsync(System.Int64,ATP.StorageService.API.Models.Base64Data)">
+            <summary>
+            Post files in base64 format
+            </summary>
+            <param name="lifeTime">The time (minutes) it takes to delete the file. Default: 0 - file will be not removed automatically</param>
+            <param name="base64Data">Base64 string</param>
+            <returns></returns>
+        </member>
+        <member name="M:ATP.StorageService.API.Controllers.V2.DataController.PostBase64ImageAsync(System.Int64,ATP.StorageService.API.Models.Base64Data)">
+            <summary>
+            Post image in base64 format
+            </summary>
+            <param name="lifeTime">The time (minutes) it takes to delete the file. Default: 0 - file will be not removed automatically</param>
+            <param name="base64Data">Base64 string</param>
+            <returns></returns>
+        </member>
+        <member name="M:ATP.StorageService.API.Controllers.V2.DataController.PostVideoAsync(System.Int64)">
+            <summary>
+            Uploading a video file.
+            </summary>
+            <param name="lifeTime">The time (minutes) it takes to delete the file. Default: 0 - file will be not removed automatically</param>
+            <returns></returns>
+        </member>
+        <member name="M:ATP.StorageService.API.Controllers.V2.DataController.PutAsync(System.String,System.Int64)">
+            <summary>
+            Update a information about file
+            </summary>
+            <param name="id">Id file</param>
+            <param name="lifeTime">The time (minutes) it takes to delete the file. Default: 0 - file will be not removed automatically</param>
+            <returns></returns>
+        </member>
+        <member name="M:ATP.StorageService.API.Controllers.V2.DataController.DeleteAsync(System.String)">
+            <summary>
+            Delete of file
+            </summary>
+            <param name="id">Id file</param>
+            <returns></returns>
+        </member>
+        <member name="P:ATP.StorageService.API.Extensions.Size.Kilobyte">
+            <summary>
+            1024(Kb)
+            </summary>
+        </member>
+        <member name="P:ATP.StorageService.API.Extensions.Size.Megabyte">
+            <summary>
+            1024(Kb) * 1024(Kb) = 1048576(Mb)
+            </summary>
+        </member>
+        <member name="P:ATP.StorageService.API.Extensions.Size.Gigabyte">
+            <summary>
+            1048576(Mb) * 1048576(Mb) = 1073741824(Gb)
+            </summary>
+        </member>
+        <member name="P:ATP.StorageService.API.Extensions.Size.Terabyte">
+            <summary>
+            1073741824(Gb) * 1073741824(Gb) = 1099511627776(Tb)
+            </summary>
+        </member>
+        <member name="M:ATP.StorageService.API.Extensions.Size.SizeToReadableString(System.Int64)">
+            <summary>
+            Convert size in bytes to human readable string
+            </summary>
+            <param name="bytes"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>
