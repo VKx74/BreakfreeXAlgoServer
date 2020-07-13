@@ -4,12 +4,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
-using Twelvedata.API.Models.WebSocket;
-using Twelvedata.API.Services.Instruments;
-using Twelvedata.API.Services.Realtime;
-using Twelvedata.Client.WebSocket.Models.Events;
+using Algoserver.API.Models.WebSocket;
+using Algoserver.API.Services.Instruments;
+using Algoserver.API.Services.Realtime;
+using Algoserver.Client.WebSocket.Models.Events;
 
-namespace Twelvedata.API.Services
+namespace Algoserver.API.Services
 {
     public class SubscriptionManager
     {

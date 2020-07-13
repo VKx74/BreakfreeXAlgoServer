@@ -5,13 +5,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Twelvedata.API.Exceptions;
-using Twelvedata.API.Models.REST;
-using Twelvedata.API.Services.Instruments;
-using Twelvedata.Client.REST;
-using Twelvedata.Client.REST.Requests;
+using Algoserver.API.Exceptions;
+using Algoserver.API.Models.REST;
+using Algoserver.API.Services.Instruments;
+using Algoserver.Client.REST;
+using Algoserver.Client.REST.Requests;
 
-namespace Twelvedata.API.Services.History
+namespace Algoserver.API.Services.History
 {
     public class HistoryService
     {

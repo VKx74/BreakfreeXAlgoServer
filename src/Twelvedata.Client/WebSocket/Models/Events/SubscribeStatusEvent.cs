@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Twelvedata.Client.WebSocket.Models.Events
+namespace Algoserver.Client.WebSocket.Models.Events
 {
     public class SubscribeStatusEvent : TwelvedataEvent
     {

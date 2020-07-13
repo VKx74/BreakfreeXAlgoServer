@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Twelvedata.Client.REST.Requests
+namespace Algoserver.Client.REST.Requests
 {
     public class GetTimeSeriesRequest
     {   

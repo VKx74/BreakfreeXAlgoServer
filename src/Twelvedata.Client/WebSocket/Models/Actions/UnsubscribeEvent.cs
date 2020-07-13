@@ -1,4 +1,4 @@
-﻿namespace Twelvedata.Client.WebSocket.Models.Actions
+﻿namespace Algoserver.Client.WebSocket.Models.Actions
 {
     [MessageType("unsubscribe")]
     public class UnsubscribeEvent : TwelvedataAction

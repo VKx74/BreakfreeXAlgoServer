@@ -11,16 +11,16 @@ using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using System;
 using System.Collections.Generic;
-using Twelvedata.API.Conventions;
-using Twelvedata.API.Middlewares;
-using Twelvedata.API.Services;
-using Twelvedata.API.Services.History;
-using Twelvedata.API.Services.Instruments;
-using Twelvedata.API.Services.Realtime;
-using Twelvedata.Client.REST;
-using Twelvedata.Client.WebSocket;
+using Algoserver.API.Conventions;
+using Algoserver.API.Middlewares;
+using Algoserver.API.Services;
+using Algoserver.API.Services.History;
+using Algoserver.API.Services.Instruments;
+using Algoserver.API.Services.Realtime;
+using Algoserver.Client.REST;
+using Algoserver.Client.WebSocket;
 
-namespace Twelvedata.API
+namespace Algoserver.API
 {
     public class Startup
     {

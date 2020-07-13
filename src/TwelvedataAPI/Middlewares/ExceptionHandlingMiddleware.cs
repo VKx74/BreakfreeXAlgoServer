@@ -5,9 +5,9 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Threading.Tasks;
-using Twelvedata.API.Exceptions;
+using Algoserver.API.Exceptions;
 
-namespace Twelvedata.API.Middlewares
+namespace Algoserver.API.Middlewares
 {
     public class ExceptionHandlingMiddleware
     {

@@ -4,13 +4,13 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Twelvedata.API.Services.Instruments;
-using Twelvedata.Client.WebSocket;
-using Twelvedata.Client.WebSocket.Models.Events;
 using System.Timers;
-using Twelvedata.Client.WebSocket.Models.Actions;
+using Algoserver.API.Services.Instruments;
+using Algoserver.Client.WebSocket;
+using Algoserver.Client.WebSocket.Models.Actions;
+using Algoserver.Client.WebSocket.Models.Events;
 
-namespace Twelvedata.API.Services.Realtime
+namespace Algoserver.API.Services.Realtime
 {
     public class RealtimeService
     {

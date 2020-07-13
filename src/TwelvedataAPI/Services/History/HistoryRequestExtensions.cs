@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Net;
-using Twelvedata.API.Exceptions;
+using Algoserver.API.Exceptions;
 
-namespace Twelvedata.API.Services.History
+namespace Algoserver.API.Services.History
 {
     public static class HistoryRequestExtensions
     {

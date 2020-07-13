@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Twelvedata.Client.Serialization
+namespace Algoserver.Client.Serialization
 {
     public class MessageSerializer
     {

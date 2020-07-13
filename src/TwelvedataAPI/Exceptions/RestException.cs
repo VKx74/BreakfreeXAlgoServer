@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net;
 
-namespace Twelvedata.API.Exceptions
+namespace Algoserver.API.Exceptions
 {
     public class RestException : Exception
     {

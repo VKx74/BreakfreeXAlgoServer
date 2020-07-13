@@ -2,9 +2,9 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System.Runtime.Serialization;
-using Twelvedata.API.Models.REST;
+using Algoserver.API.Models.REST;
 
-namespace Twelvedata.API.Services.Instruments
+namespace Algoserver.API.Services.Instruments
 {
 
 	[DataContract]

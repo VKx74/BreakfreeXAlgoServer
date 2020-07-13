@@ -9,9 +9,9 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Twelvedata.API.Services;
+using Algoserver.API.Services;
 
-namespace Twelvedata.API.Middlewares
+namespace Algoserver.API.Middlewares
 {
     public class WebSocketMiddleware
     {

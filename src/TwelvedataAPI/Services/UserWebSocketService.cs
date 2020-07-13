@@ -8,11 +8,11 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Twelvedata.API.Models.WebSocket;
-using Twelvedata.API.Services.Realtime;
-using Twelvedata.Client.Serialization;
+using Algoserver.API.Models.WebSocket;
+using Algoserver.API.Services.Realtime;
+using Algoserver.Client.Serialization;
 
-namespace Twelvedata.API.Services
+namespace Algoserver.API.Services
 {
     public class UserWebSocketService
     {

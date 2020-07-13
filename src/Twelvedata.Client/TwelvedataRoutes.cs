@@ -1,4 +1,4 @@
-﻿namespace Twelvedata.Client
+﻿namespace Algoserver.Client
 {
     public static class TwelvedataRoutes
     {

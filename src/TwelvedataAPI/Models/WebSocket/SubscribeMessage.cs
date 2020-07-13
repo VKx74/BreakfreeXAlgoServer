@@ -2,7 +2,7 @@
 using Newtonsoft.Json.Converters;
 using System.Runtime.Serialization;
 
-namespace Twelvedata.API.Models.WebSocket
+namespace Algoserver.API.Models.WebSocket
 {
     [DataContract]
     [JsonConverter(typeof(StringEnumConverter))]

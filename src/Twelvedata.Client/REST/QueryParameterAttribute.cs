@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Twelvedata.Client.REST
+namespace Algoserver.Client.REST
 {
     public class QueryParameterAttribute : Attribute
     {

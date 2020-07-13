@@ -1,6 +1,6 @@
-﻿using Twelvedata.API.Services.Instruments;
+﻿using Algoserver.API.Services.Instruments;
 
-namespace Twelvedata.API.Services.Realtime
+namespace Algoserver.API.Services.Realtime
 {
     public class Subscription
     {

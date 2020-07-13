@@ -1,6 +1,6 @@
-﻿using Twelvedata.API.Services.Instruments;
+﻿using Algoserver.API.Services.Instruments;
 
-namespace Twelvedata.API.Models.REST
+namespace Algoserver.API.Models.REST
 {
 	public class InstrumentExtendedResponse
 	{

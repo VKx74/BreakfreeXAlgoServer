@@ -8,12 +8,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Twelvedata.API.Helpers;
-using Twelvedata.API.Models.REST;
-using Twelvedata.API.Services.History;
-using Twelvedata.API.Services.Instruments;
+using Algoserver.API.Models.REST;
+using Algoserver.API.Services.History;
+using Algoserver.API.Services.Instruments;
+using Algoserver.API.Helpers;
 
-namespace Twelvedata.API.Controllers
+namespace Algoserver.API.Controllers
 {
     public class TwelvedataController : Controller
     {

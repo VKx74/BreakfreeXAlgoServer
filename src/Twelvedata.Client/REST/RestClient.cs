@@ -5,10 +5,10 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Twelvedata.Client.REST.Requests;
-using Twelvedata.Client.REST.Response;
+using Algoserver.Client.REST.Requests;
+using Algoserver.Client.REST.Response;
 
-namespace Twelvedata.Client.REST
+namespace Algoserver.Client.REST
 {
     public class RestClient
     {

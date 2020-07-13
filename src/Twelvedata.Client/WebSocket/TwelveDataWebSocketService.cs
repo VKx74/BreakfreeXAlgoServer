@@ -3,11 +3,11 @@ using System;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
 using System.Timers;
-using Twelvedata.Client.Serialization;
-using Twelvedata.Client.WebSocket.Models.Actions;
-using Twelvedata.Client.WebSocket.Models.Events;
+using Algoserver.Client.Serialization;
+using Algoserver.Client.WebSocket.Models.Actions;
+using Algoserver.Client.WebSocket.Models.Events;
 
-namespace Twelvedata.Client.WebSocket
+namespace Algoserver.Client.WebSocket
 {
     public class TwelveDataWebSocketService
     {

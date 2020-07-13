@@ -4,7 +4,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Twelvedata.Client.WebSocket
+namespace Algoserver.Client.WebSocket
 {
     public class WebSocketItem : IDisposable
     {

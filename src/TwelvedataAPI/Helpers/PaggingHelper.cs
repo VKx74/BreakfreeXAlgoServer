@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using Twelvedata.API.Models.REST;
+using Algoserver.API.Models.REST;
 
-namespace Twelvedata.API.Helpers
+namespace Algoserver.API.Helpers
 {
     public static class PaggingHelper
     {

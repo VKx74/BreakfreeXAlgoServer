@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Twelvedata.Client.WebSocket
+namespace Algoserver.Client.WebSocket
 {
     public class EventArgs<T> : EventArgs
     {

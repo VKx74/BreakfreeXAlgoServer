@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Twelvedata.Client.WebSocket.Models
+namespace Algoserver.Client.WebSocket.Models
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public class MessageTypeAttribute : Attribute

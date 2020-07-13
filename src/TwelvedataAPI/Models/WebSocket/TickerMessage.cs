@@ -1,4 +1,4 @@
-﻿namespace Twelvedata.API.Models.WebSocket
+﻿namespace Algoserver.API.Models.WebSocket
 {
     public class TickerMessage : BaseMessage
     {

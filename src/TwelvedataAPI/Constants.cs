@@ -1,4 +1,4 @@
-﻿namespace Twelvedata.API
+﻿namespace Algoserver.API
 {
     public class Constants
     {

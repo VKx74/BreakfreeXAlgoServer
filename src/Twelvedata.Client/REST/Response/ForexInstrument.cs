@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Twelvedata.Client.REST.Response
+namespace Algoserver.Client.REST.Response
 {
     public class ForexInstrument
     {

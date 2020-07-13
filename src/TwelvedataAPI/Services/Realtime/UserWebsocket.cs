@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Twelvedata.API.Models.WebSocket;
+using Algoserver.API.Models.WebSocket;
 
-namespace Twelvedata.API.Services.Realtime
+namespace Algoserver.API.Services.Realtime
 {
     public delegate Task SendToSocketCallback(BaseMessage message);
 

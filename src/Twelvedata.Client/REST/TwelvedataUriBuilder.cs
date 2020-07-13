@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Web;
 
-namespace Twelvedata.Client.REST
+namespace Algoserver.Client.REST
 {
     public static class TwelvedataUriBuilder
     {

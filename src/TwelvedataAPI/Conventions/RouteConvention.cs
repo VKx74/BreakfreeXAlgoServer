@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc.Routing;
 using System.Linq;
 
-namespace Twelvedata.API.Conventions
+namespace Algoserver.API.Conventions
 {
     internal class RouteConvention : IApplicationModelConvention
     {
