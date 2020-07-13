@@ -27,11 +27,6 @@
 
 
   <ItemGroup>
-    <ProjectReference Include="..\Twelvedata.Client\Twelvedata.Client.csproj" />
-  </ItemGroup>
-
-
-  <ItemGroup>
     <Content Update="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

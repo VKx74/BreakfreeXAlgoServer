@@ -12,13 +12,7 @@ using Swashbuckle.AspNetCore.SwaggerUI;
 using System;
 using System.Collections.Generic;
 using Algoserver.API.Conventions;
-using Algoserver.API.Middlewares;
 using Algoserver.API.Services;
-using Algoserver.API.Services.History;
-using Algoserver.API.Services.Instruments;
-using Algoserver.API.Services.Realtime;
-using Algoserver.Client.REST;
-using Algoserver.Client.WebSocket;
 
 namespace Algoserver.API
 {
@@ -40,26 +34,8 @@ namespace Algoserver.API
             .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
             services.AddLogging(opt => opt.AddConsole().AddDebug());
-
-            services.AddSingleton<RealtimeService>();
-            services.AddSingleton<UserWebSocketService>();
-
             services.AddSingleton<IConfiguration>(Configuration);
             services.AddSingleton<HistoryService>();
-            services.AddSingleton<InstrumentService>();
-            services.AddSingleton<RestClient>(c =>
-            {
-                var logger = c.GetRequiredService<ILogger<RestClient>>();
-                return new RestClient(Configuration["TwelvedataUrls:Rest"], Configuration["ApiKey"], logger);
-            });
-
-            services.AddSingleton<TwelveDataWebSocketService>(w =>
-            {
-                var logger = w.GetRequiredService<ILogger<TwelveDataWebSocketService>>();
-                var webSocketUri = Configuration["TwelvedataUrls:WebSocket"];
-                var apiKey = Configuration["ApiKey"];
-                return new TwelveDataWebSocketService(apiKey, webSocketUri, logger);
-            });
 
             services.AddCors(options =>
             {
@@ -74,7 +50,7 @@ namespace Algoserver.API
 
             services.AddSwaggerGen(options =>
             {
-                options.SwaggerDoc("v1", new Info { Title = "Twelvedata API" });
+                options.SwaggerDoc("v1", new Info { Title = "Algoserver API" });
 
                 options.AddSecurityDefinition("Bearer", new ApiKeyScheme
                 {
@@ -123,11 +99,9 @@ namespace Algoserver.API
             app.UseSwaggerUI(options =>
             {
                 options.RoutePrefix = RoutePrefix + "/swagger";
-                options.SwaggerEndpoint($"/{RoutePrefix}/swagger/v1/swagger.json", "TWELVEDATA API");
+                options.SwaggerEndpoint($"/{RoutePrefix}/swagger/v1/swagger.json", "Algoserver API");
                 options.DocExpansion(DocExpansion.None);
             });
-
-            app.ApplicationServices.GetRequiredService<InstrumentService>();
 
             app.UseStaticFiles();
             app.UseWebSockets(new WebSocketOptions
@@ -135,8 +109,6 @@ namespace Algoserver.API
                 KeepAliveInterval = TimeSpan.FromSeconds(120),
                 ReceiveBufferSize = Configuration.GetValue<int>("WebSocketBufferSize", 4 * 1024)
             });
-            var wsRoute = string.IsNullOrEmpty(RoutePrefix) ? $"/{Routes.SubscribeRealtime}" : $"/{RoutePrefix}/{Routes.SubscribeRealtime}";
-            app.Map(wsRoute, builder => builder.UseMiddleware<WebSocketMiddleware>());
 
             app.UseMvc();
         }
