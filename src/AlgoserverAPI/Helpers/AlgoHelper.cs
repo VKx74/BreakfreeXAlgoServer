@@ -2,17 +2,18 @@
 using System.Net;
 using Algoserver.API.Exceptions;
 using Algoserver.API.Models.Algo;
+using Algoserver.API.Models;
 
 namespace Algoserver.API.Helpers
 {
     public class AlgoHelper
     {
-        public static int ConvertTimeframeToCranularity(int multiplayer, string period)
+        public static int ConvertTimeframeToCranularity(int interval, string period)
         {
             switch (period)
             {
-                case Periodicity.MINUTE: return 60 * multiplayer;
-                case Periodicity.HOUR: return 3600 * multiplayer;
+                case Periodicity.MINUTE: return 60 * interval;
+                case Periodicity.HOUR: return 3600 * interval;
                 case Periodicity.DAY: return 86400;
                 case Periodicity.WEEK: return 604800;
                 case Periodicity.MONTH: return 2629746;

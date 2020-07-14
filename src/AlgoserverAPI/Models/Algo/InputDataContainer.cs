@@ -23,7 +23,7 @@ namespace Algoserver.API.Models.Algo
         /// Multiplier of resolution, e.g. '60' - 60, 'D' - 1, '5D' - 5, '12M' - 12
         /// </summary>
         [JsonProperty("timeframe_multiplier")]
-        public int TimeframeMultiplier { get; set; }
+        public int TimeframeInterval { get; set; }
 
         /// <summary>
         /// Resolution, e.g. '60' - 60 minutes, 'D' - daily, 'W' - weekly, 'M' - monthly, '5D' - 5 days, '12M' - one year, '3M' - one quarter
@@ -90,6 +90,9 @@ namespace Algoserver.API.Models.Algo
 
         [JsonProperty("exchange")]
         public string Exchange { get; set; }
+
+        [JsonProperty("datafeed")]
+        public string Datafeed { get; set; }
         
         public static InputDataContainer MapCalculationRequestToInputDataContainer(CalculationRequest req)
         {
@@ -102,7 +105,7 @@ namespace Algoserver.API.Models.Algo
             {
                 Time = req.Time,
                 Timenow = req.Timenow,
-                TimeframeMultiplier = req.Timeframe.Interval,
+                TimeframeInterval = req.Timeframe.Interval,
                 TimeframePeriod = req.Timeframe.periodicity,
                 Mintick = req.Instrument.TickSize,
                 Type = req.Instrument.Type.ToLowerInvariant(),
@@ -114,7 +117,8 @@ namespace Algoserver.API.Models.Algo
                 InputRisk = req.InputRisk,
                 Currency = req.Instrument.BaseInstrument,
                 QuotedCurrency = req.Instrument.DependInstrument,
-                Exchange = req.Instrument.Exchange
+                Exchange = req.Instrument.Exchange.ToLowerInvariant(),
+                Datafeed = req.Instrument.Datafeed.ToLowerInvariant()
             };
         }
 

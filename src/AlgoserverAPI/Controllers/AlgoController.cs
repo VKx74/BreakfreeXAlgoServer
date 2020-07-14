@@ -12,26 +12,25 @@ namespace Algoserver.API.Controllers
 {
     public class AlgoController : Controller
     {
-        private IServiceProvider _serviceProvider;
         private IMemoryCache _cache;
-        public AlgoController(IServiceProvider serviceProvider, IMemoryCache cache)
+        private AlgoService _algoService;
+        public AlgoController(AlgoService algoService, IMemoryCache cache)
         {
-            _serviceProvider = serviceProvider;
+            _algoService = algoService;
             _cache = cache;
         }
 
         [Authorize]
-        [HttpGet(Routes.Calculate)]
+        [HttpPost(Routes.Calculate)]
         [ProducesResponseType(typeof(Response<CalculationResponse>), 200)]
-        public async Task<IActionResult> CalculateAsync([FromQuery] CalculationRequest request)
+        public async Task<IActionResult> CalculateAsync([FromBody] CalculationRequest request)
         {
             if (!ModelState.IsValid)
             {
                 return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
             }
 
-            var algoService = _serviceProvider.GetRequiredService<AlgoService>();
-            var result = await algoService.CalculateAsync(request);
+            var result = await _algoService.CalculateAsync(request);
 
             return Json(result);
         }

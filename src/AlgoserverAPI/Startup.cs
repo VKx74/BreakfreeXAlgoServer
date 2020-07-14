@@ -36,6 +36,8 @@ namespace Algoserver.API
             services.AddLogging(opt => opt.AddConsole().AddDebug());
             services.AddSingleton<IConfiguration>(Configuration);
             services.AddSingleton<HistoryService>();
+            services.AddSingleton<PriceRatioCalculationService>();
+            services.AddSingleton<AlgoService>();
 
             services.AddCors(options =>
             {
