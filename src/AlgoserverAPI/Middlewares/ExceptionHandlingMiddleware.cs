@@ -29,7 +29,7 @@ namespace Algoserver.API.Middlewares
                 await _next(context);
             }
 
-            catch (RestException ex)
+            catch (ApiException ex)
             {
                 await RespondAsync(new ObjectResult(new { Error = ex.Message })
                 {

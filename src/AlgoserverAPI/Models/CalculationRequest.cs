@@ -22,13 +22,16 @@ namespace Algoserver.API.Models.REST
         public Instrument Instrument { get; set; }
 
         [JsonProperty("input_stoplossratio")]
-        public decimal InputStoplossratio { get; set; }
+        public decimal InputStoplossRatio { get; set; }
+
+        [JsonProperty("input_detectlowhigh")]
+        public bool inputDetectlowHigh { get; set; }
 
         [JsonProperty("input_splitpositions")]
-        public decimal InputSplitpositions { get; set; }
+        public decimal InputSplitPositions { get; set; }
 
         [JsonProperty("input_accountsize")]
-        public decimal InputAccountsize { get; set; }
+        public decimal InputAccountSize { get; set; }
 
         [JsonProperty("input_risk")]
         public decimal InputRisk { get; set; }

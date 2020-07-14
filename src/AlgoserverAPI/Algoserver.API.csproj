@@ -4,6 +4,7 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <AssemblyName>Algoserver.API</AssemblyName>
     <RootNamespace>Algoserver.API</RootNamespace>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
