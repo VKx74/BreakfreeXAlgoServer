@@ -3,7 +3,7 @@ stages:
   - publish
 
 variables:
-  IMAGE_NAME: "twelvedata"
+  IMAGE_NAME: "algoserver"
 
 build:
   image: microsoft/dotnet:2.2-sdk

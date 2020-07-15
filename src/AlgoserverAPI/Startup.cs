@@ -96,12 +96,13 @@ namespace Algoserver.API
 #if !DEBUG
             app.UseHttpsRedirection();
 #endif
-
+            var swaggerUIRoutePrefix = RoutePrefix + "/swagger";
+            var swaggerEndpoint = $"/{RoutePrefix}/swagger/v1/swagger.json";
             app.UseSwagger(options => options.RouteTemplate = RoutePrefix + "/swagger/{documentName}/swagger.json");
             app.UseSwaggerUI(options =>
             {
-                options.RoutePrefix = RoutePrefix + "/swagger";
-                options.SwaggerEndpoint($"/{RoutePrefix}/swagger/v1/swagger.json", "Algoserver API");
+                options.RoutePrefix = swaggerUIRoutePrefix;
+                options.SwaggerEndpoint(swaggerEndpoint, "Algoserver API");
                 options.DocExpansion(DocExpansion.None);
             });
 
@@ -113,6 +114,9 @@ namespace Algoserver.API
             });
 
             app.UseMvc();
+
+            Console.WriteLine($"Swagger UI: /{swaggerUIRoutePrefix}");
+            Console.WriteLine($"Swagger Endpoint: {swaggerEndpoint}");
         }
     }
 }
