@@ -40,7 +40,7 @@ namespace Algoserver.API.Models.REST
     public class Timeframe
     {
         [JsonProperty("Periodicity")]
-        public string periodicity { get; set; }
+        public string Periodicity { get; set; }
 
         [JsonProperty("interval")]
         public int Interval { get; set; }

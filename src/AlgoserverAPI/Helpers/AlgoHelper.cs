@@ -3,6 +3,7 @@ using System.Net;
 using Algoserver.API.Exceptions;
 using Algoserver.API.Models.Algo;
 using Algoserver.API.Models;
+using System.Collections.Generic;
 
 namespace Algoserver.API.Helpers
 {

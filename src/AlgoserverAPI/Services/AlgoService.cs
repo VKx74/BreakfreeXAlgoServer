@@ -25,8 +25,7 @@ namespace Algoserver.API.Services
             _priceRatioCalculationService = priceRatioCalculationService;
         }
 
-        public async Task<CalculationResponse> CalculateAsync(CalculationRequest req)
-        {
+        public async Task<InputDataContainer> InitAsync(CalculationRequest req) {
             var container = InputDataContainer.MapCalculationRequestToInputDataContainer(req);
             if (container.Datafeed != "twelvedata" && container.Datafeed != "oanda")
             {
@@ -34,15 +33,21 @@ namespace Algoserver.API.Services
                     $"Unsupported '{container.Datafeed}' datafeed. Available 'twelvedata' or 'oanda' only.");
             }
 
-            var usdRatio = 1m;
             if (container.Type != "forex") {
-                usdRatio = await _priceRatioCalculationService.GetUSDRatio(container.Symbol, container.Datafeed, container.Exchange);
+                var usdRatio = await _priceRatioCalculationService.GetUSDRatio(container.Symbol, container.Datafeed, container.Exchange);
+                container.setUsdRatio(usdRatio);
             }
 
             var granularity = AlgoHelper.ConvertTimeframeToCranularity(container.TimeframeInterval, container.TimeframePeriod);
             var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange);
             var dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILYG_RANULARITY, container.Datafeed, container.Exchange);
-            throw new NotImplementedException();
+            container.InsertHistory(currentPriceData.Bars, dailyPriceData.Bars);
+            return container;
+        }
+        public async Task<CalculationResponse> CalculateAsync(CalculationRequest req)
+        {
+            var container = await InitAsync(req);
+            return new CalculationResponse();
         }
     }
 }

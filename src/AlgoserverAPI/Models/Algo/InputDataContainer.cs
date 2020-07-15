@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Algoserver.API.Models.REST;
 using Newtonsoft.Json;
@@ -11,7 +12,13 @@ namespace Algoserver.API.Models.Algo
         /// Current bar time in UNIX format. It is the number of milliseconds that have elapsed since 00:00:00 UTC, 1 January 1970. (Only updates whilst market open)
         /// </summary>
         [JsonProperty("time")]
-        public int Time { get; set; }
+        public int Time { get; set; } 
+        
+        /// <summary>
+        /// Unique ID of request
+        /// </summary>
+        [JsonProperty("id")]
+        public string Id { get; set; }
 
         /// <summary>
         /// Current time in UNIX format. It is the number of milliseconds that have elapsed since 00:00:00 UTC, 1 January 1970. (Only updates whilst market open)
@@ -79,8 +86,8 @@ namespace Algoserver.API.Models.Algo
         [JsonProperty("input_risk")]
         public decimal InputRisk { get; set; }
 
-        [JsonProperty("accSizeFX")]
-        public decimal AccSizeFX { get; set; }
+        [JsonProperty("UsdRatio")]
+        public decimal UsdRatio { get; set; }
 
         [JsonProperty("currency")]
         public string Currency { get; set; }
@@ -103,10 +110,11 @@ namespace Algoserver.API.Models.Algo
 
             return new InputDataContainer
             {
+                Id = req.Id,
                 Time = req.Time,
                 Timenow = req.Timenow,
                 TimeframeInterval = req.Timeframe.Interval,
-                TimeframePeriod = req.Timeframe.periodicity,
+                TimeframePeriod = req.Timeframe.Periodicity,
                 Mintick = req.Instrument.TickSize,
                 Type = req.Instrument.Type.ToLowerInvariant(),
                 Symbol = req.Instrument.Id ?? req.Instrument.Symbol,
@@ -122,7 +130,12 @@ namespace Algoserver.API.Models.Algo
             };
         }
 
-        public void Update(Bar[] currentPriceData, Bar[] dailyPriceData, decimal[] accSizeData)
+        public void setUsdRatio(decimal usdRatio)
+        {
+            UsdRatio = usdRatio;
+        }
+
+        public void InsertHistory(IEnumerable<BarMessage> currentPriceData, IEnumerable<BarMessage> dailyPriceData)
         {
             Open = currentPriceData.Select(i => i.Open).ToArray();
             High = currentPriceData.Select(i => i.High).ToArray();
@@ -133,8 +146,6 @@ namespace Algoserver.API.Models.Algo
             HighD = dailyPriceData.Select(i => i.High).ToArray();
             LowD = dailyPriceData.Select(i => i.Low).ToArray();
             CloseD = dailyPriceData.Select(i => i.Close).ToArray();
-
-            AccSizeFX = accSizeData.Any() ? accSizeData[0] : 1;
         }
     }
 }
