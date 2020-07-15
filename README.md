@@ -1,3 +1,3 @@
-# Twelvedata
+# Algoserver
 
-Twelvedata API
+Algoserver API
