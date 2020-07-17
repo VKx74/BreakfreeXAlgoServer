@@ -18,7 +18,6 @@ namespace Algoserver.API.Helpers
 
     public class TradeEntryResult
     {
-        public InfoPanelData infoPanelData { get; set; }
         public decimal algo_TP2 { get; internal set; }
         public decimal algo_TP1_high { get; internal set; }
         public decimal algo_TP1_low { get; internal set; }
@@ -149,6 +148,19 @@ namespace Algoserver.API.Helpers
                 buyTP2 = buyEntry + ((buyTP1 - buyEntry) / 2);
             }
 
+            if (buyTP1 == decimal.MaxValue) {
+                buyTP1 = decimal.Zero;
+            }
+            
+            if (buyTP2 == decimal.MaxValue) {
+                buyTP2 = decimal.Zero;
+            }
+            
+            if (buyEntry == decimal.MaxValue) {
+                buyEntry = decimal.Zero;
+            }
+
+
             //Find sell entry under dsma200
             var smaTolSell = (s1 * (1 + (isForex ? 0.001m : 0.01m)));
             var sma21sell = (s21 < s1);
@@ -249,6 +261,18 @@ namespace Algoserver.API.Helpers
                 sellTP2 = sellEntry - ((sellEntry - sellTP1) / 2);
             }
 
+            if (sellTP1 == decimal.MaxValue) {
+                sellTP1 = decimal.Zero;
+            }
+            
+            if (sellTP2 == decimal.MaxValue) {
+                sellTP2 = decimal.Zero;
+            }
+            
+            if (sellEntry == decimal.MaxValue) {
+                sellEntry = decimal.Zero;
+            }
+
 
             //N formation and hit TP1 within x candles? (true means cancel trade below)/
             var checkBuy100_d = false;
@@ -272,22 +296,24 @@ namespace Algoserver.API.Helpers
 
 
             //trade cancelled checks
-            var _byEntry100_can = (aRS && buyEntry != buyMax && buyTP1 != decimal.MaxValue && buyTP2 != decimal.MaxValue && buyEntryIs100 && greaterThan4hr) && (checkBuy100_d || !sj_allow[1]);
-            var _byEntry75_can = (aRS && buyEntry != buyMax && buyTP1 != decimal.MaxValue && buyTP2 != decimal.MaxValue && (!buyEntryIs100) && greaterThan4hr) && (checkBuy75t_d || !sj_allow[1]);
-            var _byEntry100_4hr_can = (aRS && buyEntry != buyMax && buyTP1 != decimal.MaxValue && buyTP2 != decimal.MaxValue && buyEntryIs100 && (!greaterThan4hr)) && (!sj_allow[1]);
-            var _byEntry75_4hr_can = (aRS && buyEntry != buyMax && buyTP1 != decimal.MaxValue && buyTP2 != decimal.MaxValue && (!buyEntryIs100) && (!greaterThan4hr)) && (!sj_allow[1]);
+            var _byEntry100_can = (aRS && buyEntry != buyMax && buyTP1 != decimal.Zero && buyTP2 != decimal.Zero && buyEntryIs100 && greaterThan4hr) && (checkBuy100_d || !sj_allow[1]);
+            var _byEntry75_can = (aRS && buyEntry != buyMax && buyTP1 != decimal.Zero && buyTP2 != decimal.Zero && (!buyEntryIs100) && greaterThan4hr) && (checkBuy75t_d || !sj_allow[1]);
+            var _byEntry100_4hr_can = (aRS && buyEntry != buyMax && buyTP1 != decimal.Zero && buyTP2 != decimal.Zero && buyEntryIs100 && (!greaterThan4hr)) && (!sj_allow[1]);
+            var _byEntry75_4hr_can = (aRS && buyEntry != buyMax && buyTP1 != decimal.Zero && buyTP2 != decimal.Zero && (!buyEntryIs100) && (!greaterThan4hr)) && (!sj_allow[1]);
+
             var _slEntry100_can = (aRS && sellEntry != sellMax && sellTP1 != 0 && sellTP2 != 0 && sellEntryIs100 && greaterThan4hr) && (checkSell100_d || !sj_allow[1]);
             var _slEntry75_can = (aRS && sellEntry != sellMax && sellTP1 != 0 && sellTP2 != 0 && (!sellEntryIs100) && greaterThan4hr) && (checkSell75t_d || !sj_allow[1]);
             var _slEntry100_4hr_can = (aRS && sellEntry != sellMax && sellTP1 != 0 && sellTP2 != 0 && sellEntryIs100 && (!greaterThan4hr)) && (!sj_allow[1]);
             var _slEntry75_4hr_can = (aRS && sellEntry != sellMax && sellTP1 != 0 && sellTP2 != 0 && (!sellEntryIs100) && (!greaterThan4hr)) && (!sj_allow[1]);
 
-            var _buyEntry100 = aRS && buyEntry != buyMax && buyTP1 != decimal.MaxValue && buyTP2 != decimal.MaxValue && buyEntryIs100 && greaterThan4hr && (!checkBuy100_d) && sj_allow[1] ? buyEntry : decimal.Zero;
-            var _buyEntry75 = aRS && buyEntry != buyMax && buyTP1 != decimal.MaxValue && buyTP2 != decimal.MaxValue && (!buyEntryIs100) && greaterThan4hr && (!checkBuy75t_d) && sj_allow[1] ? buyEntry : decimal.Zero;
-            var _buyEntry1004hr = aRS && buyEntry != buyMax && buyTP1 != decimal.MaxValue && buyTP2 != decimal.MaxValue && buyEntryIs100 && (!greaterThan4hr) && (!checkBuy100_4hr) && sj_allow[1] ? buyEntry : decimal.Zero;
-            var _buyEntry754hr = aRS && buyEntry != buyMax && buyTP1 != decimal.MaxValue && buyTP2 != decimal.MaxValue && (!buyEntryIs100) && (!greaterThan4hr) && (!checkBuy75t_4hr) && sj_allow[1] ? buyEntry : decimal.Zero;
+            var _buyEntry100 = aRS && buyEntry != buyMax && buyTP1 != decimal.Zero && buyTP2 != decimal.Zero && buyEntryIs100 && greaterThan4hr && (!checkBuy100_d) && sj_allow[1] ? buyEntry : decimal.Zero;
+            var _buyEntry75 = aRS && buyEntry != buyMax && buyTP1 != decimal.Zero && buyTP2 != decimal.Zero && (!buyEntryIs100) && greaterThan4hr && (!checkBuy75t_d) && sj_allow[1] ? buyEntry : decimal.Zero;
+            var _buyEntry1004hr = aRS && buyEntry != buyMax && buyTP1 != decimal.Zero && buyTP2 != decimal.Zero && buyEntryIs100 && (!greaterThan4hr) && (!checkBuy100_4hr) && sj_allow[1] ? buyEntry : decimal.Zero;
+            var _buyEntry754hr = aRS && buyEntry != buyMax && buyTP1 != decimal.Zero && buyTP2 != decimal.Zero && (!buyEntryIs100) && (!greaterThan4hr) && (!checkBuy75t_4hr) && sj_allow[1] ? buyEntry : decimal.Zero;
             var _buyEntryExists = decimal.Zero != _buyEntry100 || decimal.Zero != _buyEntry75 || decimal.Zero != _buyEntry1004hr || decimal.Zero != _buyEntry754hr;
-            var _buyTP1 = aRS && buyEntry != buyMax && buyTP1 != decimal.MaxValue && _buyEntryExists ? Math.Min(buyTP1, buyTP2) : decimal.Zero;
-            var _buyTP2 = aRS && buyEntry != buyMax && buyTP2 != decimal.MaxValue && _buyEntryExists ? Math.Max(buyTP1, buyTP2) : decimal.Zero;
+            var _buyTP1 = aRS && buyEntry != buyMax && buyTP1 != decimal.Zero && _buyEntryExists ? Math.Min(buyTP1, buyTP2) : decimal.Zero;
+            var _buyTP2 = aRS && buyEntry != buyMax && buyTP2 != decimal.Zero && _buyEntryExists ? Math.Max(buyTP1, buyTP2) : decimal.Zero;
+
             var _sellEntry100 = aRS && sellEntry != sellMax && sellTP1 != 0 && sellTP2 != 0 && sellEntryIs100 && greaterThan4hr && (!checkSell100_d) && sj_allow[1] ? sellEntry : decimal.Zero;
             var _sellEntry75 = aRS && sellEntry != sellMax && sellTP1 != 0 && sellTP2 != 0 && (!sellEntryIs100) && greaterThan4hr && (!checkSell75t_d) && sj_allow[1] ? sellEntry : decimal.Zero;
             var _sellEntry1004hr = aRS && sellEntry != sellMax && sellTP1 != 0 && sellTP2 != 0 && sellEntryIs100 && (!greaterThan4hr) && (!checkSell100_4hr) && sj_allow[1] ? sellEntry : decimal.Zero;
@@ -596,6 +622,17 @@ namespace Algoserver.API.Helpers
             var return_TP1_low = return_TP1 - (avgrange * 0.0625m);
 
             var alogRandomizedShift = GetRandomizedShift(return_Entry);
+
+            if (return_Entry == decimal.Zero) {
+                return_TP1 = decimal.Zero;
+                return_TP2 = decimal.Zero;
+                return_Stop = decimal.Zero;
+                return_Entry_high = decimal.Zero;
+                return_Entry_low = decimal.Zero;
+                return_TP1_high = decimal.Zero;
+                return_TP1_low = decimal.Zero;
+                alogRandomizedShift = decimal.Zero;
+            }
 
             var returnData = new TradeEntryResult {
                  // xmode

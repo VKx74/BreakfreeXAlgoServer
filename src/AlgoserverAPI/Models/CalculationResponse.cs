@@ -99,7 +99,7 @@ namespace Algoserver.API.Models.REST
         public decimal P28 { get; set; }
 
         [JsonProperty("algo_TP2")]
-        public decimal? ALGO_TP2 { get; set; }
+        public decimal? AlgoTP2 { get; set; }
 
         [JsonProperty("algo_TP1_high")]
         public decimal? AlgoTP1High { get; set; }
@@ -135,7 +135,7 @@ namespace Algoserver.API.Models.REST
         public string Status { get; set; } // Trade found
 
         [JsonProperty("suggestedrisk")]
-        public decimal Suggestedrisk { get; set; }
+        public string Suggestedrisk { get; set; }
 
         [JsonProperty("positionsize")]
         public string Positionsize { get; set; } // 0 | Split: 0

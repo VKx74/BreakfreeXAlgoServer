@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Algoserver.API.Helpers;
 using Algoserver.API.Models.REST;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
@@ -13,21 +16,41 @@ namespace Algoserver.API.Services
     public class HistoryService
     {
         private const int BARS_COUNT = 800;
-        private const int ONE_DAY_TIME_SHIFT = 1000 * 60 * 60 * 24;
+        private const int ONE_DAY_TIME_SHIFT = 60 * 60 * 24;
 
         private readonly HttpClient _httpClient;
         private readonly ILogger<HistoryService> _logger;
+        private readonly string _serverUrl;
+        private readonly IMemoryCache _cache;
 
-        public HistoryService(ILogger<HistoryService> logger) {
+        public HistoryService(ILogger<HistoryService> logger, IConfiguration configuration, IMemoryCache cache)
+        {
             _logger = logger;
+            _cache = cache;
+            _serverUrl = configuration["DatafeedEndpoint"];
             _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
         public async Task<HistoryResponse> GetHistory(string symbol, int granularity, string datafeed, string exchange = "")
         {
-            long endDate = AlgoHelper.UnixTimeNow() + (1000 * 60 * 60 * 12); // + 12h to prevent TZ difference
-            long startDate = endDate - (BARS_COUNT * granularity * 1000);
+            var hash = getHash(symbol, granularity, datafeed, exchange);
+
+            try
+            {
+                if (_cache.TryGetValue(hash, out HistoryResponse cachedResponse))
+                {
+                    return cachedResponse;
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Failed to get cached response");
+                _logger.LogError(e.Message);
+            }
+
+            long endDate = AlgoHelper.UnixTimeNow() + (60 * 60 * 12); // + 12h to prevent TZ difference
+            long startDate = endDate - (BARS_COUNT * granularity);
             int day = new DateTime(startDate).Day;
 
             // load more minute data
@@ -47,16 +70,28 @@ namespace Algoserver.API.Services
                 startDate = startDate - ONE_DAY_TIME_SHIFT;
             }
 
-            return await LoadHistoricalData(datafeed, symbol, granularity, startDate / 1000, endDate / 1000, exchange);
+            var result = await LoadHistoricalData(datafeed, symbol, granularity, startDate, endDate, exchange);
+
+            try
+            {
+                if (result != null && result.Data != null && result.Data.Bars != null && result.Data.Bars.Any())
+                {
+                    _cache.Set(hash, result, TimeSpan.FromMinutes(1));
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Failed to set cached response");
+                _logger.LogError(e.Message);
+            }
+
+            return result;
         }
 
         private async Task<HistoryResponse> LoadHistoricalData(string datafeed, string symbol, int granularity, long startDate, long endDate, string exchange = "")
         {
-            // TODO: Move out to config file
-            var serverUrl = "https://datafeed.breakfreetrading.com";
-
-            var uri = $"{serverUrl}/${datafeed.ToLowerInvariant()}/history?" +
-                      $"kind=daterange&symbol=${symbol}&granularity=${granularity}&from=${startDate}&to=${endDate}";
+            var uri = $"{_serverUrl}/{datafeed.ToLowerInvariant()}/history?" +
+                      $"kind=daterange&symbol={symbol}&granularity={granularity}&from={startDate}&to={endDate}";
 
             if (string.IsNullOrWhiteSpace(exchange))
             {
@@ -64,7 +99,7 @@ namespace Algoserver.API.Services
             }
 
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
-            
+
             var response = await _httpClient.SendAsync(request);
             var content = await response.Content.ReadAsStringAsync();
 
@@ -75,6 +110,11 @@ namespace Algoserver.API.Services
             }
 
             return JsonConvert.DeserializeObject<HistoryResponse>(content);
+        }
+
+        private string getHash(string symbol, int granularity, string datafeed, string exchange = "")
+        {
+            return $"{symbol}{granularity}{datafeed}{exchange}";
         }
     }
 }

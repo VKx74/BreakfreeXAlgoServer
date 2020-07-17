@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 namespace Algoserver.API.Services
@@ -11,15 +12,28 @@ namespace Algoserver.API.Services
 
         private readonly ILogger<PriceRatioCalculationService> _logger;
         private readonly HistoryService _historyService;
+        private readonly InstrumentService _instrumentService;
+        private readonly IMemoryCache _cache;
 
-        public PriceRatioCalculationService(ILogger<PriceRatioCalculationService> logger, HistoryService historyService)
+        public PriceRatioCalculationService(ILogger<PriceRatioCalculationService> logger, HistoryService historyService, InstrumentService instrumentService, IMemoryCache cache)
         {
+            _cache = cache;
             _logger = logger;
             _historyService = historyService;
+            _instrumentService = instrumentService;
         }
 
         public async Task<decimal> GetUSDRatio(string symbol, string datafeed, string exchange)
         {
+            try {
+                if (_cache.TryGetValue(symbol, out decimal cachedResponse)) {
+                    return cachedResponse;
+                }
+            } catch(Exception e) {
+                _logger.LogError("Failed to get cached response");
+                _logger.LogError(e.Message);
+            }
+
             var instrumentSeparator = "/";
             if (datafeed == "oanda") {
                 instrumentSeparator = "_";
@@ -35,18 +49,38 @@ namespace Algoserver.API.Services
                 return 1; // ***/USD -> USD/USD ratio = 1
             }
 
-            var crossSymbol = $"USD{instrumentSeparator}{currencies[0]}";
+            var crossSymbol = $"USD{instrumentSeparator}{currencies[1]}";
+            var direct = true;
+
+            if (!_instrumentService.SymbolExist(datafeed, crossSymbol)) {
+                crossSymbol = $"{currencies[1]}{instrumentSeparator}USD";
+                direct = false;
+
+                if (!_instrumentService.SymbolExist(datafeed, crossSymbol)) {
+                    return 1;
+                }
+            }
+
+            var result = 1m;
 
             try {
                 var dailyPriceData = await _historyService.GetHistory(crossSymbol, DAILYG_RANULARITY, datafeed, exchange);
-                if (dailyPriceData != null && dailyPriceData.Bars != null && dailyPriceData.Bars.Any()) {
-                    return dailyPriceData.Bars.Last().Close;
+                if (dailyPriceData != null && dailyPriceData.Data.Bars != null && dailyPriceData.Data.Bars.Any()) {
+                    var price = dailyPriceData.Data.Bars.Last().Close;
+                    result = direct ? price : 1 / price;
                 }
             } catch (Exception ex) {
                 _logger.LogError($"Failed to get price ratio history. {crossSymbol}, {datafeed}, {exchange}");
             }
 
-            return 1;
+            try {
+                _cache.Set(symbol, result, TimeSpan.FromHours(1));
+            } catch(Exception e) {
+                _logger.LogError("Failed to set cached response");
+                _logger.LogError(e.Message);
+            }
+
+            return result;
         }
         
     }

@@ -9,12 +9,6 @@ namespace Algoserver.API.Models.REST
         [JsonProperty("id")]
         public string Id { get; set; }
 
-        [JsonProperty("time")]
-        public int Time { get; set; } // 1594650600000
-
-        [JsonProperty("timenow")]
-        public int Timenow { get; set; }
-
         [JsonProperty("timeframe")]
         public Timeframe Timeframe { get; set; }
 
@@ -25,7 +19,7 @@ namespace Algoserver.API.Models.REST
         public decimal InputStoplossRatio { get; set; }
 
         [JsonProperty("input_detectlowhigh")]
-        public bool inputDetectlowHigh { get; set; }
+        public bool? inputDetectlowHigh { get; set; }
 
         [JsonProperty("input_splitpositions")]
         public decimal InputSplitPositions { get; set; }
@@ -39,7 +33,7 @@ namespace Algoserver.API.Models.REST
 
     public class Timeframe
     {
-        [JsonProperty("Periodicity")]
+        [JsonProperty("periodicity")]
         public string Periodicity { get; set; }
 
         [JsonProperty("interval")]
@@ -50,9 +44,6 @@ namespace Algoserver.API.Models.REST
     {
         [JsonProperty("id")]
         public string Id { get; set; } // AUD_USD
-
-        [JsonProperty("symbol")]
-        public string Symbol { get; set; } // AUDUSD
 
         [JsonProperty("exchange")]
         public string Exchange { get; set; }
@@ -74,11 +65,5 @@ namespace Algoserver.API.Models.REST
 
         [JsonProperty("dependInstrument")]
         public string DependInstrument { get; set; } // AUD
-
-        [JsonProperty("company")]
-        public string Company { get; set; } // AUD vs USD
-
-        [JsonProperty("tradable")]
-        public bool Tradable { get; set; }
     }
 }

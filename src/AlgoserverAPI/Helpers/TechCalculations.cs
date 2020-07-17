@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Algoserver.API.Helpers
 {
@@ -26,11 +27,12 @@ namespace Algoserver.API.Helpers
         public static decimal LowestOnRange(decimal[] data, int lookback)
         {
             var lowest = decimal.MaxValue;
-            for (var i = 0; i <= lookback && i < data.Length; i++)
+            var reversedArray = data.Reverse().ToArray();
+            for (var i = 0; i <= lookback && i < reversedArray.Length; i++)
             {
-                if (data[i] < lowest)
+                if (reversedArray[i] < lowest)
                 {
-                    lowest = data[i];
+                    lowest = reversedArray[i];
                 }
             }
             return lowest;
@@ -39,11 +41,12 @@ namespace Algoserver.API.Helpers
         public static decimal HighestOnRange(decimal[] data, int lookback)
         {
             var highest = decimal.MinValue;
-            for (var i = 0; i <= lookback && i < data.Length; i++)
+            var reversedArray = data.Reverse().ToArray();
+            for (var i = 0; i <= lookback && i < reversedArray.Length; i++)
             {
-                if (data[i] > highest)
+                if (reversedArray[i] > highest)
                 {
-                    highest = data[i];
+                    highest = reversedArray[i];
                 }
             }
             return highest;
@@ -52,9 +55,10 @@ namespace Algoserver.API.Helpers
         public static decimal Sun(decimal[] data, int count)
         {
             var sum = decimal.Zero;
-            for (var i = 0; i < count && i < data.Length; i++)
+            var reversedArray = data.Reverse().ToArray();
+            for (var i = 0; i < count && i < reversedArray.Length; i++)
             {
-                sum += data[i] / count;
+                sum += reversedArray[i] / count;
             }
             return sum;
         }
@@ -168,9 +172,10 @@ namespace Algoserver.API.Helpers
         public static decimal PercentRank(decimal[] data, int count)
         {
             var numberEqualOrBellow = 0;
-            for (var i = 1; i <= count && i < data.Length; i++)
+            var reversedArray = data.Reverse().ToArray();
+            for (var i = 1; i <= count && i < reversedArray.Length; i++)
             {
-                if (data[i] <= data[0])
+                if (reversedArray[i] <= reversedArray[0])
                 {
                     numberEqualOrBellow++;
                 }

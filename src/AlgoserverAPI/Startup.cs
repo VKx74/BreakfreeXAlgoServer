@@ -35,6 +35,7 @@ namespace Algoserver.API
 
             services.AddLogging(opt => opt.AddConsole().AddDebug());
             services.AddSingleton<IConfiguration>(Configuration);
+            services.AddSingleton<InstrumentService>();
             services.AddSingleton<HistoryService>();
             services.AddSingleton<PriceRatioCalculationService>();
             services.AddSingleton<AlgoService>();
@@ -83,8 +84,10 @@ namespace Algoserver.API
             services.AddMemoryCache();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, InstrumentService instrumentService)
         {
+            instrumentService.Init();
+            
             app.UseCors();
             if (env.IsDevelopment())
             {

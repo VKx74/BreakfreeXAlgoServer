@@ -8,23 +8,12 @@ namespace Algoserver.API.Models.Algo
 {
     public class InputDataContainer
     {
-        /// <summary>
-        /// Current bar time in UNIX format. It is the number of milliseconds that have elapsed since 00:00:00 UTC, 1 January 1970. (Only updates whilst market open)
-        /// </summary>
-        [JsonProperty("time")]
-        public int Time { get; set; } 
         
         /// <summary>
         /// Unique ID of request
         /// </summary>
         [JsonProperty("id")]
         public string Id { get; set; }
-
-        /// <summary>
-        /// Current time in UNIX format. It is the number of milliseconds that have elapsed since 00:00:00 UTC, 1 January 1970. (Only updates whilst market open)
-        /// </summary>
-        [JsonProperty("timenow")]
-        public int Timenow { get; set; }
 
         /// <summary>
         /// Multiplier of resolution, e.g. '60' - 60, 'D' - 1, '5D' - 5, '12M' - 12
@@ -111,15 +100,13 @@ namespace Algoserver.API.Models.Algo
             return new InputDataContainer
             {
                 Id = req.Id,
-                Time = req.Time,
-                Timenow = req.Timenow,
                 TimeframeInterval = req.Timeframe.Interval,
                 TimeframePeriod = req.Timeframe.Periodicity,
                 Mintick = req.Instrument.TickSize,
                 Type = req.Instrument.Type.ToLowerInvariant(),
-                Symbol = req.Instrument.Id ?? req.Instrument.Symbol,
+                Symbol = req.Instrument.Id,
                 InputStoplossRatio = req.InputStoplossRatio,
-                InputDetectLowHigh = req.inputDetectlowHigh,
+                InputDetectLowHigh = req.inputDetectlowHigh.GetValueOrDefault(false),
                 InputSplitPositions = req.InputSplitPositions,
                 InputAccountSize = req.InputAccountSize,
                 InputRisk = req.InputRisk,

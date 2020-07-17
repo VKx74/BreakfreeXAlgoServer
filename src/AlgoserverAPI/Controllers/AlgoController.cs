@@ -20,7 +20,7 @@ namespace Algoserver.API.Controllers
             _cache = cache;
         }
 
-        [Authorize]
+        // [Authorize]
         [HttpPost(Routes.Calculate)]
         [ProducesResponseType(typeof(Response<CalculationResponse>), 200)]
         public async Task<IActionResult> CalculateAsync([FromBody] CalculationRequest request)
