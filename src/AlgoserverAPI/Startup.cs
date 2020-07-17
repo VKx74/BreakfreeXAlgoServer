@@ -24,14 +24,18 @@ namespace Algoserver.API
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc(options =>
+            services.AddMvcCore(options =>
             {
                 //routing prefix stuff
                 var routeAttribute = new RouteAttribute(RoutePrefix);
                 options.Conventions.Insert(0, new RouteConvention(routeAttribute));
             })
             .AddJsonOptions(options => options.SerializerSettings.ContractResolver = new DefaultContractResolver())
-            .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
+            .AddApiExplorer()
+            .AddJsonFormatters()
+            .AddDataAnnotations()
+            .AddAuthorization();
 
             services.AddLogging(opt => opt.AddConsole().AddDebug());
             services.AddSingleton<IConfiguration>(Configuration);
@@ -79,6 +83,7 @@ namespace Algoserver.API
                     options.Authority = Configuration.GetValue<string>("Authority");
                     options.ApiName = Scopes.USER_API;
                     options.RequireHttpsMetadata = false;
+                    options.EnableCaching = true;
                 });
 
             services.AddMemoryCache();

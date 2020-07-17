@@ -2,8 +2,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.DependencyInjection;
-using System;
 using System.Threading.Tasks;
 using Algoserver.API.Models.REST;
 using Algoserver.API.Services;
@@ -20,7 +18,7 @@ namespace Algoserver.API.Controllers
             _cache = cache;
         }
 
-        // [Authorize]
+        [Authorize]
         [HttpPost(Routes.Calculate)]
         [ProducesResponseType(typeof(Response<CalculationResponse>), 200)]
         public async Task<IActionResult> CalculateAsync([FromBody] CalculationRequest request)
