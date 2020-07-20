@@ -2,7 +2,7 @@
 
 namespace Algoserver.API.Models.REST
 {
-    public class HistoryResponse
+    public class OandaHistoryResponse
     {
         public HistoryData Data { get; set; }
     } 

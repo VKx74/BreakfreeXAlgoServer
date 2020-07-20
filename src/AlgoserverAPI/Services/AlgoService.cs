@@ -43,7 +43,7 @@ namespace Algoserver.API.Services
             var granularity = AlgoHelper.ConvertTimeframeToCranularity(container.TimeframeInterval, container.TimeframePeriod);
             var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange);
             var dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILYG_RANULARITY, container.Datafeed, container.Exchange);
-            container.InsertHistory(currentPriceData.Data.Bars, dailyPriceData.Data.Bars);
+            container.InsertHistory(currentPriceData.Bars, dailyPriceData.Bars);
             return container;
         }
         public async Task<CalculationResponse> CalculateAsync(CalculationRequest req)

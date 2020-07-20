@@ -36,13 +36,13 @@ namespace Algoserver.API.Services
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
-        public async Task<HistoryResponse> GetHistory(string symbol, int granularity, string datafeed, string exchange = "")
+        public async Task<HistoryData> GetHistory(string symbol, int granularity, string datafeed, string exchange = "")
         {   
             var hash = getHash(symbol, granularity, datafeed, exchange);
 
             try
             {
-                if (_cache.TryGetValue(hash, out HistoryResponse cachedResponse))
+                if (_cache.TryGetValue(hash, out HistoryData cachedResponse))
                 {
                     return cachedResponse;
                 }
@@ -78,7 +78,7 @@ namespace Algoserver.API.Services
 
             try
             {
-                if (result != null && result.Data != null && result.Data.Bars != null && result.Data.Bars.Any())
+                if (result != null && result != null && result.Bars != null && result.Bars.Any())
                 {
                     _cache.Set(hash, result, TimeSpan.FromMinutes(1));
                 }
@@ -92,16 +92,17 @@ namespace Algoserver.API.Services
             return result;
         }
 
-        private async Task<HistoryResponse> LoadHistoricalData(string datafeed, string symbol, int granularity, long startDate, long endDate, string exchange = "")
+        private async Task<HistoryData> LoadHistoricalData(string datafeed, string symbol, int granularity, long startDate, long endDate, string exchange = "")
         {
             var exists = _contextAccessor.HttpContext.Request.Headers.TryGetValue("Authorization", out var authHeader);
             var bearerString = authHeader.ToString();
+            var bearerdatafeed = datafeed.ToLowerInvariant();
 
             if (!exists || string.IsNullOrEmpty(bearerString)) {
 
             }
 
-            var uri = $"{_serverUrl}/{datafeed.ToLowerInvariant()}/history?" +
+            var uri = $"{_serverUrl}/{bearerdatafeed}/history?" +
                       $"kind=daterange&symbol={symbol}&granularity={granularity}&from={startDate}&to={endDate}";
 
             if (string.IsNullOrWhiteSpace(exchange))
@@ -124,7 +125,14 @@ namespace Algoserver.API.Services
                 response.EnsureSuccessStatusCode();
             }
 
-            return JsonConvert.DeserializeObject<HistoryResponse>(content);
+            if (bearerdatafeed == "oanda") {
+                var oandaResponse = JsonConvert.DeserializeObject<OandaHistoryResponse>(content);
+                return oandaResponse.Data;
+            } else {
+                var historyResponse = JsonConvert.DeserializeObject<HistoryData>(content);
+                return historyResponse;
+            }
+
         }
 
         private string getHash(string symbol, int granularity, string datafeed, string exchange = "")

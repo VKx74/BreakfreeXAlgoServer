@@ -65,8 +65,8 @@ namespace Algoserver.API.Services
 
             try {
                 var dailyPriceData = await _historyService.GetHistory(crossSymbol, DAILYG_RANULARITY, datafeed, exchange);
-                if (dailyPriceData != null && dailyPriceData.Data.Bars != null && dailyPriceData.Data.Bars.Any()) {
-                    var price = dailyPriceData.Data.Bars.Last().Close;
+                if (dailyPriceData != null && dailyPriceData.Bars != null && dailyPriceData.Bars.Any()) {
+                    var price = dailyPriceData.Bars.Last().Close;
                     result = direct ? price : 1 / price;
                 }
             } catch (Exception ex) {
