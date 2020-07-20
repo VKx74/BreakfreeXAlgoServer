@@ -104,7 +104,8 @@ namespace Algoserver.API.Services
                 AlgoStop = trade.algo_Stop,
                 AlgoRisk = trade.algo_Risk,
                 AlgoInfo = algoInfo,
-                Id = container.Id
+                Id = container.Id,
+                Clean = true
             };
             return returnData;
         }
