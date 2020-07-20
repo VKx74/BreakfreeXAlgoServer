@@ -344,7 +344,7 @@ namespace Algoserver.API.Helpers
 
             //No trade zone
             var daily = timeframe_isdaily;
-            var noTradeZone = sellEntry == sellMax && buyEntry == buyMax;
+            var noTradeZone = sellEntry == decimal.Zero && buyEntry == decimal.Zero;
             var noTradeZone2 = !(decimal.Zero == _buyEntry100 || decimal.Zero == _buyEntry75 || decimal.Zero == _sellEntry100 || decimal.Zero == _sellEntry75 ||
                                  decimal.Zero == _buyEntry1004hr || decimal.Zero == _buyEntry754hr || decimal.Zero == _sellEntry1004hr || decimal.Zero == _sellEntry754hr);
 
