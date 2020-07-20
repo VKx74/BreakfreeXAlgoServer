@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using Algoserver.API.Conventions;
 using Algoserver.API.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace Algoserver.API
 {
@@ -37,6 +38,7 @@ namespace Algoserver.API
             .AddDataAnnotations()
             .AddAuthorization();
 
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddLogging(opt => opt.AddConsole().AddDebug());
             services.AddSingleton<IConfiguration>(Configuration);
             services.AddSingleton<InstrumentService>();

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Algoserver.API.Helpers;
 using Algoserver.API.Models.REST;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -20,20 +22,22 @@ namespace Algoserver.API.Services
 
         private readonly HttpClient _httpClient;
         private readonly ILogger<HistoryService> _logger;
+        private readonly IHttpContextAccessor _contextAccessor;
         private readonly string _serverUrl;
         private readonly IMemoryCache _cache;
 
-        public HistoryService(ILogger<HistoryService> logger, IConfiguration configuration, IMemoryCache cache)
+        public HistoryService(ILogger<HistoryService> logger, IConfiguration configuration, IMemoryCache cache, IHttpContextAccessor contextAccessor)
         {
             _logger = logger;
             _cache = cache;
+            _contextAccessor = contextAccessor;
             _serverUrl = configuration["DatafeedEndpoint"];
             _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
         public async Task<HistoryResponse> GetHistory(string symbol, int granularity, string datafeed, string exchange = "")
-        {
+        {   
             var hash = getHash(symbol, granularity, datafeed, exchange);
 
             try
@@ -90,6 +94,13 @@ namespace Algoserver.API.Services
 
         private async Task<HistoryResponse> LoadHistoricalData(string datafeed, string symbol, int granularity, long startDate, long endDate, string exchange = "")
         {
+            var exists = _contextAccessor.HttpContext.Request.Headers.TryGetValue("Authorization", out var authHeader);
+            var bearerString = authHeader.ToString();
+
+            if (!exists || string.IsNullOrEmpty(bearerString)) {
+
+            }
+
             var uri = $"{_serverUrl}/{datafeed.ToLowerInvariant()}/history?" +
                       $"kind=daterange&symbol={symbol}&granularity={granularity}&from={startDate}&to={endDate}";
 
@@ -98,7 +109,11 @@ namespace Algoserver.API.Services
                 uri = $"{uri}&exchange={exchange}";
             }
 
-            var request = new HttpRequestMessage(HttpMethod.Get, uri);
+            var request = new HttpRequestMessage(HttpMethod.Get, uri) {
+                 Headers = {
+                    { HttpRequestHeader.Authorization.ToString(), bearerString }
+                }
+            };
 
             var response = await _httpClient.SendAsync(request);
             var content = await response.Content.ReadAsStringAsync();
