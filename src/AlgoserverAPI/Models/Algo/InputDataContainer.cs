@@ -89,7 +89,10 @@ namespace Algoserver.API.Models.Algo
 
         [JsonProperty("datafeed")]
         public string Datafeed { get; set; }
-        
+
+        [JsonProperty("replay_back")]
+        public int ReplayBack { get; set; }
+
         public static InputDataContainer MapCalculationRequestToInputDataContainer(CalculationRequest req)
         {
             if (req == null)
@@ -113,7 +116,8 @@ namespace Algoserver.API.Models.Algo
                 Currency = req.Instrument.BaseInstrument,
                 QuotedCurrency = req.Instrument.DependInstrument,
                 Exchange = req.Instrument.Exchange.ToLowerInvariant(),
-                Datafeed = req.Instrument.Datafeed.ToLowerInvariant()
+                Datafeed = req.Instrument.Datafeed.ToLowerInvariant(),
+                ReplayBack = req.ReplayBack.GetValueOrDefault(0)
             };
         }
 
@@ -122,17 +126,51 @@ namespace Algoserver.API.Models.Algo
             UsdRatio = usdRatio;
         }
 
-        public void InsertHistory(IEnumerable<BarMessage> currentPriceData, IEnumerable<BarMessage> dailyPriceData)
+        public void InsertHistory(IEnumerable<BarMessage> currentPriceData, IEnumerable<BarMessage> dailyPriceData, int replayBack)
         {
-            Open = currentPriceData.Select(i => i.Open).ToArray();
-            High = currentPriceData.Select(i => i.High).ToArray();
-            Low = currentPriceData.Select(i => i.Low).ToArray(); 
-            Close = currentPriceData.Select(i => i.Close).ToArray();
+            var priceData = currentPriceData.Take(currentPriceData.Count() - replayBack);
 
-            OpenD = dailyPriceData.Select(i => i.Open).ToArray();
-            HighD = dailyPriceData.Select(i => i.High).ToArray();
-            LowD = dailyPriceData.Select(i => i.Low).ToArray();
-            CloseD = dailyPriceData.Select(i => i.Close).ToArray();
+            var priceDataCount = priceData.Count();
+            if (priceDataCount > 400) {
+                priceData = priceData.TakeLast(400);
+            }
+
+            Open = priceData.Select(i => i.Open).ToArray();
+            High = priceData.Select(i => i.High).ToArray();
+            Low = priceData.Select(i => i.Low).ToArray(); 
+            Close = priceData.Select(i => i.Close).ToArray();
+            var lastCandle = priceData.LastOrDefault();
+            var lastCandleTime = lastCandle != null ? lastCandle.Timestamp : 0;
+
+            var dailyPrices = dailyPriceData.TakeWhile(i => i.Timestamp <= lastCandleTime);
+
+            var dailyPriceCount = dailyPrices.Count();
+            if (dailyPriceCount > 400) {
+                dailyPrices = dailyPrices.TakeLast(400);
+            }
+
+            OpenD = dailyPrices.Select(i => i.Open).ToArray();
+            HighD = dailyPrices.Select(i => i.High).ToArray();
+            LowD = dailyPrices.Select(i => i.Low).ToArray();
+            CloseD = dailyPrices.Select(i => i.Close).ToArray();
+            var lastDailyCandle = dailyPrices.LastOrDefault();
+            var lastDailyCandleTime = lastDailyCandle != null ? lastDailyCandle.Timestamp : long.MaxValue;
+
+            if (replayBack != 0 && dailyPrices.Any()) {
+                var currentDayBars = priceData.Where(i => i.Timestamp >= lastDailyCandleTime);
+
+                if (!currentDayBars.Any()) {
+                    return;
+                }
+
+                var close = currentDayBars.Last().Close;
+                var high = currentDayBars.Max(i => i.High);
+                var low = currentDayBars.Min(i => i.Low);
+
+                CloseD[CloseD.Length - 1] = close;
+                HighD[HighD.Length - 1] = high;
+                LowD[LowD.Length - 1] = low;
+            }
         }
     }
 }

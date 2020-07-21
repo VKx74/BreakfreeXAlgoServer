@@ -17,7 +17,8 @@ namespace Algoserver.API.Services
     // Provide historical data from oanda or twelvedata datafeeds
     public class HistoryService
     {
-        private const int BARS_COUNT = 800;
+        private const int BARS_COUNT = 1000;
+        private const int MIN_BARS_COUNT = 400;
         private const int ONE_DAY_TIME_SHIFT = 60 * 60 * 24;
 
         private readonly HttpClient _httpClient;
@@ -36,7 +37,7 @@ namespace Algoserver.API.Services
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
-        public async Task<HistoryData> GetHistory(string symbol, int granularity, string datafeed, string exchange = "")
+        public async Task<HistoryData> GetHistory(string symbol, int granularity, string datafeed, string exchange, int replayBack = 0)
         {   
             var hash = getHash(symbol, granularity, datafeed, exchange);
 
@@ -44,7 +45,9 @@ namespace Algoserver.API.Services
             {
                 if (_cache.TryGetValue(hash, out HistoryData cachedResponse))
                 {
-                    return cachedResponse;
+                    if (cachedResponse.Bars != null && cachedResponse.Bars.Count() - replayBack >= MIN_BARS_COUNT) {
+                        return cachedResponse;
+                    }
                 }
             }
             catch (Exception e)
@@ -53,8 +56,9 @@ namespace Algoserver.API.Services
                 _logger.LogError(e.Message);
             }
 
+            var barsBack = BARS_COUNT + replayBack;
             long endDate = AlgoHelper.UnixTimeNow() + (60 * 60 * 12); // + 12h to prevent TZ difference
-            long startDate = endDate - (BARS_COUNT * granularity);
+            long startDate = endDate - (barsBack * granularity);
             int day = new DateTime(startDate).Day;
 
             // load more minute data
@@ -80,7 +84,11 @@ namespace Algoserver.API.Services
             {
                 if (result != null && result != null && result.Bars != null && result.Bars.Any())
                 {
-                    _cache.Set(hash, result, TimeSpan.FromMinutes(1));
+                    if (granularity > 60) {
+                        _cache.Set(hash, result, TimeSpan.FromMinutes(3));
+                    } else {
+                        _cache.Set(hash, result, TimeSpan.FromMinutes(1));
+                    }
                 }
             }
             catch (Exception e)

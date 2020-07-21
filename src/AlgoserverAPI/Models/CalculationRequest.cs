@@ -29,6 +29,9 @@ namespace Algoserver.API.Models.REST
 
         [JsonProperty("input_risk")]
         public decimal InputRisk { get; set; }
+
+        [JsonProperty("replay_back")]
+        public int? ReplayBack { get; set; }
     }
 
     public class Timeframe
