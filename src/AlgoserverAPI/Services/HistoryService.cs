@@ -37,7 +37,7 @@ namespace Algoserver.API.Services
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
-        public async Task<HistoryData> GetHistory(string symbol, int granularity, string datafeed, string exchange, int replayBack = 0)
+        public async Task<HistoryData> GetHistory(string symbol, int granularity, string datafeed, string exchange, string type, int replayBack = 0)
         {   
             var hash = getHash(symbol, granularity, datafeed, exchange);
 
@@ -57,6 +57,16 @@ namespace Algoserver.API.Services
             }
 
             var barsBack = BARS_COUNT + replayBack;
+
+            // less than 1 day (8 working hours + 2 weekend)
+            if (granularity < 86400) {
+                if (type == "forex" || type == "crypto" || exchange == "oanda") {
+                    barsBack *= 2;
+                } else {
+                    barsBack *= 5;
+                }
+            }
+            
             long endDate = AlgoHelper.UnixTimeNow() + (60 * 60 * 12); // + 12h to prevent TZ difference
             long startDate = endDate - (barsBack * granularity);
             int day = new DateTime(startDate).Day;

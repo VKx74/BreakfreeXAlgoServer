@@ -23,7 +23,7 @@ namespace Algoserver.API.Services
             _instrumentService = instrumentService;
         }
 
-        public async Task<decimal> GetUSDRatio(string symbol, string datafeed, string exchange)
+        public async Task<decimal> GetUSDRatio(string symbol, string datafeed, string type, string exchange)
         {
             try {
                 if (_cache.TryGetValue(symbol, out decimal cachedResponse)) {
@@ -64,7 +64,7 @@ namespace Algoserver.API.Services
             var result = 1m;
 
             try {
-                var dailyPriceData = await _historyService.GetHistory(crossSymbol, DAILYG_RANULARITY, datafeed, exchange);
+                var dailyPriceData = await _historyService.GetHistory(crossSymbol, DAILYG_RANULARITY, datafeed, type, exchange);
                 if (dailyPriceData != null && dailyPriceData.Bars != null && dailyPriceData.Bars.Any()) {
                     var price = dailyPriceData.Bars.Last().Close;
                     result = direct ? price : 1 / price;

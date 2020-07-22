@@ -34,15 +34,15 @@ namespace Algoserver.API.Services
             }
 
             if (container.Type == "forex") {
-                var usdRatio = await _priceRatioCalculationService.GetUSDRatio(container.Symbol, container.Datafeed, container.Exchange);
+                var usdRatio = await _priceRatioCalculationService.GetUSDRatio(container.Symbol, container.Datafeed, container.Type, container.Exchange);
                 container.setUsdRatio(usdRatio);
             } else {
                 container.setUsdRatio(1);
             }
 
             var granularity = AlgoHelper.ConvertTimeframeToCranularity(container.TimeframeInterval, container.TimeframePeriod);
-            var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.ReplayBack);
-            var dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILYG_RANULARITY, container.Datafeed, container.Exchange, container.ReplayBack);
+            var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+            var dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILYG_RANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             container.InsertHistory(currentPriceData.Bars, dailyPriceData.Bars, container.ReplayBack);
             return container;
         }
