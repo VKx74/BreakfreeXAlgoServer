@@ -1,3 +1,3 @@
-# AlgoServer
+# Algoserver
 
-Algo server
+Algoserver API
