@@ -452,6 +452,10 @@ namespace Algoserver.API.Helpers
                 sttLblTxt = sttLblTxt + "Trade Cancelled";
             }
 
+            if (timeframe_isintraday) {
+                sttLblTxt = "N/A below 1D TF";
+            }
+
             var syminfo_currency = container.Currency;
 
             var infoPanelData = new InfoPanelData
