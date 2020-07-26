@@ -412,7 +412,7 @@ namespace Algoserver.API.Helpers
                 {
                     if (isForex)
                     {
-                        positionValue = (buyEntry * ((accountSize * (suggestedRisk / 100)) / Math.Abs(buyEntry - stopLossPosBuy))) / 100000; //forex
+                        positionValue = (((accountSize * (suggestedRisk / 100)) / Math.Abs(buyEntry - stopLossPosBuy))) / 100000; //forex
                     }
                     else
                     {
@@ -425,7 +425,7 @@ namespace Algoserver.API.Helpers
                     {
                         if (isForex)
                         {
-                            positionValue = (sellEntry * ((accountSize * (suggestedRisk / 100)) / Math.Abs(sellEntry - stopLossPosSell))) / 100000; //forex
+                            positionValue = (((accountSize * (suggestedRisk / 100)) / Math.Abs(sellEntry - stopLossPosSell))) / 100000; //forex
                         }
                         else
                         {
