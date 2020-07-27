@@ -17,12 +17,14 @@ namespace Algoserver.API.Services
         private readonly ILogger<AlgoService> _logger;
         private readonly HistoryService _historyService;
         private readonly PriceRatioCalculationService _priceRatioCalculationService;
+        private readonly StatisticsService _statisticsService;
 
-        public AlgoService(ILogger<AlgoService> logger, HistoryService historyService, PriceRatioCalculationService priceRatioCalculationService)
+        public AlgoService(ILogger<AlgoService> logger, HistoryService historyService, PriceRatioCalculationService priceRatioCalculationService, StatisticsService statisticsService)
         {
             _logger = logger;
             _historyService = historyService;
             _priceRatioCalculationService = priceRatioCalculationService;
+            _statisticsService = statisticsService;
         }
 
         public async Task<InputDataContainer> InitAsync(CalculationRequest req) {
