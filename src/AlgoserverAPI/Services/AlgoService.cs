@@ -46,6 +46,43 @@ namespace Algoserver.API.Services
             container.InsertHistory(currentPriceData.Bars, dailyPriceData.Bars, container.ReplayBack);
             return container;
         }
+
+        internal async Task<List<TradeEntryResult>> BacktestAsync(BacktestRequest req)
+        {
+            var container = InputDataContainer.MapCalculationRequestToInputDataContainer(req);
+            if (container.Datafeed != "twelvedata" && container.Datafeed != "oanda")
+            {
+                throw new ApiException(HttpStatusCode.BadRequest,
+                    $"Unsupported '{container.Datafeed}' datafeed. Available 'twelvedata' or 'oanda' only.");
+            }
+
+            if (container.Type == "forex") {
+                var usdRatio = await _priceRatioCalculationService.GetUSDRatio(container.Symbol, container.Datafeed, container.Type, container.Exchange);
+                container.setUsdRatio(usdRatio);
+            } else {
+                container.setUsdRatio(1);
+            }
+
+            var granularity = AlgoHelper.ConvertTimeframeToCranularity(container.TimeframeInterval, container.TimeframePeriod);
+            var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+            var dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILYG_RANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+
+            var replayBack = container.ReplayBack;
+            var tradeEntryResults = new List<TradeEntryResult>();
+
+            while (replayBack >= 0) {
+                container.InsertHistory(currentPriceData.Bars, dailyPriceData.Bars, replayBack);
+                replayBack--;
+
+                var levels = TechCalculations.CalculateLevels(container.High, container.Low);
+                var sar = SupportAndResistance.Calculate(levels, container.Mintick);
+                var trade = TradeEntry.Calculate(container, levels, sar);
+                // tradeEntryResults.Add(trade);
+            }
+
+            return tradeEntryResults;
+        }
+
         public async Task<CalculationResponse> CalculateAsync(CalculationRequest req)
         {
             var container = await InitAsync(req);

@@ -32,5 +32,20 @@ namespace Algoserver.API.Controllers
 
             return Json(result);
         }
+        
+        [Authorize]
+        [HttpPost(Routes.Backtest)]
+        [ProducesResponseType(typeof(Response<CalculationResponse>), 200)]
+        public async Task<IActionResult> BacktestAsync([FromBody] BacktestRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
+            }
+
+            var result = await _algoService.BacktestAsync(request);
+
+            return Json(result);
+        }
     }
 }
