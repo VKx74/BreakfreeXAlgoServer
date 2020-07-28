@@ -69,14 +69,16 @@ namespace Algoserver.API.Services
 
             var replayBack = container.ReplayBack;
             var tradeEntryResults = new List<TradeEntryResult>();
-            container.InsertHistory(currentPriceData.Bars, dailyPriceData.Bars, replayBack);
 
-            do {
-                var levels = TechCalculations.CalculateLevels(container.High.ToArray(), container.Low.ToArray());
+            while (replayBack >= 0) {
+                container.InsertHistory(currentPriceData.Bars, dailyPriceData.Bars, replayBack);
+                replayBack--;
+
+                var levels = TechCalculations.CalculateLevels(container.High, container.Low);
                 var sar = SupportAndResistance.Calculate(levels, container.Mintick);
                 var trade = TradeEntry.Calculate(container, levels, sar);
-                tradeEntryResults.Add(trade);
-            } while(container.AppendOne(currentPriceData.Bars, dailyPriceData.Bars, granularity));
+                // tradeEntryResults.Add(trade);
+            }
 
             return tradeEntryResults;
         }
@@ -84,7 +86,7 @@ namespace Algoserver.API.Services
         public async Task<CalculationResponse> CalculateAsync(CalculationRequest req)
         {
             var container = await InitAsync(req);
-            var levels = TechCalculations.CalculateLevels(container.High.ToArray(), container.Low.ToArray());
+            var levels = TechCalculations.CalculateLevels(container.High, container.Low);
             var sar = SupportAndResistance.Calculate(levels, container.Mintick);
             var trade = TradeEntry.Calculate(container, levels, sar);
 
