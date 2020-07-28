@@ -34,7 +34,7 @@ namespace Algoserver.API.Helpers
         public static TradeEntryResult Calculate(InputDataContainer container, Levels levels, SupportAndResistanceResult sar)
         {
             var isForex = container.Type == "forex";
-            var dailyData = container.CloseD;
+            var dailyData = container.CloseD.ToArray();
             var buyMax = 0m;
             var buyEntry = buyMax;
             var buyEntryIs100 = false;
@@ -51,7 +51,7 @@ namespace Algoserver.API.Helpers
             var hma21 = TechCalculations.Hma(dailyData, 50);
             var s21 = hma21.LastOrDefault();
 
-            var dsma5 = TechCalculations.Sun(container.CloseD, 5);
+            var dsma5 = TechCalculations.Sun(dailyData, 5);
             var smaTolBuy = (s1 * (1 - (isForex ? 0.001m : 0.01m)));
             var sma21buy = s21 > s1;
 
@@ -736,7 +736,7 @@ namespace Algoserver.API.Helpers
 
         private static decimal AverageRange(int period, decimal scale_multiplier, InputDataContainer container)
         {
-            var substracted = TechCalculations.SubtractArrays(container.HighD, container.LowD);
+            var substracted = TechCalculations.SubtractArrays(container.HighD.ToArray(), container.LowD.ToArray());
             var avgRng = TechCalculations.Sun(substracted, period) * scale_multiplier;
             return avgRng;
         }  

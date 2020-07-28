@@ -28,28 +28,34 @@ namespace Algoserver.API.Models.Algo
         public string TimeframePeriod { get; set; }
 
         [JsonProperty("open")]
-        public decimal[] Open { get; set; }
+        public List<decimal> Open { get; set; }
 
         [JsonProperty("high")]
-        public decimal[] High { get; set; }
+        public List<decimal> High { get; set; }
 
         [JsonProperty("low")]
-        public decimal[] Low { get; set; }
+        public List<decimal> Low { get; set; }
 
         [JsonProperty("close")]
-        public decimal[] Close { get; set; }
+        public List<decimal> Close { get; set; } 
+        
+        [JsonProperty("close")]
+        public List<long> Time { get; set; }
 
         [JsonProperty("open_D")]
-        public decimal[] OpenD { get; set; }
+        public List<decimal> OpenD { get; set; }
 
         [JsonProperty("high_D")]
-        public decimal[] HighD { get; set; }
+        public List<decimal> HighD { get; set; }
 
         [JsonProperty("low_D")]
-        public decimal[] LowD { get; set; }
+        public List<decimal> LowD { get; set; }
 
         [JsonProperty("close_D")]
-        public decimal[] CloseD { get; set; }
+        public List<decimal> CloseD { get; set; }
+
+        [JsonProperty("time_D")]
+        public List<long> TimeD { get; set; }
 
         [JsonProperty("mintick")]
         public decimal Mintick { get; set; }
@@ -135,12 +141,12 @@ namespace Algoserver.API.Models.Algo
                 priceData = priceData.TakeLast(400);
             }
 
-            Open = priceData.Select(i => i.Open).ToArray();
-            High = priceData.Select(i => i.High).ToArray();
-            Low = priceData.Select(i => i.Low).ToArray(); 
-            Close = priceData.Select(i => i.Close).ToArray();
-            var lastCandle = priceData.LastOrDefault();
-            var lastCandleTime = lastCandle != null ? lastCandle.Timestamp : 0;
+            Open = priceData.Select(i => i.Open).ToList();
+            High = priceData.Select(i => i.High).ToList();
+            Low = priceData.Select(i => i.Low).ToList(); 
+            Close = priceData.Select(i => i.Close).ToList();
+            Time = priceData.Select(i => i.Timestamp).ToList();
+            var lastCandleTime = Time.LastOrDefault();
 
             var dailyPrices = dailyPriceData.TakeWhile(i => i.Timestamp <= lastCandleTime);
 
@@ -149,12 +155,12 @@ namespace Algoserver.API.Models.Algo
                 dailyPrices = dailyPrices.TakeLast(400);
             }
 
-            OpenD = dailyPrices.Select(i => i.Open).ToArray();
-            HighD = dailyPrices.Select(i => i.High).ToArray();
-            LowD = dailyPrices.Select(i => i.Low).ToArray();
-            CloseD = dailyPrices.Select(i => i.Close).ToArray();
-            var lastDailyCandle = dailyPrices.LastOrDefault();
-            var lastDailyCandleTime = lastDailyCandle != null ? lastDailyCandle.Timestamp : long.MaxValue;
+            OpenD = dailyPrices.Select(i => i.Open).ToList();
+            HighD = dailyPrices.Select(i => i.High).ToList();
+            LowD = dailyPrices.Select(i => i.Low).ToList();
+            CloseD = dailyPrices.Select(i => i.Close).ToList();
+            TimeD = dailyPrices.Select(i => i.Timestamp).ToList();
+            var lastDailyCandleTime = TimeD.LastOrDefault();
 
             if (replayBack != 0 && dailyPrices.Any()) {
                 var currentDayBars = priceData.Where(i => i.Timestamp >= lastDailyCandleTime);
@@ -167,10 +173,57 @@ namespace Algoserver.API.Models.Algo
                 var high = currentDayBars.Max(i => i.High);
                 var low = currentDayBars.Min(i => i.Low);
 
-                CloseD[CloseD.Length - 1] = close;
-                HighD[HighD.Length - 1] = high;
-                LowD[LowD.Length - 1] = low;
+                CloseD[CloseD.Count - 1] = close;
+                HighD[HighD.Count - 1] = high;
+                LowD[LowD.Count - 1] = low;
             }
+        } 
+        
+        public bool AppendOne(IEnumerable<BarMessage> currentPriceData, IEnumerable<BarMessage> dailyPriceData, int granularity)
+        {
+            var lastCandleTime = Time.LastOrDefault();
+            var nextCandle = currentPriceData.FirstOrDefault(_ => _.Timestamp > lastCandleTime);
+
+            if (nextCandle == null) {
+                return false;
+            }
+
+            Open.Add(nextCandle.Open);
+            High.Add(nextCandle.High);
+            Low.Add(nextCandle.Low);
+            Close.Add(nextCandle.Close);
+            Time.Add(nextCandle.Timestamp);
+            lastCandleTime = nextCandle.Timestamp;
+
+            var lastDailyCandleTime = Time.LastOrDefault();
+            var nextDailyCandles = dailyPriceData.Where(_ => _.Timestamp > lastDailyCandleTime && _.Timestamp <= lastCandleTime);
+            
+            foreach (var nextDailyCandle in nextDailyCandles) {
+                OpenD.Add(nextDailyCandle.Open);
+                HighD.Add(nextDailyCandle.High);
+                LowD.Add(nextDailyCandle.Low);
+                CloseD.Add(nextDailyCandle.Close);
+                TimeD.Add(nextDailyCandle.Timestamp);
+            }
+
+            if (granularity >= 86400) {
+                return true;
+            }
+
+            lastDailyCandleTime = TimeD.LastOrDefault();
+
+            var currentDayBars = currentPriceData.Where(i => i.Timestamp >= lastDailyCandleTime && i.Timestamp <= lastCandleTime);
+
+            if (currentDayBars.Any()) {
+                var close = currentDayBars.Last().Close;
+                var high = currentDayBars.Max(i => i.High);
+                var low = currentDayBars.Min(i => i.Low);
+                CloseD[CloseD.Count - 1] = close;
+                HighD[HighD.Count - 1] = high;
+                LowD[LowD.Count - 1] = low;
+            }
+
+            return true;
         }
     }
 }
