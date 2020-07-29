@@ -1,13 +1,11 @@
 ﻿using System.Collections.Generic;
+using Algoserver.API.Services;
 using Newtonsoft.Json;
 
 namespace Algoserver.API.Models.REST
 {
     public class CalculationResponse
     {
-        [JsonProperty("id")]
-        public string Id { get; set; }
-
         [JsonProperty("clean")]
         public bool Clean { get; set; }
 
@@ -148,5 +146,15 @@ namespace Algoserver.API.Models.REST
 
         [JsonProperty("n_currencySymbol")]
         public string NCurrencySymbol { get; set; }
+    }
+
+    public class BacktestSignal { 
+        public long timestamp { get; set; }
+        public CalculationResponse data { get; set; }
+    } 
+    
+    public class BacktestAction { 
+        public long timestamp { get; set; }
+        public CalculationResponse data { get; set; }
     }
 }

@@ -110,12 +110,10 @@ namespace Algoserver.API.Helpers
                 var wma2Value = wma2[i];
                 var diffDataRows = 2 * wma1Value - wma2Value;
                 diffDataSeries.Add(diffDataRows);
-                var wmaDiffDataRows = TechCalculations.Wma(diffDataSeries.ToArray(), Convert.ToInt32(diffWmaPeriod));
-                var val = wmaDiffDataRows[i];
-                res.Add(val);
             }
 
-            return res.ToArray();
+            var wmaDiffDataRows = TechCalculations.Wma(diffDataSeries.ToArray(), Convert.ToInt32(diffWmaPeriod));
+            return wmaDiffDataRows.ToArray();
         }
 
         public static decimal[] Cmo(decimal[] data, int period)

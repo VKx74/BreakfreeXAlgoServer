@@ -39,6 +39,9 @@ namespace Algoserver.API.Models.Algo
         [JsonProperty("close")]
         public decimal[] Close { get; set; }
 
+        [JsonProperty("time")]
+        public long[] Time { get; set; }
+
         [JsonProperty("open_D")]
         public decimal[] OpenD { get; set; }
 
@@ -131,22 +134,24 @@ namespace Algoserver.API.Models.Algo
             var priceData = currentPriceData.Take(currentPriceData.Count() - replayBack);
 
             var priceDataCount = priceData.Count();
-            if (priceDataCount > 400) {
-                priceData = priceData.TakeLast(400);
+            if (priceDataCount > 300) {
+                priceData = priceData.TakeLast(300);
             }
 
             Open = priceData.Select(i => i.Open).ToArray();
             High = priceData.Select(i => i.High).ToArray();
             Low = priceData.Select(i => i.Low).ToArray(); 
             Close = priceData.Select(i => i.Close).ToArray();
+            Time = priceData.Select(i => i.Timestamp).ToArray();
+            
             var lastCandle = priceData.LastOrDefault();
             var lastCandleTime = lastCandle != null ? lastCandle.Timestamp : 0;
 
             var dailyPrices = dailyPriceData.TakeWhile(i => i.Timestamp <= lastCandleTime);
 
             var dailyPriceCount = dailyPrices.Count();
-            if (dailyPriceCount > 400) {
-                dailyPrices = dailyPrices.TakeLast(400);
+            if (dailyPriceCount > 300) {
+                dailyPrices = dailyPrices.TakeLast(300);
             }
 
             OpenD = dailyPrices.Select(i => i.Open).ToArray();

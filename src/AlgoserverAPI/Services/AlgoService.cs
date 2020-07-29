@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Algoserver.API.Exceptions;
@@ -25,7 +26,8 @@ namespace Algoserver.API.Services
             _priceRatioCalculationService = priceRatioCalculationService;
         }
 
-        public async Task<InputDataContainer> InitAsync(CalculationRequest req) {
+        public async Task<InputDataContainer> InitAsync(CalculationRequest req)
+        {
             var container = InputDataContainer.MapCalculationRequestToInputDataContainer(req);
             if (container.Datafeed != "twelvedata" && container.Datafeed != "oanda")
             {
@@ -33,10 +35,13 @@ namespace Algoserver.API.Services
                     $"Unsupported '{container.Datafeed}' datafeed. Available 'twelvedata' or 'oanda' only.");
             }
 
-            if (container.Type == "forex") {
+            if (container.Type == "forex")
+            {
                 var usdRatio = await _priceRatioCalculationService.GetUSDRatio(container.Symbol, container.Datafeed, container.Type, container.Exchange);
                 container.setUsdRatio(usdRatio);
-            } else {
+            }
+            else
+            {
                 container.setUsdRatio(1);
             }
 
@@ -47,40 +52,10 @@ namespace Algoserver.API.Services
             return container;
         }
 
-        internal async Task<List<TradeEntryResult>> BacktestAsync(BacktestRequest req)
-        {
-            var container = InputDataContainer.MapCalculationRequestToInputDataContainer(req);
-            if (container.Datafeed != "twelvedata" && container.Datafeed != "oanda")
-            {
-                throw new ApiException(HttpStatusCode.BadRequest,
-                    $"Unsupported '{container.Datafeed}' datafeed. Available 'twelvedata' or 'oanda' only.");
-            }
-
-            if (container.Type == "forex") {
-                var usdRatio = await _priceRatioCalculationService.GetUSDRatio(container.Symbol, container.Datafeed, container.Type, container.Exchange);
-                container.setUsdRatio(usdRatio);
-            } else {
-                container.setUsdRatio(1);
-            }
-
-            var granularity = AlgoHelper.ConvertTimeframeToCranularity(container.TimeframeInterval, container.TimeframePeriod);
-            var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
-            var dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILYG_RANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
-
-            var replayBack = container.ReplayBack;
-            var tradeEntryResults = new List<TradeEntryResult>();
-
-            while (replayBack >= 0) {
-                container.InsertHistory(currentPriceData.Bars, dailyPriceData.Bars, replayBack);
-                replayBack--;
-
-                var levels = TechCalculations.CalculateLevels(container.High, container.Low);
-                var sar = SupportAndResistance.Calculate(levels, container.Mintick);
-                var trade = TradeEntry.Calculate(container, levels, sar);
-                // tradeEntryResults.Add(trade);
-            }
-
-            return tradeEntryResults;
+        internal Task<BacktestResponse> BacktestAsync(BacktestRequest req) {
+            return Task.Run(async () => {
+                return await backtestAsync(req);
+            });
         }
 
         public async Task<CalculationResponse> CalculateAsync(CalculationRequest req)
@@ -89,8 +64,79 @@ namespace Algoserver.API.Services
             var levels = TechCalculations.CalculateLevels(container.High, container.Low);
             var sar = SupportAndResistance.Calculate(levels, container.Mintick);
             var trade = TradeEntry.Calculate(container, levels, sar);
+            var result = this.toResponse(levels, sar, trade);
+            return result;
+        }
 
-            var algoInfo = new AlgoInfo {
+        private async Task<BacktestResponse> backtestAsync(BacktestRequest req)
+        {
+            var container = InputDataContainer.MapCalculationRequestToInputDataContainer(req);
+            if (container.Datafeed != "twelvedata" && container.Datafeed != "oanda")
+            {
+                throw new ApiException(HttpStatusCode.BadRequest,
+                    $"Unsupported '{container.Datafeed}' datafeed. Available 'twelvedata' or 'oanda' only.");
+            }
+
+            // if (container.Type == "forex")
+            // {
+            //     var usdRatio = await _priceRatioCalculationService.GetUSDRatio(container.Symbol, container.Datafeed, container.Type, container.Exchange);
+            //     container.setUsdRatio(usdRatio);
+            // }
+            // else
+            // {
+                container.setUsdRatio(1);
+            // }
+
+            var granularity = AlgoHelper.ConvertTimeframeToCranularity(container.TimeframeInterval, container.TimeframePeriod);
+            var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+            var dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILYG_RANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+
+            var replayBack = container.ReplayBack;
+            var response = new BacktestResponse();
+            response.signals = new List<BacktestSignal>();
+            TradeEntryResult lastSignal = null;
+
+            while (replayBack >= 0)
+            {
+                container.InsertHistory(currentPriceData.Bars, dailyPriceData.Bars, replayBack);
+                replayBack--;
+
+                var levels = TechCalculations.CalculateLevels(container.High, container.Low);
+                var sar = SupportAndResistance.Calculate(levels, container.Mintick);
+                var trade = TradeEntry.Calculate(container, levels, sar, false);
+                if (trade.algo_Entry != Decimal.Zero)
+                {
+                    if (lastSignal != null)
+                    {
+                        if (TradeEntryResult.IsEquals(lastSignal, trade))
+                        {
+                            continue;
+                        }
+                    }
+
+                    lastSignal = trade;
+
+                    var result = this.toResponse(levels, sar, trade);
+                    response.signals.Add(new BacktestSignal
+                    {
+                        data = result,
+                        timestamp = container.Time.LastOrDefault()
+                    });
+                }
+            }
+
+            var signalProcessor = new SignalsProcessor(currentPriceData.Bars, response.signals);
+            var orders = signalProcessor.Calculate();
+            response.orders = orders;
+
+            return response;
+        }
+
+        private CalculationResponse toResponse(Levels levels, SupportAndResistanceResult sar, TradeEntryResult trade)
+        {
+
+            var algoInfo = new AlgoInfo
+            {
                 Macrotrend = trade.algo_Info.macrotrend,
                 NCurrencySymbol = trade.algo_Info.n_currencySymbol,
                 Objective = trade.algo_Info.objective,
@@ -100,8 +146,9 @@ namespace Algoserver.API.Services
                 Suggestedrisk = trade.algo_Info.suggestedrisk
             };
 
-            var returnData = new CalculationResponse {
-                 // xmode
+            var returnData = new CalculationResponse
+            {
+                // xmode
                 EE = levels.Level128.EightEight,
                 EE1 = levels.Level32.EightEight,
                 EE2 = levels.Level16.EightEight,
@@ -141,7 +188,6 @@ namespace Algoserver.API.Services
                 AlgoStop = trade.algo_Stop,
                 AlgoRisk = trade.algo_Risk,
                 AlgoInfo = algoInfo,
-                Id = container.Id,
                 Clean = true
             };
             return returnData;

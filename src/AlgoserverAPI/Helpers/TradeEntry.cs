@@ -27,11 +27,20 @@ namespace Algoserver.API.Helpers
         public decimal algo_Stop { get; internal set; }
         public decimal algo_Risk { get; internal set; }
         public InfoPanelData algo_Info { get; internal set; }
+
+        public static bool IsEquals(TradeEntryResult obj1, TradeEntryResult obj2) {
+            if (obj1.algo_TP2 != obj2.algo_TP2) return false;
+            if (obj1.algo_Entry != obj2.algo_Entry) return false;
+            if (obj1.algo_Stop != obj2.algo_Stop) return false;
+
+            return true;
+        }
+
     }
 
     public static class TradeEntry
     {
-        public static TradeEntryResult Calculate(InputDataContainer container, Levels levels, SupportAndResistanceResult sar)
+        public static TradeEntryResult Calculate(InputDataContainer container, Levels levels, SupportAndResistanceResult sar, bool randomize = true)
         {
             var isForex = container.Type == "forex";
             var dailyData = container.CloseD;
@@ -626,6 +635,10 @@ namespace Algoserver.API.Helpers
             var return_TP1_low = return_TP1 - (avgrange * 0.0625m);
 
             var alogRandomizedShift = GetRandomizedShift(return_Entry);
+
+            if (!randomize) {
+                alogRandomizedShift = decimal.Zero;
+            }
 
             if (return_Entry == decimal.Zero) {
                 return_TP1 = decimal.Zero;

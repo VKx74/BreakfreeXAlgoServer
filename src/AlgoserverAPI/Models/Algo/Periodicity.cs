@@ -13,4 +13,5 @@ namespace Algoserver.API.Models.Algo
         public const string MONTH = "m";
         public const string YEAR = "y";
     }
+    
 }
