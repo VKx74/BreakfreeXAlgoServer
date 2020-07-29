@@ -12,8 +12,10 @@ using Swashbuckle.AspNetCore.SwaggerUI;
 using System;
 using System.Collections.Generic;
 using Algoserver.API.Conventions;
+using Algoserver.API.Data;
 using Algoserver.API.Services;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace Algoserver.API
 {
@@ -45,6 +47,7 @@ namespace Algoserver.API
             services.AddSingleton<HistoryService>();
             services.AddSingleton<PriceRatioCalculationService>();
             services.AddSingleton<AlgoService>();
+            services.AddSingleton<StatisticsService>();
 
             services.AddCors(options =>
             {
@@ -56,6 +59,10 @@ namespace Algoserver.API
                     .AllowAnyHeader();
                 });
             });
+
+            // Initialize DB context
+            services.AddDbContext(Program.Configuration);
+            services.AddOptions();
 
             services.AddSwaggerGen(options =>
             {

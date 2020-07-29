@@ -18,7 +18,7 @@ namespace Algoserver.API.Services
         private readonly ILogger<AlgoService> _logger;
         private readonly HistoryService _historyService;
         private readonly PriceRatioCalculationService _priceRatioCalculationService;
-
+        
         public AlgoService(ILogger<AlgoService> logger, HistoryService historyService, PriceRatioCalculationService priceRatioCalculationService)
         {
             _logger = logger;
@@ -49,6 +49,7 @@ namespace Algoserver.API.Services
             var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             var dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILYG_RANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             container.InsertHistory(currentPriceData.Bars, dailyPriceData.Bars, container.ReplayBack);
+            
             return container;
         }
 
@@ -190,6 +191,7 @@ namespace Algoserver.API.Services
                 AlgoInfo = algoInfo,
                 Clean = true
             };
+
             return returnData;
         }
     }
