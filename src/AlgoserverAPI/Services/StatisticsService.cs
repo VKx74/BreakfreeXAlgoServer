@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Timers;
+using Algoserver.API.Data.Repositories;
 using Algoserver.API.Models;
-using Algoserver.API.Repositories;
 using Microsoft.Extensions.Logging;
 
 namespace Algoserver.API.Services
@@ -19,7 +20,7 @@ namespace Algoserver.API.Services
         {
             _logger = logger;
             _statisticsCache = new List<Statistic>();
-            _dbBatchTimer.Elapsed += (sender, e) => DbSaveAndClearCache();
+            _dbBatchTimer.Elapsed += async (sender, e) => await DbSaveAndClearCacheAsync();
             _dbBatchTimer.Start();
         }
 
@@ -28,22 +29,20 @@ namespace Algoserver.API.Services
             _statisticsCache.Add(item);
         }
 
-        private void DbSaveAndClearCache()
+        private async Task DbSaveAndClearCacheAsync()
         {
             try
             {
                 if (_statisticsCache.Any())
                 {
-                    lock (_statisticsCache)
-                    {
-                        _repo.AddRange(_statisticsCache);
-                        _statisticsCache.Clear();
-                    }
+                    var buffer = _statisticsCache.ToArray();
+                    _statisticsCache.Clear();
+                    await _repo.AddRangeAsync(buffer);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError("Error during save statistics to db.", ex);
+                _logger.LogError($"Error during save statistics to db. {ex.Message}");
             }
         }
     }

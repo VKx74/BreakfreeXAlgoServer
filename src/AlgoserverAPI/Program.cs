@@ -3,12 +3,13 @@ using System.IO;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using MySql.Data.MySqlClient;
 
 namespace Algoserver.API
 {
     public class Program
     {
-        public static string DbName { get; set; } = "algostatistics";
+        public static string DbName { get; set; }
         public static IConfigurationRoot Configuration { get; private set; }
         private const string ASPNETCORE_ENVIRONMENT = "ASPNETCORE_ENVIRONMENT";
 
@@ -36,6 +37,14 @@ namespace Algoserver.API
                 .AddCommandLine(args);
 
             Configuration = builder.Build();
+
+
+
+            MySqlConnectionStringBuilder connBuilder = new MySqlConnectionStringBuilder
+            {
+                ConnectionString = Configuration.GetConnectionString("DefaultConnection")
+            };
+            DbName = connBuilder.Database;
         }
     }
 }

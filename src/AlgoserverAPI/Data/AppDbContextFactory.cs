@@ -14,44 +14,19 @@ namespace Algoserver.API.Data
 
         public AppDbContext CreateDbContext(string[] args)
         {
-            var environmentName = Environment.GetEnvironmentVariable("Hosting:Environment");
-            var basePath = AppContext.BaseDirectory;
+            var connectionString = Program.Configuration.GetConnectionString("DefaultConnection");
 
-            return CreateDbContext(basePath, environmentName);
-        }
-        
-        private AppDbContext CreateDbContext(string basePath, string environmentName)
-        {
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(basePath)
-                .AddJsonFile("appsettings.json")
-                .AddJsonFile($"appsettings.{environmentName}.json", true)
-                .AddEnvironmentVariables();
-
-            var config = builder.Build();
-
-            var connstr = config.GetConnectionString("DefaultConnection");
-
-            if (string.IsNullOrWhiteSpace(connstr))
+            if (string.IsNullOrWhiteSpace(connectionString))
             {
                 throw new InvalidOperationException("Could not find a connection string named 'DefaultConnection'.");
             }
-
-            return CreateDbContext(connstr);
-        }
-
-        private AppDbContext CreateDbContext(string connectionString)
-        {
-            if (string.IsNullOrEmpty(connectionString))
-            {
-                throw new ArgumentException($"{nameof(connectionString)} is null or empty.", nameof(connectionString));
-            }
-
+            
             var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
 
             optionsBuilder.UseMySql(connectionString);
 
             return new AppDbContext(optionsBuilder.Options);
         }
+        
     }
 }

@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Algoserver.API.Data;
 using Algoserver.API.Models;
 
-namespace Algoserver.API.Repositories
+namespace Algoserver.API.Data.Repositories
 {
     public class StatisticsRepository
     {
@@ -15,7 +14,7 @@ namespace Algoserver.API.Repositories
             _dbContextFactory = new AppDbContextFactory();
         }
 
-        public void AddRange(List<Statistic> statistics)
+        public void AddRange(Statistic[] statistics)
         {
             if (statistics != null && statistics.Any())
             {
@@ -27,7 +26,7 @@ namespace Algoserver.API.Repositories
             }
         }
 
-        public async Task AddRangeAsync(List<Statistic> statistics)
+        public async Task AddRangeAsync(IEnumerable<Statistic> statistics)
         {
             if (statistics != null && statistics.Any())
             {
