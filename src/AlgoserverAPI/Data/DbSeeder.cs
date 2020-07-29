@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -6,11 +7,12 @@ namespace Algoserver.API.Data
 {
     public static class DbSeeder
     {
-        public static void InitializeDbContext()
+        public static void InitializeDbContext(IServiceProvider serviceProvider)
         {
-            using (var context = new AppDbContext())
+            var options = serviceProvider.GetRequiredService<DbContextOptions<AppDbContext>>();
+            using (var context = new AppDbContext(options))
             {
-                context.Database.EnsureCreated();
+                // context.Database.EnsureCreated();
                 context.Database.Migrate();
                 context.SaveChanges();
             }
@@ -20,10 +22,9 @@ namespace Algoserver.API.Data
         {
             services.AddEntityFrameworkMySql().AddDbContext<AppDbContext>(options =>
             {
-                var connection = configuration["db"] ?? configuration.GetConnectionString("DefaultConnection");
-                options.UseMySql(connection);
+                options.UseMySql(configuration.GetConnectionString("DefaultConnection"));
             });
-            InitializeDbContext();
+            InitializeDbContext(services.BuildServiceProvider());
         }
     }
 }

@@ -1,10 +1,16 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using System.Threading.Tasks;
+using Algoserver.API.Exceptions;
+using Algoserver.API.Models;
 using Algoserver.API.Models.REST;
 using Algoserver.API.Services;
+using IdentityModel;
+using RabbitMQ.Client.Impl;
 
 namespace Algoserver.API.Controllers
 {
@@ -12,9 +18,12 @@ namespace Algoserver.API.Controllers
     {
         private IMemoryCache _cache;
         private AlgoService _algoService;
-        public AlgoController(AlgoService algoService, IMemoryCache cache)
+        private StatisticsService _statisticsService;
+
+        public AlgoController(AlgoService algoService, StatisticsService statisticsService, IMemoryCache cache)
         {
             _algoService = algoService;
+            _statisticsService = statisticsService;
             _cache = cache;
         }
 
@@ -29,6 +38,23 @@ namespace Algoserver.API.Controllers
             }
 
             var result = await _algoService.CalculateAsync(request);
+
+            _statisticsService.AddToCache(new Statistic
+            {
+                CreatedAt = DateTime.UtcNow,
+                UserId = User.FindFirstValue(JwtClaimTypes.Subject),
+                Email = User.FindFirstValue(JwtClaimTypes.Email),
+                FirstName = User.FindFirstValue("first_name"),
+                LastName = User.FindFirstValue("last_name"),
+                Ip = HttpContext.Request.ClientIp(),
+                AccountSize = request.InputAccountSize,
+                Market = request.Instrument.Exchange,
+                TimeFramePeriodicity = request.Timeframe.Periodicity,
+                TimeFrameInterval = request.Timeframe.Interval,
+                StopLossRatio = request.InputStoplossRatio,
+                RiskOverride = request.InputRisk,
+                SplitPositions = request.InputSplitPositions
+            });
 
             return Json(result);
         }

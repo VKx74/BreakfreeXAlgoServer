@@ -8,6 +8,7 @@ namespace Algoserver.API
 {
     public class Program
     {
+        public static string DbName { get; set; } = "algostatistics";
         public static IConfigurationRoot Configuration { get; private set; }
         private const string ASPNETCORE_ENVIRONMENT = "ASPNETCORE_ENVIRONMENT";
 

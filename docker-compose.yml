@@ -1,37 +1,33 @@
-vesrion: "3"
+version: "3"
 
 services:
-  algoserver.api:
-    #image: $REGISTRY/algoserver:latest
-    build: .
-    container_name: algoserver.api
-    logging:
-      options:
-        max-size: "10m"
-        max-file: "3"
-    restart: always
-    networks:
-      - internal
-    ports:
-      - "5013:80"
-    environment:
-      - Logging:LogLevel:Default=Debug
-      - AllowedHosts=*
-      - ASPNETCORE_ENVIRONMENT=Staging
-      - Authority=$IDENTITY_AUTHORITY
-      - RoutePrefix=algoserver
-      - DatafeedEndpoint=https://$DATAFEED_HOST
+  #algoserver.api:
+  #  #image: $REGISTRY/algoserver:latest
+  #  build: .
+  #  container_name: algoserver.api
+  #  logging:
+  #    options:
+  #      max-size: "10m"
+  #      max-file: "3"
+  #  restart: always
+  #  ports:
+  #    - "5013:80"
+  #  environment:
+  #    Logging:LogLevel:Default=Debug
+  #    AllowedHosts:*
+  #    ASPNETCORE_ENVIRONMENT:Staging
+  #    Authority:$IDENTITY_AUTHORITY
+  #    RoutePrefix:algoserver
+  #    DatafeedEndpoint:https://$DATAFEED_HOST
     
-  algostatistics:
+  statisticsdb:
     image: mysql:8.0.13
-    container_name: algostatistics
+    container_name: statisticsdb
     logging:
       options:
         max-size: "10m"
         max-file: "3"
     restart: always
-    networks:
-      - internal
     volumes:
       - /data/algostatistics:/var/lib/mysql
     #  - ./config/init.sql:/docker-entrypoint-initdb.d/init.sql

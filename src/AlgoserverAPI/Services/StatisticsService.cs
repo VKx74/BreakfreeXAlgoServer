@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Timers;
-using Algoserver.API.Data;
 using Algoserver.API.Models;
+using Algoserver.API.Repositories;
 using Microsoft.Extensions.Logging;
 
 namespace Algoserver.API.Services
@@ -11,34 +12,34 @@ namespace Algoserver.API.Services
     {
         private readonly List<Statistic> _statisticsCache;
         private readonly ILogger<StatisticsService> _logger;
-        private readonly AppDbContext _dbContext;
-        private readonly Timer _dbBatchTimer = new Timer(1000);
+        private readonly StatisticsRepository _repo = new StatisticsRepository();
+        private readonly Timer _dbBatchTimer = new Timer(1000 * 10);
 
-        public StatisticsService(ILogger<StatisticsService> logger, AppDbContext dbContext)
+        public StatisticsService(ILogger<StatisticsService> logger)
         {
             _logger = logger;
-            _dbContext = dbContext;
-
-            _dbBatchTimer.Elapsed += SaveToDb;
+            _statisticsCache = new List<Statistic>();
+            _dbBatchTimer.Elapsed += (sender, e) => DbSaveAndClearCache();
             _dbBatchTimer.Start();
         }
 
-        public void AddToStatisticsCache(Statistic item)
+        public void AddToCache(Statistic item)
         {
             _statisticsCache.Add(item);
         }
 
-        public void SaveToDb(object sender, ElapsedEventArgs e)
+        private void DbSaveAndClearCache()
         {
             try
             {
-                lock (_statisticsCache)
+                if (_statisticsCache.Any())
                 {
-                    _dbContext.Statistics.AddRange(_statisticsCache);
-                    _statisticsCache.Clear();
+                    lock (_statisticsCache)
+                    {
+                        _repo.AddRange(_statisticsCache);
+                        _statisticsCache.Clear();
+                    }
                 }
-
-                _dbContext.SaveChanges();
             }
             catch (Exception ex)
             {

@@ -17,14 +17,12 @@ namespace Algoserver.API.Services
         private readonly ILogger<AlgoService> _logger;
         private readonly HistoryService _historyService;
         private readonly PriceRatioCalculationService _priceRatioCalculationService;
-        private readonly StatisticsService _statisticsService;
-
-        public AlgoService(ILogger<AlgoService> logger, HistoryService historyService, PriceRatioCalculationService priceRatioCalculationService, StatisticsService statisticsService)
+        
+        public AlgoService(ILogger<AlgoService> logger, HistoryService historyService, PriceRatioCalculationService priceRatioCalculationService)
         {
             _logger = logger;
             _historyService = historyService;
             _priceRatioCalculationService = priceRatioCalculationService;
-            _statisticsService = statisticsService;
         }
 
         public async Task<InputDataContainer> InitAsync(CalculationRequest req) {
@@ -46,6 +44,7 @@ namespace Algoserver.API.Services
             var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             var dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILYG_RANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             container.InsertHistory(currentPriceData.Bars, dailyPriceData.Bars, container.ReplayBack);
+            
             return container;
         }
         public async Task<CalculationResponse> CalculateAsync(CalculationRequest req)
@@ -109,6 +108,7 @@ namespace Algoserver.API.Services
                 Id = container.Id,
                 Clean = true
             };
+
             return returnData;
         }
     }

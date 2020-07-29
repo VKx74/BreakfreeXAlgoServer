@@ -15,6 +15,7 @@ using Algoserver.API.Conventions;
 using Algoserver.API.Data;
 using Algoserver.API.Services;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace Algoserver.API
 {
@@ -61,6 +62,7 @@ namespace Algoserver.API
 
             // Initialize DB context
             services.AddDbContext(Program.Configuration);
+            services.AddOptions();
 
             services.AddSwaggerGen(options =>
             {
