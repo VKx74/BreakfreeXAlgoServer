@@ -48,7 +48,7 @@ namespace Algoserver.API.Controllers
                 LastName = User.FindFirstValue("last_name"),
                 Ip = HttpContext.Request.ClientIp(),
                 AccountSize = request.InputAccountSize,
-                Market = request.Instrument.Exchange,
+                Market = $"{request.Instrument.Id}-{request.Instrument.Exchange}",
                 TimeFramePeriodicity = request.Timeframe.Periodicity,
                 TimeFrameInterval = request.Timeframe.Interval,
                 StopLossRatio = request.InputStoplossRatio,
