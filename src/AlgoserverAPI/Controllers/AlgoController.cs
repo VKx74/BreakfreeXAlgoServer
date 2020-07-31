@@ -39,6 +39,9 @@ namespace Algoserver.API.Controllers
 
             var result = await _algoService.CalculateAsync(request);
 
+            var instrument = request.Instrument.Id
+                .Replace("_", "")
+                .Replace("/","");
             _statisticsService.AddToCache(new Statistic
             {
                 CreatedAt = DateTime.UtcNow,
@@ -48,7 +51,7 @@ namespace Algoserver.API.Controllers
                 LastName = User.FindFirstValue("last_name"),
                 Ip = HttpContext.Request.ClientIp(),
                 AccountSize = request.InputAccountSize,
-                Market = $"{request.Instrument.Id}-{request.Instrument.Exchange}",
+                Market = $"{instrument}-{request.Instrument.Exchange}",
                 TimeFramePeriodicity = request.Timeframe.Periodicity,
                 TimeFrameInterval = request.Timeframe.Interval,
                 StopLossRatio = request.InputStoplossRatio,
