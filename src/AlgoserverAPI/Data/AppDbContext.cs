@@ -14,7 +14,7 @@ namespace Algoserver.API.Data
 
         public void AddTriggers()
         {
-            foreach (var file in Directory.GetFiles(Path.Combine(Directory.GetCurrentDirectory(), "Data\\Triggers"), "*.sql"))
+            foreach (var file in Directory.GetFiles(Path.Combine(Directory.GetCurrentDirectory(), "Data/Triggers"), "*.sql"))
             {
                 base.Database.ExecuteSqlCommand(File.ReadAllText(file), new object[0]);
             }
