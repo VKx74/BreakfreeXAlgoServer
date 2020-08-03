@@ -12,9 +12,8 @@ namespace Algoserver.API.Data
             var options = serviceProvider.GetRequiredService<DbContextOptions<AppDbContext>>();
             using (var context = new AppDbContext(options))
             {
-                // context.Database.EnsureCreated();
                 context.Database.Migrate();
-                context.SaveChanges();
+                context.AddTriggers();
             }
         }
 

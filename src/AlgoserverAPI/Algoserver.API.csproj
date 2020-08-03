@@ -37,4 +37,11 @@
     </Content>
   </ItemGroup>
 
+
+  <ItemGroup>
+    <None Update="Data\Triggers\CleanOldRecords.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
