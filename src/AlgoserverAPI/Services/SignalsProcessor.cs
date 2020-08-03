@@ -18,7 +18,7 @@ namespace Algoserver.API.Services
             _demoBroker = new DemoBroker();
         }
 
-        public List<Order> Calculate()
+        public List<Order> Backtest(int entryCount = 3)
         {
             BacktestSignal prevSignal = null;
             Order order1 = null;
@@ -89,9 +89,15 @@ namespace Algoserver.API.Services
                 };
 
                 try {
-                    order1 = _demoBroker.PlaceOrder(placeOrderRequest1);
-                    order2 = _demoBroker.PlaceOrder(placeOrderRequest2);
-                    order3 = _demoBroker.PlaceOrder(placeOrderRequest3);
+                    if (entryCount >= 1) {
+                        order1 = _demoBroker.PlaceOrder(placeOrderRequest1);
+                    }
+                    if (entryCount >= 2) {
+                        order2 = _demoBroker.PlaceOrder(placeOrderRequest2);
+                    }
+                    if (entryCount >= 3) {
+                        order3 = _demoBroker.PlaceOrder(placeOrderRequest3);
+                    }
                 } catch (Exception ex) {
 
                 }

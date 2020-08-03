@@ -70,7 +70,7 @@ namespace Algoserver.API.Models.Algo
         public bool InputDetectLowHigh { get; set; }
 
         [JsonProperty("input_splitpositions")]
-        public decimal InputSplitPositions { get; set; }
+        public int InputSplitPositions { get; set; }
 
         [JsonProperty("input_accountsize")]
         public decimal InputAccountSize { get; set; }

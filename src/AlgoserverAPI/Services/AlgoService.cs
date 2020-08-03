@@ -127,7 +127,7 @@ namespace Algoserver.API.Services
             }
 
             var signalProcessor = new SignalsProcessor(currentPriceData.Bars, response.signals);
-            var orders = signalProcessor.Calculate();
+            var orders = signalProcessor.Backtest(container.InputSplitPositions);
             response.orders = orders;
 
             return response;

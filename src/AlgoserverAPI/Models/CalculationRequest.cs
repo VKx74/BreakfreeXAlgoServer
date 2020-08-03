@@ -22,7 +22,7 @@ namespace Algoserver.API.Models.REST
         public bool? inputDetectlowHigh { get; set; }
 
         [JsonProperty("input_splitpositions")]
-        public decimal InputSplitPositions { get; set; }
+        public int InputSplitPositions { get; set; }
 
         [JsonProperty("input_accountsize")]
         public decimal InputAccountSize { get; set; }
