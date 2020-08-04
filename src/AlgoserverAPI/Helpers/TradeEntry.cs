@@ -36,6 +36,10 @@ namespace Algoserver.API.Helpers
             return true;
         }
 
+        public TradeEntryResult() {
+            algo_Info = new InfoPanelData();
+        }
+
     }
 
     public static class TradeEntry

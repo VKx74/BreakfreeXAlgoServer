@@ -9,12 +9,12 @@ namespace Algoserver.API.Data
     {
         public static void InitializeDbContext(IServiceProvider serviceProvider)
         {
-            var options = serviceProvider.GetRequiredService<DbContextOptions<AppDbContext>>();
-            using (var context = new AppDbContext(options))
-            {
-                context.Database.Migrate();
-                context.AddTriggers();
-            }
+            // var options = serviceProvider.GetRequiredService<DbContextOptions<AppDbContext>>();
+            // using (var context = new AppDbContext(options))
+            // {
+            //     context.Database.Migrate();
+            //     context.AddTriggers();
+            // }
         }
 
         public static void AddDbContext(this IServiceCollection services, IConfigurationRoot configuration)

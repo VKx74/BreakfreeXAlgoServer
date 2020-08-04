@@ -12,6 +12,19 @@ namespace Algoserver.API.Helpers
         public decimal ZeroEight { get; set; }
         public decimal Increment { get; set; }
         public decimal AbsTop { get; set; }
+
+        public static bool IsEquals(LookBackResult obj1, LookBackResult obj2) {
+            if (obj1.EightEight != obj2.EightEight) {
+                return false;
+            }
+            if (obj1.FourEight != obj2.FourEight) {
+                return false;
+            }
+            if (obj1.ZeroEight != obj2.ZeroEight) {
+                return false;
+            }
+            return true;
+        }
     }
     
     public class Levels

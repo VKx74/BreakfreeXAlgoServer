@@ -9,4 +9,8 @@ namespace Algoserver.API.Models.REST
         public List<BacktestSignal> signals { get; set; }
         public List<Order> orders { get; set; }
     }
+    public class ExtHitTestResponse 
+    {
+        public List<ExtHitTestSignal> signals { get; set; }
+    }
 }
