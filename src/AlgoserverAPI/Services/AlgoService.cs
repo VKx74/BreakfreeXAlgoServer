@@ -178,7 +178,7 @@ namespace Algoserver.API.Services
                 });
             }
 
-            var extHitTestProcessor = new ExtHitTestProcessor(currentPriceData.Bars, response.signals);
+            var extHitTestProcessor = new ExtHitTestProcessor(currentPriceData.Bars.Count() > container.ReplayBack ? currentPriceData.Bars.TakeLast(container.ReplayBack) : currentPriceData.Bars, response.signals);
             // processing passsed in constructor signals
             extHitTestProcessor.HitTest();
 

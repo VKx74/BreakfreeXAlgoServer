@@ -32,12 +32,12 @@ namespace Algoserver.API.Services
                     var topExt2 = signal.data.P28;
                     var topExt1 = signal.data.P18;
                     var resistance = signal.data.EE;
-                    var topShiftPossible = Math.Abs(topExt2 - topExt1) * 0.1m;
+                    var topShiftPossible = Math.Abs(topExt2 - topExt1) * 0.25m;
 
                     var support = signal.data.ZE;
                     var bottomExt1 = signal.data.M18;
                     var bottomExt2 = signal.data.M28;
-                    var bottomShiftPossible = Math.Abs(bottomExt1 - bottomExt2) * 0.1m;
+                    var bottomShiftPossible = Math.Abs(bottomExt1 - bottomExt2) * 0.25m;
 
                     if (high >= topExt1 && !signal.topext1hit) {
                         signal.topext1hit = true;
