@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Algoserver.API.Models.Broker;
 using Algoserver.API.Models.REST;
 
@@ -18,14 +19,21 @@ namespace Algoserver.API.Services
 
         public void HitTest()
         {
-
+            var signals = new Queue<ExtHitTestSignal>();
             foreach (var signal in _signals)
             {
-                foreach (var bar in _history)
+                signals.Enqueue(signal);
+            }
+
+            var signalsToProcess = new List<ExtHitTestSignal>();
+            foreach (var bar in _history)
+            {
+                var high = bar.High;
+                var low = bar.Low;
+                var timestamp = bar.Timestamp;
+
+                foreach (var signal in signalsToProcess)
                 {
-                    var high = bar.High;
-                    var low = bar.Low;
-                    var timestamp = bar.Timestamp;
                     if (signal.wentout || signal.backhit || timestamp < signal.timestamp)
                     {
                         continue;
@@ -43,7 +51,7 @@ namespace Algoserver.API.Services
 
                     if (!signal.backhit)
                     {
-                        if (signal.topext1hit || signal.topext2hit)
+                        if (signal.topext1hit)
                         {
                             if (low <= resistance)
                             {
@@ -54,7 +62,7 @@ namespace Algoserver.API.Services
                                 signal.wentout = true;
                             }
                         }
-                        else if (signal.bottomext1hit || signal.bottomext2hit)
+                        else if (signal.bottomext1hit)
                         {
                             if (high >= support)
                             {
@@ -71,19 +79,32 @@ namespace Algoserver.API.Services
                     {
                         signal.topext1hit = true;
                     }
-                    if (high >= topExt2 && !signal.topext2hit)
-                    {
-                        signal.topext2hit = true;
-                    }
 
                     if (low <= bottomExt1 && !signal.bottomext1hit)
                     {
                         signal.bottomext1hit = true;
                     }
-                    if (low <= bottomExt2 && !signal.bottomext2hit)
+                }
+                
+                ExtHitTestSignal nextSignal;
+                if (signals.TryPeek(out nextSignal))
+                {
+                    if (nextSignal != null && nextSignal.timestamp == bar.Timestamp)
                     {
-                        signal.bottomext2hit = true;
+                        signals.Dequeue();
+
+                        foreach (var signal in signalsToProcess.ToList())
+                        {   
+                            if (signal.wentout || signal.backhit) {
+                                signalsToProcess.Remove(signal);
+                            } else if (!signal.topext1hit && !signal.bottomext1hit) {
+                                signalsToProcess.Remove(signal);
+                            }
+                        }
+                        
+                        signalsToProcess.Add(nextSignal);
                     }
+
                 }
             }
         }
