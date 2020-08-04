@@ -18,14 +18,16 @@ namespace Algoserver.API.Services
 
         public void HitTest()
         {
-            foreach (var bar in _history)
-            {
-                var high = bar.High;
-                var low = bar.Low;
 
-                foreach (var signal in _signals)
+            foreach (var signal in _signals)
+            {
+                foreach (var bar in _history)
                 {
-                    if (signal.wentout || signal.backhit) {
+                    var high = bar.High;
+                    var low = bar.Low;
+                    var timestamp = bar.Timestamp;
+                    if (signal.wentout || signal.backhit || timestamp < signal.timestamp)
+                    {
                         continue;
                     }
 
@@ -39,34 +41,48 @@ namespace Algoserver.API.Services
                     var bottomExt2 = signal.data.M28;
                     var bottomShiftPossible = Math.Abs(bottomExt1 - bottomExt2) * 0.25m;
 
-                    if (high >= topExt1 && !signal.topext1hit) {
-                        signal.topext1hit = true;
-                    }
-                    if (high >= topExt2 && !signal.topext2hit) {
-                        signal.topext2hit = true;
-                    }  
-                    
-                    if (low <= bottomExt1 && !signal.bottomext1hit) {
-                        signal.bottomext1hit = true;
-                    }
-                    if (low <= bottomExt2 && !signal.bottomext2hit) {
-                        signal.bottomext2hit = true;
-                    }
-
-                    if (!signal.backhit) {
-                        if (signal.topext1hit || signal.topext2hit) {
-                            if (low <= resistance) {
+                    if (!signal.backhit)
+                    {
+                        if (signal.topext1hit || signal.topext2hit)
+                        {
+                            if (low <= resistance)
+                            {
                                 signal.backhit = true;
-                            } else if (high > topExt2 + topShiftPossible) {
-                                signal.wentout = true;
                             }
-                        } else if (signal.bottomext1hit || signal.bottomext2hit) {
-                            if (high >= support) {
-                                signal.backhit = true;
-                            } else if (low < bottomExt2 - bottomShiftPossible) {
+                            else if (high > topExt2 + topShiftPossible)
+                            {
                                 signal.wentout = true;
                             }
                         }
+                        else if (signal.bottomext1hit || signal.bottomext2hit)
+                        {
+                            if (high >= support)
+                            {
+                                signal.backhit = true;
+                            }
+                            else if (low < bottomExt2 - bottomShiftPossible)
+                            {
+                                signal.wentout = true;
+                            }
+                        }
+                    }
+
+                    if (high >= topExt1 && !signal.topext1hit)
+                    {
+                        signal.topext1hit = true;
+                    }
+                    if (high >= topExt2 && !signal.topext2hit)
+                    {
+                        signal.topext2hit = true;
+                    }
+
+                    if (low <= bottomExt1 && !signal.bottomext1hit)
+                    {
+                        signal.bottomext1hit = true;
+                    }
+                    if (low <= bottomExt2 && !signal.bottomext2hit)
+                    {
+                        signal.bottomext2hit = true;
                     }
                 }
             }
