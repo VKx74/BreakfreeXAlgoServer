@@ -41,14 +41,11 @@ namespace Algoserver.API.Helpers
         }
 
     }
-
     public static class TradeEntry
     {
         public static TradeEntryResult Calculate(InputDataContainer container, Levels levels, SupportAndResistanceResult sar, bool randomize = true)
         {
             var isForex = container.Type == "forex";
-            var dailyData = container.CloseD;
-            var lastPrice = container.Close.LastOrDefault();
             var buyMax = 0m;
             var buyEntry = buyMax;
             var buyEntryIs100 = false;
@@ -58,19 +55,17 @@ namespace Algoserver.API.Helpers
             var EightEight1 = levels.Level32.EightEight; var FourEight1 = levels.Level32.FourEight; var ZeroEight1 = levels.Level32.ZeroEight;
             var EightEight2 = levels.Level16.EightEight; var FourEight2 = levels.Level16.FourEight; var ZeroEight2 = levels.Level16.ZeroEight;
             var EightEight3 = levels.Level8.EightEight; var FourEight3 = levels.Level8.FourEight; var ZeroEight3 = levels.Level8.ZeroEight;
+            
+            var trendData = TrendDetector.Calculate(container.CloseD);
 
-            var hma1 = TechCalculations.Hma(dailyData, 200);
-            var s1 = hma1.LastOrDefault();
-
-            var hma21 = TechCalculations.Hma(dailyData, 50);
-            var s21 = hma21.LastOrDefault();
-
-            var dsma5 = TechCalculations.Sun(container.CloseD, 5);
+            var s1 = trendData.hmaValue;
             var smaTolBuy = (s1 * (1 - (isForex ? 0.001m : 0.01m)));
-            var isUpTranding = lastPrice > s1;
+            var isUpTranding = trendData.isUpTrending;
 
             if (sar.ValidNeu100 && FourEight > smaTolBuy && FourEight > buyEntry && isUpTranding)
             {
+
+                var dsma5 = TechCalculations.Sun(container.CloseD, 5);
                 if (FourEight < dsma5)
                 {
                     buyEntry = FourEight;
@@ -196,6 +191,8 @@ namespace Algoserver.API.Helpers
             }
             if (sar.ValidNeu100 && FourEight < smaTolSell && FourEight < sellEntry && !isUpTranding)
             {
+
+                var dsma5 = TechCalculations.Sun(container.CloseD, 5);
                 if (FourEight > dsma5)
                 {
                     sellEntry = FourEight;

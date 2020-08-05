@@ -53,6 +53,9 @@ namespace Algoserver.API.Models.Algo
 
         [JsonProperty("close_D")]
         public decimal[] CloseD { get; set; }
+        
+        [JsonProperty("time_d")]
+        public long[] TimeD { get; set; }
 
         [JsonProperty("mintick")]
         public decimal Mintick { get; set; }
@@ -158,24 +161,25 @@ namespace Algoserver.API.Models.Algo
             HighD = dailyPrices.Select(i => i.High).ToArray();
             LowD = dailyPrices.Select(i => i.Low).ToArray();
             CloseD = dailyPrices.Select(i => i.Close).ToArray();
-            var lastDailyCandle = dailyPrices.LastOrDefault();
-            var lastDailyCandleTime = lastDailyCandle != null ? lastDailyCandle.Timestamp : long.MaxValue;
+            TimeD = dailyPrices.Select(i => i.Timestamp).ToArray();
+            // var lastDailyCandle = dailyPrices.LastOrDefault();
+            // var lastDailyCandleTime = lastDailyCandle != null ? lastDailyCandle.Timestamp : long.MaxValue;
 
-            if (replayBack != 0 && dailyPrices.Any()) {
-                var currentDayBars = priceData.Where(i => i.Timestamp >= lastDailyCandleTime);
+            // if (replayBack != 0 && dailyPrices.Any()) {
+            //     var currentDayBars = priceData.Where(i => i.Timestamp >= lastDailyCandleTime);
 
-                if (!currentDayBars.Any()) {
-                    return;
-                }
+            //     if (!currentDayBars.Any()) {
+            //         return;
+            //     }
 
-                var close = currentDayBars.Last().Close;
-                var high = currentDayBars.Max(i => i.High);
-                var low = currentDayBars.Min(i => i.Low);
+            //     var close = currentDayBars.Last().Close;
+            //     var high = currentDayBars.Max(i => i.High);
+            //     var low = currentDayBars.Min(i => i.Low);
 
-                CloseD[CloseD.Length - 1] = close;
-                HighD[HighD.Length - 1] = high;
-                LowD[LowD.Length - 1] = low;
-            }
+            //     CloseD[CloseD.Length - 1] = close;
+            //     HighD[HighD.Length - 1] = high;
+            //     LowD[LowD.Length - 1] = low;
+            // }
         }
     }
 }

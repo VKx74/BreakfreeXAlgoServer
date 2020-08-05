@@ -160,6 +160,7 @@ namespace Algoserver.API.Models.REST
         public bool bottomext1hit { get; set; }
         public bool backhit { get; set; }
         public bool wentout { get; set; }
+        public bool is_up_tending { get; set; }
     } 
     
     public class BacktestAction { 

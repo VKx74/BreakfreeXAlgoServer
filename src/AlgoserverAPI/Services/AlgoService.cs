@@ -13,7 +13,7 @@ namespace Algoserver.API.Services
 {
     public class AlgoService
     {
-        private const int DAILYG_RANULARITY = 86400;
+        private const int DAILY_GRANULARITY = 86400;
 
         private readonly ILogger<AlgoService> _logger;
         private readonly HistoryService _historyService;
@@ -47,7 +47,7 @@ namespace Algoserver.API.Services
 
             var granularity = AlgoHelper.ConvertTimeframeToCranularity(container.TimeframeInterval, container.TimeframePeriod);
             var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
-            var dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILYG_RANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+            var dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILY_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             container.InsertHistory(currentPriceData.Bars, dailyPriceData.Bars, container.ReplayBack);
             
             return container;
@@ -89,7 +89,7 @@ namespace Algoserver.API.Services
 
             var granularity = AlgoHelper.ConvertTimeframeToCranularity(container.TimeframeInterval, container.TimeframePeriod);
             var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
-            var dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILYG_RANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+            var dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILY_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
 
             var replayBack = container.ReplayBack;
             var response = new BacktestResponse();
@@ -146,6 +146,7 @@ namespace Algoserver.API.Services
 
             var granularity = AlgoHelper.ConvertTimeframeToCranularity(container.TimeframeInterval, container.TimeframePeriod);
             var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+            var dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILY_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
 
             var replayBack = container.ReplayBack;
             var response = new ExtHitTestResponse();
@@ -155,11 +156,13 @@ namespace Algoserver.API.Services
             while (replayBack >= 0)
             {
                 // no need daily bars for this test
-                container.InsertHistory(currentPriceData.Bars, new List<BarMessage>(), replayBack);
+                container.InsertHistory(currentPriceData.Bars, dailyPriceData.Bars, replayBack);
                 replayBack--;
 
                 var levels = TechCalculations.CalculateLevels(container.High, container.Low);
                 var sar = SupportAndResistance.Calculate(levels, container.Mintick);
+                var dailyClose = container.CloseD.LastOrDefault();
+
                 if (lastLevels != null)
                 {
                     if (LookBackResult.IsEquals(levels.Level128, lastLevels.Level128))
@@ -171,8 +174,10 @@ namespace Algoserver.API.Services
                 lastLevels = levels;
 
                 var result = this.toExtHitTestResponse(levels, sar);
+                var trendData = TrendDetector.Calculate(container.CloseD);
                 response.signals.Add(new ExtHitTestSignal
                 {
+                    is_up_tending = trendData.isUpTrending,
                     data = result,
                     timestamp = container.Time.LastOrDefault()
                 });

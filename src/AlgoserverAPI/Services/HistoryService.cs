@@ -168,7 +168,7 @@ namespace Algoserver.API.Services
             var firstBar = data.Bars.FirstOrDefault();
 
             if (firstBar == null) {
-                return AlgoHelper.UnixTimeNow() + (60 * 60 * 12); // + 12h to prevent TZ difference
+                return AlgoHelper.UnixTimeNow();
             }
 
             return firstBar.Timestamp + 1;
