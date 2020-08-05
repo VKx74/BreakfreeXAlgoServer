@@ -14,7 +14,7 @@ namespace Algoserver.API.Helpers
     }
     
     public static class TrendDetector {      
-        public static TrendResponse Calculate(decimal[] data)
+        public static TrendResponse Calculate(decimal[] data, int period = 200)
         {
             var hmaData = TechCalculations.Hma(data, 200);
             var last = hmaData.LastOrDefault();

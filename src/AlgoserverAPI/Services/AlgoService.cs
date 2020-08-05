@@ -70,7 +70,7 @@ namespace Algoserver.API.Services
             var container = await InitAsync(req);
             var levels = TechCalculations.CalculateLevels(container.High, container.Low);
             var sar = SupportAndResistance.Calculate(levels, container.Mintick);
-            var trade = TradeEntry.Calculate(container, levels, sar);
+            var trade = TradeEntry.Calculate(container, levels, sar, 200);
             var result = this.toResponse(levels, sar, trade);
             return result;
         }
@@ -103,7 +103,7 @@ namespace Algoserver.API.Services
 
                 var levels = TechCalculations.CalculateLevels(container.High, container.Low);
                 var sar = SupportAndResistance.Calculate(levels, container.Mintick);
-                var trade = TradeEntry.Calculate(container, levels, sar, false);
+                var trade = TradeEntry.Calculate(container, levels, sar, req.hma_period, false);
                 if (trade.algo_Entry != Decimal.Zero)
                 {
                     if (lastSignal != null)
@@ -174,7 +174,7 @@ namespace Algoserver.API.Services
                 lastLevels = levels;
 
                 var result = this.toExtHitTestResponse(levels, sar);
-                var trendData = TrendDetector.Calculate(container.CloseD);
+                var trendData = TrendDetector.Calculate(container.CloseD, req.hma_period);
                 response.signals.Add(new ExtHitTestSignal
                 {
                     is_up_tending = trendData.isUpTrending,

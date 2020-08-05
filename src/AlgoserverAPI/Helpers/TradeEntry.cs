@@ -43,7 +43,7 @@ namespace Algoserver.API.Helpers
     }
     public static class TradeEntry
     {
-        public static TradeEntryResult Calculate(InputDataContainer container, Levels levels, SupportAndResistanceResult sar, bool randomize = true)
+        public static TradeEntryResult Calculate(InputDataContainer container, Levels levels, SupportAndResistanceResult sar, int hma_period, bool randomize = true)
         {
             var isForex = container.Type == "forex";
             var buyMax = 0m;
@@ -56,7 +56,7 @@ namespace Algoserver.API.Helpers
             var EightEight2 = levels.Level16.EightEight; var FourEight2 = levels.Level16.FourEight; var ZeroEight2 = levels.Level16.ZeroEight;
             var EightEight3 = levels.Level8.EightEight; var FourEight3 = levels.Level8.FourEight; var ZeroEight3 = levels.Level8.ZeroEight;
             
-            var trendData = TrendDetector.Calculate(container.CloseD);
+            var trendData = TrendDetector.Calculate(container.CloseD, hma_period);
 
             var s1 = trendData.hmaValue;
             var smaTolBuy = (s1 * (1 - (isForex ? 0.001m : 0.01m)));
