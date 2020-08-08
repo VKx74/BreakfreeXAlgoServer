@@ -189,12 +189,9 @@ namespace Algoserver.API.Services
                     if (LookBackResult.IsEquals(levels.Level128, lastLevels.Level128))
                     {
                         lastSignal = response.signals.LastOrDefault();
-                        if (lastSignal != null && lastSignal.end_timestamp == 0) {
-                            if (lastSignal.is_up_tending != trendData.isUpTrending) {
-                                lastSignal.end_timestamp = container.Time.LastOrDefault();
-                            }
+                        if (lastSignal != null && lastSignal.is_up_tending == trendData.isUpTrending) {
+                            continue;
                         }
-                        continue;
                     }
                 }
 
