@@ -37,6 +37,11 @@ namespace Algoserver.API.Services
                 _demoBroker.UpdatePrice(bar.Low, bar.Timestamp);
                 _demoBroker.UpdatePrice(bar.Close, bar.Timestamp);
 
+                if (prevSignal != null && prevSignal.end_timestamp > 0 && prevSignal.end_timestamp <= bar.Timestamp) {
+                    cancelOrders();
+                    prevSignal = null;
+                }
+
                 BacktestSignal signal;
 
                 if (!signals.TryPeek(out signal)) 
@@ -51,11 +56,7 @@ namespace Algoserver.API.Services
 
                 signals.Dequeue();
 
-                var openOrders = _demoBroker.GetOrders(OrderStatus.Open);
-                foreach (var openOrder in openOrders) 
-                {
-                    _demoBroker.CancelOrder(openOrder.id);
-                }
+                cancelOrders();
 
                 prevSignal = signal;
 
@@ -104,6 +105,14 @@ namespace Algoserver.API.Services
             }
 
             return _demoBroker.Orders;
+        }
+
+        private void cancelOrders() {
+            var openOrders = _demoBroker.GetOrders(OrderStatus.Open);
+            foreach (var openOrder in openOrders) 
+            {
+                _demoBroker.CancelOrder(openOrder.id);
+            }
         }
 
         private BacktestSignal _getSignalByDate(long timestamp)

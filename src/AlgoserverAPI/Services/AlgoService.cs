@@ -106,15 +106,27 @@ namespace Algoserver.API.Services
                 var trade = TradeEntry.Calculate(container, levels, sar, req.hma_period, false);
                 if (trade.algo_Entry != Decimal.Zero)
                 {
+                    BacktestSignal lastBacktestSignal = null;
                     if (lastSignal != null)
                     {
                         if (TradeEntryResult.IsEquals(lastSignal, trade))
                         {
+                            if (lastSignal.algo_Info.macrotrend != trade.algo_Info.macrotrend) {
+                                lastBacktestSignal = response.signals.LastOrDefault();
+                                if (lastBacktestSignal != null && lastBacktestSignal.end_timestamp == 0) {
+                                    lastBacktestSignal.end_timestamp = container.Time.LastOrDefault();
+                                }
+                            }
                             continue;
                         }
                     }
 
                     lastSignal = trade;
+
+                    lastBacktestSignal = response.signals.LastOrDefault();
+                    if (lastBacktestSignal != null && lastBacktestSignal.end_timestamp == 0) {
+                        lastBacktestSignal.end_timestamp = container.Time.LastOrDefault();
+                    }
 
                     var result = this.toResponse(levels, sar, trade);
                     response.signals.Add(new BacktestSignal
@@ -152,6 +164,8 @@ namespace Algoserver.API.Services
             var response = new ExtHitTestResponse();
             response.signals = new List<ExtHitTestSignal>();
             Levels lastLevels = null;
+            TrendResponse trendData = null;
+            decimal prevDailyClose = 0;
 
             while (replayBack >= 0)
             {
@@ -162,19 +176,36 @@ namespace Algoserver.API.Services
                 var levels = TechCalculations.CalculateLevels(container.High, container.Low);
                 var sar = SupportAndResistance.Calculate(levels, container.Mintick);
                 var dailyClose = container.CloseD.LastOrDefault();
+                
+                if (prevDailyClose != dailyClose || trendData == null) {
+                    trendData = TrendDetector.Calculate(container.CloseD, req.hma_period);
+                }
+
+                prevDailyClose = dailyClose;
+
+                ExtHitTestSignal lastSignal;
 
                 if (lastLevels != null)
                 {
                     if (LookBackResult.IsEquals(levels.Level128, lastLevels.Level128))
                     {
+                        lastSignal = response.signals.LastOrDefault();
+                        if (lastSignal != null && lastSignal.end_timestamp == 0) {
+                            if (lastSignal.is_up_tending != trendData.isUpTrending) {
+                                lastSignal.end_timestamp = container.Time.LastOrDefault();
+                            }
+                        }
                         continue;
                     }
                 }
 
-                lastLevels = levels;
+                lastSignal = response.signals.LastOrDefault();
+                if (lastSignal != null && lastSignal.end_timestamp == 0) {
+                    lastSignal.end_timestamp = container.Time.LastOrDefault();
+                }
 
+                lastLevels = levels;
                 var result = this.toExtHitTestResponse(levels, sar);
-                var trendData = TrendDetector.Calculate(container.CloseD, req.hma_period);
                 response.signals.Add(new ExtHitTestSignal
                 {
                     is_up_tending = trendData.isUpTrending,

@@ -150,11 +150,13 @@ namespace Algoserver.API.Models.REST
 
     public class BacktestSignal { 
         public long timestamp { get; set; }
+        public long end_timestamp { get; set; }
         public CalculationResponse data { get; set; }
     } 
 
     public class ExtHitTestSignal { 
         public long timestamp { get; set; }
+        public long end_timestamp { get; set; }
         public CalculationResponse data { get; set; }
         public bool topext1hit { get; set; }
         public bool bottomext1hit { get; set; }

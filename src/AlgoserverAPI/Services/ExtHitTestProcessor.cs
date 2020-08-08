@@ -75,14 +75,16 @@ namespace Algoserver.API.Services
                         }
                     }
 
-                    if (high >= topExt1 && !signal.topext1hit && !signal.is_up_tending)
-                    {
-                        signal.topext1hit = true;
-                    }
+                    if (signal.end_timestamp > timestamp) {
+                        if (high >= topExt1 && !signal.topext1hit && !signal.is_up_tending)
+                        {
+                            signal.topext1hit = true;
+                        }
 
-                    if (low <= bottomExt1 && !signal.bottomext1hit && signal.is_up_tending)
-                    {
-                        signal.bottomext1hit = true;
+                        if (low <= bottomExt1 && !signal.bottomext1hit && signal.is_up_tending)
+                        {
+                            signal.bottomext1hit = true;
+                        }
                     }
                 }
                 
