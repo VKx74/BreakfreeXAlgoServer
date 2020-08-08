@@ -106,24 +106,17 @@ namespace Algoserver.API.Services
                 var trade = TradeEntry.Calculate(container, levels, sar, req.hma_period, false);
                 if (trade.algo_Entry != Decimal.Zero)
                 {
-                    BacktestSignal lastBacktestSignal = null;
                     if (lastSignal != null)
                     {
                         if (TradeEntryResult.IsEquals(lastSignal, trade))
                         {
-                            if (lastSignal.algo_Info.macrotrend != trade.algo_Info.macrotrend) {
-                                lastBacktestSignal = response.signals.LastOrDefault();
-                                if (lastBacktestSignal != null && lastBacktestSignal.end_timestamp == 0) {
-                                    lastBacktestSignal.end_timestamp = container.Time.LastOrDefault();
-                                }
-                            }
                             continue;
                         }
                     }
 
                     lastSignal = trade;
 
-                    lastBacktestSignal = response.signals.LastOrDefault();
+                    var lastBacktestSignal = response.signals.LastOrDefault();
                     if (lastBacktestSignal != null && lastBacktestSignal.end_timestamp == 0) {
                         lastBacktestSignal.end_timestamp = container.Time.LastOrDefault();
                     }
@@ -134,6 +127,12 @@ namespace Algoserver.API.Services
                         data = result,
                         timestamp = container.Time.LastOrDefault()
                     });
+                } else {
+                    lastSignal = null;
+                    var lastBacktestSignal = response.signals.LastOrDefault();
+                    if (lastBacktestSignal != null && lastBacktestSignal.end_timestamp == 0) {
+                        lastBacktestSignal.end_timestamp = container.Time.LastOrDefault();
+                    }
                 }
             }
 
