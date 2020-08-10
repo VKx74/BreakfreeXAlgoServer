@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Algoserver.API.Helpers;
+using Algoserver.API.Models.Algo;
 using Algoserver.API.Models.REST;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
@@ -19,7 +20,6 @@ namespace Algoserver.API.Services
     public class HistoryService
     {
         private const int BARS_COUNT = 600;
-        private const int MIN_BARS_COUNT = 400;
         private const int ONE_DAY_TIME_SHIFT = 60 * 60 * 24;
 
         private readonly HttpClient _httpClient;
@@ -46,7 +46,7 @@ namespace Algoserver.API.Services
             {
                 if (_cache.TryGetValue(hash, out HistoryData cachedResponse))
                 {
-                    if (cachedResponse.Bars != null && cachedResponse.Bars.Count() - replayBack >= MIN_BARS_COUNT)
+                    if (cachedResponse.Bars != null && cachedResponse.Bars.Count() - replayBack >= InputDataContainer.MIN_BARS_COUNT)
                     {
                         return cachedResponse;
                     }
@@ -91,7 +91,8 @@ namespace Algoserver.API.Services
             var bearerString = authHeader.ToString();
             var bearerdatafeed = datafeed.ToLowerInvariant();
 
-            var result = new HistoryData {
+            var result = new HistoryData
+            {
                 Bars = new List<BarMessage>(),
                 Datafeed = datafeed,
                 Exchange = exchange,
@@ -141,9 +142,17 @@ namespace Algoserver.API.Services
                     var historyResponse = JsonConvert.DeserializeObject<HistoryData>(content);
                     bars = historyResponse.Bars;
                 }
-                result.Bars = this.mergeBars(result.Bars, bars);
 
-                if (requestCount++ > 5) {
+                var prevCount = result.Bars.Count();
+                result.Bars = this.mergeBars(result.Bars, bars);
+                var afterCount = result.Bars.Count();
+
+                if (prevCount == afterCount) {
+                    return result;
+                }
+
+                if (requestCount++ > 10)
+                {
                     return result;
                 }
 
@@ -152,10 +161,12 @@ namespace Algoserver.API.Services
             return result;
         }
 
-        private IEnumerable<BarMessage> mergeBars(IEnumerable<BarMessage> existingBars, IEnumerable<BarMessage> newBars) {
+        private IEnumerable<BarMessage> mergeBars(IEnumerable<BarMessage> existingBars, IEnumerable<BarMessage> newBars)
+        {
             var firstBar = existingBars.FirstOrDefault();
 
-            if (firstBar == null) {
+            if (firstBar == null)
+            {
                 return newBars;
             }
 
@@ -164,43 +175,59 @@ namespace Algoserver.API.Services
             return barsToAppend;
         }
 
-        private long getEndDate(HistoryData data) {
+        private long getEndDate(HistoryData data)
+        {
             var firstBar = data.Bars.FirstOrDefault();
 
-            if (firstBar == null) {
+            if (firstBar == null)
+            {
                 return AlgoHelper.UnixTimeNow();
             }
 
             return firstBar.Timestamp + 1;
-        } 
-        
-        private long getStartDate(HistoryData data, long bars_count) {
+        }
+
+        private long getStartDate(HistoryData data, long bars_count)
+        {
             var existing_count = data.Bars.Count();
             var endDate = this.getEndDate(data);
             long startDate = endDate - ((bars_count - existing_count) * data.Granularity * 3);
-            int day = new DateTime(startDate).Day;
 
-            // load more minute data
-            if (data.Granularity < 3600)
+            if (startDate < 0)
             {
-                startDate = startDate - ONE_DAY_TIME_SHIFT;
+                startDate = 0;
             }
+            else
+            {
+                int day = new DateTime(startDate).Day;
 
-            if (day == 0)
-            {
-                // Sunday
-                startDate = startDate - (ONE_DAY_TIME_SHIFT * 2);
-            }
-            else if (day == 6)
-            {
-                // Saturday
-                startDate = startDate - ONE_DAY_TIME_SHIFT;
+                // load more minute data
+                if (data.Granularity < 3600)
+                {
+                    startDate = startDate - ONE_DAY_TIME_SHIFT;
+                }
+
+                if (day == 0)
+                {
+                    // Sunday
+                    startDate = startDate - (ONE_DAY_TIME_SHIFT * 2);
+                }
+                else if (day == 6)
+                {
+                    // Saturday
+                    startDate = startDate - ONE_DAY_TIME_SHIFT;
+                }
             }
 
             var count = (endDate - startDate) / data.Granularity;
             if (count > 5000)
             {
                 startDate = endDate - (data.Granularity * 5000);
+            }
+
+            if (startDate < 0)
+            {
+                startDate = 0;
             }
 
             return startDate;

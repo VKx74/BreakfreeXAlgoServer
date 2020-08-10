@@ -37,7 +37,7 @@ namespace Algoserver.API.Helpers
 
     public static class TechCalculations
     {
-        public static decimal LowestOnRange(decimal[] data, int lookback)
+        public static decimal LowestOnRange(IEnumerable<decimal> data, int lookback)
         {
             var lowest = decimal.MaxValue;
             var reversedArray = data.Reverse().ToArray();
@@ -51,7 +51,7 @@ namespace Algoserver.API.Helpers
             return lowest;
         }
 
-        public static decimal HighestOnRange(decimal[] data, int lookback)
+        public static decimal HighestOnRange(IEnumerable<decimal> data, int lookback)
         {
             var highest = decimal.MinValue;
             var reversedArray = data.Reverse().ToArray();
@@ -65,7 +65,7 @@ namespace Algoserver.API.Helpers
             return highest;
         }
 
-        public static decimal Sun(decimal[] data, int count)
+        public static decimal Sun(IEnumerable<decimal> data, int count)
         {
             var sum = decimal.Zero;
             var reversedArray = data.Reverse().ToArray();
@@ -87,7 +87,7 @@ namespace Algoserver.API.Helpers
             return res.ToArray();
         }
 
-        public static decimal[] Wma(decimal[] data, int length)
+        public static List<decimal> Wma(List<decimal> data, int length)
         {
             var res = new List<decimal>();
             var priorSum = decimal.Zero;
@@ -95,7 +95,7 @@ namespace Algoserver.API.Helpers
             var sum = decimal.Zero;
             var wsum = decimal.Zero;
 
-            for (var i = 0; i < data.Length; i++)
+            for (var i = 0; i < data.Count; i++)
             {
                 var myPeriod = Math.Min(i + 1, length);
                 wsum = priorWsum - (i >= length ? priorSum : 0) + myPeriod * data[i];
@@ -106,10 +106,10 @@ namespace Algoserver.API.Helpers
                 priorSum = sum;
             }
 
-            return res.ToArray();
+            return res;
         }
 
-        public static decimal[] Hma(decimal[] data, int length)
+        public static List<decimal> Hma(List<decimal> data, int length)
         {
             var res = new List<decimal>();
             var wma1 = TechCalculations.Wma(data, length / 2);
@@ -117,7 +117,7 @@ namespace Algoserver.API.Helpers
             var diffDataSeries = new List<decimal>();
             var diffWmaPeriod = Math.Floor(Math.Sqrt(length));
 
-            for (var i = 0; i < data.Length; i++)
+            for (var i = 0; i < data.Count; i++)
             {
                 var wma1Value = wma1[i];
                 var wma2Value = wma2[i];
@@ -125,8 +125,8 @@ namespace Algoserver.API.Helpers
                 diffDataSeries.Add(diffDataRows);
             }
 
-            var wmaDiffDataRows = TechCalculations.Wma(diffDataSeries.ToArray(), Convert.ToInt32(diffWmaPeriod));
-            return wmaDiffDataRows.ToArray();
+            var wmaDiffDataRows = TechCalculations.Wma(diffDataSeries, Convert.ToInt32(diffWmaPeriod));
+            return wmaDiffDataRows;
         }
 
         public static decimal[] Cmo(decimal[] data, int period)
@@ -209,7 +209,7 @@ namespace Algoserver.API.Helpers
             return res.ToArray();
         }
 
-        public static LookBackResult LookBack(int lookback, decimal[] uPrice, decimal[] lPrice)
+        public static LookBackResult LookBack(int lookback,IEnumerable<decimal> uPrice, IEnumerable<decimal> lPrice)
         {
             var result = new LookBackResult();
             var logTen = Math.Log(10);
@@ -269,7 +269,7 @@ namespace Algoserver.API.Helpers
             return result;
         }
 
-        public static Levels CalculateLevels(decimal[] uPrice, decimal[] lPrice) {
+        public static Levels CalculateLevels(IEnumerable<decimal> uPrice, IEnumerable<decimal> lPrice) {
             var lookback128 = 128;
             var lookback32 = 32;
             var lookback16 = 16;

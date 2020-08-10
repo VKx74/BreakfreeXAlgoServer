@@ -47,7 +47,20 @@ namespace Algoserver.API.Services
 
             var granularity = AlgoHelper.ConvertTimeframeToCranularity(container.TimeframeInterval, container.TimeframePeriod);
             var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
-            var dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILY_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+            HistoryData dailyPriceData = null;
+
+            if (granularity == DAILY_GRANULARITY) {
+                dailyPriceData = new HistoryData {
+                    Datafeed = currentPriceData.Datafeed,
+                    Exchange = currentPriceData.Exchange,
+                    Granularity = currentPriceData.Granularity,
+                    Symbol = currentPriceData.Symbol,
+                    Bars = currentPriceData.Bars.ToList(),
+                };
+            } else {
+                dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILY_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+            }
+
             container.InsertHistory(currentPriceData.Bars, dailyPriceData.Bars, container.ReplayBack);
             
             return container;
@@ -89,16 +102,33 @@ namespace Algoserver.API.Services
 
             var granularity = AlgoHelper.ConvertTimeframeToCranularity(container.TimeframeInterval, container.TimeframePeriod);
             var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
-            var dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILY_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+            HistoryData dailyPriceData = null;
+
+            if (granularity == DAILY_GRANULARITY) {
+                dailyPriceData = new HistoryData {
+                    Datafeed = currentPriceData.Datafeed,
+                    Exchange = currentPriceData.Exchange,
+                    Granularity = currentPriceData.Granularity,
+                    Symbol = currentPriceData.Symbol,
+                    Bars = currentPriceData.Bars.ToList(),
+                };
+            } else {
+                dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILY_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+            }
 
             var replayBack = container.ReplayBack;
             var response = new BacktestResponse();
             response.signals = new List<BacktestSignal>();
             TradeEntryResult lastSignal = null;
 
+            var availableBarsCount = currentPriceData.Bars.Count();
+            if (replayBack > availableBarsCount - InputDataContainer.MIN_BARS_COUNT) {
+                replayBack = availableBarsCount - InputDataContainer.MIN_BARS_COUNT;
+            }
+
             while (replayBack >= 0)
             {
-                container.InsertHistory(currentPriceData.Bars, dailyPriceData.Bars, replayBack);
+                container.AddNext(currentPriceData.Bars, dailyPriceData.Bars, replayBack);
                 replayBack--;
 
                 var levels = TechCalculations.CalculateLevels(container.High, container.Low);
@@ -157,7 +187,19 @@ namespace Algoserver.API.Services
 
             var granularity = AlgoHelper.ConvertTimeframeToCranularity(container.TimeframeInterval, container.TimeframePeriod);
             var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
-            var dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILY_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+             HistoryData dailyPriceData = null;
+
+            if (granularity == DAILY_GRANULARITY) {
+                dailyPriceData = new HistoryData {
+                    Datafeed = currentPriceData.Datafeed,
+                    Exchange = currentPriceData.Exchange,
+                    Granularity = currentPriceData.Granularity,
+                    Symbol = currentPriceData.Symbol,
+                    Bars = currentPriceData.Bars.ToList(),
+                };
+            } else {
+                dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILY_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+            }
 
             var replayBack = container.ReplayBack;
             var response = new ExtHitTestResponse();
@@ -166,10 +208,15 @@ namespace Algoserver.API.Services
             TrendResponse trendData = null;
             decimal prevDailyClose = 0;
 
+            var availableBarsCount = currentPriceData.Bars.Count();
+            if (replayBack > availableBarsCount - InputDataContainer.MIN_BARS_COUNT) {
+                replayBack = availableBarsCount - InputDataContainer.MIN_BARS_COUNT;
+            }
+
             while (replayBack >= 0)
             {
                 // no need daily bars for this test
-                container.InsertHistory(currentPriceData.Bars, dailyPriceData.Bars, replayBack);
+                container.AddNext(currentPriceData.Bars, dailyPriceData.Bars, replayBack);
                 replayBack--;
 
                 var levels = TechCalculations.CalculateLevels(container.High, container.Low);

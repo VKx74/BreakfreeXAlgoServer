@@ -14,7 +14,7 @@ namespace Algoserver.API.Helpers
     }
     
     public static class TrendDetector {      
-        public static TrendResponse Calculate(decimal[] data, int period = 200)
+        public static TrendResponse Calculate(List<decimal> data, int period = 200)
         {
             var hmaData = TechCalculations.Hma(data, period);
             var last = hmaData.LastOrDefault();
@@ -25,12 +25,12 @@ namespace Algoserver.API.Helpers
             };
         } 
         
-        public static TrendResponseWithTime[] CalculateRange(decimal[] data, long[] time)
+        public static TrendResponseWithTime[] CalculateRange(List<decimal> data, long[] time)
         {
             var result = new List<TrendResponseWithTime>();
             var hmaData = TechCalculations.Hma(data, 200);
 
-            for (var i = 0; i < hmaData.Length; i++) {
+            for (var i = 0; i < hmaData.Count; i++) {
                 result.Add(new TrendResponseWithTime {
                     isUpTrending = data[i] > hmaData[i],
                     hmaValue = hmaData[i],

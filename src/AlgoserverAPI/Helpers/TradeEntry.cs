@@ -192,7 +192,7 @@ namespace Algoserver.API.Helpers
             if (sar.ValidNeu100 && FourEight < smaTolSell && FourEight < sellEntry && !isUpTranding)
             {
 
-                var dsma5 = TechCalculations.Sun(container.CloseD, 5);
+                var dsma5 = TechCalculations.Sun(container.CloseD.ToArray(), 5);
                 if (FourEight > dsma5)
                 {
                     sellEntry = FourEight;
@@ -750,7 +750,7 @@ namespace Algoserver.API.Helpers
 
         private static decimal AverageRange(int period, decimal scale_multiplier, InputDataContainer container)
         {
-            var substracted = TechCalculations.SubtractArrays(container.HighD, container.LowD);
+            var substracted = TechCalculations.SubtractArrays(container.HighD.ToArray(), container.LowD.ToArray());
             var avgRng = TechCalculations.Sun(substracted, period) * scale_multiplier;
             return avgRng;
         }  
