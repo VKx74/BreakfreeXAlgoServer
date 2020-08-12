@@ -29,11 +29,11 @@ namespace Algoserver.API.Services
         public async Task<InputDataContainer> InitAsync(CalculationRequest req)
         {
             var container = InputDataContainer.MapCalculationRequestToInputDataContainer(req);
-            if (container.Datafeed != "twelvedata" && container.Datafeed != "oanda")
-            {
-                throw new ApiException(HttpStatusCode.BadRequest,
-                    $"Unsupported '{container.Datafeed}' datafeed. Available 'twelvedata' or 'oanda' only.");
-            }
+            // if (container.Datafeed != "twelvedata" && container.Datafeed != "oanda")
+            // {
+            //     throw new ApiException(HttpStatusCode.BadRequest,
+            //         $"Unsupported '{container.Datafeed}' datafeed. Available 'twelvedata' or 'oanda' only.");
+            // }
 
             if (container.Type == "forex")
             {
@@ -91,11 +91,11 @@ namespace Algoserver.API.Services
         private async Task<BacktestResponse> backtestAsync(BacktestRequest req)
         {
             var container = InputDataContainer.MapCalculationRequestToInputDataContainer(req);
-            if (container.Datafeed != "twelvedata" && container.Datafeed != "oanda")
-            {
-                throw new ApiException(HttpStatusCode.BadRequest,
-                    $"Unsupported '{container.Datafeed}' datafeed. Available 'twelvedata' or 'oanda' only.");
-            }
+            // if (container.Datafeed != "twelvedata" && container.Datafeed != "oanda")
+            // {
+            //     throw new ApiException(HttpStatusCode.BadRequest,
+            //         $"Unsupported '{container.Datafeed}' datafeed. Available 'twelvedata' or 'oanda' only.");
+            // }
 
             // no need USD rate for this test
             container.setUsdRatio(1);
@@ -176,11 +176,11 @@ namespace Algoserver.API.Services
         private async Task<ExtHitTestResponse> hitTestExtensionsAsync(BacktestRequest req)
         {
             var container = InputDataContainer.MapCalculationRequestToInputDataContainer(req);
-            if (container.Datafeed != "twelvedata" && container.Datafeed != "oanda")
-            {
-                throw new ApiException(HttpStatusCode.BadRequest,
-                    $"Unsupported '{container.Datafeed}' datafeed. Available 'twelvedata' or 'oanda' only.");
-            }
+            // if (container.Datafeed != "twelvedata" && container.Datafeed != "oanda")
+            // {
+            //     throw new ApiException(HttpStatusCode.BadRequest,
+            //         $"Unsupported '{container.Datafeed}' datafeed. Available 'twelvedata' or 'oanda' only.");
+            // }
 
             // no need USD rate for this test
             container.setUsdRatio(1);

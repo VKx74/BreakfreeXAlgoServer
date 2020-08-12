@@ -16,7 +16,7 @@ using Newtonsoft.Json;
 
 namespace Algoserver.API.Services
 {
-    // Provide historical data from oanda or twelvedata datafeeds
+    // Provide historical data from oanda or twelvedata or kaiko datafeeds
     public class HistoryService
     {
         private const int BARS_COUNT = 600;
@@ -110,7 +110,7 @@ namespace Algoserver.API.Services
                 var uri = $"{_serverUrl}/{bearerdatafeed}/history?" +
                           $"kind=daterange&symbol={symbol}&granularity={granularity}&from={startDate}&to={endDate}";
 
-                if (string.IsNullOrWhiteSpace(exchange))
+                if (!string.IsNullOrWhiteSpace(exchange))
                 {
                     uri = $"{uri}&exchange={exchange}";
                 }

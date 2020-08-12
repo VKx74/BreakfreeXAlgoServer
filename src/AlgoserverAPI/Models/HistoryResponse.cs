@@ -34,8 +34,18 @@ namespace Algoserver.API.Models.REST
         public int Count { get; set; }
         public IEnumerable<TwelvedatsInstruments> Data { get; set; }
     } 
+    public class KaikoInstrumentsResponse
+    {
+        public int Count { get; set; }
+        public IEnumerable<KaikoInstruments> Data { get; set; }
+    } 
     
     public class TwelvedatsInstruments
+    {
+        public string Datafeed { get; set; }
+        public string Symbol { get; set; }
+    }
+    public class KaikoInstruments
     {
         public string Datafeed { get; set; }
         public string Symbol { get; set; }
