@@ -234,14 +234,14 @@ namespace Algoserver.API.Services
         {
             if (side == OrderSide.Buy)
             {
-                if (tp_price <= price)
+                if (tp_price < price)
                 {
                     throw new ApplicationException("Invalid order TP parameter");
                 }
             }
             else
             {
-                if (tp_price >= price)
+                if (tp_price > price)
                 {
                     throw new ApplicationException("Invalid order TP parameter");
                 }

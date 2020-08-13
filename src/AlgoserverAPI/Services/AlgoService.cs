@@ -72,7 +72,7 @@ namespace Algoserver.API.Services
             });
         }
         
-        internal Task<ExtHitTestResponse> HitTestExtensionsAsync(BacktestRequest req) {
+        internal Task<ExtHitTestResponse> HitTestExtensionsAsync(HittestRequest req) {
             return Task.Run(async () => {
                 return await hitTestExtensionsAsync(req);
             });
@@ -166,14 +166,14 @@ namespace Algoserver.API.Services
                 }
             }
 
-            var signalProcessor = new SignalsProcessor(currentPriceData.Bars, response.signals);
+            var signalProcessor = new SignalsProcessor(currentPriceData.Bars, response.signals, req.breakeven_candles);
             var orders = signalProcessor.Backtest(container.InputSplitPositions);
             response.orders = orders;
 
             return response;
         }
         
-        private async Task<ExtHitTestResponse> hitTestExtensionsAsync(BacktestRequest req)
+        private async Task<ExtHitTestResponse> hitTestExtensionsAsync(HittestRequest req)
         {
             var container = InputDataContainer.MapCalculationRequestToInputDataContainer(req);
             // if (container.Datafeed != "twelvedata" && container.Datafeed != "oanda")
@@ -257,7 +257,8 @@ namespace Algoserver.API.Services
                 });
             }
 
-            var extHitTestProcessor = new ExtHitTestProcessor(currentPriceData.Bars.Count() > container.ReplayBack + 1 ? currentPriceData.Bars.TakeLast(container.ReplayBack + 1) : currentPriceData.Bars, response.signals);
+            var history = currentPriceData.Bars.Count() > container.ReplayBack + 1 ? currentPriceData.Bars.TakeLast(container.ReplayBack + 1) : currentPriceData.Bars;
+            var extHitTestProcessor = new ExtHitTestProcessor(history, response.signals, req.breakeven_candles, req.entry_target_box, req.stoploss_rr);
             // processing passsed in constructor signals
             extHitTestProcessor.HitTest();
 

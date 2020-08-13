@@ -157,11 +157,16 @@ namespace Algoserver.API.Models.REST
     public class ExtHitTestSignal { 
         public long timestamp { get; set; }
         public long end_timestamp { get; set; }
+        public decimal top_sl { get; set; }
+        public decimal bottom_sl { get; set; }
+        public decimal top_entry { get; set; }
+        public decimal bottom_entry { get; set; }
         public CalculationResponse data { get; set; }
         public bool topext1hit { get; set; }
         public bool bottomext1hit { get; set; }
         public bool backhit { get; set; }
         public bool wentout { get; set; }
+        public bool breakeven { get; set; }
         public bool is_up_tending { get; set; }
     } 
     

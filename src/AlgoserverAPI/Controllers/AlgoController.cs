@@ -80,7 +80,7 @@ namespace Algoserver.API.Controllers
         [Authorize]
         [HttpPost(Routes.HitTestExtensions)]
         [ProducesResponseType(typeof(Response<CalculationResponse>), 200)]
-        public async Task<IActionResult> HitTestExtensions([FromBody] BacktestRequest request)
+        public async Task<IActionResult> HitTestExtensions([FromBody] HittestRequest request)
         {
             if (!ModelState.IsValid)
             {
