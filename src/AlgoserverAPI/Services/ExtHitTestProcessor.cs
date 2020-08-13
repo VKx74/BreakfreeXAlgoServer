@@ -61,13 +61,13 @@ namespace Algoserver.API.Services
 
                     if (signal.top_sl == 0)
                     {
-                        var shift = Math.Abs(topExt2 - topExt1) * (_stoplossRR / 100);
+                        var shift = Math.Abs(topExt2 - topExt1) * (_stoplossRR / 100m);
                         signal.top_sl = topExt2 + shift;
                     }
 
                     if (signal.top_entry == 0) 
                     {
-                        var shift = Math.Abs(topExt2 - topExt1) * (_entryTargetBox / 100);
+                        var shift = Math.Abs(topExt2 - topExt1) * (_entryTargetBox / 100m);
                         signal.top_entry = topExt1 - shift;
                     }
 
@@ -77,13 +77,13 @@ namespace Algoserver.API.Services
 
                     if (signal.bottom_sl == 0)
                     {
-                        var shift = Math.Abs(bottomExt1 - bottomExt2) * (_stoplossRR / 100);
+                        var shift = Math.Abs(bottomExt1 - bottomExt2) * (_stoplossRR / 100m);
                         signal.bottom_sl = bottomExt2 - shift;
                     }
 
                     if (signal.bottom_entry == 0) 
                     {
-                        var shift = Math.Abs(bottomExt1 - bottomExt2) * (_entryTargetBox / 100);
+                        var shift = Math.Abs(bottomExt1 - bottomExt2) * (_entryTargetBox / 100m);
                         signal.bottom_entry = bottomExt1 + shift;
                     }
 
