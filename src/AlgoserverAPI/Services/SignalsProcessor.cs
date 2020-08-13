@@ -143,11 +143,20 @@ namespace Algoserver.API.Services
             var filledOrders = _demoBroker.GetOrders(OrderStatus.Filled);
             foreach (var filledOrder in filledOrders)
             {
-                if (!_validateBreakevenCandlesOrder(filledOrder, barsBack)) {
-                    _demoBroker.EditOrder(new EditOrderRequest {
-                        id = filledOrder.id,
-                        tp_price = filledOrder.price
-                    });
+                if (!_validateBreakevenCandlesOrder(filledOrder, barsBack))
+                {
+                    try
+                    {
+                        _demoBroker.EditOrder(new EditOrderRequest
+                        {
+                            id = filledOrder.id,
+                            tp_price = filledOrder.price,
+                            sl_price = filledOrder.sl_price
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                    }
                 }
             }
         }
@@ -171,14 +180,14 @@ namespace Algoserver.API.Services
             {
                 if (order.side == OrderSide.Buy)
                 {
-                    if (price >= order.price) 
+                    if (price >= order.price)
                     {
                         return true;
                     }
                 }
                 else
                 {
-                    if (price <= order.price) 
+                    if (price <= order.price)
                     {
                         return true;
                     }

@@ -121,7 +121,7 @@ namespace Algoserver.API.Services
             }
             else
             {
-                order.sl_price = request.sl_price.Value;
+                order.sl_price = request.sl_price;
             }
 
             if (request.tp_price.HasValue)
@@ -138,7 +138,7 @@ namespace Algoserver.API.Services
             }
             else
             {
-                order.tp_price = request.tp_price.Value;
+                order.tp_price = request.tp_price;
             }
 
             order.update_timestamp = _time;
