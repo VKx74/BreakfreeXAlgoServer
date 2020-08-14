@@ -33,11 +33,11 @@ namespace Algoserver.API.Services
         public void Init() {
             var oandaInstruments = LoadOandaInstruments().GetAwaiter().GetResult();
             var twelvedataInstruments = LoadTwelvedataInstruments().GetAwaiter().GetResult();
-            // var kaikoInstruments = LoadKaikoInstruments().GetAwaiter().GetResult();
+            var kaikoInstruments = LoadKaikoInstruments().GetAwaiter().GetResult();
 
             _oandaInstruments.AddRange(oandaInstruments.Data);
             _twelvedatsInstruments.AddRange(twelvedataInstruments.Data);
-            // _kaikoInstruments.AddRange(kaikoInstruments.Data);
+            _kaikoInstruments.AddRange(kaikoInstruments.Data);
         }
 
         public bool SymbolExist(string datafeed, string symbol) {
@@ -49,7 +49,7 @@ namespace Algoserver.API.Services
                 return _twelvedatsInstruments.Any(_ => _.Symbol.Equals(symbol, StringComparison.InvariantCultureIgnoreCase));
             }
             
-             if (datafeed.ToLowerInvariant() == "kaiko") {
+            if (datafeed.ToLowerInvariant() == "kaiko") {
                 return _kaikoInstruments.Any(_ => _.Symbol.Equals(symbol, StringComparison.InvariantCultureIgnoreCase));
             }
 
