@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Algoserver.API.Models.Algo;
 using Algoserver.API.Models.Broker;
 using Algoserver.API.Models.REST;
 
@@ -126,12 +127,12 @@ namespace Algoserver.API.Services
 
                     if (signal.end_timestamp > timestamp)
                     {
-                        if (high >= signal.top_entry && !signal.topext1hit && !signal.is_up_tending)
+                        if (high >= signal.top_entry && !signal.topext1hit && signal.trend == Trend.Down)
                         {
                             signal.topext1hit = true;
                         }
 
-                        if (low <= signal.bottom_entry && !signal.bottomext1hit && signal.is_up_tending)
+                        if (low <= signal.bottom_entry && !signal.bottomext1hit && signal.trend == Trend.Up)
                         {
                             signal.bottomext1hit = true;
                         }

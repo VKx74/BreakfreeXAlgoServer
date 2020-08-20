@@ -3,9 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using Algoserver.API.Models.REST;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Algoserver.API.Models.Algo
 {
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum TrendDetectorType {
+        hma,
+        mesa
+    }
+    
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum Trend {
+        Up,
+        Down,
+        Undefined
+    }
+    
     public class InputDataContainer
     {
         

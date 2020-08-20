@@ -18,7 +18,7 @@ namespace Algoserver.API.Services
         private readonly ILogger<AlgoService> _logger;
         private readonly HistoryService _historyService;
         private readonly PriceRatioCalculationService _priceRatioCalculationService;
-        
+
         public AlgoService(ILogger<AlgoService> logger, HistoryService historyService, PriceRatioCalculationService priceRatioCalculationService)
         {
             _logger = logger;
@@ -49,31 +49,39 @@ namespace Algoserver.API.Services
             var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             HistoryData dailyPriceData = null;
 
-            if (granularity == DAILY_GRANULARITY) {
-                dailyPriceData = new HistoryData {
+            if (granularity == DAILY_GRANULARITY)
+            {
+                dailyPriceData = new HistoryData
+                {
                     Datafeed = currentPriceData.Datafeed,
                     Exchange = currentPriceData.Exchange,
                     Granularity = currentPriceData.Granularity,
                     Symbol = currentPriceData.Symbol,
                     Bars = currentPriceData.Bars.ToList(),
                 };
-            } else {
+            }
+            else
+            {
                 dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILY_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             }
 
             container.InsertHistory(currentPriceData.Bars, dailyPriceData.Bars, container.ReplayBack);
-            
+
             return container;
         }
 
-        internal Task<BacktestResponse> BacktestAsync(BacktestRequest req) {
-            return Task.Run(async () => {
+        internal Task<BacktestResponse> BacktestAsync(BacktestRequest req)
+        {
+            return Task.Run(async () =>
+            {
                 return await backtestAsync(req);
             });
         }
-        
-        internal Task<ExtHitTestResponse> HitTestExtensionsAsync(HittestRequest req) {
-            return Task.Run(async () => {
+
+        internal Task<ExtHitTestResponse> HitTestExtensionsAsync(HittestRequest req)
+        {
+            return Task.Run(async () =>
+            {
                 return await hitTestExtensionsAsync(req);
             });
         }
@@ -83,7 +91,18 @@ namespace Algoserver.API.Services
             var container = await InitAsync(req);
             var levels = TechCalculations.CalculateLevels(container.High, container.Low);
             var sar = SupportAndResistance.Calculate(levels, container.Mintick);
-            var trade = TradeEntry.Calculate(container, levels, sar, 200);
+            var trend = TrendDetector.CalculateByHma(container.CloseD);
+            var calculationData = new TradeEntryCalculationData
+            {
+                container = container,
+                hma_period = 200,
+                levels = levels,
+                randomize = true,
+                sar = sar,
+                trend = trend
+            };
+
+            var trade = TradeEntry.Calculate(calculationData);
             var result = this.toResponse(levels, sar, trade);
             return result;
         }
@@ -104,15 +123,19 @@ namespace Algoserver.API.Services
             var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             HistoryData dailyPriceData = null;
 
-            if (granularity == DAILY_GRANULARITY) {
-                dailyPriceData = new HistoryData {
+            if (granularity == DAILY_GRANULARITY)
+            {
+                dailyPriceData = new HistoryData
+                {
                     Datafeed = currentPriceData.Datafeed,
                     Exchange = currentPriceData.Exchange,
                     Granularity = currentPriceData.Granularity,
                     Symbol = currentPriceData.Symbol,
                     Bars = currentPriceData.Bars.ToList(),
                 };
-            } else {
+            }
+            else
+            {
                 dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILY_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             }
 
@@ -122,7 +145,8 @@ namespace Algoserver.API.Services
             TradeEntryResult lastSignal = null;
 
             var availableBarsCount = currentPriceData.Bars.Count();
-            if (replayBack > availableBarsCount - InputDataContainer.MIN_BARS_COUNT) {
+            if (replayBack > availableBarsCount - InputDataContainer.MIN_BARS_COUNT)
+            {
                 replayBack = availableBarsCount - InputDataContainer.MIN_BARS_COUNT;
             }
 
@@ -133,7 +157,31 @@ namespace Algoserver.API.Services
 
                 var levels = TechCalculations.CalculateLevels(container.High, container.Low);
                 var sar = SupportAndResistance.Calculate(levels, container.Mintick);
-                var trade = TradeEntry.Calculate(container, levels, sar, req.hma_period, false);
+                var trend = Trend.Undefined;
+                var hma_period = req.hma_period.GetValueOrDefault(200);
+
+                if (req.trend_detector == TrendDetectorType.hma)
+                {
+                    trend = TrendDetector.CalculateByHma(container.CloseD, hma_period);
+                }
+                else
+                {
+                    var mesa_fast = req.mesa_fast.GetValueOrDefault(0.5m);
+                    var mesa_slow = req.mesa_slow.GetValueOrDefault(0.05m);
+                    var mesa_diff = req.mesa_diff.GetValueOrDefault(0.00001m);
+                    trend = TrendDetector.CalculateByMesa(container.CloseD, mesa_diff, mesa_fast, mesa_slow);
+                }
+
+                var calculationData = new TradeEntryCalculationData
+                {
+                    container = container,
+                    hma_period = hma_period,
+                    levels = levels,
+                    randomize = false,
+                    sar = sar,
+                    trend = trend
+                };
+                var trade = TradeEntry.Calculate(calculationData);
                 if (trade.algo_Entry != Decimal.Zero)
                 {
                     if (lastSignal != null)
@@ -147,7 +195,8 @@ namespace Algoserver.API.Services
                     lastSignal = trade;
 
                     var lastBacktestSignal = response.signals.LastOrDefault();
-                    if (lastBacktestSignal != null && lastBacktestSignal.end_timestamp == 0) {
+                    if (lastBacktestSignal != null && lastBacktestSignal.end_timestamp == 0)
+                    {
                         lastBacktestSignal.end_timestamp = container.Time.LastOrDefault();
                     }
 
@@ -157,10 +206,13 @@ namespace Algoserver.API.Services
                         data = result,
                         timestamp = container.Time.LastOrDefault()
                     });
-                } else {
+                }
+                else
+                {
                     lastSignal = null;
                     var lastBacktestSignal = response.signals.LastOrDefault();
-                    if (lastBacktestSignal != null && lastBacktestSignal.end_timestamp == 0) {
+                    if (lastBacktestSignal != null && lastBacktestSignal.end_timestamp == 0)
+                    {
                         lastBacktestSignal.end_timestamp = container.Time.LastOrDefault();
                     }
                 }
@@ -172,7 +224,7 @@ namespace Algoserver.API.Services
 
             return response;
         }
-        
+
         private async Task<ExtHitTestResponse> hitTestExtensionsAsync(HittestRequest req)
         {
             var container = InputDataContainer.MapCalculationRequestToInputDataContainer(req);
@@ -187,17 +239,21 @@ namespace Algoserver.API.Services
 
             var granularity = AlgoHelper.ConvertTimeframeToCranularity(container.TimeframeInterval, container.TimeframePeriod);
             var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
-             HistoryData dailyPriceData = null;
+            HistoryData dailyPriceData = null;
 
-            if (granularity == DAILY_GRANULARITY) {
-                dailyPriceData = new HistoryData {
+            if (granularity == DAILY_GRANULARITY)
+            {
+                dailyPriceData = new HistoryData
+                {
                     Datafeed = currentPriceData.Datafeed,
                     Exchange = currentPriceData.Exchange,
                     Granularity = currentPriceData.Granularity,
                     Symbol = currentPriceData.Symbol,
                     Bars = currentPriceData.Bars.ToList(),
                 };
-            } else {
+            }
+            else
+            {
                 dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILY_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             }
 
@@ -205,11 +261,16 @@ namespace Algoserver.API.Services
             var response = new ExtHitTestResponse();
             response.signals = new List<ExtHitTestSignal>();
             Levels lastLevels = null;
-            TrendResponse trendData = null;
+            Trend? trendData = null;
             decimal prevDailyClose = 0;
+            var hma_period = req.hma_period.GetValueOrDefault(200);
+            var mesa_fast = req.mesa_fast.GetValueOrDefault(0.5m);
+            var mesa_slow = req.mesa_slow.GetValueOrDefault(0.05m);
+            var mesa_diff = req.mesa_diff.GetValueOrDefault(0.00001m);
 
             var availableBarsCount = currentPriceData.Bars.Count();
-            if (replayBack > availableBarsCount - InputDataContainer.MIN_BARS_COUNT) {
+            if (replayBack > availableBarsCount - InputDataContainer.MIN_BARS_COUNT)
+            {
                 replayBack = availableBarsCount - InputDataContainer.MIN_BARS_COUNT;
             }
 
@@ -222,9 +283,17 @@ namespace Algoserver.API.Services
                 var levels = TechCalculations.CalculateLevels(container.High, container.Low);
                 var sar = SupportAndResistance.Calculate(levels, container.Mintick);
                 var dailyClose = container.CloseD.LastOrDefault();
-                
-                if (prevDailyClose != dailyClose || trendData == null) {
-                    trendData = TrendDetector.Calculate(container.CloseD, req.hma_period);
+
+                if (prevDailyClose != dailyClose || trendData == null)
+                {
+                    if (req.trend_detector == TrendDetectorType.hma)
+                    {
+                        trendData = TrendDetector.CalculateByHma(container.CloseD, hma_period);
+                    }
+                    else
+                    {
+                        trendData = TrendDetector.CalculateByMesa(container.CloseD, mesa_diff, mesa_fast, mesa_slow);
+                    }
                 }
 
                 prevDailyClose = dailyClose;
@@ -236,14 +305,16 @@ namespace Algoserver.API.Services
                     if (LookBackResult.IsEquals(levels.Level128, lastLevels.Level128))
                     {
                         lastSignal = response.signals.LastOrDefault();
-                        if (lastSignal != null && lastSignal.is_up_tending == trendData.isUpTrending) {
+                        if (lastSignal != null && lastSignal.trend == trendData.Value)
+                        {
                             continue;
                         }
                     }
                 }
 
                 lastSignal = response.signals.LastOrDefault();
-                if (lastSignal != null && lastSignal.end_timestamp == 0) {
+                if (lastSignal != null && lastSignal.end_timestamp == 0)
+                {
                     lastSignal.end_timestamp = container.Time.LastOrDefault();
                 }
 
@@ -251,7 +322,7 @@ namespace Algoserver.API.Services
                 var result = this.toExtHitTestResponse(levels, sar);
                 response.signals.Add(new ExtHitTestSignal
                 {
-                    is_up_tending = trendData.isUpTrending,
+                    trend = trendData.Value,
                     data = result,
                     timestamp = container.Time.LastOrDefault()
                 });

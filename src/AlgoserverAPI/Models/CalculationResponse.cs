@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using Algoserver.API.Helpers;
+using Algoserver.API.Models.Algo;
 using Algoserver.API.Services;
 using Newtonsoft.Json;
 
@@ -167,7 +169,7 @@ namespace Algoserver.API.Models.REST
         public bool backhit { get; set; }
         public bool wentout { get; set; }
         public bool breakeven { get; set; }
-        public bool is_up_tending { get; set; }
+        public Trend trend { get; set; }
     } 
     
     public class BacktestAction { 

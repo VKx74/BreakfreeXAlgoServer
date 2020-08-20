@@ -4,6 +4,43 @@ using System.Linq;
 
 namespace Algoserver.API.Helpers
 {
+    public class DataAggregator
+    {
+        private List<double> _data = new List<double>();
+
+        public double get(int index)
+        {
+            var i = _data.Count - index - 1;
+            if (i < 0)
+            {
+                return 0;
+            }
+
+            return _data[i];
+        }
+
+        public void add(double value)
+        {
+            _data.Add(value);
+        }
+
+        public void update(double value)
+        {
+            var count = _data.Count;
+            if (count == 0)
+            {
+                return;
+            }
+
+            _data[count - 1] = value;
+        }
+    }
+
+    public class MESAData
+    {
+        public decimal Fast { get; set; }
+        public decimal Slow { get; set; }
+    }
 
     public class LookBackResult
     {
@@ -13,20 +50,24 @@ namespace Algoserver.API.Helpers
         public decimal Increment { get; set; }
         public decimal AbsTop { get; set; }
 
-        public static bool IsEquals(LookBackResult obj1, LookBackResult obj2) {
-            if (obj1.EightEight != obj2.EightEight) {
+        public static bool IsEquals(LookBackResult obj1, LookBackResult obj2)
+        {
+            if (obj1.EightEight != obj2.EightEight)
+            {
                 return false;
             }
-            if (obj1.FourEight != obj2.FourEight) {
+            if (obj1.FourEight != obj2.FourEight)
+            {
                 return false;
             }
-            if (obj1.ZeroEight != obj2.ZeroEight) {
+            if (obj1.ZeroEight != obj2.ZeroEight)
+            {
                 return false;
             }
             return true;
         }
     }
-    
+
     public class Levels
     {
         public LookBackResult Level128 { get; set; }
@@ -167,6 +208,150 @@ namespace Algoserver.API.Helpers
             return res.ToArray();
         }
 
+        public static MESAData[] MESA(List<decimal> data, double fast, double slow)
+        {
+            var PI = 2 * Math.Asin(1);
+            var prevMesaPeriod = 0.0;
+            var detrender = new DataAggregator();
+            var smoothed = new DataAggregator();
+            var prevQ2 = 0.0;
+            var prevI2 = 0.0;
+            var prevRe = 0.0;
+            var prevIm = 0.0;
+            var prevPhase = 0.0;
+            var prevMema = 1.0;
+            var prevFema = 1.0;
+            var prevOscillatorPoint = 0.0;
+
+            var res = new List<MESAData>();
+            var i = 0;
+            // if (data.Count > 100) {
+            //     i = data.Count - 100;
+            // }
+            for (; i < data.Count; i++)
+            {
+                var src0 = (double)data[i];
+                var src1 = (double)(i > 0 ? data[i - 1] : 0);
+                var src2 = (double)(i > 1 ? data[i - 2] : 0);
+                var src3 = (double)(i > 2 ? data[i - 3] : 0);
+                var mesaPeriodMult = 0.075 * prevMesaPeriod + 0.54;
+                smoothed.add(4 * src0 + 3 * src1 + 2 * src2 + src3 / 10);
+                detrender.add(_computeComponent(smoothed, mesaPeriodMult));
+                var I1Value = detrender.get(3);
+                var Q1Value = _computeComponent(detrender, mesaPeriodMult);
+                var jI = 0.0962 * I1Value * mesaPeriodMult;
+                var jQ = 0.0962 * Q1Value * mesaPeriodMult;
+                var I2Value = I1Value - jQ;
+                var Q2Value = Q1Value + jI;
+
+                I2Value = 0.2 * I2Value + 0.8 * prevI2;
+                Q2Value = 0.2 * Q2Value + 0.8 * prevQ2;
+
+                var ReValue = I2Value * prevI2 + Q2Value * prevQ2;
+                var ImValue = I2Value * prevQ2 - Q2Value * prevI2;
+                ReValue = 0.2 * ReValue + 0.8 * prevRe;
+                ImValue = 0.2 * ImValue + 0.8 * prevIm;
+
+                prevRe = ReValue;
+                prevIm = ImValue;
+                prevI2 = I2Value;
+                prevQ2 = Q2Value;
+
+                var mesaPeriod = 0.0;
+
+                if (ReValue != 0 && ImValue != 0)
+                {
+                    mesaPeriod = 2 * PI / Math.Atan(ImValue / ReValue);
+                }
+
+                if (mesaPeriod > 1.5 * prevMesaPeriod)
+                {
+                    mesaPeriod = 1.5 * prevMesaPeriod;
+                }
+
+                if (mesaPeriod < 0.67 * prevMesaPeriod)
+                {
+                    mesaPeriod = 0.67 * prevMesaPeriod;
+                }
+
+                if (mesaPeriod < 6)
+                {
+                    mesaPeriod = 6;
+                }
+
+                if (mesaPeriod > 50)
+                {
+                    mesaPeriod = 50;
+                }
+
+                prevMesaPeriod = 0.2 * mesaPeriod + 0.8 * prevMesaPeriod;
+
+
+                var phase = 0.0;
+                if (I1Value != 0)
+                    phase = (180 / PI) * Math.Atan(Q1Value / I1Value);
+
+                var deltaPhase = prevPhase - phase;
+                prevPhase = phase;
+
+                if (deltaPhase < 1)
+                {
+                    deltaPhase = 1;
+                }
+
+                var alpha = fast / deltaPhase;
+
+                if (alpha < slow)
+                {
+                    alpha = slow;
+                }
+
+                var alpha2 = alpha / 2;
+
+                var memaValue = alpha * (double)data[i] + (1 - alpha) * prevMema;
+                var famaValue = alpha2 * memaValue + (1 - alpha2) * prevFema;
+                prevOscillatorPoint = _getOscillatorPoint(data, i, prevOscillatorPoint);
+                res.Add(new MESAData {
+                    Fast = (decimal)(memaValue / prevOscillatorPoint),
+                    Slow = (decimal)(famaValue / prevOscillatorPoint)
+                });
+
+                prevMema = memaValue;
+                prevFema = famaValue;
+
+            }
+
+            return res.ToArray();
+        }
+
+        private static double _computeComponent(DataAggregator src, double mesaPeriodMultiplier)
+        {
+            var hilbertTransform = 0.0962 * src.get(0) + 0.5769 * src.get(2) - 0.5769 * src.get(4) - 0.0962 * src.get(6);
+            return hilbertTransform * mesaPeriodMultiplier;
+        }
+
+        private static double _getOscillatorPoint(List<decimal> data, int currentBar, double prevOscillatorPoint)
+        {
+            var count = currentBar <= 32 ? currentBar : 32;
+            if (count == 0) {
+                return (double)data.FirstOrDefault();
+            }
+
+            var sum = 0m;
+            for (var i = 0; i < count; i++)
+            {
+                sum += data[currentBar - i];
+            }
+
+            var res = (double)(sum / count);
+            if (prevOscillatorPoint > 0)
+            {
+                res = ((prevOscillatorPoint * 9) + res) / 10;
+            }
+
+            return res;
+        }
+
         public static decimal[] SubtractArrays(decimal[] array1, decimal[] array2)
         {
             var res = new List<decimal>();
@@ -209,7 +394,7 @@ namespace Algoserver.API.Helpers
             return res.ToArray();
         }
 
-        public static LookBackResult LookBack(int lookback,IEnumerable<decimal> uPrice, IEnumerable<decimal> lPrice)
+        public static LookBackResult LookBack(int lookback, IEnumerable<decimal> uPrice, IEnumerable<decimal> lPrice)
         {
             var result = new LookBackResult();
             var logTen = Math.Log(10);
@@ -257,7 +442,7 @@ namespace Algoserver.API.Helpers
             var Increment = (finalTop - finalBot) / 8;
             var AbsTop = finalTop + (3 * Increment);    //-- determine the absolute top
             var EightEight = AbsTop - (3 * Increment);  //-- create our Murrey line variables based on absolute top and the increment
-            var FourEight = AbsTop - (7 * Increment); 
+            var FourEight = AbsTop - (7 * Increment);
             var ZeroEight = AbsTop - (11 * Increment);
 
             result.AbsTop = AbsTop;
@@ -269,7 +454,8 @@ namespace Algoserver.API.Helpers
             return result;
         }
 
-        public static Levels CalculateLevels(IEnumerable<decimal> uPrice, IEnumerable<decimal> lPrice) {
+        public static Levels CalculateLevels(IEnumerable<decimal> uPrice, IEnumerable<decimal> lPrice)
+        {
             var lookback128 = 128;
             var lookback32 = 32;
             var lookback16 = 16;
@@ -280,7 +466,8 @@ namespace Algoserver.API.Helpers
             var lookBackResult16 = TechCalculations.LookBack(lookback16, uPrice, lPrice);
             var lookBackResult8 = TechCalculations.LookBack(lookback8, uPrice, lPrice);
 
-            return new Levels() {
+            return new Levels()
+            {
                 Level128 = lookBackResult128,
                 Level32 = lookBackResult32,
                 Level16 = lookBackResult16,
