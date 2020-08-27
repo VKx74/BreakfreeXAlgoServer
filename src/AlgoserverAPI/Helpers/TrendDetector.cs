@@ -14,11 +14,16 @@ namespace Algoserver.API.Helpers
             return data.LastOrDefault() >  last ? Trend.Up : Trend.Down;
         }
         
-        public static Trend CalculateByMesa(List<decimal> data, decimal diff = 0.00001m, decimal fast = 0.5m, decimal slow = 0.05m)
+        public static Trend CalculateByMesa(List<decimal> data, decimal diff = 0.00001m, decimal fast = 0.25m, decimal slow = 0.05m)
         {
             var mesaData = TechCalculations.MESA(data, (double)fast, (double)slow);
             var last = mesaData.LastOrDefault();
-            var currentDiff = Math.Abs(last.Fast - last.Slow);
+            var lastPrice = data.LastOrDefault();
+            if (lastPrice == Decimal.Zero) {
+                return Trend.Undefined;
+            }
+            // var currentDiff = Math.Abs(last.Fast - last.Slow);
+            var currentDiff = Math.Abs(last.Fast - last.Slow) / lastPrice * 100;
 
             if (last.Fast > last.Slow && currentDiff >= diff) {
                 return Trend.Up;

@@ -221,7 +221,7 @@ namespace Algoserver.API.Helpers
             var prevPhase = 0.0;
             var prevMema = 1.0;
             var prevFema = 1.0;
-            var prevOscillatorPoint = 0.0;
+            // var prevOscillatorPoint = 0.0;
 
             var res = new List<MESAData>();
             var i = 0;
@@ -269,6 +269,11 @@ namespace Algoserver.API.Helpers
                     mesaPeriod = 1.5 * prevMesaPeriod;
                 }
 
+                if (mesaPeriod > 50)
+                {
+                    mesaPeriod = 50;
+                }
+
                 if (mesaPeriod < 0.67 * prevMesaPeriod)
                 {
                     mesaPeriod = 0.67 * prevMesaPeriod;
@@ -279,13 +284,7 @@ namespace Algoserver.API.Helpers
                     mesaPeriod = 6;
                 }
 
-                if (mesaPeriod > 50)
-                {
-                    mesaPeriod = 50;
-                }
-
                 prevMesaPeriod = 0.2 * mesaPeriod + 0.8 * prevMesaPeriod;
-
 
                 var phase = 0.0;
                 if (I1Value != 0)
@@ -310,10 +309,10 @@ namespace Algoserver.API.Helpers
 
                 var memaValue = alpha * (double)data[i] + (1 - alpha) * prevMema;
                 var famaValue = alpha2 * memaValue + (1 - alpha2) * prevFema;
-                prevOscillatorPoint = _getOscillatorPoint(data, i, prevOscillatorPoint);
+                // prevOscillatorPoint = _getOscillatorPoint(data, i, prevOscillatorPoint);
                 res.Add(new MESAData {
-                    Fast = (decimal)(memaValue / prevOscillatorPoint),
-                    Slow = (decimal)(famaValue / prevOscillatorPoint)
+                    Fast = (decimal)(memaValue),
+                    Slow = (decimal)(famaValue)
                 });
 
                 prevMema = memaValue;
