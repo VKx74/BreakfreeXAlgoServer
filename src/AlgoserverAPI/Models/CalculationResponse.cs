@@ -150,13 +150,15 @@ namespace Algoserver.API.Models.REST
         public string NCurrencySymbol { get; set; }
     }
 
-    public class BacktestSignal { 
+    public class BacktestSignal
+    {
         public long timestamp { get; set; }
         public long end_timestamp { get; set; }
         public CalculationResponse data { get; set; }
-    } 
+    }
 
-    public class ExtHitTestSignal { 
+    public class ExtHitTestSignal
+    {
         public long timestamp { get; set; }
         public long end_timestamp { get; set; }
         public decimal top_sl { get; set; }
@@ -170,10 +172,5 @@ namespace Algoserver.API.Models.REST
         public bool wentout { get; set; }
         public bool breakeven { get; set; }
         public Trend trend { get; set; }
-    } 
-    
-    public class BacktestAction { 
-        public long timestamp { get; set; }
-        public CalculationResponse data { get; set; }
     }
 }

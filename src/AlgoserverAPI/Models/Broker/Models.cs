@@ -48,6 +48,7 @@ namespace Algoserver.API.Models.Broker
         public decimal? tp_price { get; set; }
         public decimal? sl_price { get; set; }
         public decimal? pl { get; set; }
+        public string comment { get; set; }
     }
 
     public class PlaceOrderRequest
@@ -58,6 +59,7 @@ namespace Algoserver.API.Models.Broker
         public decimal? price { get; set; } // for stop and limit orders
         public decimal? tp_price { get; set; }
         public decimal? sl_price { get; set; }
+        public string comment { get; set; }
     }
 
     public class EditOrderRequest
@@ -66,5 +68,6 @@ namespace Algoserver.API.Models.Broker
         public decimal? price { get; set; } // for stop and limit orders
         public decimal? tp_price { get; set; }
         public decimal? sl_price { get; set; }
+        public string comment { get; set; }
     }
 }

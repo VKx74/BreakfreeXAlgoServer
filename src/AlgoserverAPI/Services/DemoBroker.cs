@@ -46,7 +46,8 @@ namespace Algoserver.API.Services
                 side = request.side,
                 type = request.type,
                 sl_price = request.sl_price,
-                tp_price = request.tp_price
+                tp_price = request.tp_price,
+                comment = request.comment
             };
 
             if (request.type == OrderType.Market)
@@ -143,6 +144,11 @@ namespace Algoserver.API.Services
 
             order.update_timestamp = _time;
 
+            if (request.comment != null)
+            {
+                order.comment = request.comment;
+            }
+
             return order;
 
         }
@@ -172,7 +178,7 @@ namespace Algoserver.API.Services
             {
                 order.pl = order.current_price - order.price;
             }
-            else 
+            else
             {
                 order.pl = order.price - order.current_price;
             }
@@ -307,7 +313,7 @@ namespace Algoserver.API.Services
         {
             foreach (var order in Orders)
             {
-                if (order.status != OrderStatus.Filled && order.status != OrderStatus.Open) 
+                if (order.status != OrderStatus.Filled && order.status != OrderStatus.Open)
                 {
                     continue;
                 }
@@ -367,7 +373,7 @@ namespace Algoserver.API.Services
             }
         }
 
-        private void _setFilledState(Order order) 
+        private void _setFilledState(Order order)
         {
             order.type = OrderType.Market;
             order.status = OrderStatus.Filled;

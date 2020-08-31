@@ -8,21 +8,23 @@ using Newtonsoft.Json.Converters;
 namespace Algoserver.API.Models.Algo
 {
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum TrendDetectorType {
+    public enum TrendDetectorType
+    {
         hma,
         mesa
     }
-    
+
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum Trend {
+    public enum Trend
+    {
         Up,
         Down,
         Undefined
     }
-    
+
     public class InputDataContainer
     {
-        
+
         /// <summary>
         /// Unique ID of request
         /// </summary>
@@ -67,9 +69,24 @@ namespace Algoserver.API.Models.Algo
 
         [JsonProperty("close_D")]
         public List<decimal> CloseD { get; set; }
-        
+
         [JsonProperty("time_d")]
         public List<long> TimeD { get; set; }
+
+        [JsonProperty("open_H")]
+        public List<decimal> OpenH { get; set; }
+
+        [JsonProperty("high_H")]
+        public List<decimal> HighH { get; set; }
+
+        [JsonProperty("low_H")]
+        public List<decimal> LowH { get; set; }
+
+        [JsonProperty("close_H")]
+        public List<decimal> CloseH { get; set; }
+
+        [JsonProperty("time_H")]
+        public List<long> TimeH { get; set; }
 
         [JsonProperty("mintick")]
         public decimal Mintick { get; set; }
@@ -148,36 +165,56 @@ namespace Algoserver.API.Models.Algo
 
         public static int MIN_BARS_COUNT = 300;
 
-        public void InsertHistory(IEnumerable<BarMessage> currentPriceData, IEnumerable<BarMessage> dailyPriceData, int replayBack)
+        public void InsertHistory(IEnumerable<BarMessage> currentPriceData, IEnumerable<BarMessage> hourlyPriceData, IEnumerable<BarMessage> dailyPriceData, int replayBack)
         {
             var priceData = currentPriceData.Take(currentPriceData.Count() - replayBack);
 
             var priceDataCount = priceData.Count();
-            if (priceDataCount > MIN_BARS_COUNT) {
+            if (priceDataCount > MIN_BARS_COUNT)
+            {
                 priceData = priceData.TakeLast(MIN_BARS_COUNT);
             }
 
             Open = priceData.Select(i => i.Open).ToList();
             High = priceData.Select(i => i.High).ToList();
-            Low = priceData.Select(i => i.Low).ToList(); 
+            Low = priceData.Select(i => i.Low).ToList();
             Close = priceData.Select(i => i.Close).ToList();
             Time = priceData.Select(i => i.Timestamp).ToList();
-            
+
             var lastCandle = priceData.LastOrDefault();
             var lastCandleTime = lastCandle != null ? lastCandle.Timestamp : 0;
 
-            var dailyPrices = dailyPriceData.TakeWhile(i => i.Timestamp <= lastCandleTime);
+            if (dailyPriceData != null)
+            {
+                var dailyPrices = dailyPriceData.TakeWhile(i => i.Timestamp <= lastCandleTime);
+                var dailyPriceCount = dailyPrices.Count();
+                if (dailyPriceCount > MIN_BARS_COUNT)
+                {
+                    dailyPrices = dailyPrices.TakeLast(MIN_BARS_COUNT);
+                }
 
-            var dailyPriceCount = dailyPrices.Count();
-            if (dailyPriceCount > MIN_BARS_COUNT) {
-                dailyPrices = dailyPrices.TakeLast(MIN_BARS_COUNT);
+                OpenD = dailyPrices.Select(i => i.Open).ToList();
+                HighD = dailyPrices.Select(i => i.High).ToList();
+                LowD = dailyPrices.Select(i => i.Low).ToList();
+                CloseD = dailyPrices.Select(i => i.Close).ToList();
+                TimeD = dailyPrices.Select(i => i.Timestamp).ToList();
             }
 
-            OpenD = dailyPrices.Select(i => i.Open).ToList();
-            HighD = dailyPrices.Select(i => i.High).ToList();
-            LowD = dailyPrices.Select(i => i.Low).ToList();
-            CloseD = dailyPrices.Select(i => i.Close).ToList();
-            TimeD = dailyPrices.Select(i => i.Timestamp).ToList();
+            if (hourlyPriceData != null)
+            {
+                var hourlyPrices = hourlyPriceData.TakeWhile(i => i.Timestamp <= lastCandleTime);
+                var hourlyPriceCount = hourlyPrices.Count();
+                if (hourlyPriceCount > MIN_BARS_COUNT)
+                {
+                    hourlyPrices = hourlyPrices.TakeLast(MIN_BARS_COUNT);
+                }
+
+                OpenH = hourlyPrices.Select(i => i.Open).ToList();
+                HighH = hourlyPrices.Select(i => i.High).ToList();
+                LowH = hourlyPrices.Select(i => i.Low).ToList();
+                CloseH = hourlyPrices.Select(i => i.Close).ToList();
+                TimeH = hourlyPrices.Select(i => i.Timestamp).ToList();
+            }
             // var lastDailyCandle = dailyPrices.LastOrDefault();
             // var lastDailyCandleTime = lastDailyCandle != null ? lastDailyCandle.Timestamp : long.MaxValue;
 
@@ -196,12 +233,13 @@ namespace Algoserver.API.Models.Algo
             //     HighD[HighD.Length - 1] = high;
             //     LowD[LowD.Length - 1] = low;
             // }
-        } 
-        
-        public void AddNext(IEnumerable<BarMessage> currentPriceData, IEnumerable<BarMessage> dailyPriceData, int replayBack)
+        }
+
+        public void AddNext(IEnumerable<BarMessage> currentPriceData, IEnumerable<BarMessage> hourlyPriceData, IEnumerable<BarMessage> dailyPriceData, int replayBack)
         {
-            if (Open == null || !Open.Any()) {
-                InsertHistory(currentPriceData, dailyPriceData, replayBack);
+            if (Open == null || !Open.Any())
+            {
+                InsertHistory(currentPriceData, hourlyPriceData, dailyPriceData, replayBack);
                 return;
             }
 
@@ -213,16 +251,32 @@ namespace Algoserver.API.Models.Algo
             Low.Add(lastCandle.Low);
             Close.Add(lastCandle.Close);
             Time.Add(lastCandle.Timestamp);
-            
-            var dailyPrices = dailyPriceData.TakeWhile(i => i.Timestamp <= lastCandle.Timestamp);
-            var lastDailyCandle = dailyPrices.LastOrDefault();
 
-            if (TimeD.LastOrDefault() != lastDailyCandle.Timestamp) {
-                OpenD.Add(lastDailyCandle.Open);
-                HighD.Add(lastDailyCandle.High);
-                LowD.Add(lastDailyCandle.Low);
-                CloseD.Add(lastDailyCandle.Close);
-                TimeD.Add(lastDailyCandle.Timestamp);
+            if (hourlyPriceData != null) {
+                var lastExistingTime = TimeH.LastOrDefault();
+                var hourlyPrices = hourlyPriceData.Where(i => i.Timestamp <= lastCandle.Timestamp && i.Timestamp > lastExistingTime);
+                var length = hourlyPrices.Count();
+
+                foreach(var hourlyPrice in hourlyPrices) {
+                    OpenH.Add(hourlyPrice.Open);
+                    HighH.Add(hourlyPrice.High);
+                    LowH.Add(hourlyPrice.Low);
+                    CloseH.Add(hourlyPrice.Close);
+                    TimeH.Add(hourlyPrice.Timestamp);
+                }
+            } 
+            
+            if (dailyPriceData != null) {
+                var lastExistingTime = TimeD.LastOrDefault();
+                var dailyPrices = dailyPriceData.Where(i => i.Timestamp <= lastCandle.Timestamp && i.Timestamp > lastExistingTime);
+
+                foreach(var dailyPrice in dailyPrices) {
+                    OpenD.Add(dailyPrice.Open);
+                    HighD.Add(dailyPrice.High);
+                    LowD.Add(dailyPrice.Low);
+                    CloseD.Add(dailyPrice.Close);
+                    TimeD.Add(dailyPrice.Timestamp);
+                }
             }
         }
     }

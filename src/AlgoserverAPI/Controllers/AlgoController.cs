@@ -78,6 +78,21 @@ namespace Algoserver.API.Controllers
         } 
         
         [Authorize]
+        [HttpPost(Routes.StrategyV2Backtest)]
+        [ProducesResponseType(typeof(Response<CalculationResponse>), 200)]
+        public async Task<IActionResult> Strategy2BacktestAsync([FromBody] Strategy2BacktestRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
+            }
+
+            var result = await _algoService.Strategy2BacktestAsync(request);
+
+            return Json(result);
+        } 
+        
+        [Authorize]
         [HttpPost(Routes.HitTestExtensions)]
         [ProducesResponseType(typeof(Response<CalculationResponse>), 200)]
         public async Task<IActionResult> HitTestExtensions([FromBody] HittestRequest request)

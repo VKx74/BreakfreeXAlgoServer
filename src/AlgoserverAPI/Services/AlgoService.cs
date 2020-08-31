@@ -13,6 +13,7 @@ namespace Algoserver.API.Services
 {
     public class AlgoService
     {
+        private const int HOURLY_GRANULARITY = 3600;
         private const int DAILY_GRANULARITY = 86400;
 
         private readonly ILogger<AlgoService> _logger;
@@ -65,7 +66,7 @@ namespace Algoserver.API.Services
                 dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILY_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             }
 
-            container.InsertHistory(currentPriceData.Bars, dailyPriceData.Bars, container.ReplayBack);
+            container.InsertHistory(currentPriceData.Bars, null, dailyPriceData.Bars, container.ReplayBack);
 
             return container;
         }
@@ -75,6 +76,13 @@ namespace Algoserver.API.Services
             return Task.Run(async () =>
             {
                 return await backtestAsync(req);
+            });
+        }
+        internal Task<BacktestV2Response> Strategy2BacktestAsync(Strategy2BacktestRequest req)
+        {
+            return Task.Run(async () =>
+            {
+                return await strategy2BacktestAsync(req);
             });
         }
 
@@ -152,7 +160,7 @@ namespace Algoserver.API.Services
 
             while (replayBack >= 0)
             {
-                container.AddNext(currentPriceData.Bars, dailyPriceData.Bars, replayBack);
+                container.AddNext(currentPriceData.Bars, null, dailyPriceData.Bars, replayBack);
                 replayBack--;
 
                 var levels = TechCalculations.CalculateLevels(container.High, container.Low);
@@ -277,7 +285,7 @@ namespace Algoserver.API.Services
             while (replayBack >= 0)
             {
                 // no need daily bars for this test
-                container.AddNext(currentPriceData.Bars, dailyPriceData.Bars, replayBack);
+                container.AddNext(currentPriceData.Bars, null, dailyPriceData.Bars, replayBack);
                 replayBack--;
 
                 var levels = TechCalculations.CalculateLevels(container.High, container.Low);
@@ -336,6 +344,161 @@ namespace Algoserver.API.Services
             return response;
         }
 
+        private async Task<BacktestV2Response> strategy2BacktestAsync(Strategy2BacktestRequest req)
+        {
+            var container = InputDataContainer.MapCalculationRequestToInputDataContainer(req);
+            // no need USD rate for this test
+            container.setUsdRatio(1);
+
+            var granularity = AlgoHelper.ConvertTimeframeToCranularity(container.TimeframeInterval, container.TimeframePeriod);
+            var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+            HistoryData dailyPriceData = null;
+
+            if (granularity >= DAILY_GRANULARITY)
+            {
+                dailyPriceData = new HistoryData
+                {
+                    Datafeed = currentPriceData.Datafeed,
+                    Exchange = currentPriceData.Exchange,
+                    Granularity = currentPriceData.Granularity,
+                    Symbol = currentPriceData.Symbol,
+                    Bars = currentPriceData.Bars.ToList(),
+                };
+            }
+            else
+            {
+                dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILY_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+            }
+             
+             HistoryData hourlyPriceData = null;
+
+            if (granularity >= HOURLY_GRANULARITY)
+            {
+                hourlyPriceData = new HistoryData
+                {
+                    Datafeed = currentPriceData.Datafeed,
+                    Exchange = currentPriceData.Exchange,
+                    Granularity = currentPriceData.Granularity,
+                    Symbol = currentPriceData.Symbol,
+                    Bars = currentPriceData.Bars.ToList(),
+                };
+            }
+            else
+            {
+                hourlyPriceData = await _historyService.GetHistory(container.Symbol, HOURLY_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+            }
+
+            var replayBack = container.ReplayBack;
+            var response = new BacktestV2Response();
+            response.signals = new List<Strategy2BacktestSignal>();
+            Trend? hourlyTrend = null;
+            Trend? dailyTrend = null;
+            decimal prevHourlyClose = 0;
+            decimal prevDailyClose = 0;
+            var hma_period = req.hma_period.GetValueOrDefault(200);
+            var mesa_fast = req.mesa_fast.GetValueOrDefault(0.25m);
+            var mesa_slow = req.mesa_slow.GetValueOrDefault(0.05m);
+            var mesa_diff = req.mesa_diff.GetValueOrDefault(0.1m);
+
+            var availableBarsCount = currentPriceData.Bars.Count();
+            if (replayBack > availableBarsCount - InputDataContainer.MIN_BARS_COUNT)
+            {
+                replayBack = availableBarsCount - InputDataContainer.MIN_BARS_COUNT;
+            }
+
+            Levels lastLevels = null;
+            while (replayBack >= 0)
+            {
+                // no need daily bars for this test
+                container.AddNext(currentPriceData.Bars, hourlyPriceData.Bars, dailyPriceData.Bars, replayBack);
+                replayBack--;
+
+                var levels = TechCalculations.CalculateLevels(container.High, container.Low);
+                var sar = SupportAndResistance.Calculate(levels, container.Mintick);
+                var dailyClose = container.CloseD.LastOrDefault();
+                var hourlyClose = container.CloseH.LastOrDefault();
+
+                if (prevDailyClose != dailyClose || dailyTrend == null)
+                {
+                    if (req.trend_detector == TrendDetectorType.hma)
+                    {
+                        dailyTrend = TrendDetector.CalculateByHma(container.CloseD, hma_period);
+                    }
+                    else
+                    {
+                        dailyTrend = TrendDetector.CalculateByMesa(container.CloseD, mesa_diff, mesa_fast, mesa_slow);
+                    }
+                }
+
+                prevDailyClose = dailyClose; 
+                
+                if (prevHourlyClose != hourlyClose || hourlyTrend == null)
+                {
+                    if (req.trend_detector == TrendDetectorType.hma)
+                    {
+                        hourlyTrend = TrendDetector.CalculateByHma(container.CloseH, hma_period);
+                    }
+                    else
+                    {
+                        hourlyTrend = TrendDetector.CalculateByMesa(container.CloseH, mesa_diff, mesa_fast, mesa_slow);
+                    }
+                }
+
+                prevHourlyClose = hourlyClose;
+
+                var calculationData = new TradeEntryV2CalculationData
+                {
+                    container = container,
+                    levels = levels,
+                    randomize = false,
+                    sar = sar,
+                    hourlyTrend = hourlyTrend.GetValueOrDefault(Trend.Undefined),
+                    dailyTrend = dailyTrend.GetValueOrDefault(Trend.Undefined),
+                    riskRewords = req.risk_rewards
+                };
+
+                if (calculationData.isTrendValid())
+                {
+                    if (lastLevels != null && Levels.IsEquals(lastLevels, levels))
+                    {
+                        lastLevels = levels;
+                        continue;
+                    }
+                    lastLevels = levels;
+
+                    var lastBacktestSignal = response.signals.LastOrDefault();
+                    if (lastBacktestSignal != null && lastBacktestSignal.end_timestamp == 0)
+                    {
+                        lastBacktestSignal.end_timestamp = container.Time.LastOrDefault();
+                    }
+
+                    var tradeSR = req.place_on_sr ? TradeEntryV2.CalculateSREntry(calculationData, req.stoploss_rr) : null;
+                    var tradeEx1 = req.place_on_ex1 ? TradeEntryV2.CalculateEx1Entry(calculationData, req.stoploss_rr) : null;
+                    var result = this.toStrategyV2Response(calculationData, tradeSR, tradeEx1);
+                    response.signals.Add(new Strategy2BacktestSignal
+                    {
+                        data = result,
+                        timestamp = container.Time.LastOrDefault()
+                    });
+                }
+                else
+                {
+                    lastLevels = null;
+                    var lastBacktestSignal = response.signals.LastOrDefault();
+                    if (lastBacktestSignal != null && lastBacktestSignal.end_timestamp == 0)
+                    {
+                        lastBacktestSignal.end_timestamp = container.Time.LastOrDefault();
+                    }
+                }
+            }
+
+            var signalProcessor = new SignalsV2Processor(currentPriceData.Bars, response.signals, req.breakeven_candles);
+            var orders = signalProcessor.Backtest();
+            response.orders = orders;
+
+            return response;
+        }
+
         private CalculationResponse toExtHitTestResponse(Levels levels, SupportAndResistanceResult sar)
         {
             var returnData = new CalculationResponse
@@ -376,6 +539,30 @@ namespace Algoserver.API.Services
             return returnData;
         }
 
+        private Strategy2CalculationResponse toStrategyV2Response(TradeEntryV2CalculationData calculationData, TradeEntryV2Result tradeSR, TradeEntryV2Result tradeEx1)
+        {
+            var top_ext2 = calculationData.sar.Plus28;
+            var top_ext1 = calculationData.sar.Plus18;
+            var resistance = calculationData.levels.Level128.EightEight;
+            var natural = calculationData.levels.Level128.FourEight;
+            var support = calculationData.levels.Level128.ZeroEight;
+            var bottom_ext1 = calculationData.sar.Minus18;
+            var bottom_ext2 = calculationData.sar.Minus28;
+
+            return new Strategy2CalculationResponse {
+                top_ex2 = top_ext2,
+                top_ex1 = top_ext1,
+                r = resistance,
+                s = support,
+                n = natural,
+                bottom_ex1 = bottom_ext1,
+                bottom_ex2 = bottom_ext2,
+                daily_trend = calculationData.dailyTrend,
+                hourly_trend = calculationData.hourlyTrend,
+                trade_sr = tradeSR,
+                trade_ex1 = tradeEx1
+            };
+        }
         private CalculationResponse toResponse(Levels levels, SupportAndResistanceResult sar, TradeEntryResult trade)
         {
             var algoInfo = new AlgoInfo

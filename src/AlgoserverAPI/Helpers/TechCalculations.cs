@@ -74,6 +74,15 @@ namespace Algoserver.API.Helpers
         public LookBackResult Level32 { get; set; }
         public LookBackResult Level16 { get; set; }
         public LookBackResult Level8 { get; set; }
+
+        public static bool IsEquals(Levels obj1, Levels obj2)
+        {
+            if (obj1.Level128.EightEight != obj2.Level128.EightEight) return false;
+            if (obj1.Level128.FourEight != obj2.Level128.FourEight) return false;
+            if (obj1.Level128.ZeroEight != obj2.Level128.ZeroEight) return false;
+
+            return true;
+        }
     }
 
     public static class TechCalculations
