@@ -30,23 +30,39 @@ namespace Algoserver.API.Helpers
         public SupportAndResistanceResult sar { get; set; }
         public Levels levels { get; set; }
         public bool randomize { get; set; } = true;
+        public bool use_hourly_trend { get; set; } = true;
+        public bool use_daily_trend { get; set; } = true;
         public Trend dailyTrend { get; set; }
         public Trend hourlyTrend { get; set; }
         public decimal riskRewords { get; set; }
-
-        public bool isTrendValid() {
-            if (dailyTrend == Trend.Up && hourlyTrend != Trend.Down) {
-                return true;
-            }
-            if (dailyTrend == Trend.Down && hourlyTrend != Trend.Up) {
-                return true;
-            }
-            return false;
-        }
     }
 
     public static class TradeEntryV2
     {
+        public static Trend GetTrend(TradeEntryV2CalculationData calculationData) 
+        {
+            if (calculationData.use_hourly_trend && calculationData.use_daily_trend) {
+                if (calculationData.dailyTrend == Trend.Up && calculationData.hourlyTrend != Trend.Down) {
+                    return Trend.Up;
+                }
+                if (calculationData.dailyTrend == Trend.Down && calculationData.hourlyTrend != Trend.Up) {
+                    return Trend.Down;
+                }
+
+                return Trend.Undefined;
+            }
+
+            if (calculationData.use_daily_trend) {
+                return calculationData.dailyTrend;
+            }
+
+            if (calculationData.use_hourly_trend) {
+                return calculationData.hourlyTrend;
+            }
+
+            return Trend.Undefined;
+        }
+
         public static TradeEntryV2Result CalculateSREntry(TradeEntryV2CalculationData calculationData, decimal stoploss_rr = 0m)
         {
             var container = calculationData.container;
@@ -59,11 +75,9 @@ namespace Algoserver.API.Helpers
             var bottom_ext1 = calculationData.sar.Minus18;
             var bottom_ext2 = calculationData.sar.Minus28;
 
+            var trend = TradeEntryV2.GetTrend(calculationData);
 
-            var isUpTrend = calculationData.dailyTrend == Trend.Up && calculationData.hourlyTrend != Trend.Down;
-            var isDownTrend = calculationData.dailyTrend == Trend.Down && calculationData.hourlyTrend != Trend.Up;
-
-            if (isUpTrend) {
+            if (trend == Trend.Up) {
                 return new TradeEntryV2Result {
                     entry = support,
                     stop = bottom_ext2 - (stoploss_rr / 100 * (Math.Abs(bottom_ext1 - bottom_ext2))),
@@ -72,7 +86,7 @@ namespace Algoserver.API.Helpers
                 };
             } 
             
-            if (isDownTrend) {
+            if (trend == Trend.Down) {
                 return new TradeEntryV2Result {
                     entry = resistance,
                     stop = top_ext2 + (stoploss_rr / 100 * Math.Abs(top_ext2 - top_ext1)),
@@ -97,11 +111,9 @@ namespace Algoserver.API.Helpers
             var bottom_ext1 = calculationData.sar.Minus18;
             var bottom_ext2 = calculationData.sar.Minus28;
 
+            var trend = TradeEntryV2.GetTrend(calculationData);
 
-            var isUpTrend = calculationData.dailyTrend == Trend.Up && calculationData.hourlyTrend != Trend.Down;
-            var isDownTrend = calculationData.dailyTrend == Trend.Down && calculationData.hourlyTrend != Trend.Up;
-
-            if (isUpTrend) {
+            if (trend == Trend.Up) {
                 return new TradeEntryV2Result {
                     entry = bottom_ext1,
                     stop = bottom_ext2 - (stoploss_rr / 100 * (Math.Abs(bottom_ext1 - bottom_ext2))),
@@ -110,7 +122,7 @@ namespace Algoserver.API.Helpers
                 };
             } 
             
-            if (isDownTrend) {
+            if (trend == Trend.Down) {
                 return new TradeEntryV2Result {
                     entry = top_ext1,
                     stop = top_ext2 + (stoploss_rr / 100 * Math.Abs(top_ext2 - top_ext1)),

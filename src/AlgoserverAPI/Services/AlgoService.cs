@@ -396,9 +396,17 @@ namespace Algoserver.API.Services
             decimal prevHourlyClose = 0;
             decimal prevDailyClose = 0;
             var hma_period = req.hma_period.GetValueOrDefault(200);
+
             var mesa_fast = req.mesa_fast.GetValueOrDefault(0.25m);
             var mesa_slow = req.mesa_slow.GetValueOrDefault(0.05m);
             var mesa_diff = req.mesa_diff.GetValueOrDefault(0.1m);
+
+            var hourly_mesa_fast = req.hourly_mesa_fast.GetValueOrDefault(0.25m);
+            var hourly_mesa_slow = req.hourly_mesa_slow.GetValueOrDefault(0.05m);
+            var hourly_mesa_diff = req.hourly_mesa_diff.GetValueOrDefault(0.1m);
+
+            var use_hourly_trend = req.use_hourly_trend;
+            var use_daily_trend = req.use_daily_trend;
 
             var availableBarsCount = currentPriceData.Bars.Count();
             if (replayBack > availableBarsCount - InputDataContainer.MIN_BARS_COUNT)
@@ -440,7 +448,7 @@ namespace Algoserver.API.Services
                     }
                     else
                     {
-                        hourlyTrend = TrendDetector.CalculateByMesa(container.CloseH, mesa_diff, mesa_fast, mesa_slow);
+                        hourlyTrend = TrendDetector.CalculateByMesa(container.CloseH, hourly_mesa_diff, hourly_mesa_fast, hourly_mesa_slow);
                     }
                 }
 
@@ -452,12 +460,14 @@ namespace Algoserver.API.Services
                     levels = levels,
                     randomize = false,
                     sar = sar,
+                    use_hourly_trend = use_hourly_trend,
+                    use_daily_trend = use_daily_trend,
                     hourlyTrend = hourlyTrend.GetValueOrDefault(Trend.Undefined),
                     dailyTrend = dailyTrend.GetValueOrDefault(Trend.Undefined),
                     riskRewords = req.risk_rewards
                 };
 
-                if (calculationData.isTrendValid())
+                if (TradeEntryV2.GetTrend(calculationData) != Trend.Undefined)
                 {
                     if (lastLevels != null && Levels.IsEquals(lastLevels, levels))
                     {
