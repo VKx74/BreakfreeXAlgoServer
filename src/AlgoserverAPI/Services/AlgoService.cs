@@ -78,6 +78,7 @@ namespace Algoserver.API.Services
                 return await backtestAsync(req);
             });
         }
+        
         internal Task<BacktestV2Response> Strategy2BacktestAsync(Strategy2BacktestRequest req)
         {
             return Task.Run(async () =>

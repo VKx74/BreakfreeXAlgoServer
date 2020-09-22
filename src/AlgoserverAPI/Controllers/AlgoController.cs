@@ -18,11 +18,13 @@ namespace Algoserver.API.Controllers
     {
         private IMemoryCache _cache;
         private AlgoService _algoService;
+        private RTDService _rtdService;
         private StatisticsService _statisticsService;
 
-        public AlgoController(AlgoService algoService, StatisticsService statisticsService, IMemoryCache cache)
+        public AlgoController(AlgoService algoService, RTDService rtdService, StatisticsService statisticsService, IMemoryCache cache)
         {
             _algoService = algoService;
+            _rtdService = rtdService;
             _statisticsService = statisticsService;
             _cache = cache;
         }
@@ -103,6 +105,21 @@ namespace Algoserver.API.Controllers
             }
 
             var result = await _algoService.HitTestExtensionsAsync(request);
+
+            return Json(result);
+        }
+
+        [Authorize]
+        [HttpPost(Routes.RTCalculation)]
+        [ProducesResponseType(typeof(Response<RTDCalculationResponse>), 200)]
+        public async Task<IActionResult> CalculateRTD([FromBody] RTDCalculationRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
+            }
+
+            var result = await _rtdService.CalculateMESARTD(request);
 
             return Json(result);
         }

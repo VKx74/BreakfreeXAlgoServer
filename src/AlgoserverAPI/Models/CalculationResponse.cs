@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Algoserver.API.Helpers;
+﻿using Algoserver.API.Helpers;
 using Algoserver.API.Models.Algo;
 using Algoserver.API.Services;
 using Newtonsoft.Json;
