@@ -29,8 +29,5 @@ namespace Algoserver.API.Models.REST
         [JsonProperty("slowLimit2")]
         public double SlowLimit2 { get; set; }
 
-        [JsonProperty("firstDate")]
-        public long FirstDate { get; set; }
-
     }
 }
