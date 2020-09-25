@@ -30,11 +30,8 @@ namespace Algoserver.API.Models.REST
         [JsonProperty("bottom_ex2")]
         public decimal bottom_ex2 { get; set; }
 
-        [JsonProperty("hourly_trend")]
-        public Trend hourly_trend { get; set; }
-
-        [JsonProperty("daily_trend")]
-        public Trend daily_trend { get; set; }
+        [JsonProperty("trend")]
+        public Trend trend { get; set; }
         
         [JsonProperty("trade_sr")]
         public TradeEntryV2Result trade_sr { get; set; }

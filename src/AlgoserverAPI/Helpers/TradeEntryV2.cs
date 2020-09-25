@@ -30,39 +30,12 @@ namespace Algoserver.API.Helpers
         public SupportAndResistanceResult sar { get; set; }
         public Levels levels { get; set; }
         public bool randomize { get; set; } = true;
-        public bool use_hourly_trend { get; set; } = true;
-        public bool use_daily_trend { get; set; } = true;
-        public Trend dailyTrend { get; set; }
-        public Trend hourlyTrend { get; set; }
+        public Trend trend { get; set; }
         public decimal riskRewords { get; set; }
     }
 
     public static class TradeEntryV2
     {
-        public static Trend GetTrend(TradeEntryV2CalculationData calculationData) 
-        {
-            if (calculationData.use_hourly_trend && calculationData.use_daily_trend) {
-                if (calculationData.dailyTrend == Trend.Up && calculationData.hourlyTrend != Trend.Down) {
-                    return Trend.Up;
-                }
-                if (calculationData.dailyTrend == Trend.Down && calculationData.hourlyTrend != Trend.Up) {
-                    return Trend.Down;
-                }
-
-                return Trend.Undefined;
-            }
-
-            if (calculationData.use_daily_trend) {
-                return calculationData.dailyTrend;
-            }
-
-            if (calculationData.use_hourly_trend) {
-                return calculationData.hourlyTrend;
-            }
-
-            return Trend.Undefined;
-        }
-
         public static TradeEntryV2Result CalculateSREntry(TradeEntryV2CalculationData calculationData, decimal stoploss_rr = 0m)
         {
             var container = calculationData.container;
@@ -75,7 +48,7 @@ namespace Algoserver.API.Helpers
             var bottom_ext1 = calculationData.sar.Minus18;
             var bottom_ext2 = calculationData.sar.Minus28;
 
-            var trend = TradeEntryV2.GetTrend(calculationData);
+            var trend = calculationData.trend;
 
             if (trend == Trend.Up) {
                 return new TradeEntryV2Result {
@@ -111,7 +84,7 @@ namespace Algoserver.API.Helpers
             var bottom_ext1 = calculationData.sar.Minus18;
             var bottom_ext2 = calculationData.sar.Minus28;
 
-            var trend = TradeEntryV2.GetTrend(calculationData);
+            var trend = calculationData.trend;
 
             if (trend == Trend.Up) {
                 return new TradeEntryV2Result {
