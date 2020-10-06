@@ -7,5 +7,6 @@
         public const string StrategyV2Backtest = "strategy_v2_backtest";
         public const string HitTestExtensions = "hittest_ext";
         public const string RTCalculation = "rtd";
+        public const string ScanInstrument = "scan_instrument";
     }
 }

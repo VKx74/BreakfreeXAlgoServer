@@ -163,7 +163,7 @@ namespace Algoserver.API.Models.Algo
             UsdRatio = usdRatio;
         }
 
-        public static int MIN_BARS_COUNT = 600;
+        public static int MIN_BARS_COUNT = 500;
 
         public void InsertHistory(IEnumerable<BarMessage> currentPriceData, IEnumerable<BarMessage> hourlyPriceData, IEnumerable<BarMessage> dailyPriceData, int replayBack)
         {

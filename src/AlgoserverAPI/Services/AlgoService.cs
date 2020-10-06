@@ -13,8 +13,6 @@ namespace Algoserver.API.Services
 {
     public class AlgoService
     {
-        private const int HOURLY_GRANULARITY = 3600;
-        private const int DAILY_GRANULARITY = 86400;
 
         private readonly ILogger<AlgoService> _logger;
         private readonly HistoryService _historyService;
@@ -50,7 +48,7 @@ namespace Algoserver.API.Services
             var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             HistoryData dailyPriceData = null;
 
-            if (granularity == DAILY_GRANULARITY)
+            if (granularity == TimeframeHelper.DAILY_GRANULARITY)
             {
                 dailyPriceData = new HistoryData
                 {
@@ -63,7 +61,7 @@ namespace Algoserver.API.Services
             }
             else
             {
-                dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILY_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+                dailyPriceData = await _historyService.GetHistory(container.Symbol, TimeframeHelper.DAILY_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             }
 
             container.InsertHistory(currentPriceData.Bars, null, dailyPriceData.Bars, container.ReplayBack);
@@ -132,7 +130,7 @@ namespace Algoserver.API.Services
             var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             HistoryData dailyPriceData = null;
 
-            if (granularity == DAILY_GRANULARITY)
+            if (granularity == TimeframeHelper.DAILY_GRANULARITY)
             {
                 dailyPriceData = new HistoryData
                 {
@@ -145,7 +143,7 @@ namespace Algoserver.API.Services
             }
             else
             {
-                dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILY_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+                dailyPriceData = await _historyService.GetHistory(container.Symbol, TimeframeHelper.DAILY_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             }
 
             var replayBack = container.ReplayBack;
@@ -252,7 +250,7 @@ namespace Algoserver.API.Services
             var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             HistoryData dailyPriceData = null;
 
-            if (granularity == DAILY_GRANULARITY)
+            if (granularity == TimeframeHelper.DAILY_GRANULARITY)
             {
                 dailyPriceData = new HistoryData
                 {
@@ -265,7 +263,7 @@ namespace Algoserver.API.Services
             }
             else
             {
-                dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILY_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+                dailyPriceData = await _historyService.GetHistory(container.Symbol, TimeframeHelper.DAILY_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             }
 
             var replayBack = container.ReplayBack;
@@ -359,7 +357,7 @@ namespace Algoserver.API.Services
             var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             HistoryData dailyPriceData = null;
 
-            if (granularity >= DAILY_GRANULARITY)
+            if (granularity >= TimeframeHelper.DAILY_GRANULARITY)
             {
                 dailyPriceData = new HistoryData
                 {
@@ -372,12 +370,12 @@ namespace Algoserver.API.Services
             }
             else
             {
-                dailyPriceData = await _historyService.GetHistory(container.Symbol, DAILY_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+                dailyPriceData = await _historyService.GetHistory(container.Symbol, TimeframeHelper.DAILY_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             }
              
              HistoryData hourlyPriceData = null;
 
-            if (granularity >= HOURLY_GRANULARITY)
+            if (granularity >= TimeframeHelper.HOURLY_GRANULARITY)
             {
                 hourlyPriceData = new HistoryData
                 {
@@ -390,7 +388,7 @@ namespace Algoserver.API.Services
             }
             else
             {
-                hourlyPriceData = await _historyService.GetHistory(container.Symbol, HOURLY_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+                hourlyPriceData = await _historyService.GetHistory(container.Symbol, TimeframeHelper.HOURLY_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             }
 
             var replayBack = container.ReplayBack;

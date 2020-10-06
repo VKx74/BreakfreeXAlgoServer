@@ -19,7 +19,7 @@ namespace Algoserver.API.Services
     // Provide historical data from oanda or twelvedata or kaiko datafeeds
     public class HistoryService
     {
-        private const int BARS_COUNT = 600;
+        private const int BARS_COUNT = 500;
         private const int ONE_DAY_TIME_SHIFT = 60 * 60 * 24;
 
         private readonly HttpClient _httpClient;

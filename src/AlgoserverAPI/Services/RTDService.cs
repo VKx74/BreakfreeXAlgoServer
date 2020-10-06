@@ -11,10 +11,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Algoserver.API.Services
 {
+
     public class RTDService
     {
-        private const int HOURLY_GRANULARITY = 3600;
-        private const int DAILY_GRANULARITY = 86400;
 
         private readonly ILogger<AlgoService> _logger;
         private readonly HistoryService _historyService;
@@ -40,7 +39,7 @@ namespace Algoserver.API.Services
             var Type = req.Instrument.Type.ToLowerInvariant();
             var Symbol = req.Instrument.Id;
 
-            var dailyPriceData = await _historyService.GetHistory(Symbol, DAILY_GRANULARITY, Datafeed, Exchange, Type, req.BarsCount);
+            var dailyPriceData = await _historyService.GetHistory(Symbol, TimeframeHelper.DAILY_GRANULARITY, Datafeed, Exchange, Type, req.BarsCount);
 
             var calculation_input = dailyPriceData.Bars.Select(_ => _.Close).ToList();
             var dates = dailyPriceData.Bars.Select(_ => _.Timestamp).ToList();

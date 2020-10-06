@@ -2,6 +2,7 @@ using Newtonsoft.Json;
 
 namespace Algoserver.API.Models.REST
 {
+
     public class RTDCalculationRequest
     {
         

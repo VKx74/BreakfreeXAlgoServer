@@ -2,6 +2,7 @@ using System.Collections.Generic;
 
 namespace Algoserver.API.Models.REST
 {
+
     public class RTDCalculationResponse {
         public IEnumerable<long> dates { get; set; }
         public IEnumerable<decimal> fast { get; set; }

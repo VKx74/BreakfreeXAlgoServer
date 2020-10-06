@@ -179,6 +179,33 @@ namespace Algoserver.API.Helpers
             return wmaDiffDataRows;
         }
 
+        public static List<decimal> StdDev(List<decimal> data, int length)
+        {
+            var res = new List<decimal>();
+            var sumDataRow = new List<decimal>();
+
+            for (var i = 0; i < data.Count; i++)
+            {
+                if (i == 0) {
+                    sumDataRow.Add(data[i]);
+                } else {
+                    sumDataRow.Add(data[i] + sumDataRow[i - 1] -
+                        (i >= length ? data[i - length] : 0));
+                }
+
+                var avg = sumDataRow.LastOrDefault() / Math.Min(i + 1, length);
+                var sum = 0m;
+                for (var barsBack = Math.Min(i, length - 1); barsBack >= 0; barsBack--)
+                {
+                    var val = data[i - barsBack] - avg;
+                    sum += val * val;
+                }
+                var stdDev = Math.Sqrt((double)sum / Math.Min(i + 1, length));
+                res.Add((decimal)stdDev);
+            }
+            return res;
+        }
+
         public static decimal[] Cmo(decimal[] data, int period)
         {
             var res = new List<decimal>();
@@ -319,7 +346,8 @@ namespace Algoserver.API.Helpers
                 var memaValue = alpha * (double)data[i] + (1 - alpha) * prevMema;
                 var famaValue = alpha2 * memaValue + (1 - alpha2) * prevFema;
                 // prevOscillatorPoint = _getOscillatorPoint(data, i, prevOscillatorPoint);
-                res.Add(new MESAData {
+                res.Add(new MESAData
+                {
                     Fast = (decimal)(memaValue),
                     Slow = (decimal)(famaValue)
                 });
@@ -341,7 +369,8 @@ namespace Algoserver.API.Helpers
         private static double _getOscillatorPoint(List<decimal> data, int currentBar, double prevOscillatorPoint)
         {
             var count = currentBar <= 32 ? currentBar : 32;
-            if (count == 0) {
+            if (count == 0)
+            {
                 return (double)data.FirstOrDefault();
             }
 
@@ -481,6 +510,31 @@ namespace Algoserver.API.Helpers
                 Level16 = lookBackResult16,
                 Level8 = lookBackResult8
             };
+        }
+
+        public static LookBackResult CalculateLevel128(IEnumerable<decimal> uPrice, IEnumerable<decimal> lPrice)
+        {
+            var lookback128 = 128;
+            return TechCalculations.LookBack(lookback128, uPrice, lPrice);
+        }
+        public static decimal CalculatePriceMoveDirection(IEnumerable<decimal> uPrice, IEnumerable<decimal> lPrice, IEnumerable<decimal> cPrice)
+        {
+            var lookback = 15;
+            var highs = uPrice.ToArray();
+            var lows = lPrice.ToArray();
+            var closes = cPrice.ToArray();
+            var highsLength = highs.Length;
+            var lowsLength = lows.Length;
+            var closesLength = closes.Length;
+            var total = 0m;
+            var last = 0m;
+            for (var i = 1; i <= lookback; i++)
+            {
+                last = (highs[highsLength - i] + lows[lowsLength - i] + closes[closesLength - i]) / 3;
+                total += last;
+            }
+            var performance = total / lookback;
+            return (performance - last) / lookback;
         }
     }
 }

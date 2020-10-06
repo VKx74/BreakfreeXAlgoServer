@@ -47,6 +47,7 @@ namespace Algoserver.API
             services.AddSingleton<HistoryService>();
             services.AddSingleton<PriceRatioCalculationService>();
             services.AddSingleton<AlgoService>();
+            services.AddSingleton<ScanerService>();
             services.AddSingleton<RTDService>();
             services.AddSingleton<StatisticsService>();
 
