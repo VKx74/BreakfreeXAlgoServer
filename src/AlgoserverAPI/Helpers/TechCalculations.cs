@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Algoserver.API.Models.Algo;
 
 namespace Algoserver.API.Helpers
 {
@@ -517,9 +518,9 @@ namespace Algoserver.API.Helpers
             var lookback128 = 128;
             return TechCalculations.LookBack(lookback128, uPrice, lPrice);
         }
-        public static decimal CalculatePriceMoveDirection(IEnumerable<decimal> uPrice, IEnumerable<decimal> lPrice, IEnumerable<decimal> cPrice)
+        public static decimal CalculatePriceMoveDirection(IEnumerable<decimal> uPrice, IEnumerable<decimal> lPrice, IEnumerable<decimal> cPrice, Trend trend)
         {
-            var lookback = 15;
+            var lookback = 10;
             var highs = uPrice.ToArray();
             var lows = lPrice.ToArray();
             var closes = cPrice.ToArray();
@@ -528,11 +529,19 @@ namespace Algoserver.API.Helpers
             var closesLength = closes.Length;
             var total = 0m;
             var last = 0m;
-            for (var i = 1; i <= lookback; i++)
+            var i = 1;
+            for (; i <= lookback; i++)
             {
-                last = (highs[highsLength - i] + lows[lowsLength - i] + closes[closesLength - i]) / 3;
+                if (trend == Trend.Down) {
+                    last = highs[highsLength - i];
+                } else if (trend == Trend.Up) {
+                    last = lows[lowsLength - i];
+                } else {
+                    last = closes[closesLength - i];
+                }
                 total += last;
             }
+            last = closes[closesLength - i];
             var performance = total / lookback;
             return (performance - last) / lookback;
         }

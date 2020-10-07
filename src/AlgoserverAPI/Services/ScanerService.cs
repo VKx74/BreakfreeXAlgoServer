@@ -104,7 +104,7 @@ namespace Algoserver.API.Services
                 return null;
             }
 
-            var candlesPerformance = TechCalculations.CalculatePriceMoveDirection(high, low, close);
+            var candlesPerformance = TechCalculations.CalculatePriceMoveDirection(high, low, close, trend);
             var priceDiffToHit = 0m;
 
             // check is price go needed direction
@@ -128,11 +128,16 @@ namespace Algoserver.API.Services
             // }
 
             var length = 14;
-            var deviation = TechCalculations.StdDev(close.TakeLast(100).ToList(), length);
+            var lastDeviation = 5;
+            var deviation = TechCalculations.StdDev(close.TakeLast(200).ToList(), length);
             var avgDeviation = deviation.Sum() / deviation.Count;
-            var currentDeviation = deviation.TakeLast(length).Sum() / length;
+            var currentDeviation = deviation.TakeLast(lastDeviation).Sum() / lastDeviation;
             var deviationSpeed = Math.Round((currentDeviation - avgDeviation) / avgDeviation * 100, 0);
-            var candlesToHit = Math.Round(priceDiffToHit / Math.Abs(candlesPerformance), 0) + 1;
+            var candlesToHit = Math.Round(priceDiffToHit / Math.Abs(candlesPerformance), 0);
+
+            if (candlesToHit <= 0) {
+                candlesToHit = 1;
+            }
 
             return new ScanResponse {
                 tte = (int)candlesToHit,
