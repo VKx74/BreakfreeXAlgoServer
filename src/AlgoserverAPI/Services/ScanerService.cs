@@ -76,7 +76,7 @@ namespace Algoserver.API.Services
                 response.tp_15 = min15ScanningResult.tp;
             }
 
-            response.trend = trendData;
+            response.trend = trendData; 
             return response;
         }
 
@@ -123,9 +123,9 @@ namespace Algoserver.API.Services
                 priceDiffToHit = resistance - lastBar.Close;
             }
 
-            if (priceDiffToHit <= 0) {
-                return null;
-            }
+            // if (priceDiffToHit <= 0) {
+            //     return null;
+            // }
 
             var length = 14;
             var deviation = TechCalculations.StdDev(close.TakeLast(100).ToList(), length);
