@@ -518,6 +518,39 @@ namespace Algoserver.API.Helpers
             var lookback128 = 128;
             return TechCalculations.LookBack(lookback128, uPrice, lPrice);
         }
+
+        public static bool ApproveDirection(IEnumerable<decimal> uPrice, IEnumerable<decimal> lPrice, IEnumerable<decimal> cPrice, Trend trend) {
+            var lookback = 3;
+            var lastHigh = uPrice.TakeLast(lookback).ToArray();
+            var lastLow = lPrice.TakeLast(lookback).ToArray();
+            var lastClose = cPrice.TakeLast(lookback).ToArray();
+
+            var condition1 = true;
+            var condition2 = true;
+            for (var i = 1; i < lookback; i++) {
+                if (trend == Trend.Up) {
+                    if (lastClose[i] > lastClose[i - 1]) {
+                        condition1 = false;
+                    }
+                    if (lastLow[i] > lastLow[i - 1]) {
+                        condition2 = false;
+                    }
+                } 
+                else
+                {
+                     if (lastClose[i] < lastClose[i - 1]) {
+                        condition1 = false;
+                    }
+                    if (lastHigh[i] < lastHigh[i - 1]) {
+                        condition2 = false;
+                    }
+                }
+
+            }
+
+            return condition1 || condition2;
+        }
+
         public static decimal CalculatePriceMoveDirection(IEnumerable<decimal> uPrice, IEnumerable<decimal> lPrice, IEnumerable<decimal> cPrice, Trend trend)
         {
             var lookback = 10;

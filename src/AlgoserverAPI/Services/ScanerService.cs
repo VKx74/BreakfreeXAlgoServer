@@ -96,11 +96,17 @@ namespace Algoserver.API.Services
             var support = levels.ZeroEight;
 
             // check is price above/below natural level
-            if (trend == Trend.Up && lastBar.Close > natural) {
+            if (trend == Trend.Up && lastBar.Close > (natural * 2 + support) / 3) {
                 return null;
             }
             
-            if (trend == Trend.Down && lastBar.Close < natural) {
+            if (trend == Trend.Down && lastBar.Close < (natural + resistance * 2) / 3) {
+                return null;
+            }
+
+            var directionApproved = TechCalculations.ApproveDirection(high, low, close, trend);
+
+            if (!directionApproved) {
                 return null;
             }
 
@@ -128,7 +134,7 @@ namespace Algoserver.API.Services
             // }
 
             var length = 14;
-            var lastDeviation = 5;
+            var lastDeviation = 3;
             var deviation = TechCalculations.StdDev(close.TakeLast(200).ToList(), length);
             var avgDeviation = deviation.Sum() / deviation.Count;
             var currentDeviation = deviation.TakeLast(lastDeviation).Sum() / lastDeviation;
