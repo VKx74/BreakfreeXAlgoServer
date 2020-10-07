@@ -527,6 +527,7 @@ namespace Algoserver.API.Helpers
 
             var condition1 = true;
             var condition2 = true;
+            var condition3 = true;
             for (var i = 1; i < lookback; i++) {
                 if (trend == Trend.Up) {
                     if (lastClose[i] > lastClose[i - 1]) {
@@ -535,20 +536,26 @@ namespace Algoserver.API.Helpers
                     if (lastLow[i] > lastLow[i - 1]) {
                         condition2 = false;
                     }
+                     if (lastHigh[i] > lastHigh[i - 1]) {
+                        condition3 = false;
+                    }
                 } 
                 else
                 {
-                     if (lastClose[i] < lastClose[i - 1]) {
+                    if (lastClose[i] < lastClose[i - 1]) {
                         condition1 = false;
                     }
                     if (lastHigh[i] < lastHigh[i - 1]) {
                         condition2 = false;
+                    } 
+                    if (lastLow[i] < lastLow[i - 1]) {
+                        condition3 = false;
                     }
                 }
 
             }
 
-            return condition1 || condition2;
+            return condition1 || condition2 || condition3;
         }
 
         public static decimal CalculatePriceMoveDirection(IEnumerable<decimal> uPrice, IEnumerable<decimal> lPrice, IEnumerable<decimal> cPrice, Trend trend)
