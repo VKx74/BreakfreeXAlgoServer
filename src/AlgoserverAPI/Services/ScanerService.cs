@@ -37,6 +37,7 @@ namespace Algoserver.API.Services
             {
                 trend = Trend.Undefined
             };
+
             var Exchange = req.Instrument.Exchange.ToLowerInvariant();
             var Datafeed = req.Instrument.Datafeed.ToLowerInvariant();
             var Type = req.Instrument.Type.ToLowerInvariant();
@@ -75,6 +76,7 @@ namespace Algoserver.API.Services
                 response.tp_15 = min15ScanningResult.tp;
             }
 
+            response.trend = trendData;
             return response;
         }
 
