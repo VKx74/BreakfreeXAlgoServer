@@ -65,27 +65,27 @@ namespace Algoserver.API.Services
             }
             
             stopWatch.Start();
-            var min15task = await this._loadPack(tasks15min);
+            var min15history = await this._loadPack(tasks15min);
             stopWatch.Stop();
             TimeSpan ts15 = stopWatch.Elapsed;
 
             stopWatch.Reset();
             stopWatch.Start();
-            var hourlytask = await this._loadPack(tasks1h);
+            var hourlyhistory = await this._loadPack(tasks1h);
             stopWatch.Stop();
             TimeSpan ts1h = stopWatch.Elapsed;
 
             stopWatch.Reset();
             stopWatch.Start();
-            var hour4task = await this._loadPack(tasks4h);
+            var hour4history = await this._loadPack(tasks4h);
             stopWatch.Stop();
             TimeSpan ts4h = stopWatch.Elapsed;
 
 
             // string elapsedTime = String.Format("Total {0:00}:{1:00}", ts.Minutes, ts.Seconds);
-            string elapsedTime15 = String.Format("15 min {0:00}:{1:00}", ts15.Minutes, ts15.Seconds);
-            string elapsedTime1h = String.Format("1 h {0:00}:{1:00}", ts1h.Minutes, ts1h.Seconds);
-            string elapsedTime4h = String.Format("4 h {0:00}:{1:00}", ts4h.Minutes, ts4h.Seconds);
+            string elapsedTime15 = String.Format("15 min {0:00}:{1:00} - data loaded " +  min15history.Count , ts15.Minutes, ts15.Seconds);
+            string elapsedTime1h = String.Format("1 h {0:00}:{1:00}" +  hourlyhistory.Count , ts1h.Minutes, ts1h.Seconds);
+            string elapsedTime4h = String.Format("4 h {0:00}:{1:00}" +  hour4history.Count , ts4h.Minutes, ts4h.Seconds);
 
             return elapsedTime15 + " - " + elapsedTime1h  + " - " + elapsedTime4h;
             
@@ -93,7 +93,7 @@ namespace Algoserver.API.Services
 
         private async Task<List<HistoryData>> _loadPack(List<HistoryRequest> tasks) {
             var result = new List<HistoryData>();
-            var count = 10;
+            var count = 5;
 
             while(tasks.Count > 0) {
                 var tasksToProcess = tasks.Take(count);
