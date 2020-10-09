@@ -38,6 +38,10 @@ namespace Algoserver.API.Services
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
+        public async Task<BarMessage> GetLastBar(string symbol, int granularity, string datafeed, string exchange) {
+            var result = await LoadHistoricalData(datafeed, symbol, granularity, 10, exchange);
+            return result.Bars.LastOrDefault();
+        }
         public async Task<HistoryData> GetHistory(string symbol, int granularity, string datafeed, string exchange, string type, int replayBack = 0)
         {
             var hash = getHash(symbol, granularity, datafeed, exchange);

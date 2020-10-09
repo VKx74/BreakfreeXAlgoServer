@@ -33,7 +33,7 @@ namespace Algoserver.API.Services
                 
                 // var hour4 = _historyService.GetHistory(Symbol, TimeframeHelper.HOUR4_GRANULARITY, Datafeed, Exchange, Type);
                 // var hourly = _historyService.GetHistory(Symbol, TimeframeHelper.HOURLY_GRANULARITY, Datafeed, Exchange, Type);
-                var min15 = await _historyService.GetHistory(Symbol, TimeframeHelper.MIN15_GRANULARITY, Datafeed, Exchange, Type);
+                var min15 = await _historyService.GetLastBar(Symbol, TimeframeHelper.MIN15_GRANULARITY, Datafeed, Exchange);
                 // var task = await Task.WhenAll<HistoryData>(new[] { hour4, hourly, min15 });
                 // var hour4PriceData = task[0];
                 // var hourlyPriceData = task[1];
