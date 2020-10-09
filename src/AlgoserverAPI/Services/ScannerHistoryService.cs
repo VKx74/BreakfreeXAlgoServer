@@ -93,7 +93,7 @@ namespace Algoserver.API.Services
 
         private async Task<List<HistoryData>> _loadPack(List<HistoryRequest> tasks) {
             var result = new List<HistoryData>();
-            var count = 20;
+            var count = 10;
 
             while(tasks.Count > 0) {
                 var tasksToProcess = tasks.Take(count);
