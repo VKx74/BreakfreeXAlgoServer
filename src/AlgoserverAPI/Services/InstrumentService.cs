@@ -40,6 +40,10 @@ namespace Algoserver.API.Services
             _kaikoInstruments.AddRange(kaikoInstruments.Data);
         }
 
+        public List<OandaInstruments> GetOandaInstruments() {
+            return this._oandaInstruments.ToList();
+        }
+
         public bool SymbolExist(string datafeed, string symbol) {
             if (datafeed.ToLowerInvariant() == "oanda") {
                 return _oandaInstruments.Any(_ => _.Symbol.Equals(symbol, StringComparison.InvariantCultureIgnoreCase));

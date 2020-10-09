@@ -21,13 +21,15 @@ namespace Algoserver.API.Controllers
         private RTDService _rtdService;
         private ScanerService _scanerService;
         private StatisticsService _statisticsService;
+        private ScannerHistoryService _scannerHistoryService;
 
-        public AlgoController(AlgoService algoService, RTDService rtdService, ScanerService scanerService, StatisticsService statisticsService, IMemoryCache cache)
+        public AlgoController(AlgoService algoService, RTDService rtdService, ScanerService scanerService, StatisticsService statisticsService, IMemoryCache cache, ScannerHistoryService scannerHistoryService)
         {
             _algoService = algoService;
             _rtdService = rtdService;
             _scanerService = scanerService;
             _statisticsService = statisticsService;
+            _scannerHistoryService = scannerHistoryService;
             _cache = cache;
         }
 
@@ -139,6 +141,17 @@ namespace Algoserver.API.Controllers
             var result = await _scanerService.ScanInstrument(request);
 
             return Json(result);
+        }
+
+        [Authorize]
+        [HttpPost(Routes.LoadInstruments)]
+        [ProducesResponseType(typeof(Response<object>), 200)]
+        public async Task<IActionResult> LoadInstruments([FromBody] object request)
+        {
+            var res = await _scannerHistoryService.Refresh();
+            return Json(new {
+                res = res
+            });
         }
     }
 }

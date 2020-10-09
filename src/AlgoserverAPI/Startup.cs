@@ -48,6 +48,7 @@ namespace Algoserver.API
             services.AddSingleton<PriceRatioCalculationService>();
             services.AddSingleton<AlgoService>();
             services.AddSingleton<ScanerService>();
+            services.AddSingleton<ScannerHistoryService>();
             services.AddSingleton<RTDService>();
             services.AddSingleton<StatisticsService>();
 
@@ -100,7 +101,7 @@ namespace Algoserver.API
             services.AddMemoryCache();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, InstrumentService instrumentService)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, InstrumentService instrumentService, ScannerHistoryService scannerHistoryService)
         {
             instrumentService.Init();
             
