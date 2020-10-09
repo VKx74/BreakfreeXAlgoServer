@@ -83,9 +83,9 @@ namespace Algoserver.API.Services
 
 
             // string elapsedTime = String.Format("Total {0:00}:{1:00}", ts.Minutes, ts.Seconds);
-            string elapsedTime15 = String.Format("15 min {0:00}:{1:00} - data loaded " +  min15history.Count , ts15.Minutes, ts15.Seconds);
-            string elapsedTime1h = String.Format("1 h {0:00}:{1:00}" +  hourlyhistory.Count , ts1h.Minutes, ts1h.Seconds);
-            string elapsedTime4h = String.Format("4 h {0:00}:{1:00}" +  hour4history.Count , ts4h.Minutes, ts4h.Seconds);
+            string elapsedTime15 = String.Format(" * 15 min {0:00}:{1:00} - data loaded " +  min15history.Count , ts15.Minutes, ts15.Seconds);
+            string elapsedTime1h = String.Format(" * 1 h {0:00}:{1:00} - data loaded " +  hourlyhistory.Count , ts1h.Minutes, ts1h.Seconds);
+            string elapsedTime4h = String.Format(" * 4 h {0:00}:{1:00} - data loaded " +  hour4history.Count , ts4h.Minutes, ts4h.Seconds);
 
             return elapsedTime15 + " - " + elapsedTime1h  + " - " + elapsedTime4h;
             
@@ -96,8 +96,7 @@ namespace Algoserver.API.Services
             var count = 5;
 
             while(tasks.Count > 0) {
-                var tasksToProcess = tasks.Take(count);
-                tasks.RemoveRange(0, Math.Min(count, tasks.Count));
+                var tasksToProcess = tasks.Take(Math.Min(count, tasks.Count));
                 
                 var tasksToWait = new List<Task<HistoryData>>();
                 foreach (var t in tasksToProcess) {
@@ -106,6 +105,7 @@ namespace Algoserver.API.Services
                 }
                 var res = await Task.WhenAll<HistoryData>(tasksToWait);
                 result.AddRange(res);
+                tasks.RemoveRange(0, Math.Min(count, tasks.Count));
             }
 
             return result;
