@@ -38,9 +38,13 @@ namespace Algoserver.API.Services
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
-        public async Task<BarMessage> GetLastBar(string symbol, int granularity, string datafeed, string exchange) {
-            var result = await LoadHistoricalData(datafeed, symbol, granularity, 10, exchange);
+        public async Task<BarMessage> GetLastBar(string symbol, int granularity, string datafeed, string exchange, int count = 10) {
+            var result = await LoadHistoricalData(datafeed, symbol, granularity, count, exchange);
             return result.Bars.LastOrDefault();
+        }
+        public async Task<HistoryData> GetHistory(string symbol, int granularity, string datafeed, string exchange, int count) {
+            var result = await LoadHistoricalData(datafeed, symbol, granularity, count, exchange);
+            return result;
         }
         public async Task<HistoryData> GetHistory(string symbol, int granularity, string datafeed, string exchange, string type, int replayBack = 0)
         {

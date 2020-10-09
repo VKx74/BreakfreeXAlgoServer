@@ -24,19 +24,19 @@ namespace Algoserver.API.Services
             var forexInstruments = _instrumentService.GetOandaInstruments();
             var stopWatch = new Stopwatch();
             stopWatch.Start();
-            var tasks = new List<Task<BarMessage>>();
+            var tasks = new List<Task<HistoryData>>();
 
             foreach (var instrument in forexInstruments)
             {
                 var Exchange = instrument.Datafeed.ToLowerInvariant();
                 var Datafeed = instrument.Datafeed.ToLowerInvariant();
-                var Type = instrument.Type.ToLowerInvariant();
                 var Symbol = instrument.Symbol;
                 
                 // var hour4 = _historyService.GetHistory(Symbol, TimeframeHelper.HOUR4_GRANULARITY, Datafeed, Exchange, Type);
-                // var hourly = _historyService.GetHistory(Symbol, TimeframeHelper.HOURLY_GRANULARITY, Datafeed, Exchange, Type);
-                var min15 = _historyService.GetLastBar(Symbol, TimeframeHelper.MIN15_GRANULARITY, Datafeed, Exchange);
-                tasks.Add(min15);
+                var hourly = _historyService.GetHistory(Symbol, TimeframeHelper.HOURLY_GRANULARITY, Datafeed, Exchange, 300);
+                // var min15 = _historyService.GetLastBar(Symbol, TimeframeHelper.MIN15_GRANULARITY, Datafeed, Exchange);
+                // tasks.Add(min15);
+                tasks.Add(hourly);
                 // var task = await Task.WhenAll<HistoryData>(new[] { hour4, hourly, min15 });
                 // var hour4PriceData = task[0];
                 // var hourlyPriceData = task[1];
@@ -44,7 +44,7 @@ namespace Algoserver.API.Services
                 // Console.WriteLine(">>> Instruments loaded: " + Symbol);
             }
             
-            var task = await Task.WhenAll<BarMessage>(tasks);
+            var task = await Task.WhenAll<HistoryData>(tasks);
             stopWatch.Stop();
 
             TimeSpan ts = stopWatch.Elapsed;
