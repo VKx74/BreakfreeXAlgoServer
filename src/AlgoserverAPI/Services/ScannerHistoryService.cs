@@ -23,8 +23,9 @@ namespace Algoserver.API.Services
         {
             var forexInstruments = _instrumentService.GetOandaInstruments();
             var stopWatch = new Stopwatch();
-            stopWatch.Start();
-            var tasks = new List<Task<HistoryData>>();
+            var tasks15min = new List<Task<HistoryData>>();
+            var tasks1h = new List<Task<HistoryData>>();
+            var tasks4h = new List<Task<HistoryData>>();
 
             foreach (var instrument in forexInstruments)
             {
@@ -32,26 +33,37 @@ namespace Algoserver.API.Services
                 var Datafeed = instrument.Datafeed.ToLowerInvariant();
                 var Symbol = instrument.Symbol;
                 
-                // var hour4 = _historyService.GetHistory(Symbol, TimeframeHelper.HOUR4_GRANULARITY, Datafeed, Exchange, Type);
+                var hour4 = _historyService.GetHistory(Symbol, TimeframeHelper.HOUR4_GRANULARITY, Datafeed, Exchange, 300);
                 var hourly = _historyService.GetHistory(Symbol, TimeframeHelper.HOURLY_GRANULARITY, Datafeed, Exchange, 300);
-                // var min15 = _historyService.GetLastBar(Symbol, TimeframeHelper.MIN15_GRANULARITY, Datafeed, Exchange);
-                // tasks.Add(min15);
-                tasks.Add(hourly);
-                // var task = await Task.WhenAll<HistoryData>(new[] { hour4, hourly, min15 });
-                // var hour4PriceData = task[0];
-                // var hourlyPriceData = task[1];
-                // var min15PriceData = task[2];
-                // Console.WriteLine(">>> Instruments loaded: " + Symbol);
+                var min15 = _historyService.GetHistory(Symbol, TimeframeHelper.MIN15_GRANULARITY, Datafeed, Exchange, 400);
+                tasks15min.Add(min15);
+                tasks1h.Add(hourly);
+                tasks4h.Add(hour4);
             }
             
-            var task = await Task.WhenAll<HistoryData>(tasks);
+            stopWatch.Start();
+            var min15task = await Task.WhenAll<HistoryData>(tasks15min);
             stopWatch.Stop();
+            TimeSpan ts15 = stopWatch.Elapsed;
 
-            TimeSpan ts = stopWatch.Elapsed;
-            string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
-            ts.Hours, ts.Minutes, ts.Seconds,
-            ts.Milliseconds / 10);
-            return elapsedTime + " - " + task.Length;
+            stopWatch.Start();
+            var hourlytask = await Task.WhenAll<HistoryData>(tasks1h);
+            stopWatch.Stop();
+            TimeSpan ts1h = stopWatch.Elapsed;
+
+            stopWatch.Start();
+            var hour4task = await Task.WhenAll<HistoryData>(tasks4h);
+            stopWatch.Stop();
+            TimeSpan ts4h = stopWatch.Elapsed;
+
+
+            // string elapsedTime = String.Format("Total {0:00}:{1:00}", ts.Minutes, ts.Seconds);
+            string elapsedTime15 = String.Format("15 min {0:00}:{1:00}", ts15.Minutes, ts15.Seconds);
+            string elapsedTime1h = String.Format("1 h {0:00}:{1:00}", ts1h.Minutes, ts1h.Seconds);
+            string elapsedTime4h = String.Format("4 h {0:00}:{1:00}", ts4h.Minutes, ts4h.Seconds);
+
+            return elapsedTime15 + " - " + elapsedTime1h  + " - " + elapsedTime4h;
+            
         }
     }
 }
