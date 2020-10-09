@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Algoserver.API.Models.REST;
@@ -23,6 +24,7 @@ namespace Algoserver.API.Services
             var forexInstruments = _instrumentService.GetOandaInstruments();
             var stopWatch = new Stopwatch();
             stopWatch.Start();
+            var tasks = new List<Task<BarMessage>>();
 
             foreach (var instrument in forexInstruments)
             {
@@ -33,21 +35,23 @@ namespace Algoserver.API.Services
                 
                 // var hour4 = _historyService.GetHistory(Symbol, TimeframeHelper.HOUR4_GRANULARITY, Datafeed, Exchange, Type);
                 // var hourly = _historyService.GetHistory(Symbol, TimeframeHelper.HOURLY_GRANULARITY, Datafeed, Exchange, Type);
-                var min15 = await _historyService.GetLastBar(Symbol, TimeframeHelper.MIN15_GRANULARITY, Datafeed, Exchange);
+                var min15 = _historyService.GetLastBar(Symbol, TimeframeHelper.MIN15_GRANULARITY, Datafeed, Exchange);
+                tasks.Add(min15);
                 // var task = await Task.WhenAll<HistoryData>(new[] { hour4, hourly, min15 });
                 // var hour4PriceData = task[0];
                 // var hourlyPriceData = task[1];
                 // var min15PriceData = task[2];
                 // Console.WriteLine(">>> Instruments loaded: " + Symbol);
             }
-
+            
+            var task = await Task.WhenAll<BarMessage>(tasks);
             stopWatch.Stop();
 
             TimeSpan ts = stopWatch.Elapsed;
             string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
             ts.Hours, ts.Minutes, ts.Seconds,
             ts.Milliseconds / 10);
-            return elapsedTime;
+            return elapsedTime + " - " + task.Length;
         }
     }
 }
