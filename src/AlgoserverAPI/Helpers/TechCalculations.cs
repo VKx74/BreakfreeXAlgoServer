@@ -563,7 +563,7 @@ namespace Algoserver.API.Helpers
                 return false;
             }
 
-            return condition1 + condition2 + condition3 <= 2;
+            return condition1 <= 1 || condition2 <= 1 || condition3 <= 1;
         }
 
         public static decimal CalculatePriceMoveDirection(IEnumerable<decimal> uPrice, IEnumerable<decimal> lPrice, IEnumerable<decimal> cPrice, Trend trend)
