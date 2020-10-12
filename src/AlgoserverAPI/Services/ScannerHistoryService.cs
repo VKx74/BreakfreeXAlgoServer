@@ -22,19 +22,16 @@ namespace Algoserver.API.Services
         private readonly HistoryService _historyService;
         private readonly InstrumentService _instrumentService;
         private readonly IMemoryCache _cache;
-        private readonly AuthService _auth;
 
-        public ScannerHistoryService(HistoryService historyService, InstrumentService instrumentService, IMemoryCache cache, AuthService auth)
+        public ScannerHistoryService(HistoryService historyService, InstrumentService instrumentService, IMemoryCache cache)
         {
             _historyService = historyService;
             _instrumentService = instrumentService;
             _cache = cache;
-            _auth = auth;
         }
 
         public async Task<string> Refresh()
         {
-            var token = await _auth.GetAuth();
             var forexInstruments = _instrumentService.GetOandaInstruments();
             var stopWatch = new Stopwatch();
             var tasks15min = new List<HistoryRequest>();
@@ -70,19 +67,19 @@ namespace Algoserver.API.Services
             }
             
             stopWatch.Start();
-            var min15history = await this._loadPack(tasks15min, token);
+            var min15history = await this._loadPack(tasks15min);
             stopWatch.Stop();
             TimeSpan ts15 = stopWatch.Elapsed;
 
             stopWatch.Reset();
             stopWatch.Start();
-            var hourlyhistory = await this._loadPack(tasks1h, token);
+            var hourlyhistory = await this._loadPack(tasks1h);
             stopWatch.Stop();
             TimeSpan ts1h = stopWatch.Elapsed;
 
             stopWatch.Reset();
             stopWatch.Start();
-            var hour4history = await this._loadPack(tasks4h, token);
+            var hour4history = await this._loadPack(tasks4h);
             stopWatch.Stop();
             TimeSpan ts4h = stopWatch.Elapsed;
 
@@ -96,7 +93,7 @@ namespace Algoserver.API.Services
             
         }
 
-        private async Task<List<HistoryData>> _loadPack(List<HistoryRequest> tasks, string token) {
+        private async Task<List<HistoryData>> _loadPack(List<HistoryRequest> tasks) {
             var result = new List<HistoryData>();
             var count = 5;
 
@@ -105,7 +102,7 @@ namespace Algoserver.API.Services
                 
                 var tasksToWait = new List<Task<HistoryData>>();
                 foreach (var t in tasksToProcess) {
-                    var task = _historyService.GetHistoryWithCount(t.Symbol, t.Granularity, t.Datafeed, t.Exchange, token, t.Count);
+                    var task = _historyService.GetHistoryWithCount(t.Symbol, t.Granularity, t.Datafeed, t.Exchange, t.Count);
                     tasksToWait.Add(task);
                 }
                 var res = await Task.WhenAll<HistoryData>(tasksToWait);
