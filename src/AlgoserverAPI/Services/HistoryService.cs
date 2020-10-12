@@ -37,13 +37,9 @@ namespace Algoserver.API.Services
             _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
-
-        public async Task<BarMessage> GetLastBar(string symbol, int granularity, string datafeed, string exchange, int count = 10) {
-            var result = await LoadHistoricalData(datafeed, symbol, granularity, count, exchange);
-            return result.Bars.LastOrDefault();
-        }
-        public async Task<HistoryData> GetHistory(string symbol, int granularity, string datafeed, string exchange, int count) {
-            var result = await LoadHistoricalData(datafeed, symbol, granularity, count, exchange);
+        public async Task<HistoryData> GetHistoryWithCount(string symbol, int granularity, string datafeed, string exchange, string bearerString, int count)
+        {
+            var result = await LoadHistoricalData(datafeed, symbol, granularity, count, bearerString, exchange);
             return result;
         }
         public async Task<HistoryData> GetHistory(string symbol, int granularity, string datafeed, string exchange, string type, int replayBack = 0)
@@ -68,7 +64,10 @@ namespace Algoserver.API.Services
 
             var barsBack = BARS_COUNT + replayBack;
 
-            var result = await LoadHistoricalData(datafeed, symbol, granularity, barsBack, exchange);
+            var exists = _contextAccessor.HttpContext.Request.Headers.TryGetValue("Authorization", out var authHeader);
+            var bearerString = authHeader.ToString();
+
+            var result = await LoadHistoricalData(datafeed, symbol, granularity, barsBack, bearerString, exchange);
 
             try
             {
@@ -93,10 +92,8 @@ namespace Algoserver.API.Services
             return result;
         }
 
-        private async Task<HistoryData> LoadHistoricalData(string datafeed, string symbol, int granularity, long bars_count, string exchange = "")
+        private async Task<HistoryData> LoadHistoricalData(string datafeed, string symbol, int granularity, long bars_count, string token, string exchange)
         {
-            var exists = _contextAccessor.HttpContext.Request.Headers.TryGetValue("Authorization", out var authHeader);
-            var bearerString = authHeader.ToString();
             var bearerdatafeed = datafeed.ToLowerInvariant();
 
             var result = new HistoryData
@@ -126,7 +123,7 @@ namespace Algoserver.API.Services
                 var request = new HttpRequestMessage(HttpMethod.Get, uri)
                 {
                     Headers = {
-                    { HttpRequestHeader.Authorization.ToString(), bearerString }
+                    { HttpRequestHeader.Authorization.ToString(), token }
                 }
                 };
 
@@ -155,7 +152,8 @@ namespace Algoserver.API.Services
                 result.Bars = this.mergeBars(result.Bars, bars);
                 var afterCount = result.Bars.Count();
 
-                if (prevCount == afterCount) {
+                if (prevCount == afterCount)
+                {
                     return result;
                 }
 

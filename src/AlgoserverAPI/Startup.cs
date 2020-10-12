@@ -15,7 +15,7 @@ using Algoserver.API.Conventions;
 using Algoserver.API.Data;
 using Algoserver.API.Services;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
+using Algoserver.Auth.Services;
 
 namespace Algoserver.API
 {
@@ -44,6 +44,7 @@ namespace Algoserver.API
             services.AddLogging(opt => opt.AddConsole().AddDebug());
             services.AddSingleton<IConfiguration>(Configuration);
             services.AddSingleton<InstrumentService>();
+            services.AddSingleton<AuthService>();
             services.AddSingleton<HistoryService>();
             services.AddSingleton<PriceRatioCalculationService>();
             services.AddSingleton<AlgoService>();
@@ -97,6 +98,8 @@ namespace Algoserver.API
                     options.RequireHttpsMetadata = false;
                     options.EnableCaching = true;
                 });
+
+            services.AddTokenProvider();
 
             services.AddMemoryCache();
         }
