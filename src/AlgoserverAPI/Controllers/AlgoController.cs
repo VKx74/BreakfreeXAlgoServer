@@ -16,21 +16,21 @@ namespace Algoserver.API.Controllers
 {
     public class AlgoController : Controller
     {
-        private IMemoryCache _cache;
+        private ScannerCacheService _scannerCache;
         private AlgoService _algoService;
         private RTDService _rtdService;
-        private ScanerService _scanerService;
+        private ScannerService _scanerService;
         private StatisticsService _statisticsService;
         private ScannerHistoryService _scannerHistoryService;
 
-        public AlgoController(AlgoService algoService, RTDService rtdService, ScanerService scanerService, StatisticsService statisticsService, IMemoryCache cache, ScannerHistoryService scannerHistoryService)
+        public AlgoController(AlgoService algoService, RTDService rtdService, ScannerService scanerService, StatisticsService statisticsService, ScannerCacheService scannerCache, ScannerHistoryService scannerHistoryService)
         {
             _algoService = algoService;
             _rtdService = rtdService;
             _scanerService = scanerService;
             _statisticsService = statisticsService;
             _scannerHistoryService = scannerHistoryService;
-            _cache = cache;
+            _scannerCache = scannerCache;
         }
 
         [Authorize]
@@ -144,11 +144,22 @@ namespace Algoserver.API.Controllers
         }
 
         [Authorize]
-        [HttpPost(Routes.LoadInstruments)]
+        [HttpPost(Routes.RefreshInstruments)]
         [ProducesResponseType(typeof(Response<object>), 200)]
         public async Task<IActionResult> LoadInstruments([FromBody] object request)
         {
-            var res = await _scannerHistoryService.Refresh();
+            var res = await _scannerHistoryService.RefreshAll();
+            return Json(new {
+                res = res
+            });
+        }
+        
+        [Authorize]
+        [HttpGet(Routes.ScannerResults)]
+        [ProducesResponseType(typeof(Response<ScannerResponse>), 200)]
+        public IActionResult ScannerResults([FromQuery] string segment = "")
+        {
+            var res = _scannerCache.GetData();
             return Json(new {
                 res = res
             });

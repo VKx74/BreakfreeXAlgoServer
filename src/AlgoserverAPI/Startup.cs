@@ -16,6 +16,7 @@ using Algoserver.API.Data;
 using Algoserver.API.Services;
 using Microsoft.AspNetCore.Http;
 using Algoserver.Auth.Services;
+using Algoserver.API.HostedServices;
 
 namespace Algoserver.API
 {
@@ -48,10 +49,12 @@ namespace Algoserver.API
             services.AddSingleton<HistoryService>();
             services.AddSingleton<PriceRatioCalculationService>();
             services.AddSingleton<AlgoService>();
-            services.AddSingleton<ScanerService>();
+            services.AddSingleton<ScannerService>();
             services.AddSingleton<ScannerHistoryService>();
+            services.AddSingleton<ScannerCacheService>();
             services.AddSingleton<RTDService>();
             services.AddSingleton<StatisticsService>();
+            services.AddHostedService<HistoryLoaderHostedService>();
 
             services.AddCors(options =>
             {

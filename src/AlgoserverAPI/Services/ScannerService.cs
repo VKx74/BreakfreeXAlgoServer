@@ -13,12 +13,12 @@ namespace Algoserver.API.Services
         public int tp { get; set; }
     }
 
-    public class ScanerService
+    public class ScannerService
     {
 
         private readonly HistoryService _historyService;
 
-        public ScanerService(HistoryService historyService)
+        public ScannerService(HistoryService historyService)
         {
             _historyService = historyService;
         }
