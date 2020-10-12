@@ -96,11 +96,11 @@ namespace Algoserver.API.Services
             var support = levels.ZeroEight;
 
             // check is price above/below natural level
-            if (trend == Trend.Up && lastBar.Close > (natural * 2 + support) / 3) {
+            if (trend == Trend.Up && lastBar.Close > natural) {
                 return null;
             }
             
-            if (trend == Trend.Down && lastBar.Close < (natural + resistance * 2) / 3) {
+            if (trend == Trend.Down && lastBar.Close < natural) {
                 return null;
             }
 

@@ -525,37 +525,37 @@ namespace Algoserver.API.Helpers
             var lastLow = lPrice.TakeLast(lookback).ToArray();
             var lastClose = cPrice.TakeLast(lookback).ToArray();
 
-            var condition1 = true;
-            var condition2 = true;
-            var condition3 = true;
-            for (var i = 1; i < lookback; i++) {
+            var condition1 = 0;
+            var condition2 = 0;
+            var condition3 = 0;
+            for (var i = 2; i <= lookback + 1; i++) {
                 if (trend == Trend.Up) {
                     if (lastClose[i] > lastClose[i - 1]) {
-                        condition1 = false;
+                        condition1++;
                     }
                     if (lastLow[i] > lastLow[i - 1]) {
-                        condition2 = false;
+                        condition2++;
                     }
                      if (lastHigh[i] > lastHigh[i - 1]) {
-                        condition3 = false;
+                        condition3++;
                     }
                 } 
                 else
                 {
                     if (lastClose[i] < lastClose[i - 1]) {
-                        condition1 = false;
+                        condition1++;
                     }
                     if (lastHigh[i] < lastHigh[i - 1]) {
-                        condition2 = false;
+                        condition2++;
                     } 
                     if (lastLow[i] < lastLow[i - 1]) {
-                        condition3 = false;
+                        condition3++;
                     }
                 }
 
             }
 
-            return condition1 || condition2 || condition3;
+            return condition1 <= 1 || condition2 <= 1 || condition3  <= 1;
         }
 
         public static decimal CalculatePriceMoveDirection(IEnumerable<decimal> uPrice, IEnumerable<decimal> lPrice, IEnumerable<decimal> cPrice, Trend trend)
