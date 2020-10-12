@@ -7,7 +7,7 @@ using Algoserver.API.Models.REST;
 
 namespace Algoserver.API.Services
 {
-    internal class ScanResponse
+    public class ScanResponse
     {
         public int tte { get; set; }
         public int tp { get; set; }
@@ -25,13 +25,13 @@ namespace Algoserver.API.Services
 
         internal Task<ScanInstrumentResponse> ScanInstrument(ScanInstrumentRequest req)
         {
-            return Task.Run(async () =>
+            return Task.Run((Func<Task<ScanInstrumentResponse>>)(async () =>
             {
-                return await scanInstrument(req);
-            });
+                return await this.ScanInstrument((ScanInstrumentRequest)req);
+            }));
         }
 
-        private async Task<ScanInstrumentResponse> scanInstrument(ScanInstrumentRequest req)
+        protected async Task<ScanInstrumentResponse> scanInstrument(ScanInstrumentRequest req)
         {
             var response = new ScanInstrumentResponse
             {
@@ -45,7 +45,7 @@ namespace Algoserver.API.Services
 
             var dailyPriceData = await _historyService.GetHistory(Symbol, TimeframeHelper.DAILY_GRANULARITY, Datafeed, Exchange, Type);
             var calculation_input = dailyPriceData.Bars.Select(_ => _.Close).ToList();
-            var trendData = TrendDetector.CalculateByMesa(calculation_input);
+            var trendData = TrendDetector.CalculateByMesaWithTrendAdjusted(calculation_input);
             if (trendData == Trend.Undefined)
             {
                 return response;
@@ -59,9 +59,9 @@ namespace Algoserver.API.Services
             var hourlyPriceData = task[1];
             var min15PriceData = task[2];
 
-            var hour4ScanningResult = this.scanData(hour4PriceData, trendData);
-            var hourlyScanningResult = this.scanData(hourlyPriceData, trendData);
-            var min15ScanningResult = this.scanData(min15PriceData, trendData);
+            var hour4ScanningResult = this.ScanData(hour4PriceData, trendData);
+            var hourlyScanningResult = this.ScanData(hourlyPriceData, trendData);
+            var min15ScanningResult = this.ScanData(min15PriceData, trendData);
 
             if (hour4ScanningResult != null) {
                 response.tte_240 = hour4ScanningResult.tte;
@@ -80,7 +80,7 @@ namespace Algoserver.API.Services
             return response;
         }
 
-        private  ScanResponse scanData(HistoryData history, Trend trend) {
+        public ScanResponse ScanData(HistoryData history, Trend trend) {
             var lastBar = history.Bars.LastOrDefault();
             if (lastBar == null) {
                 return null;
