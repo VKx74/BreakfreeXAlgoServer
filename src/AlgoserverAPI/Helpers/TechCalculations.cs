@@ -520,7 +520,7 @@ namespace Algoserver.API.Helpers
         }
 
         public static bool ApproveDirection(IEnumerable<decimal> uPrice, IEnumerable<decimal> lPrice, IEnumerable<decimal> cPrice, Trend trend) {
-            var lookback = 3;
+            var lookback = 4;
             var lastHigh = uPrice.TakeLast(lookback).ToArray();
             var lastLow = lPrice.TakeLast(lookback).ToArray();
             var lastClose = cPrice.TakeLast(lookback).ToArray();
@@ -528,7 +528,7 @@ namespace Algoserver.API.Helpers
             var condition1 = 0;
             var condition2 = 0;
             var condition3 = 0;
-            for (var i = 2; i <= lookback + 1; i++) {
+            for (var i = 2; i < lookback; i++) {
                 if (trend == Trend.Up) {
                     if (lastClose[i] > lastClose[i - 1]) {
                         condition1++;
