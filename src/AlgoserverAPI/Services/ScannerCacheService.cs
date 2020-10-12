@@ -97,7 +97,7 @@ namespace Algoserver.API.Services
             data_count_1_h = _1Hour.Count;
             data_count_4_h = _4Hour.Count;
             data_count_1_d = _1Day.Count;
-            scanning_time = DateTime.UtcNow.Millisecond;
+            scanning_time = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
         }
 
         private ScannerResponseItem _toResponse(ScanResponse response, HistoryData data, Trend trend, int timeframe) {
