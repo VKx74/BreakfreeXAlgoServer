@@ -160,9 +160,7 @@ namespace Algoserver.API.Controllers
         public IActionResult ScannerResults([FromQuery] string segment = "")
         {
             var res = _scannerCache.GetData();
-            return Json(new {
-                res = res
-            });
+            return Json(res);
         }
     }
 }
