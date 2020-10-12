@@ -520,7 +520,7 @@ namespace Algoserver.API.Helpers
         }
 
         public static bool ApproveDirection(IEnumerable<decimal> uPrice, IEnumerable<decimal> lPrice, IEnumerable<decimal> cPrice, Trend trend) {
-            var lookback = 4;
+            var lookback = 5;
             var lastHigh = uPrice.TakeLast(lookback).ToArray();
             var lastLow = lPrice.TakeLast(lookback).ToArray();
             var lastClose = cPrice.TakeLast(lookback).ToArray();
@@ -528,34 +528,42 @@ namespace Algoserver.API.Helpers
             var condition1 = 0;
             var condition2 = 0;
             var condition3 = 0;
-            for (var i = 2; i < lookback; i++) {
+            for (var i = 0; i < lookback - 1; i++) {
                 if (trend == Trend.Up) {
-                    if (lastClose[i] > lastClose[i - 1]) {
+                    if (lastClose[i] <= lastClose[i + 1]) {
                         condition1++;
                     }
-                    if (lastLow[i] > lastLow[i - 1]) {
+                    if (lastLow[i] <= lastLow[i + 1]) {
                         condition2++;
                     }
-                     if (lastHigh[i] > lastHigh[i - 1]) {
+                     if (lastHigh[i] <= lastHigh[i + 1]) {
                         condition3++;
                     }
                 } 
                 else
                 {
-                    if (lastClose[i] < lastClose[i - 1]) {
+                    if (lastClose[i] >= lastClose[i + 1]) {
                         condition1++;
                     }
-                    if (lastHigh[i] < lastHigh[i - 1]) {
+                    if (lastHigh[i] >= lastHigh[i + 1]) {
                         condition2++;
                     } 
-                    if (lastLow[i] < lastLow[i - 1]) {
+                    if (lastLow[i] >= lastLow[i + 1]) {
                         condition3++;
                     }
                 }
 
             }
 
-            return condition1 <= 1 || condition2 <= 1 || condition3  <= 1;
+            if (trend == Trend.Up && lastClose.FirstOrDefault() <= lastClose.LastOrDefault()) {
+                return false;
+            }
+
+            if (trend == Trend.Down && lastClose.FirstOrDefault() >= lastClose.LastOrDefault()) {
+                return false;
+            }
+
+            return condition1 + condition2 + condition3 <= 2;
         }
 
         public static decimal CalculatePriceMoveDirection(IEnumerable<decimal> uPrice, IEnumerable<decimal> lPrice, IEnumerable<decimal> cPrice, Trend trend)
