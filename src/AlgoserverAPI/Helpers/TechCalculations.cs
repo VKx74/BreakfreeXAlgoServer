@@ -526,33 +526,41 @@ namespace Algoserver.API.Helpers
             var lastClose = cPrice.TakeLast(lookback).ToArray();
 
             var condition1 = 0;
-            var condition2 = 0;
-            var condition3 = 0;
+            // var condition2 = 0;
+            // var condition3 = 0;
             for (var i = 0; i < lookback - 1; i++) {
+                var midPrice = ((lastClose[i] * 2) + lastLow[i] + lastHigh[i]) / 4;
+                var midPrice1 = ((lastClose[i + 1] * 2) + lastLow[i + 1] + lastHigh[i + 1]) / 4;
                 if (trend == Trend.Up) {
-                    if (lastClose[i] <= lastClose[i + 1]) {
+                    if (midPrice <= midPrice1) {
                         condition1++;
-                    }
-                    if (lastLow[i] <= lastLow[i + 1]) {
-                        condition2++;
-                    }
-                     if (lastHigh[i] <= lastHigh[i + 1]) {
-                        condition3++;
                     }
                 } 
                 else
                 {
-                    if (lastClose[i] >= lastClose[i + 1]) {
+                    if (midPrice >= midPrice1) {
                         condition1++;
                     }
-                    if (lastHigh[i] >= lastHigh[i + 1]) {
-                        condition2++;
-                    } 
-                    if (lastLow[i] >= lastLow[i + 1]) {
-                        condition3++;
-                    }
                 }
+            }
 
+            if (condition1 > 1) {
+                return false;
+            }
+
+            var _2back = lookback - 2;
+            if (trend == Trend.Up) {
+                var midPriceLastCandle = (lastClose.LastOrDefault() + lastHigh.LastOrDefault()) / 2;
+                var midPrice2BackCandle = (lastClose[_2back] + lastHigh[_2back]) / 2;
+                if (midPriceLastCandle > midPrice2BackCandle) {
+                    return false;
+                }
+            } else {
+                var midPriceLastCandle = (lastClose.LastOrDefault() + lastLow.LastOrDefault()) / 2;
+                var midPrice2BackCandle = (lastClose[_2back] + lastLow[_2back]) / 2;
+                if (midPriceLastCandle < midPrice2BackCandle) {
+                    return false;
+                }
             }
 
             if (trend == Trend.Up && lastClose.FirstOrDefault() <= lastClose.LastOrDefault()) {
@@ -563,7 +571,7 @@ namespace Algoserver.API.Helpers
                 return false;
             }
 
-            return condition1 <= 1 || condition2 <= 1 || condition3 <= 1;
+            return true;
         }
 
         public static decimal CalculatePriceMoveDirection(IEnumerable<decimal> uPrice, IEnumerable<decimal> lPrice, IEnumerable<decimal> cPrice, Trend trend)

@@ -27,7 +27,7 @@ namespace Algoserver.API.Services
         {
             return Task.Run((Func<Task<ScanInstrumentResponse>>)(async () =>
             {
-                return await this.ScanInstrument((ScanInstrumentRequest)req);
+                return await this.scanInstrument((ScanInstrumentRequest)req);
             }));
         }
 
