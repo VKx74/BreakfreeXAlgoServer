@@ -60,7 +60,8 @@ namespace Algoserver.API.Services
             {
                 var response = new ScanInstrumentResponse
                 {
-                    trend = Trend.Undefined
+                    trend = Trend.Undefined,
+                    type = TradeType.EXT
                 };
                 var calculation_input = dailyHistory.Bars.Select(_ => _.Close).ToList();
                 var trendData = TrendDetector.CalculateByMesaWithTrendAdjusted(calculation_input);
@@ -71,7 +72,7 @@ namespace Algoserver.API.Services
 
                 if (_15Mins.TryGetValue(_historyService.GetKey(dailyHistory), out var history15Min))
                 {
-                    var scanningResult = _scanner.ScanData(history15Min, trendData);
+                    var scanningResult = _scanner.ScanExt(history15Min, trendData);
                     if (scanningResult != null)
                     {
                         res.Add(_toResponse(scanningResult, history15Min, trendData, TimeframeHelper.MIN15_GRANULARITY));
@@ -80,7 +81,7 @@ namespace Algoserver.API.Services
 
                 if (_1Hour.TryGetValue(_historyService.GetKey(dailyHistory), out var history1H))
                 {
-                    var scanningResult = _scanner.ScanData(history1H, trendData);
+                    var scanningResult = _scanner.ScanExt(history1H, trendData);
                     if (scanningResult != null)
                     {
                         res.Add(_toResponse(scanningResult, history1H, trendData, TimeframeHelper.HOURLY_GRANULARITY));
@@ -89,7 +90,7 @@ namespace Algoserver.API.Services
 
                 if (_4Hour.TryGetValue(_historyService.GetKey(dailyHistory), out var history4H))
                 {
-                    var scanningResult = _scanner.ScanData(history4H, trendData);
+                    var scanningResult = _scanner.ScanExt(history4H, trendData);
                     if (scanningResult != null)
                     {
                         res.Add(_toResponse(scanningResult, history4H, trendData, TimeframeHelper.HOUR4_GRANULARITY));

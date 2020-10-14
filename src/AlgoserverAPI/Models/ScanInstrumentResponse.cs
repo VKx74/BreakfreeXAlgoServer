@@ -6,6 +6,7 @@ namespace Algoserver.API.Models.REST
     public class ScanInstrumentResponse
     {
         public Trend trend { get; set; }
+        public TradeType type { get; set; }
         public int tte_15 { get; set; }
         public int tte_60 { get; set; }
         public int tte_240 { get; set; }

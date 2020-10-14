@@ -27,15 +27,16 @@ namespace Algoserver.API.Services
         {
             return Task.Run((Func<Task<ScanInstrumentResponse>>)(async () =>
             {
-                return await this.scanInstrument((ScanInstrumentRequest)req);
+                return await this.scanExtTrades((ScanInstrumentRequest)req);
             }));
         }
 
-        protected async Task<ScanInstrumentResponse> scanInstrument(ScanInstrumentRequest req)
+        protected async Task<ScanInstrumentResponse> scanExtTrades(ScanInstrumentRequest req)
         {
             var response = new ScanInstrumentResponse
             {
-                trend = Trend.Undefined
+                trend = Trend.Undefined,
+                type = TradeType.EXT
             };
 
             var Exchange = req.Instrument.Exchange.ToLowerInvariant();
@@ -59,9 +60,9 @@ namespace Algoserver.API.Services
             var hourlyPriceData = task[1];
             var min15PriceData = task[2];
 
-            var hour4ScanningResult = this.ScanData(hour4PriceData, trendData);
-            var hourlyScanningResult = this.ScanData(hourlyPriceData, trendData);
-            var min15ScanningResult = this.ScanData(min15PriceData, trendData);
+            var hour4ScanningResult = this.ScanExt(hour4PriceData, trendData);
+            var hourlyScanningResult = this.ScanExt(hourlyPriceData, trendData);
+            var min15ScanningResult = this.ScanExt(min15PriceData, trendData);
 
             if (hour4ScanningResult != null) {
                 response.tte_240 = hour4ScanningResult.tte;
@@ -80,7 +81,7 @@ namespace Algoserver.API.Services
             return response;
         }
 
-        public ScanResponse ScanData(HistoryData history, Trend trend) {
+        public ScanResponse ScanExt(HistoryData history, Trend trend) {
             var lastBar = history.Bars.LastOrDefault();
             if (lastBar == null) {
                 return null;

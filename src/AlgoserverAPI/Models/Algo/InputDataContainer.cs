@@ -22,6 +22,13 @@ namespace Algoserver.API.Models.Algo
         Undefined
     }
 
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum TradeType
+    {
+        EXT,
+        Swing
+    }
+
     public class InputDataContainer
     {
 
