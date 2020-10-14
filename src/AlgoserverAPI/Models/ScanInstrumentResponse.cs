@@ -18,6 +18,7 @@ namespace Algoserver.API.Models.REST
     public class ScannerResponseItem
     {
         public Trend trend { get; set; }
+        public TradeType type { get; set; }
         public int tte { get; set; }
         public int tp { get; set; }
         public int timeframe { get; set; }

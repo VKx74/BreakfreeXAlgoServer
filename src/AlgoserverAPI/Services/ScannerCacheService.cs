@@ -116,6 +116,7 @@ namespace Algoserver.API.Services
             var lastBar = data.Bars.LastOrDefault();
             return new ScannerResponseItem
             {
+                type = TradeType.EXT,
                 exchange = data.Exchange,
                 symbol = data.Symbol,
                 timeframe = timeframe,
