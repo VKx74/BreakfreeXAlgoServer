@@ -56,9 +56,9 @@ namespace Algoserver.API.Services
                         continue;
                     }
 
-                    var topExt1 = signal.data.P18;
-                    var topExt2 = signal.data.P28;
-                    var resistance = signal.data.EE;
+                    var topExt1 = signal.data.levels.P18;
+                    var topExt2 = signal.data.levels.P28;
+                    var resistance = signal.data.levels.EE;
 
                     if (signal.top_sl == 0)
                     {
@@ -72,9 +72,9 @@ namespace Algoserver.API.Services
                         signal.top_entry = topExt1 - shift;
                     }
 
-                    var support = signal.data.ZE;
-                    var bottomExt1 = signal.data.M18;
-                    var bottomExt2 = signal.data.M28;
+                    var support = signal.data.levels.ZE;
+                    var bottomExt1 = signal.data.levels.M18;
+                    var bottomExt2 = signal.data.levels.M28;
 
                     if (signal.bottom_sl == 0)
                     {
@@ -168,8 +168,8 @@ namespace Algoserver.API.Services
         private bool _validateSignal(ExtHitTestSignal signal, IEnumerable<BarMessage> barsBack)
         {
             var prices = new List<decimal>();
-            var bottomExt1 = signal.data.M18;
-            var topExt1 = signal.data.P18;
+            var bottomExt1 = signal.data.levels.M18;
+            var topExt1 = signal.data.levels.P18;
 
             foreach (var bar in barsBack)
             {

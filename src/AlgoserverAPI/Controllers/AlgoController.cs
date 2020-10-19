@@ -34,6 +34,20 @@ namespace Algoserver.API.Controllers
         }
 
         [Authorize]
+        [HttpPost(Routes.CalculateV2)]
+        [ProducesResponseType(typeof(Response<CalculationResponseV2>), 200)]
+        public async Task<IActionResult> CalculateV2Async([FromBody] CalculationRequest request)
+        {  
+            if (!ModelState.IsValid)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
+            }
+
+            var result = await _algoService.CalculateV2Async(request);
+            return Json(result);
+        }
+            
+        [Authorize]
         [HttpPost(Routes.Calculate)]
         [ProducesResponseType(typeof(Response<CalculationResponse>), 200)]
         public async Task<IActionResult> CalculateAsync([FromBody] CalculationRequest request)
@@ -48,6 +62,7 @@ namespace Algoserver.API.Controllers
             var instrument = request.Instrument.Id
                 .Replace("_", "")
                 .Replace("/","");
+
             _statisticsService.AddToCache(new Statistic
             {
                 CreatedAt = DateTime.UtcNow,

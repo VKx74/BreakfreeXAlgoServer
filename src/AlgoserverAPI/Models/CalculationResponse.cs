@@ -5,11 +5,18 @@ using Newtonsoft.Json;
 
 namespace Algoserver.API.Models.REST
 {
-    public class CalculationResponse
-    {
-        [JsonProperty("clean")]
-        public bool Clean { get; set; }
+    public class CalculationResponse {
+        public CalculationLevels levels {get;set;}
+        public StrategyModeV1 trade {get;set;}
+    }
 
+    public class CalculationResponseV2 {
+        public CalculationLevels levels {get;set;}
+        public StrategyModeV2 trade {get;set;}
+    }
+
+    public class CalculationLevels
+    {
         [JsonProperty("ee")]
         public decimal EE { get; set; }
 
@@ -96,6 +103,16 @@ namespace Algoserver.API.Models.REST
 
         [JsonProperty("p28")]
         public decimal P28 { get; set; }
+    }
+
+    public class StrategyModeV2 {
+        public Trend trend { get; set; }
+        public TradeType type { get; set; }
+        public int tte { get; set; }
+        public int tp { get; set; }
+    }
+
+    public class StrategyModeV1 {
 
         [JsonProperty("algo_TP2")]
         public decimal? AlgoTP2 { get; set; }

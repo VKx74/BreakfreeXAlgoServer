@@ -58,13 +58,8 @@ namespace Algoserver.API.Services
 
             foreach (var dailyHistory in _1Day)
             {
-                var response = new ScanInstrumentResponse
-                {
-                    trend = Trend.Undefined,
-                    type = TradeType.EXT
-                };
                 var calculation_input = dailyHistory.Bars.Select(_ => _.Close).ToList();
-                var trendData = TrendDetector.CalculateByMesaWithTrendAdjusted(calculation_input);
+                var trendData = TrendDetector.CalculateByMesaBy2TrendAdjusted(calculation_input);
                 if (trendData == Trend.Undefined)
                 {
                     continue;
@@ -72,28 +67,28 @@ namespace Algoserver.API.Services
 
                 if (_15Mins.TryGetValue(_historyService.GetKey(dailyHistory), out var history15Min))
                 {
-                    var scanningResult = _scanner.ScanExt(history15Min, trendData);
+                    var scanningResult = _scanner.ScanExt(_scanner.ToScanningHistory(history15Min.Bars), trendData);
                     if (scanningResult != null)
                     {
-                        res.Add(_toResponse(scanningResult, history15Min, trendData, TimeframeHelper.MIN15_GRANULARITY));
+                        res.Add(_toResponse(scanningResult, history15Min, TimeframeHelper.MIN15_GRANULARITY));
                     }
                 }
 
                 if (_1Hour.TryGetValue(_historyService.GetKey(dailyHistory), out var history1H))
                 {
-                    var scanningResult = _scanner.ScanExt(history1H, trendData);
+                    var scanningResult = _scanner.ScanExt(_scanner.ToScanningHistory(history1H.Bars), trendData);
                     if (scanningResult != null)
                     {
-                        res.Add(_toResponse(scanningResult, history1H, trendData, TimeframeHelper.HOURLY_GRANULARITY));
+                        res.Add(_toResponse(scanningResult, history1H, TimeframeHelper.HOURLY_GRANULARITY));
                     }
                 }
 
                 if (_4Hour.TryGetValue(_historyService.GetKey(dailyHistory), out var history4H))
                 {
-                    var scanningResult = _scanner.ScanExt(history4H, trendData);
+                    var scanningResult = _scanner.ScanExt(_scanner.ToScanningHistory(history4H.Bars), trendData);
                     if (scanningResult != null)
                     {
-                        res.Add(_toResponse(scanningResult, history4H, trendData, TimeframeHelper.HOUR4_GRANULARITY));
+                        res.Add(_toResponse(scanningResult, history4H, TimeframeHelper.HOUR4_GRANULARITY));
                     }
                 }
             }
@@ -111,22 +106,18 @@ namespace Algoserver.API.Services
             scanning_time = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
         }
 
-        private ScannerResponseItem _toResponse(ScanResponse response, HistoryData data, Trend trend, int timeframe)
+        private ScannerResponseItem _toResponse(ScanResponse response, HistoryData data, int timeframe)
         {
             var lastBar = data.Bars.LastOrDefault();
             return new ScannerResponseItem
             {
-                type = TradeType.EXT,
+                type = response.type,
                 exchange = data.Exchange,
                 symbol = data.Symbol,
                 timeframe = timeframe,
-                trend = trend,
+                trend = response.trend,
                 tp = response.tp,
-                tte = response.tte,
-                open = lastBar.Open,
-                high = lastBar.High,
-                low = lastBar.Low,
-                close = lastBar.Close
+                tte = response.tte
             };
         }
     }

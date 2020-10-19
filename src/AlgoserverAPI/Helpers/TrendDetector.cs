@@ -15,7 +15,7 @@ namespace Algoserver.API.Helpers
             return data.LastOrDefault() > last ? Trend.Up : Trend.Down;
         }
 
-        public static Trend CalculateByMesaWithTrendAdjusted(List<decimal> data, decimal global_fast = 0.25m, decimal global_slow = 0.05m, decimal local_fast = 1.2m, decimal local_slow = 0.6m)
+        public static Trend CalculateByMesaBy2TrendAdjusted(List<decimal> data, decimal global_fast = 0.25m, decimal global_slow = 0.05m, decimal local_fast = 1.2m, decimal local_slow = 0.6m)
         {
             var mesa_global = TechCalculations.MESA(data, (double)global_fast, (double)global_slow);
             var mesa_local = TechCalculations.MESA(data, (double)local_fast, (double)local_slow);

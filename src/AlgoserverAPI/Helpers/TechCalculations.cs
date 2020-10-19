@@ -50,6 +50,10 @@ namespace Algoserver.API.Helpers
         public decimal ZeroEight { get; set; }
         public decimal Increment { get; set; }
         public decimal AbsTop { get; set; }
+        public decimal Minus18 { get; set; }
+        public decimal Minus28 { get; set; }
+        public decimal Plus28 { get; set; }
+        public decimal Plus18 { get; set; }
 
         public static bool IsEquals(LookBackResult obj1, LookBackResult obj2)
         {
@@ -488,6 +492,10 @@ namespace Algoserver.API.Helpers
             result.EightEight = EightEight;
             result.FourEight = FourEight;
             result.ZeroEight = ZeroEight;
+            result.Minus18 = AbsTop - (12 * Increment);
+            result.Minus28 = AbsTop - (13 * Increment);
+            result.Plus28 = AbsTop - Increment;
+            result.Plus18 = AbsTop - (2 * Increment);
 
             return result;
         }

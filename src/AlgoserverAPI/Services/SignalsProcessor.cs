@@ -73,36 +73,36 @@ namespace Algoserver.API.Services
 
                 prevSignal = signal;
 
-                var side = signal.data.AlgoEntry > signal.data.AlgoStop ? OrderSide.Buy : OrderSide.Sell;
+                var side = signal.data.trade.AlgoEntry > signal.data.trade.AlgoStop ? OrderSide.Buy : OrderSide.Sell;
 
                 var placeOrderRequest1 = new PlaceOrderRequest
                 {
                     qty = 1,
-                    price = signal.data.AlgoEntryLow,
+                    price = signal.data.trade.AlgoEntryLow,
                     side = side,
                     type = OrderType.Limit,
-                    sl_price = signal.data.AlgoStop,
-                    tp_price = signal.data.AlgoTP1Low
+                    sl_price = signal.data.trade.AlgoStop,
+                    tp_price = signal.data.trade.AlgoTP1Low
                 };
 
                 var placeOrderRequest2 = new PlaceOrderRequest
                 {
                     qty = 1,
-                    price = signal.data.AlgoEntry,
+                    price = signal.data.trade.AlgoEntry,
                     side = side,
                     type = OrderType.Limit,
-                    sl_price = signal.data.AlgoStop,
-                    tp_price = signal.data.AlgoTP1High
+                    sl_price = signal.data.trade.AlgoStop,
+                    tp_price = signal.data.trade.AlgoTP1High
                 };
 
                 var placeOrderRequest3 = new PlaceOrderRequest
                 {
                     qty = 1,
-                    price = signal.data.AlgoEntryHigh,
+                    price = signal.data.trade.AlgoEntryHigh,
                     side = side,
                     type = OrderType.Limit,
-                    sl_price = signal.data.AlgoStop,
-                    tp_price = signal.data.AlgoTP2
+                    sl_price = signal.data.trade.AlgoStop,
+                    tp_price = signal.data.trade.AlgoTP2
                 };
 
                 try

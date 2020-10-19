@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Algoserver.API.Helpers;
@@ -11,6 +12,16 @@ namespace Algoserver.API.Services
     {
         public int tte { get; set; }
         public int tp { get; set; }
+        public TradeType type { get; set; }
+        public Trend trend { get; set; }
+    }  
+    
+    public class ScanningHistory
+    {
+        public List<decimal> Open { get; set; }
+        public List<decimal> High { get; set; }
+        public List<decimal> Low { get; set; }
+        public List<decimal> Close { get; set; }
     }
 
     public class ScannerService
@@ -46,7 +57,7 @@ namespace Algoserver.API.Services
 
             var dailyPriceData = await _historyService.GetHistory(Symbol, TimeframeHelper.DAILY_GRANULARITY, Datafeed, Exchange, Type);
             var calculation_input = dailyPriceData.Bars.Select(_ => _.Close).ToList();
-            var trendData = TrendDetector.CalculateByMesaWithTrendAdjusted(calculation_input);
+            var trendData = TrendDetector.CalculateByMesaBy2TrendAdjusted(calculation_input);
             if (trendData == Trend.Undefined)
             {
                 return response;
@@ -60,9 +71,9 @@ namespace Algoserver.API.Services
             var hourlyPriceData = task[1];
             var min15PriceData = task[2];
 
-            var hour4ScanningResult = this.ScanExt(hour4PriceData, trendData);
-            var hourlyScanningResult = this.ScanExt(hourlyPriceData, trendData);
-            var min15ScanningResult = this.ScanExt(min15PriceData, trendData);
+            var hour4ScanningResult = this.ScanExt(ToScanningHistory(hour4PriceData.Bars), trendData);
+            var hourlyScanningResult = this.ScanExt(ToScanningHistory(hourlyPriceData.Bars), trendData);
+            var min15ScanningResult = this.ScanExt(ToScanningHistory(min15PriceData.Bars), trendData);
 
             if (hour4ScanningResult != null) {
                 response.tte_240 = hour4ScanningResult.tte;
@@ -81,27 +92,31 @@ namespace Algoserver.API.Services
             return response;
         }
 
-        public ScanResponse ScanExt(HistoryData history, Trend trend) {
-            var lastBar = history.Bars.LastOrDefault();
-            if (lastBar == null) {
+        public ScanResponse ScanExt(ScanningHistory history, Trend trend) {
+            if (history.Close == null) {
                 return null;
             }
 
-            var high = history.Bars.Select(_ => _.High).ToList();
-            var low = history.Bars.Select(_ => _.Low).ToList();
-            var close = history.Bars.Select(_ => _.Close).ToList();
+            var lastClose = history.Close.LastOrDefault();
+            var lastHigh = history.High.LastOrDefault();
+            var lastLow = history.Low.LastOrDefault();
+            var hlcMid = (lastClose + lastHigh + lastLow) / 3;
+
+            var high = history.High;
+            var low = history.Low;
+            var close = history.Close;
             var levels = TechCalculations.CalculateLevel128(high, low);
 
-            var resistance = levels.EightEight;
+            var topExt = levels.Plus18;
             var natural = levels.FourEight;
-            var support = levels.ZeroEight;
+            var bottomExt = levels.Minus18;
 
             // check is price above/below natural level
-            if (trend == Trend.Up && lastBar.Close > (natural * 2 + support) / 3) {
+            if (trend == Trend.Up && hlcMid > (natural + bottomExt) / 2) {
                 return null;
             }
             
-            if (trend == Trend.Down && lastBar.Close < (natural + resistance * 2) / 3) {
+            if (trend == Trend.Down && hlcMid < (natural + topExt) / 2) {
                 return null;
             }
 
@@ -120,14 +135,14 @@ namespace Algoserver.API.Services
                     return null;
                 }
 
-                priceDiffToHit = lastBar.Close - support;
+                priceDiffToHit = lastClose - bottomExt;
             }
             
             if (trend == Trend.Down) {
                 if (candlesPerformance < 0) {
                     return null;
                 }
-                priceDiffToHit = resistance - lastBar.Close;
+                priceDiffToHit = topExt - lastClose;
             }
 
             // if (priceDiffToHit <= 0) {
@@ -145,10 +160,25 @@ namespace Algoserver.API.Services
             if (candlesToHit <= 0) {
                 candlesToHit = 1;
             }
+            
+            if (candlesToHit > 50) {
+                return null;
+            }
 
             return new ScanResponse {
                 tte = (int)candlesToHit,
-                tp = (int)deviationSpeed
+                tp = (int)deviationSpeed,
+                type = TradeType.EXT,
+                trend = trend
+            };
+        }
+
+        public ScanningHistory ToScanningHistory(IEnumerable<BarMessage> history) {
+            return new ScanningHistory {
+                Open = history.Select(_ => _.Open).ToList(),
+                High = history.Select(_ => _.High).ToList(),
+                Low = history.Select(_ => _.Low).ToList(),
+                Close = history.Select(_ => _.Close).ToList(),
             };
         }
     }

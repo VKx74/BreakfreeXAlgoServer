@@ -22,10 +22,6 @@ namespace Algoserver.API.Models.REST
         public int tte { get; set; }
         public int tp { get; set; }
         public int timeframe { get; set; }
-        public decimal open { get; set; }
-        public decimal high { get; set; }
-        public decimal low { get; set; }
-        public decimal close { get; set; }
         public string exchange { get; set; }
         public string symbol { get; set; }
     }

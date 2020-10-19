@@ -16,12 +16,14 @@ namespace Algoserver.API.Services
 
         private readonly ILogger<AlgoService> _logger;
         private readonly HistoryService _historyService;
+        private readonly ScannerService _scanner;
         private readonly PriceRatioCalculationService _priceRatioCalculationService;
 
-        public AlgoService(ILogger<AlgoService> logger, HistoryService historyService, PriceRatioCalculationService priceRatioCalculationService)
+        public AlgoService(ILogger<AlgoService> logger, HistoryService historyService, PriceRatioCalculationService priceRatioCalculationService, ScannerService scanner)
         {
             _logger = logger;
             _historyService = historyService;
+            _scanner = scanner;
             _priceRatioCalculationService = priceRatioCalculationService;
         }
 
@@ -111,6 +113,23 @@ namespace Algoserver.API.Services
 
             var trade = TradeEntry.Calculate(calculationData);
             var result = this.toResponse(levels, sar, trade);
+            return result;
+        }
+        
+        public async Task<CalculationResponseV2> CalculateV2Async(CalculationRequest req)
+        {
+            var container = await InitAsync(req);
+            var levels = TechCalculations.CalculateLevels(container.High, container.Low);
+            var sar = SupportAndResistance.Calculate(levels, container.Mintick);
+            var trend = TrendDetector.CalculateByMesaBy2TrendAdjusted(container.CloseD);
+            var scanningHistory = new ScanningHistory {
+                Open = container.Open,
+                High = container.High,
+                Low = container.Low,
+                Close = container.Close,
+            };
+            var scanRes = _scanner.ScanExt(scanningHistory, trend);
+            var result = this.toResponseV2(levels, sar, scanRes);
             return result;
         }
 
@@ -489,42 +508,9 @@ namespace Algoserver.API.Services
 
         private CalculationResponse toExtHitTestResponse(Levels levels, SupportAndResistanceResult sar)
         {
-            var returnData = new CalculationResponse
-            {
-                // xmode
-                EE = levels.Level128.EightEight,
-                EE1 = levels.Level32.EightEight,
-                EE2 = levels.Level16.EightEight,
-                EE3 = levels.Level8.EightEight,
-                FE = levels.Level128.FourEight,
-                FE1 = levels.Level32.FourEight,
-                FE2 = levels.Level16.FourEight,
-                FE3 = levels.Level8.FourEight,
-                ZE = levels.Level128.ZeroEight,
-                ZE1 = levels.Level32.ZeroEight,
-                ZE2 = levels.Level16.ZeroEight,
-                ZE3 = levels.Level8.ZeroEight,
-                VR100 = sar.ValidRes100,
-                VR75A = sar.ValidRes75a,
-                VR75B = sar.ValidRes75b,
-                VN100 = sar.ValidNeu100,
-                VN75A = sar.ValidNeu75a,
-                VN75B = sar.ValidNeu75b,
-                VS100 = sar.ValidSup100,
-                VS75A = sar.ValidSup75a,
-                VS75B = sar.ValidSup75b,
-                VSCS = sar.Validscs,
-                VSCS2 = sar.Validscs2,
-                VEXTTP = sar.Validexttp,
-                VEXTTP2 = sar.Validexttp2,
-                M18 = sar.Minus18,
-                M28 = sar.Minus28,
-                P18 = sar.Plus18,
-                P28 = sar.Plus28,
-                Clean = true
+            return new CalculationResponse {
+                levels = ToLevels(levels, sar)
             };
-
-            return returnData;
         }
 
         private Strategy2CalculationResponse toStrategyV2Response(TradeEntryV2CalculationData calculationData, TradeEntryV2Result tradeSR, TradeEntryV2Result tradeEx1)
@@ -563,9 +549,42 @@ namespace Algoserver.API.Services
                 Suggestedrisk = trade.algo_Info.suggestedrisk
             };
 
-            var returnData = new CalculationResponse
+            var tradeResponse = new StrategyModeV1 {
+                AlgoTP2 = trade.algo_TP2,
+                AlgoTP1High = trade.algo_TP1_high,
+                AlgoTP1Low = trade.algo_TP1_low,
+                AlgoEntryHigh = trade.algo_Entry_high,
+                AlgoEntryLow = trade.algo_Entry_low,
+                AlgoEntry = trade.algo_Entry,
+                AlgoStop = trade.algo_Stop,
+                AlgoRisk = trade.algo_Risk,
+                AlgoInfo = algoInfo
+            };
+
+            return new CalculationResponse {
+                levels = ToLevels(levels, sar),
+                trade = tradeResponse
+            };
+        } 
+        
+        private CalculationResponseV2 toResponseV2(Levels levels, SupportAndResistanceResult sar, ScanResponse scanRes)
+        {
+            var tradeResponse = scanRes != null ? new StrategyModeV2 {
+                trend = scanRes.trend,
+                type = scanRes.type,
+                tp = scanRes.tp,
+                tte = scanRes.tte
+            } : null;
+
+            return new CalculationResponseV2 {
+                levels = ToLevels(levels, sar),
+                trade = tradeResponse
+            };
+        }
+
+        public CalculationLevels ToLevels(Levels levels, SupportAndResistanceResult sar) {
+            return new CalculationLevels
             {
-                // xmode
                 EE = levels.Level128.EightEight,
                 EE1 = levels.Level32.EightEight,
                 EE2 = levels.Level16.EightEight,
@@ -595,20 +614,7 @@ namespace Algoserver.API.Services
                 M28 = sar.Minus28,
                 P18 = sar.Plus18,
                 P28 = sar.Plus28,
-                // algo
-                AlgoTP2 = trade.algo_TP2,
-                AlgoTP1High = trade.algo_TP1_high,
-                AlgoTP1Low = trade.algo_TP1_low,
-                AlgoEntryHigh = trade.algo_Entry_high,
-                AlgoEntryLow = trade.algo_Entry_low,
-                AlgoEntry = trade.algo_Entry,
-                AlgoStop = trade.algo_Stop,
-                AlgoRisk = trade.algo_Risk,
-                AlgoInfo = algoInfo,
-                Clean = true
             };
-
-            return returnData;
         }
     }
 }

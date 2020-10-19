@@ -257,12 +257,10 @@ namespace Algoserver.API.Helpers
             var ValidSup25d = !r(tick, ZeroEight3, ZeroEight) && !r(tick, ZeroEight3, ZeroEight1) && !r(tick, ZeroEight3, ZeroEight2) && !r(tick, ZeroEight3, FourEight) && !r(tick, ZeroEight3, FourEight1) && !r(tick, ZeroEight3, FourEight2) && !r(tick, ZeroEight3, FourEight3); // !green  !green1 !green2 !blue !blue1 !blue2 !blue3
 
 
-
-
-            var Minus18 = AbsTop - (12 * Increment);
-            var Minus28 = AbsTop - (13 * Increment);
-            var Plus28 = AbsTop - Increment;
-            var Plus18 = AbsTop - (2 * Increment);
+            var Minus18 = levels.Level128.Minus18;
+            var Minus28 = levels.Level128.Minus28;
+            var Plus28 = levels.Level128.Plus28;
+            var Plus18 = levels.Level128.Plus18;
 
             var scs = r(tick, Minus18, ZeroEight1) && r(tick, ZeroEight2, ZeroEight3) && r(tick, Minus18, ZeroEight3) ; 			// ext1 green green green/
             var scs2 = r(tick, Minus28, ZeroEight1) && r(tick, ZeroEight2, ZeroEight3) && r(tick, Minus28, ZeroEight3) ; 			// ext1 green green green
