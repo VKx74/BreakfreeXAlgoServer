@@ -97,6 +97,10 @@ namespace Algoserver.API.Services
                 return null;
             }
 
+            if (trend == Trend.Undefined) {
+                return null;
+            }
+
             var lastClose = history.Close.LastOrDefault();
             var lastHigh = history.High.LastOrDefault();
             var lastLow = history.Low.LastOrDefault();
