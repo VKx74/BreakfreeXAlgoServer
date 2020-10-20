@@ -10,6 +10,8 @@ namespace Algoserver.API.Services
 {
     public class ScanResponse
     {
+        public decimal entry { get; set; }
+        public decimal stop { get; set; }
         public int tte { get; set; }
         public int tp { get; set; }
         public TradeType type { get; set; }
@@ -114,6 +116,11 @@ namespace Algoserver.API.Services
             var topExt = levels.Plus18;
             var natural = levels.FourEight;
             var bottomExt = levels.Minus18;
+            var support = levels.ZeroEight;
+            var resistance = levels.EightEight;
+            var shift = Math.Abs((double)(levels.Plus28 - levels.Plus18)) * 0.3;
+            var avgEntry = 0m;
+            var stop = 0m;
 
             // check is price above/below natural level
             if (trend == Trend.Up && hlcMid > (natural + bottomExt) / 2) {
@@ -122,6 +129,14 @@ namespace Algoserver.API.Services
             
             if (trend == Trend.Down && hlcMid < (natural + topExt) / 2) {
                 return null;
+            }
+
+            if (trend == Trend.Up) {
+                avgEntry = (bottomExt + support) / 2;
+                stop = levels.Minus28 - (decimal)shift;
+            } else {
+                avgEntry = (topExt + resistance) / 2;
+                stop = levels.Plus28 + (decimal)shift;
             }
 
             var directionApproved = TechCalculations.ApproveDirection(high, low, close, trend);
@@ -173,7 +188,9 @@ namespace Algoserver.API.Services
                 tte = (int)candlesToHit,
                 tp = (int)deviationSpeed,
                 type = TradeType.EXT,
-                trend = trend
+                trend = trend,
+                entry = avgEntry,
+                stop = stop
             };
         }
 

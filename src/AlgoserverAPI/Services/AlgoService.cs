@@ -78,7 +78,7 @@ namespace Algoserver.API.Services
                 return await backtestAsync(req);
             });
         }
-        
+
         internal Task<BacktestV2Response> Strategy2BacktestAsync(Strategy2BacktestRequest req)
         {
             return Task.Run(async () =>
@@ -115,21 +115,32 @@ namespace Algoserver.API.Services
             var result = this.toResponse(levels, sar, trade);
             return result;
         }
-        
+
         public async Task<CalculationResponseV2> CalculateV2Async(CalculationRequest req)
         {
             var container = await InitAsync(req);
             var levels = TechCalculations.CalculateLevels(container.High, container.Low);
             var sar = SupportAndResistance.Calculate(levels, container.Mintick);
             var trend = TrendDetector.CalculateByMesaBy2TrendAdjusted(container.CloseD);
-            var scanningHistory = new ScanningHistory {
+            var scanningHistory = new ScanningHistory
+            {
                 Open = container.Open,
                 High = container.High,
                 Low = container.Low,
                 Close = container.Close,
             };
+            var isForex = container.Type == "forex";
+            var accountSize = container.InputAccountSize * container.UsdRatio;
+            var suggestedRisk = container.InputRisk;
             var scanRes = _scanner.ScanExt(scanningHistory, trend);
-            var result = this.toResponseV2(levels, sar, scanRes);
+            var size = 0m;
+
+            if (scanRes != null)
+            {
+                size = AlgoHelper.CalculatePositionValue(isForex, accountSize, suggestedRisk, scanRes.entry, scanRes.stop);
+            }
+
+            var result = this.toResponseV2(levels, sar, scanRes, size);
             return result;
         }
 
@@ -391,8 +402,8 @@ namespace Algoserver.API.Services
             {
                 dailyPriceData = await _historyService.GetHistory(container.Symbol, TimeframeHelper.DAILY_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             }
-             
-             HistoryData hourlyPriceData = null;
+
+            HistoryData hourlyPriceData = null;
 
             if (granularity >= TimeframeHelper.HOURLY_GRANULARITY)
             {
@@ -453,7 +464,7 @@ namespace Algoserver.API.Services
                     }
                 }
 
-                prevDailyClose = dailyClose; 
+                prevDailyClose = dailyClose;
                 var calculationData = new TradeEntryV2CalculationData
                 {
                     container = container,
@@ -508,7 +519,8 @@ namespace Algoserver.API.Services
 
         private CalculationResponse toExtHitTestResponse(Levels levels, SupportAndResistanceResult sar)
         {
-            return new CalculationResponse {
+            return new CalculationResponse
+            {
                 levels = ToLevels(levels, sar)
             };
         }
@@ -523,7 +535,8 @@ namespace Algoserver.API.Services
             var bottom_ext1 = calculationData.sar.Minus18;
             var bottom_ext2 = calculationData.sar.Minus28;
 
-            return new Strategy2CalculationResponse {
+            return new Strategy2CalculationResponse
+            {
                 top_ex2 = top_ext2,
                 top_ex1 = top_ext1,
                 r = resistance,
@@ -549,7 +562,8 @@ namespace Algoserver.API.Services
                 Suggestedrisk = trade.algo_Info.suggestedrisk
             };
 
-            var tradeResponse = new StrategyModeV1 {
+            var tradeResponse = new StrategyModeV1
+            {
                 AlgoTP2 = trade.algo_TP2,
                 AlgoTP1High = trade.algo_TP1_high,
                 AlgoTP1Low = trade.algo_TP1_low,
@@ -561,28 +575,33 @@ namespace Algoserver.API.Services
                 AlgoInfo = algoInfo
             };
 
-            return new CalculationResponse {
+            return new CalculationResponse
+            {
                 levels = ToLevels(levels, sar),
                 trade = tradeResponse
             };
-        } 
-        
-        private CalculationResponseV2 toResponseV2(Levels levels, SupportAndResistanceResult sar, ScanResponse scanRes)
+        }
+
+        private CalculationResponseV2 toResponseV2(Levels levels, SupportAndResistanceResult sar, ScanResponse scanRes, decimal size)
         {
-            var tradeResponse = scanRes != null ? new StrategyModeV2 {
+            var tradeResponse = scanRes != null ? new StrategyModeV2
+            {
                 trend = scanRes.trend,
                 type = scanRes.type,
                 tp = scanRes.tp,
                 tte = scanRes.tte
             } : null;
 
-            return new CalculationResponseV2 {
+            return new CalculationResponseV2
+            {
                 levels = ToLevels(levels, sar),
-                trade = tradeResponse
+                trade = tradeResponse,
+                size = size
             };
         }
 
-        public CalculationLevels ToLevels(Levels levels, SupportAndResistanceResult sar) {
+        public CalculationLevels ToLevels(Levels levels, SupportAndResistanceResult sar)
+        {
             return new CalculationLevels
             {
                 EE = levels.Level128.EightEight,

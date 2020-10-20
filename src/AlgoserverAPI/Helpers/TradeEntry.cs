@@ -444,30 +444,31 @@ namespace Algoserver.API.Helpers
             var positionValue = 0m;
             if (isLong || isShort)
             {
+                // buy
                 if (isLong)
                 {
-                    if (isForex)
-                    {
-                        positionValue = (((accountSize * (suggestedRisk / 100)) / Math.Abs(buyEntry - stopLossPosBuy))) / 100000; //forex
-                    }
-                    else
-                    {
-                        positionValue = (accountSize * (suggestedRisk / 100)) / Math.Abs(buyEntry - stopLossPosBuy); //stocks
-                    }
+                    // if (isForex)
+                    // {
+                    //     positionValue = (((accountSize * (suggestedRisk / 100)) / Math.Abs(buyEntry - stopLossPosBuy))) / 100000; //forex
+                    // }
+                    // else
+                    // {
+                    //     positionValue = (accountSize * (suggestedRisk / 100)) / Math.Abs(buyEntry - stopLossPosBuy); //stocks
+                    // }
+
+                    positionValue = AlgoHelper.CalculatePositionValue(isForex, accountSize, suggestedRisk, buyEntry, stopLossPosBuy);
                 }
-                else
+                else if (isShort)
                 {
-                    if (isShort)
-                    {
-                        if (isForex)
-                        {
-                            positionValue = (((accountSize * (suggestedRisk / 100)) / Math.Abs(sellEntry - stopLossPosSell))) / 100000; //forex
-                        }
-                        else
-                        {
-                            positionValue = (accountSize * (suggestedRisk / 100)) / Math.Abs(sellEntry - stopLossPosSell); //stocks
-                        }
-                    }
+                    // if (isForex)
+                    // {
+                    //     positionValue = (((accountSize * (suggestedRisk / 100)) / Math.Abs(sellEntry - stopLossPosSell))) / 100000; //forex
+                    // }
+                    // else
+                    // {
+                    //     positionValue = (accountSize * (suggestedRisk / 100)) / Math.Abs(sellEntry - stopLossPosSell); //stocks
+                    // }
+                    positionValue = AlgoHelper.CalculatePositionValue(isForex, accountSize, suggestedRisk, sellEntry, stopLossPosSell);
                 }
             }
 

@@ -27,5 +27,14 @@ namespace Algoserver.API.Helpers
             var timeSpan = (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0));
             return (long)timeSpan.TotalSeconds;
         }
+
+        public static decimal CalculatePositionValue(bool isForex, decimal accountSize, decimal suggestedRisk, decimal entry, decimal sl) {
+            if (isForex)
+            {
+                return (((accountSize * (suggestedRisk / 100)) / Math.Abs(entry - sl))) / 100000;
+            }
+
+            return (accountSize * (suggestedRisk / 100)) / Math.Abs(entry - sl);
+        }
     }
 }
