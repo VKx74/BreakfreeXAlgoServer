@@ -179,7 +179,7 @@ namespace Algoserver.API.Controllers
         } 
         
         [Authorize]
-        [HttpGet(Routes.ScannerResults)]
+        [HttpGet(Routes.ScannerHistoryResults)]
         [ProducesResponseType(typeof(Response<ScannerHistoryResponse>), 200)]
         public IActionResult ScannerHistoryResults([FromQuery] string segment = "")
         {
