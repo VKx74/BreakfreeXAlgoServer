@@ -177,7 +177,7 @@ namespace Algoserver.API.Services
             var candlesToHit = Math.Round(priceDiffToHit / Math.Abs(candlesPerformance), 0);
 
             if (candlesToHit <= 0) {
-                candlesToHit = 1;
+                candlesToHit = 0;
             }
             
             if (candlesToHit > 50) {
