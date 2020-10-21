@@ -13,6 +13,7 @@ namespace Algoserver.API.Services
         private readonly ScannerHistoryService _historyService;
         private readonly ScannerService _scanner;
         private readonly List<ScannerResponseItem> _scannerResults = new List<ScannerResponseItem>();
+        private readonly List<ScannerResponseHistoryItem> _resultHistory = new List<ScannerResponseHistoryItem>();
         private int scanning_time { get; set; }
         private int data_count_15_min { get; set; }
         private int data_count_1_h { get; set; }
@@ -46,6 +47,19 @@ namespace Algoserver.API.Services
                 refresh_time = RefreshMarketsTime,
                 refresh_time_all = RefreshAllMarketsTime
             };
+        } 
+        
+        public ScannerHistoryResponse GetHistoryData()
+        {
+            List<ScannerResponseHistoryItem> res;
+            lock (_resultHistory)
+            {
+                res = _resultHistory.ToList();
+            }
+            return new ScannerHistoryResponse
+            {
+                items = res
+            };
         }
 
         public void ScanMarkets()
@@ -70,7 +84,9 @@ namespace Algoserver.API.Services
                     var scanningResult = _scanner.ScanExt(_scanner.ToScanningHistory(history15Min.Bars), trendData);
                     if (scanningResult != null)
                     {
-                        res.Add(_toResponse(scanningResult, history15Min, TimeframeHelper.MIN15_GRANULARITY));
+                        var resp = _toResponse(scanningResult, history15Min, TimeframeHelper.MIN15_GRANULARITY);
+                        _tryAddHistory(resp, scanningResult);
+                        res.Add(resp);
                     }
                 }
 
@@ -79,7 +95,9 @@ namespace Algoserver.API.Services
                     var scanningResult = _scanner.ScanExt(_scanner.ToScanningHistory(history1H.Bars), trendData);
                     if (scanningResult != null)
                     {
-                        res.Add(_toResponse(scanningResult, history1H, TimeframeHelper.HOURLY_GRANULARITY));
+                        var resp = _toResponse(scanningResult, history1H, TimeframeHelper.HOURLY_GRANULARITY);
+                        _tryAddHistory(resp, scanningResult);
+                        res.Add(resp);
                     }
                 }
 
@@ -88,7 +106,9 @@ namespace Algoserver.API.Services
                     var scanningResult = _scanner.ScanExt(_scanner.ToScanningHistory(history4H.Bars), trendData);
                     if (scanningResult != null)
                     {
-                        res.Add(_toResponse(scanningResult, history4H, TimeframeHelper.HOUR4_GRANULARITY));
+                        var resp = _toResponse(scanningResult, history4H, TimeframeHelper.HOUR4_GRANULARITY);
+                        _tryAddHistory(resp, scanningResult);
+                        res.Add(resp);
                     }
                 }
             }
@@ -119,6 +139,34 @@ namespace Algoserver.API.Services
                 tp = response.tp,
                 tte = response.tte
             };
+        }
+
+        private void _tryAddHistory(ScannerResponseItem item, ScanResponse resp)
+        {
+            ScannerResponseHistoryItem last;
+            lock (_resultHistory)
+            {
+                last = _resultHistory.LastOrDefault(_ => _.responseItem.exchange == item.exchange && _.responseItem.symbol == item.symbol &&
+                                                         _.responseItem.timeframe == item.timeframe && _.responseItem.type == item.type);
+            }
+
+            if (last != null && last.avgEntry == resp.entry)
+            {
+                return;
+            }
+
+            lock (_resultHistory)
+            {
+                while (_resultHistory.Count >= 1000)
+                {
+                    _resultHistory.RemoveAt(0);
+                }
+                _resultHistory.Add(new ScannerResponseHistoryItem {
+                    responseItem = item,
+                    avgEntry = resp.entry,
+                    time = AlgoHelper.UnixTimeNow()
+                });
+            }
         }
     }
 }

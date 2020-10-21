@@ -11,5 +11,6 @@
         public const string ScanInstrument = "scan_instrument";
         public const string RefreshInstruments = "refresh_instruments";
         public const string ScannerResults = "scanner_results";
+        public const string ScannerHistoryResults = "scanner_history_results";
     }
 }

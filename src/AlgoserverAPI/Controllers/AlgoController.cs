@@ -176,6 +176,15 @@ namespace Algoserver.API.Controllers
         {
             var res = _scannerCache.GetData();
             return Json(res);
+        } 
+        
+        [Authorize]
+        [HttpGet(Routes.ScannerResults)]
+        [ProducesResponseType(typeof(Response<ScannerHistoryResponse>), 200)]
+        public IActionResult ScannerHistoryResults([FromQuery] string segment = "")
+        {
+            var res = _scannerCache.GetHistoryData();
+            return Json(res);
         }
     }
 }

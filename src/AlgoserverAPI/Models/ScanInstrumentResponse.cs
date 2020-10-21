@@ -24,6 +24,13 @@ namespace Algoserver.API.Models.REST
         public int timeframe { get; set; }
         public string exchange { get; set; }
         public string symbol { get; set; }
+    } 
+    
+    public class ScannerResponseHistoryItem
+    {
+        public ScannerResponseItem responseItem { get; set; }
+        public long time { get; set; }
+        public decimal avgEntry { get; set; }
     }
 
     public class ScannerResponse
@@ -36,5 +43,10 @@ namespace Algoserver.API.Models.REST
         public int data_count_1_d { get; set; }
         public string refresh_time { get; set; }
         public string refresh_time_all { get; set; }
+    } 
+    
+    public class ScannerHistoryResponse
+    {
+        public IEnumerable<ScannerResponseHistoryItem> items { get; set; }
     }
 }
