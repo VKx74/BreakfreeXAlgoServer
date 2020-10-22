@@ -592,7 +592,9 @@ namespace Algoserver.API.Services
                 trend = scanRes.trend,
                 type = scanRes.type,
                 tp = scanRes.tp,
-                tte = scanRes.tte
+                tte = scanRes.tte,
+                entry = scanRes.entry,
+                stop = scanRes.stop
             } : null;
 
             return new CalculationResponseV2
