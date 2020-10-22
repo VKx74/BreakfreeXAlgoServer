@@ -630,7 +630,7 @@ namespace Algoserver.API.Helpers
 
         public static decimal CalculatePriceMoveDirection(IEnumerable<decimal> uPrice, IEnumerable<decimal> lPrice, IEnumerable<decimal> cPrice, Trend trend)
         {
-            var lookback = 10;
+            var lookback = 5;
             var highs = uPrice.ToArray();
             var lows = lPrice.ToArray();
             var closes = cPrice.ToArray();
