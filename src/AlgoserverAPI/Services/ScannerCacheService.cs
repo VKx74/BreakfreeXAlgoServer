@@ -161,7 +161,9 @@ namespace Algoserver.API.Services
                 timeframe = timeframe,
                 trend = response.trend,
                 tp = response.tp,
-                tte = response.tte
+                tte = response.tte,
+                entry = response.entry,
+                stop = response.stop
             };
         }
 
