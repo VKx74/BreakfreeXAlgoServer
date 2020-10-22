@@ -81,33 +81,57 @@ namespace Algoserver.API.Services
 
                 if (_15Mins.TryGetValue(_historyService.GetKey(dailyHistory), out var history15Min))
                 {
-                    var scanningResult = _scanner.ScanExt(_scanner.ToScanningHistory(history15Min.Bars), trendData);
-                    if (scanningResult != null)
+                    var scanningResultBRC = _scanner.ScanBRC(_scanner.ToScanningHistory(history15Min.Bars), trendData);
+                    if (scanningResultBRC != null)
                     {
-                        var resp = _toResponse(scanningResult, history15Min, TimeframeHelper.MIN15_GRANULARITY);
-                        _tryAddHistory(resp, scanningResult);
+                        var resp = _toResponse(scanningResultBRC, history15Min, TimeframeHelper.MIN15_GRANULARITY);
+                        _tryAddHistory(resp, scanningResultBRC);
+                        res.Add(resp);
+                    } 
+                    
+                    var scanningResultExt = _scanner.ScanExt(_scanner.ToScanningHistory(history15Min.Bars), trendData);
+                    if (scanningResultExt != null)
+                    {
+                        var resp = _toResponse(scanningResultExt, history15Min, TimeframeHelper.MIN15_GRANULARITY);
+                        _tryAddHistory(resp, scanningResultExt);
                         res.Add(resp);
                     }
                 }
 
                 if (_1Hour.TryGetValue(_historyService.GetKey(dailyHistory), out var history1H))
                 {
-                    var scanningResult = _scanner.ScanExt(_scanner.ToScanningHistory(history1H.Bars), trendData);
-                    if (scanningResult != null)
+                    var scanningResultBRC = _scanner.ScanBRC(_scanner.ToScanningHistory(history1H.Bars), trendData);
+                    if (scanningResultBRC != null)
                     {
-                        var resp = _toResponse(scanningResult, history1H, TimeframeHelper.HOURLY_GRANULARITY);
-                        _tryAddHistory(resp, scanningResult);
+                        var resp = _toResponse(scanningResultBRC, history1H, TimeframeHelper.HOURLY_GRANULARITY);
+                        _tryAddHistory(resp, scanningResultBRC);
+                        res.Add(resp);
+                    }
+                    
+                    var scanningResultExt = _scanner.ScanExt(_scanner.ToScanningHistory(history1H.Bars), trendData);
+                    if (scanningResultExt != null)
+                    {
+                        var resp = _toResponse(scanningResultExt, history1H, TimeframeHelper.HOURLY_GRANULARITY);
+                        _tryAddHistory(resp, scanningResultExt);
                         res.Add(resp);
                     }
                 }
 
                 if (_4Hour.TryGetValue(_historyService.GetKey(dailyHistory), out var history4H))
                 {
-                    var scanningResult = _scanner.ScanExt(_scanner.ToScanningHistory(history4H.Bars), trendData);
-                    if (scanningResult != null)
+                    var scanningResultBRC = _scanner.ScanBRC(_scanner.ToScanningHistory(history4H.Bars), trendData);
+                    if (scanningResultBRC != null)
                     {
-                        var resp = _toResponse(scanningResult, history4H, TimeframeHelper.HOUR4_GRANULARITY);
-                        _tryAddHistory(resp, scanningResult);
+                        var resp = _toResponse(scanningResultBRC, history4H, TimeframeHelper.HOUR4_GRANULARITY);
+                        _tryAddHistory(resp, scanningResultBRC);
+                        res.Add(resp);
+                    } 
+                    
+                    var scanningResultExt = _scanner.ScanExt(_scanner.ToScanningHistory(history4H.Bars), trendData);
+                    if (scanningResultExt != null)
+                    {
+                        var resp = _toResponse(scanningResultExt, history4H, TimeframeHelper.HOUR4_GRANULARITY);
+                        _tryAddHistory(resp, scanningResultExt);
                         res.Add(resp);
                     }
                 }

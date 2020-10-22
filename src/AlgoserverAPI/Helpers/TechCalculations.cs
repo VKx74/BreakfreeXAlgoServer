@@ -527,6 +527,52 @@ namespace Algoserver.API.Helpers
             return TechCalculations.LookBack(lookback128, uPrice, lPrice);
         }
 
+        public static int BRCOverLevelCount(IEnumerable<decimal> cPrice, Trend trend, decimal level) {
+            var close = cPrice.ToArray().Reverse().ToArray();
+
+            for (var i = 0; i < close.Length; i++) {
+                if (trend == Trend.Up && close[i] >= level) {
+                    continue;
+                }
+                if (trend == Trend.Down && close[i] <= level) {
+                    continue;
+                }
+                return i;
+            }
+            return 0;
+        }   
+        
+        public static int BRCBelowLevelCount(IEnumerable<decimal> cPrice, Trend trend, decimal level, int count) {
+            var close = cPrice.ToArray().Reverse().ToArray();
+            var i = 0;
+
+            for (; i < close.Length; i++) {
+                if (trend == Trend.Up && close[i] >= level) {
+                    continue;
+                }
+                if (trend == Trend.Down && close[i] <= level) {
+                    continue;
+                }
+                break;
+            }
+
+            var c = 0;
+            var j = 0;
+            
+            for (; i < close.Length && j < count; i++, j++) {
+                if (trend == Trend.Up && close[i] <= level) {
+                    c++;
+                    continue;
+                }
+                if (trend == Trend.Down && close[i] >= level) {
+                    c++;
+                    continue;
+                }
+            }
+
+            return c;
+        }
+
         public static bool ApproveDirection(IEnumerable<decimal> uPrice, IEnumerable<decimal> lPrice, IEnumerable<decimal> cPrice, Trend trend) {
             var lookback = 5;
             var lastHigh = uPrice.TakeLast(lookback).ToArray();

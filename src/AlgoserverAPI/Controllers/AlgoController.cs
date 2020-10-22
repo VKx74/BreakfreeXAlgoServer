@@ -144,21 +144,6 @@ namespace Algoserver.API.Controllers
         }
 
         [Authorize]
-        [HttpPost(Routes.ScanInstrument)]
-        [ProducesResponseType(typeof(Response<ScanInstrumentResponse>), 200)]
-        public async Task<IActionResult> ScanInstrument([FromBody] ScanInstrumentRequest request)
-        {
-            if (!ModelState.IsValid)
-            {
-                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
-            }
-
-            var result = await _scanerService.ScanInstrument(request);
-
-            return Json(result);
-        }
-
-        [Authorize]
         [HttpPost(Routes.RefreshInstruments)]
         [ProducesResponseType(typeof(Response<object>), 200)]
         public async Task<IActionResult> LoadInstruments([FromBody] object request)
