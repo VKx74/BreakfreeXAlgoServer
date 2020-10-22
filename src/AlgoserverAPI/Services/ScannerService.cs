@@ -64,18 +64,21 @@ namespace Algoserver.API.Services
             var bottomExt = levels.Minus18;
             var support = levels.ZeroEight;
             var resistance = levels.EightEight;
+            var stop = 0m;
 
             if (trend == Trend.Up)
             {
                 if (hlcMid < natural || hlcMid >= (natural + resistance) / 2) {
                     return null;
                 }
+                stop = natural - (Math.Abs(natural - support) / 4);
             }
             else
             {
                 if (hlcMid > natural || hlcMid <= (natural + support) / 2) {
                     return null;
                 }
+                stop = natural + (Math.Abs(natural - support) / 4);
             }
             
             var directionApproved = TechCalculations.ApproveDirection(high, low, close, trend);
@@ -146,7 +149,7 @@ namespace Algoserver.API.Services
                 type = TradeType.BRC,
                 trend = trend,
                 entry = natural,
-                stop = 0
+                stop = stop
             };
 
         }
