@@ -56,6 +56,7 @@ namespace Algoserver.API.Services
             var high = history.High;
             var low = history.Low;
             var close = history.Close;
+            var open = history.Open;
             var levels = TechCalculations.CalculateLevel128(high, low);
 
             var topExt = levels.Plus18;
@@ -102,34 +103,45 @@ namespace Algoserver.API.Services
             var currentDeviation = deviation.TakeLast(lastDeviation).Sum() / lastDeviation;
             var deviationSpeed = Math.Round((currentDeviation - avgDeviation) / avgDeviation * 100, 0);
 
-            var candlesPerformance = TechCalculations.CalculatePriceMoveDirection(high, low, close, Trend.Undefined);
+            var difference = TechCalculations.CalculateAvdCandleDifference(open, close);
+            var candlesPerformance = TechCalculations.CalculatePriceMoveDirection(high, low, close, trend);
             var priceDiffToHit = 0m;
 
             // check is price go needed direction
             if (trend == Trend.Up)
             {
+                if (candlesPerformance > 0)
+                {
+                    return null;
+                }
+
                 priceDiffToHit = lastClose - natural;
             }
             if (trend == Trend.Down)
             {
+                if (candlesPerformance < 0)
+                {
+                    return null;
+                }
+
                 priceDiffToHit = natural - lastClose;
             }
 
-            var candlesToHit = Math.Round(priceDiffToHit / Math.Abs(candlesPerformance), 0);
+            var candlesToHit = Math.Round(priceDiffToHit / Math.Abs(difference), 0);
 
             if (candlesToHit <= 0)
             {
                 candlesToHit = 0;
             }
 
-            if (candlesToHit > 50)
+            if (candlesToHit > 20)
             {
                 return null;
             }
 
             return new ScanResponse
             {
-                tte = (int)candlesToHit,
+                tte = (int)candlesToHit + 1,
                 tp = (int)deviationSpeed,
                 type = TradeType.BRC,
                 trend = trend,
@@ -159,6 +171,7 @@ namespace Algoserver.API.Services
             var high = history.High;
             var low = history.Low;
             var close = history.Close;
+            var open = history.Open;
             var levels = TechCalculations.CalculateLevel128(high, low);
 
             var topExt = levels.Plus18;
@@ -200,6 +213,7 @@ namespace Algoserver.API.Services
             }
 
             var candlesPerformance = TechCalculations.CalculatePriceMoveDirection(high, low, close, trend);
+            var difference = TechCalculations.CalculateAvdCandleDifference(open, close);
             var priceDiffToHit = 0m;
 
             // check is price go needed direction
@@ -232,21 +246,21 @@ namespace Algoserver.API.Services
             var avgDeviation = deviation.Sum() / deviation.Count;
             var currentDeviation = deviation.TakeLast(lastDeviation).Sum() / lastDeviation;
             var deviationSpeed = Math.Round((currentDeviation - avgDeviation) / avgDeviation * 100, 0);
-            var candlesToHit = Math.Round(priceDiffToHit / Math.Abs(candlesPerformance), 0);
+            var candlesToHit = Math.Round(priceDiffToHit / Math.Abs(difference), 0);
 
             if (candlesToHit <= 0)
             {
                 candlesToHit = 0;
             }
 
-            if (candlesToHit > 50)
+            if (candlesToHit > 20)
             {
                 return null;
             }
 
             return new ScanResponse
             {
-                tte = (int)candlesToHit,
+                tte = (int)candlesToHit + 1,
                 tp = (int)deviationSpeed,
                 type = TradeType.EXT,
                 trend = trend,

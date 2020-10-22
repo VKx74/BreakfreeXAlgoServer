@@ -628,6 +628,19 @@ namespace Algoserver.API.Helpers
             return true;
         }
 
+        public static decimal CalculateAvdCandleDifference(IEnumerable<decimal> open, IEnumerable<decimal> close) {
+            var lookback = 20;
+            var opens = open.ToArray();
+            var closes = close.ToArray();
+            var closesLength = closes.Length;
+            var total = 0m;
+            for (var i = 1; i <= lookback; i++)
+            {
+                total += Math.Abs(closes[closesLength - i] - opens[closesLength - i]);
+            }
+            return total / lookback;
+        }
+
         public static decimal CalculatePriceMoveDirection(IEnumerable<decimal> uPrice, IEnumerable<decimal> lPrice, IEnumerable<decimal> cPrice, Trend trend)
         {
             var lookback = 5;
