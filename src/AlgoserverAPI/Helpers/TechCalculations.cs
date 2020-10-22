@@ -641,32 +641,13 @@ namespace Algoserver.API.Helpers
             return total / lookback;
         }
 
-        public static decimal CalculatePriceMoveDirection(IEnumerable<decimal> uPrice, IEnumerable<decimal> lPrice, IEnumerable<decimal> cPrice, Trend trend)
+        public static decimal CalculatePriceMoveDirection(IEnumerable<decimal> cPrice)
         {
             var lookback = 5;
-            var highs = uPrice.ToArray();
-            var lows = lPrice.ToArray();
             var closes = cPrice.ToArray();
-            var highsLength = highs.Length;
-            var lowsLength = lows.Length;
             var closesLength = closes.Length;
-            var total = 0m;
-            var last = 0m;
-            var i = 1;
-            for (; i <= lookback; i++)
-            {
-                if (trend == Trend.Down) {
-                    last = highs[highsLength - i];
-                } else if (trend == Trend.Up) {
-                    last = lows[lowsLength - i];
-                } else {
-                    last = closes[closesLength - i];
-                }
-                total += last;
-            }
-            last = closes[closesLength - i];
-            var performance = total / lookback;
-            return (performance - last) / lookback;
+
+            return closes[closesLength - 2] - closes[closesLength - lookback - 1]
         }
     }
 }

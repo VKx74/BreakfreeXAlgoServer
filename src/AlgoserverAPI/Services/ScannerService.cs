@@ -85,7 +85,7 @@ namespace Algoserver.API.Services
             }
 
             var overLevelCount = TechCalculations.BRCOverLevelCount(close, trend, natural);
-            if (overLevelCount < 3 || overLevelCount > 30) {
+            if (overLevelCount < 3 || overLevelCount > 40) {
                 return null;
             } 
             
@@ -104,7 +104,7 @@ namespace Algoserver.API.Services
             var deviationSpeed = Math.Round((currentDeviation - avgDeviation) / avgDeviation * 100, 0);
 
             var difference = TechCalculations.CalculateAvdCandleDifference(open, close);
-            var candlesPerformance = TechCalculations.CalculatePriceMoveDirection(high, low, close, trend);
+            var candlesPerformance = TechCalculations.CalculatePriceMoveDirection(close);
             var priceDiffToHit = 0m;
 
             // check is price go needed direction
@@ -212,7 +212,7 @@ namespace Algoserver.API.Services
                 return null;
             }
 
-            var candlesPerformance = TechCalculations.CalculatePriceMoveDirection(high, low, close, trend);
+            var candlesPerformance = TechCalculations.CalculatePriceMoveDirection(close);
             var difference = TechCalculations.CalculateAvdCandleDifference(open, close);
             var priceDiffToHit = 0m;
 
