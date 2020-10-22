@@ -102,7 +102,7 @@ namespace Algoserver.API.Services
             var currentDeviation = deviation.TakeLast(lastDeviation).Sum() / lastDeviation;
             var deviationSpeed = Math.Round((currentDeviation - avgDeviation) / avgDeviation * 100, 0);
 
-            var candlesPerformance = TechCalculations.CalculatePriceMoveDirection(high, low, close, trend);
+            var candlesPerformance = TechCalculations.CalculatePriceMoveDirection(high, low, close, Trend.Undefined);
             var priceDiffToHit = 0m;
 
             // check is price go needed direction
