@@ -133,6 +133,9 @@ namespace Algoserver.API.Services
             var accountSize = container.InputAccountSize * container.UsdRatio;
             var suggestedRisk = container.InputRisk;
             var scanRes = _scanner.ScanExt(scanningHistory, trend);
+            if (scanRes == null) {
+                scanRes = _scanner.ScanBRC(scanningHistory, trend);
+            }
             var size = 0m;
 
             if (scanRes != null)

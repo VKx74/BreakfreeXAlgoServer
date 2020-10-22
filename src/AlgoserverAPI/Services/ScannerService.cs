@@ -151,7 +151,6 @@ namespace Algoserver.API.Services
                 entry = natural,
                 stop = stop
             };
-
         }
 
         public ScanResponse ScanExt(ScanningHistory history, Trend trend)
