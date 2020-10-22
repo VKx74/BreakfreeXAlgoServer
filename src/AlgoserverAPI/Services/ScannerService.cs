@@ -77,8 +77,8 @@ namespace Algoserver.API.Services
                 }
             }
             
-            var directionApproved = TechCalculations.ApproveDirection(high, low, close, trend);
-            if (directionApproved)
+            var directionApproved = TechCalculations.ApproveDirection(high, low, close, trend == Trend.Up ? Trend.Down : Trend.Up);
+            if (!directionApproved)
             {
                 return null;
             }
