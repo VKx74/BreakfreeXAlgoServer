@@ -53,7 +53,7 @@ namespace Algoserver.API.Services
                 var swingN = ScanBRC(history, trendGlobal);
                 if (swingN != null)
                 {
-                    swingN.type = TradeType.Swing;
+                    swingN.type = TradeType.SwingN;
                 }
                 return swingN;
             }
@@ -62,7 +62,7 @@ namespace Algoserver.API.Services
                 var swingExt = ScanExt(history, trendGlobal);
                 if (swingExt != null)
                 {
-                    swingExt.type = TradeType.Swing;
+                    swingExt.type = TradeType.SwingExt;
                 }
                 return swingExt;
             }

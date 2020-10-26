@@ -26,7 +26,8 @@ namespace Algoserver.API.Models.Algo
     public enum TradeType
     {
         EXT,
-        Swing,
+        SwingN,
+        SwingExt,
         BRC
     }
 
