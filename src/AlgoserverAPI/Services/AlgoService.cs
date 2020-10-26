@@ -119,7 +119,8 @@ namespace Algoserver.API.Services
             var container = await InitAsync(req);
             var levels = TechCalculations.CalculateLevels(container.High, container.Low);
             var sar = SupportAndResistance.Calculate(levels, container.Mintick);
-            var trend = TrendDetector.CalculateByMesaBy2TrendAdjusted(container.CloseD);
+            var extendedTrendData = TrendDetector.CalculateByMesaBy2TrendAdjusted(container.CloseD);
+            var trend = TrendDetector.MergeTrends(extendedTrendData);
             var scanningHistory = new ScanningHistory
             {
                 Open = container.Open,

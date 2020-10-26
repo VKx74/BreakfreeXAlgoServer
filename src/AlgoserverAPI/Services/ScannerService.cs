@@ -36,6 +36,38 @@ namespace Algoserver.API.Services
             _historyService = historyService;
         }
 
+        public ScanResponse ScanSwing(ScanningHistory history, Trend trendGlobal, Trend trendLocal)
+        {
+            if (history.Close == null)
+            {
+                return null;
+            }
+
+            if (trendGlobal == Trend.Undefined)
+            {
+                return null;
+            }
+
+            if (trendGlobal == trendLocal)
+            {
+                var swingN = ScanBRC(history, trendGlobal);
+                if (swingN != null)
+                {
+                    swingN.type = TradeType.Swing;
+                }
+                return swingN;
+            }
+            else
+            {
+                var swingExt = ScanExt(history, trendGlobal);
+                if (swingExt != null)
+                {
+                    swingExt.type = TradeType.Swing;
+                }
+                return swingExt;
+            }
+        }
+
         public ScanResponse ScanBRC(ScanningHistory history, Trend trend)
         {
             if (history.Close == null)
@@ -68,19 +100,21 @@ namespace Algoserver.API.Services
 
             if (trend == Trend.Up)
             {
-                if (hlcMid < natural || hlcMid >= (natural + resistance) / 2) {
+                if (hlcMid < natural || hlcMid >= (natural + resistance) / 2)
+                {
                     return null;
                 }
                 stop = natural - (Math.Abs(natural - support) / 4);
             }
             else
             {
-                if (hlcMid > natural || hlcMid <= (natural + support) / 2) {
+                if (hlcMid > natural || hlcMid <= (natural + support) / 2)
+                {
                     return null;
                 }
                 stop = natural + (Math.Abs(natural - support) / 4);
             }
-            
+
             var directionApproved = TechCalculations.ApproveDirection(high, low, close, trend);
             if (!directionApproved)
             {
@@ -88,14 +122,16 @@ namespace Algoserver.API.Services
             }
 
             var overLevelCount = TechCalculations.BRCOverLevelCount(close, trend, natural);
-            if (overLevelCount < 3 || overLevelCount > 40) {
+            if (overLevelCount < 3 || overLevelCount > 40)
+            {
                 return null;
-            } 
-            
+            }
+
             var count = 100;
             var approveLevel = 90;
             var belowLevelCount = TechCalculations.BRCBelowLevelCount(close, trend, natural, count);
-            if ((double)belowLevelCount / (double)count * 100 < approveLevel) {
+            if ((double)belowLevelCount / (double)count * 100 < approveLevel)
+            {
                 return null;
             }
 

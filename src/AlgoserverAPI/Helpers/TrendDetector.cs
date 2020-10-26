@@ -5,6 +5,10 @@ using Algoserver.API.Models.Algo;
 
 namespace Algoserver.API.Helpers
 {
+    public class ExtendedTrendResult {
+        public Trend GlobalTrend { get; set; }
+        public Trend LocalTrend { get; set; }
+    }
     public static class TrendDetector
     {
         public static Trend CalculateByHma(List<decimal> data, int period = 200)
@@ -15,7 +19,7 @@ namespace Algoserver.API.Helpers
             return data.LastOrDefault() > last ? Trend.Up : Trend.Down;
         }
 
-        public static Trend CalculateByMesaBy2TrendAdjusted(List<decimal> data, decimal global_fast = 0.25m, decimal global_slow = 0.05m, decimal local_fast = 1.2m, decimal local_slow = 0.6m)
+        public static ExtendedTrendResult CalculateByMesaBy2TrendAdjusted(List<decimal> data, decimal global_fast = 0.25m, decimal global_slow = 0.05m, decimal local_fast = 1.2m, decimal local_slow = 0.6m)
         {
             var mesa_global = TechCalculations.MESA(data, (double)global_fast, (double)global_slow);
             var mesa_local = TechCalculations.MESA(data, (double)local_fast, (double)local_slow);
@@ -23,16 +27,10 @@ namespace Algoserver.API.Helpers
             var mesa_global_value = mesa_global.LastOrDefault();
             var mesa_local_value = mesa_local.LastOrDefault();
 
-            if (mesa_global_value.Fast > mesa_global_value.Slow && mesa_local_value.Fast > mesa_local_value.Slow)
-            {
-                return Trend.Up;
-            }
-            if (mesa_global_value.Fast < mesa_global_value.Slow && mesa_local_value.Fast < mesa_local_value.Slow)
-            {
-                return Trend.Down;
-            }
-
-            return Trend.Undefined;
+            return new ExtendedTrendResult {
+                GlobalTrend = mesa_global_value.Fast > mesa_global_value.Slow ? Trend.Up : Trend.Down,
+                LocalTrend = mesa_local_value.Fast > mesa_local_value.Slow ? Trend.Up : Trend.Down,
+            };
         }
         
         public static Trend CalculateByMesa(List<decimal> data, decimal diff = 0.1m, decimal global_fast = 0.25m, decimal global_slow = 0.05m, decimal local_fast = 1.2m, decimal local_slow = 0.6m)
@@ -77,6 +75,19 @@ namespace Algoserver.API.Helpers
                 return Trend.Down;
             }
 
+            return Trend.Undefined;
+        }
+
+        public static Trend MergeTrends(ExtendedTrendResult trends)
+        {
+            if (trends.GlobalTrend == Trend.Up && trends.LocalTrend == Trend.Up)
+            {
+                return Trend.Up;
+            }
+            if (trends.GlobalTrend == Trend.Down && trends.LocalTrend == Trend.Down)
+            {
+                return Trend.Down;
+            }
             return Trend.Undefined;
         }
     }

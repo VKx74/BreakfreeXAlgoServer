@@ -47,8 +47,8 @@ namespace Algoserver.API.Services
                 refresh_time = RefreshMarketsTime,
                 refresh_time_all = RefreshAllMarketsTime
             };
-        } 
-        
+        }
+
         public ScannerHistoryResponse GetHistoryData()
         {
             List<ScannerResponseHistoryItem> res;
@@ -73,13 +73,10 @@ namespace Algoserver.API.Services
             foreach (var dailyHistory in _1Day)
             {
                 var calculation_input = dailyHistory.Bars.Select(_ => _.Close).ToList();
-                var trendData = TrendDetector.CalculateByMesaBy2TrendAdjusted(calculation_input);
-                if (trendData == Trend.Undefined)
-                {
-                    continue;
-                }
+                var extendedTrendData = TrendDetector.CalculateByMesaBy2TrendAdjusted(calculation_input);
+                var trendData = TrendDetector.MergeTrends(extendedTrendData);
 
-                if (_15Mins.TryGetValue(_historyService.GetKey(dailyHistory), out var history15Min))
+                if (_15Mins.TryGetValue(_historyService.GetKey(dailyHistory), out var history15Min) && trendData != Trend.Undefined)
                 {
                     var scanningResultBRC = _scanner.ScanBRC(_scanner.ToScanningHistory(history15Min.Bars), trendData);
                     if (scanningResultBRC != null)
@@ -87,8 +84,8 @@ namespace Algoserver.API.Services
                         var resp = _toResponse(scanningResultBRC, history15Min, TimeframeHelper.MIN15_GRANULARITY);
                         _tryAddHistory(resp, scanningResultBRC);
                         res.Add(resp);
-                    } 
-                    
+                    }
+
                     var scanningResultExt = _scanner.ScanExt(_scanner.ToScanningHistory(history15Min.Bars), trendData);
                     if (scanningResultExt != null)
                     {
@@ -98,7 +95,7 @@ namespace Algoserver.API.Services
                     }
                 }
 
-                if (_1Hour.TryGetValue(_historyService.GetKey(dailyHistory), out var history1H))
+                if (_1Hour.TryGetValue(_historyService.GetKey(dailyHistory), out var history1H) && trendData != Trend.Undefined)
                 {
                     var scanningResultBRC = _scanner.ScanBRC(_scanner.ToScanningHistory(history1H.Bars), trendData);
                     if (scanningResultBRC != null)
@@ -107,7 +104,7 @@ namespace Algoserver.API.Services
                         _tryAddHistory(resp, scanningResultBRC);
                         res.Add(resp);
                     }
-                    
+
                     var scanningResultExt = _scanner.ScanExt(_scanner.ToScanningHistory(history1H.Bars), trendData);
                     if (scanningResultExt != null)
                     {
@@ -119,21 +116,40 @@ namespace Algoserver.API.Services
 
                 if (_4Hour.TryGetValue(_historyService.GetKey(dailyHistory), out var history4H))
                 {
-                    var scanningResultBRC = _scanner.ScanBRC(_scanner.ToScanningHistory(history4H.Bars), trendData);
-                    if (scanningResultBRC != null)
+                    if (trendData != Trend.Undefined)
                     {
-                        var resp = _toResponse(scanningResultBRC, history4H, TimeframeHelper.HOUR4_GRANULARITY);
-                        _tryAddHistory(resp, scanningResultBRC);
-                        res.Add(resp);
-                    } 
-                    
-                    var scanningResultExt = _scanner.ScanExt(_scanner.ToScanningHistory(history4H.Bars), trendData);
-                    if (scanningResultExt != null)
+                        var scanningResultBRC = _scanner.ScanBRC(_scanner.ToScanningHistory(history4H.Bars), trendData);
+                        if (scanningResultBRC != null)
+                        {
+                            var resp = _toResponse(scanningResultBRC, history4H, TimeframeHelper.HOUR4_GRANULARITY);
+                            _tryAddHistory(resp, scanningResultBRC);
+                            res.Add(resp);
+                        }
+
+                        var scanningResultExt = _scanner.ScanExt(_scanner.ToScanningHistory(history4H.Bars), trendData);
+                        if (scanningResultExt != null)
+                        {
+                            var resp = _toResponse(scanningResultExt, history4H, TimeframeHelper.HOUR4_GRANULARITY);
+                            _tryAddHistory(resp, scanningResultExt);
+                            res.Add(resp);
+                        }
+                    }
+
+                    var swingScannerResult = _scanner.ScanSwing(_scanner.ToScanningHistory(history4H.Bars), extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend);
+                    if (swingScannerResult != null)
                     {
-                        var resp = _toResponse(scanningResultExt, history4H, TimeframeHelper.HOUR4_GRANULARITY);
-                        _tryAddHistory(resp, scanningResultExt);
+                        var resp = _toResponse(swingScannerResult, history4H, TimeframeHelper.HOUR4_GRANULARITY);
+                        _tryAddHistory(resp, swingScannerResult);
                         res.Add(resp);
                     }
+                }
+
+                var swingDailyScannerResult = _scanner.ScanSwing(_scanner.ToScanningHistory(dailyHistory.Bars), extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend);
+                if (swingDailyScannerResult != null)
+                {
+                    var resp = _toResponse(swingDailyScannerResult, dailyHistory, TimeframeHelper.DAILY_GRANULARITY);
+                    _tryAddHistory(resp, swingDailyScannerResult);
+                    res.Add(resp);
                 }
             }
 
@@ -187,7 +203,8 @@ namespace Algoserver.API.Services
                 {
                     _resultHistory.RemoveAt(0);
                 }
-                _resultHistory.Add(new ScannerResponseHistoryItem {
+                _resultHistory.Add(new ScannerResponseHistoryItem
+                {
                     responseItem = item,
                     avgEntry = resp.entry,
                     time = AlgoHelper.UnixTimeNow()
