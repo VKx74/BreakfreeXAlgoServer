@@ -9,4 +9,8 @@
             Data = item;
         }
     }
+
+    public class EncryptedResponse {
+        public string data { get; set; }
+    }
 }

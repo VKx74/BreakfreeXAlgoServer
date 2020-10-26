@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
-using Algoserver.API.Exceptions;
 using Algoserver.API.Helpers;
 using Algoserver.API.Models.Algo;
 using Algoserver.API.Models.REST;

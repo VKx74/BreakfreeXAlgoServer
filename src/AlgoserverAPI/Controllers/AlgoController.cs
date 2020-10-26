@@ -11,6 +11,8 @@ using Algoserver.API.Models.REST;
 using Algoserver.API.Services;
 using IdentityModel;
 using RabbitMQ.Client.Impl;
+using Newtonsoft.Json;
+using Algoserver.API.Helpers;
 
 namespace Algoserver.API.Controllers
 {
@@ -44,7 +46,7 @@ namespace Algoserver.API.Controllers
             }
 
             var result = await _algoService.CalculateV2Async(request);
-            return Json(result);
+            return ToEncryptedResponse(result);
         }
             
         [Authorize]
@@ -80,7 +82,7 @@ namespace Algoserver.API.Controllers
                 SplitPositions = request.InputSplitPositions
             });
 
-            return Json(result);
+            return ToEncryptedResponse(result);
         }
         
         [Authorize]
@@ -95,7 +97,7 @@ namespace Algoserver.API.Controllers
 
             var result = await _algoService.BacktestAsync(request);
 
-            return Json(result);
+            return ToEncryptedResponse(result);
         } 
         
         [Authorize]
@@ -110,7 +112,7 @@ namespace Algoserver.API.Controllers
 
             var result = await _algoService.Strategy2BacktestAsync(request);
 
-            return Json(result);
+            return ToEncryptedResponse(result);
         } 
         
         [Authorize]
@@ -125,7 +127,7 @@ namespace Algoserver.API.Controllers
 
             var result = await _algoService.HitTestExtensionsAsync(request);
 
-            return Json(result);
+            return ToEncryptedResponse(result);
         }
 
         [Authorize]
@@ -140,7 +142,7 @@ namespace Algoserver.API.Controllers
 
             var result = await _rtdService.CalculateMESARTD(request);
 
-            return Json(result);
+            return ToEncryptedResponse(result);
         }
 
         [Authorize]
@@ -149,7 +151,7 @@ namespace Algoserver.API.Controllers
         public async Task<IActionResult> LoadInstruments([FromBody] object request)
         {
             var res = await _scannerHistoryService.RefreshAll();
-            return Json(new {
+            return ToEncryptedResponse(new {
                 res = res
             });
         }
@@ -160,7 +162,7 @@ namespace Algoserver.API.Controllers
         public IActionResult ScannerResults([FromQuery] string segment = "")
         {
             var res = _scannerCache.GetData();
-            return Json(res);
+            return ToEncryptedResponse(res);
         } 
         
         [Authorize]
@@ -169,7 +171,16 @@ namespace Algoserver.API.Controllers
         public IActionResult ScannerHistoryResults([FromQuery] string segment = "")
         {
             var res = _scannerCache.GetHistoryData();
-            return Json(res);
+            return ToEncryptedResponse(res);
+        }
+
+        [NonAction]
+        public ActionResult ToEncryptedResponse(object data) {
+            var res = JsonConvert.SerializeObject(data);
+            var encryptedRes = EncryptionHelper.Encrypt(res);
+            return Json(new EncryptedResponse {
+                data = encryptedRes
+            });
         }
     }
 }
