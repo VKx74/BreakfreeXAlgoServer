@@ -131,9 +131,22 @@ namespace Algoserver.API.Services
             var isForex = container.Type == "forex";
             var accountSize = container.InputAccountSize * container.UsdRatio;
             var suggestedRisk = container.InputRisk;
-            var scanRes = _scanner.ScanExt(scanningHistory, trend);
-            if (scanRes == null) {
-                scanRes = _scanner.ScanBRC(scanningHistory, trend);
+
+            ScanResponse scanRes = null;
+            if (container.TimeframePeriod != "d" && container.TimeframePeriod != "w")
+            {
+                scanRes = _scanner.ScanExt(scanningHistory, trend);
+                if (scanRes == null)
+                {
+                    scanRes = _scanner.ScanBRC(scanningHistory, trend);
+                }
+            }
+            
+            if (scanRes == null)
+            {
+                if (container.TimeframePeriod == "d" || (container.TimeframePeriod == "h" && container.TimeframeInterval == 4)) {
+                    scanRes = _scanner.ScanSwing(scanningHistory, extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend);
+                }
             }
             var size = 0m;
 
