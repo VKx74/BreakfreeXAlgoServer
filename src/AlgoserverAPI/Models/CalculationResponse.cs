@@ -14,6 +14,7 @@ namespace Algoserver.API.Models.REST
         public CalculationLevels levels {get;set;}
         public StrategyModeV2 trade {get;set;}
         public decimal size {get;set;}
+        public string id { get; set; }
     }
 
     public class CalculationLevels

@@ -156,6 +156,7 @@ namespace Algoserver.API.Services
             }
 
             var result = this.toResponseV2(levels, sar, scanRes, size);
+            result.id = container.Id;
             return result;
         }
 
