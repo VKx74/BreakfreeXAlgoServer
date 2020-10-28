@@ -13,7 +13,7 @@ namespace Algoserver.API.Services
         public decimal entry { get; set; }
         public decimal stop { get; set; }
         public int tte { get; set; }
-        public int tp { get; set; }
+        public TradeProbability tp { get; set; }
         public TradeType type { get; set; }
         public Trend trend { get; set; }
     }
@@ -115,7 +115,8 @@ namespace Algoserver.API.Services
                 stop = natural + (Math.Abs(natural - support) / 4);
             }
 
-            var directionApproved = TechCalculations.ApproveDirection(close, trend, TradeType.BRC);
+            var direction = TechCalculations.ApproveDirection(close, trend, TradeType.BRC);
+            var directionApproved = direction.Approved;
             if (!directionApproved)
             {
                 return null;
@@ -134,13 +135,6 @@ namespace Algoserver.API.Services
             {
                 return null;
             }
-
-            var length = 14;
-            var lastDeviation = 3;
-            var deviation = TechCalculations.StdDev(close.TakeLast(200).ToList(), length);
-            var avgDeviation = deviation.Sum() / deviation.Count;
-            var currentDeviation = deviation.TakeLast(lastDeviation).Sum() / lastDeviation;
-            var deviationSpeed = Math.Round((currentDeviation - avgDeviation) / avgDeviation * 100, 0);
 
             var difference = TechCalculations.CalculateAvdCandleDifference(open, close);
             var candlesPerformance = TechCalculations.CalculatePriceMoveDirection(close);
@@ -181,7 +175,7 @@ namespace Algoserver.API.Services
             return new ScanResponse
             {
                 tte = (int)candlesToHit + 1,
-                tp = (int)deviationSpeed,
+                tp = direction.TradeProbability,
                 type = TradeType.BRC,
                 trend = trend,
                 entry = natural,
@@ -243,7 +237,8 @@ namespace Algoserver.API.Services
                 stop = levels.Plus28 + (decimal)shift;
             }
 
-            var directionApproved = TechCalculations.ApproveDirection(close, trend, TradeType.EXT);
+            var direction = TechCalculations.ApproveDirection(close, trend, TradeType.EXT);
+            var directionApproved = direction.Approved;
 
             if (!directionApproved)
             {
@@ -278,12 +273,6 @@ namespace Algoserver.API.Services
             //     return null;
             // }
 
-            var length = 14;
-            var lastDeviation = 3;
-            var deviation = TechCalculations.StdDev(close.TakeLast(200).ToList(), length);
-            var avgDeviation = deviation.Sum() / deviation.Count;
-            var currentDeviation = deviation.TakeLast(lastDeviation).Sum() / lastDeviation;
-            var deviationSpeed = Math.Round((currentDeviation - avgDeviation) / avgDeviation * 100, 0);
             var candlesToHit = Math.Round(priceDiffToHit / Math.Abs(difference), 0);
 
             if (candlesToHit <= 0)
@@ -299,7 +288,7 @@ namespace Algoserver.API.Services
             return new ScanResponse
             {
                 tte = (int)candlesToHit + 1,
-                tp = (int)deviationSpeed,
+                tp = direction.TradeProbability,
                 type = TradeType.EXT,
                 trend = trend,
                 entry = avgEntry,

@@ -20,7 +20,7 @@ namespace Algoserver.API.Models.REST
         public Trend trend { get; set; }
         public TradeType type { get; set; }
         public int tte { get; set; }
-        public int tp { get; set; }
+        public TradeProbability tp { get; set; }
         public int timeframe { get; set; }
         public string exchange { get; set; }
         public string symbol { get; set; }

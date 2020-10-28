@@ -5,6 +5,21 @@ using Algoserver.API.Models.Algo;
 
 namespace Algoserver.API.Helpers
 {
+    public class DirectionResponse
+    {
+        public bool Approved { get; set; }
+        public TradeProbability TradeProbability { get; set; }
+
+        public static DirectionResponse GetNegativeResponse()
+        {
+            return new DirectionResponse
+            {
+                Approved = false,
+                TradeProbability = TradeProbability.Low
+            };
+        }
+    }
+
     public class DataAggregator
     {
         private List<double> _data = new List<double>();
@@ -587,14 +602,17 @@ namespace Algoserver.API.Helpers
             return c;
         }
 
-        public static bool ApproveDirection(List<decimal> cPrice, Trend trend, TradeType type)
+        public static DirectionResponse ApproveDirection(List<decimal> cPrice, Trend trend, TradeType type)
         {
             var period = 14;
             List<decimal> prices = null;
 
-            if (cPrice.Count > 100) {
+            if (cPrice.Count > 100)
+            {
                 prices = cPrice.TakeLast(100).ToList();
-            } else {
+            }
+            else
+            {
                 prices = cPrice;
             }
 
@@ -608,35 +626,63 @@ namespace Algoserver.API.Helpers
                 {
                     if (lastClose[i] >= lastHma[i])
                     {
-                        return false;
+                        return DirectionResponse.GetNegativeResponse();
                     }
                 }
                 else
                 {
                     if (lastClose[i] <= lastHma[i])
                     {
-                        return false;
+                        return DirectionResponse.GetNegativeResponse();
                     }
                 }
             }
 
             var l = lastHma.Length;
+            var cl = lastClose.Length;
             if (trend == Trend.Up)
             {
                 if (lastHma[l - 1] >= lastHma[l - 2])
                 {
-                    return false;
+                    return DirectionResponse.GetNegativeResponse();
                 }
             }
             else
             {
                 if (lastHma[l - 1] <= lastHma[l - 2])
                 {
-                    return false;
+                    return DirectionResponse.GetNegativeResponse();
                 }
             }
 
-            return true;
+            var tp = TradeProbability.Mid;
+            if (trend == Trend.Up)
+            {
+                if (lastClose.LastOrDefault() >= lastHma.LastOrDefault())
+                {
+                    tp = TradeProbability.Low;
+                } else {
+                    if (lastClose.LastOrDefault() <= lastClose[cl - 2] && lastClose[cl - 2] <= lastClose[cl - 3]) {
+                        tp = TradeProbability.High;
+                    }
+                }
+            }
+            else
+            {
+                if (lastClose.LastOrDefault() <= lastHma.LastOrDefault())
+                {
+                    tp = TradeProbability.Low;
+                } else {
+                    if (lastClose.LastOrDefault() >= lastClose[cl - 2] && lastClose[cl - 2] > lastClose[cl - 3]) {
+                        tp = TradeProbability.High;
+                    }
+                }
+            }
+
+            return new DirectionResponse {
+                Approved = true,
+                TradeProbability = tp
+            };
         }
 
         public static decimal CalculateAvdCandleDifference(IEnumerable<decimal> open, IEnumerable<decimal> close)

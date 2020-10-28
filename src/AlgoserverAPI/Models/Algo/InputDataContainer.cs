@@ -31,6 +31,14 @@ namespace Algoserver.API.Models.Algo
         BRC
     }
 
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum TradeProbability
+    {
+        Low,
+        Mid,
+        High
+    }
+
     public class InputDataContainer
     {
 

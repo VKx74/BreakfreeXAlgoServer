@@ -111,7 +111,7 @@ namespace Algoserver.API.Models.REST
         public Trend trend { get; set; }
         public TradeType type { get; set; }
         public int tte { get; set; }
-        public int tp { get; set; }
+        public TradeProbability tp { get; set; }
         public decimal entry { get; set; }
         public decimal stop { get; set; }
     }
