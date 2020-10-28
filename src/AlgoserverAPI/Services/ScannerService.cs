@@ -115,7 +115,7 @@ namespace Algoserver.API.Services
                 stop = natural + (Math.Abs(natural - support) / 4);
             }
 
-            var directionApproved = TechCalculations.ApproveDirection(high, low, close, trend);
+            var directionApproved = TechCalculations.ApproveDirection(close, trend, TradeType.BRC);
             if (!directionApproved)
             {
                 return null;
@@ -243,7 +243,7 @@ namespace Algoserver.API.Services
                 stop = levels.Plus28 + (decimal)shift;
             }
 
-            var directionApproved = TechCalculations.ApproveDirection(high, low, close, trend);
+            var directionApproved = TechCalculations.ApproveDirection(close, trend, TradeType.EXT);
 
             if (!directionApproved)
             {

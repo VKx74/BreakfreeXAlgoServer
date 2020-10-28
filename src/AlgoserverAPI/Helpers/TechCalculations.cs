@@ -191,9 +191,12 @@ namespace Algoserver.API.Helpers
 
             for (var i = 0; i < data.Count; i++)
             {
-                if (i == 0) {
+                if (i == 0)
+                {
                     sumDataRow.Add(data[i]);
-                } else {
+                }
+                else
+                {
                     sumDataRow.Add(data[i] + sumDataRow[i - 1] -
                         (i >= length ? data[i - length] : 0));
                 }
@@ -527,30 +530,38 @@ namespace Algoserver.API.Helpers
             return TechCalculations.LookBack(lookback128, uPrice, lPrice);
         }
 
-        public static int BRCOverLevelCount(IEnumerable<decimal> cPrice, Trend trend, decimal level) {
+        public static int BRCOverLevelCount(IEnumerable<decimal> cPrice, Trend trend, decimal level)
+        {
             var close = cPrice.ToArray().Reverse().ToArray();
 
-            for (var i = 0; i < close.Length; i++) {
-                if (trend == Trend.Up && close[i] >= level) {
+            for (var i = 0; i < close.Length; i++)
+            {
+                if (trend == Trend.Up && close[i] >= level)
+                {
                     continue;
                 }
-                if (trend == Trend.Down && close[i] <= level) {
+                if (trend == Trend.Down && close[i] <= level)
+                {
                     continue;
                 }
                 return i;
             }
             return 0;
-        }   
-        
-        public static int BRCBelowLevelCount(IEnumerable<decimal> cPrice, Trend trend, decimal level, int count) {
+        }
+
+        public static int BRCBelowLevelCount(IEnumerable<decimal> cPrice, Trend trend, decimal level, int count)
+        {
             var close = cPrice.ToArray().Reverse().ToArray();
             var i = 0;
 
-            for (; i < close.Length; i++) {
-                if (trend == Trend.Up && close[i] >= level) {
+            for (; i < close.Length; i++)
+            {
+                if (trend == Trend.Up && close[i] >= level)
+                {
                     continue;
                 }
-                if (trend == Trend.Down && close[i] <= level) {
+                if (trend == Trend.Down && close[i] <= level)
+                {
                     continue;
                 }
                 break;
@@ -558,13 +569,16 @@ namespace Algoserver.API.Helpers
 
             var c = 0;
             var j = 0;
-            
-            for (; i < close.Length && j < count; i++, j++) {
-                if (trend == Trend.Up && close[i] <= level) {
+
+            for (; i < close.Length && j < count; i++, j++)
+            {
+                if (trend == Trend.Up && close[i] <= level)
+                {
                     c++;
                     continue;
                 }
-                if (trend == Trend.Down && close[i] >= level) {
+                if (trend == Trend.Down && close[i] >= level)
+                {
                     c++;
                     continue;
                 }
@@ -573,62 +587,60 @@ namespace Algoserver.API.Helpers
             return c;
         }
 
-        public static bool ApproveDirection(IEnumerable<decimal> uPrice, IEnumerable<decimal> lPrice, IEnumerable<decimal> cPrice, Trend trend) {
-            var lookback = 5;
-            var lastHigh = uPrice.TakeLast(lookback).ToArray();
-            var lastLow = lPrice.TakeLast(lookback).ToArray();
-            var lastClose = cPrice.TakeLast(lookback).ToArray();
+        public static bool ApproveDirection(List<decimal> cPrice, Trend trend, TradeType type)
+        {
+            var period = 14;
+            List<decimal> prices = null;
 
-            var condition1 = 0;
-            // var condition2 = 0;
-            // var condition3 = 0;
-            for (var i = 0; i < lookback - 1; i++) {
-                var midPrice = ((lastClose[i] * 2) + lastLow[i] + lastHigh[i]) / 4;
-                var midPrice1 = ((lastClose[i + 1] * 2) + lastLow[i + 1] + lastHigh[i + 1]) / 4;
-                if (trend == Trend.Up) {
-                    if (midPrice <= midPrice1) {
-                        condition1++;
+            if (cPrice.Count > 100) {
+                prices = cPrice.TakeLast(100).ToList();
+            } else {
+                prices = cPrice;
+            }
+
+            var hmaData = TechCalculations.Hma(prices, period);
+            var lookback = 4;
+            var lastClose = cPrice.TakeLast(lookback + 1).ToArray();
+            var lastHma = hmaData.TakeLast(lookback + 1).ToArray();
+            for (var i = 0; i < lookback; i++)
+            {
+                if (trend == Trend.Up)
+                {
+                    if (lastClose[i] >= lastHma[i])
+                    {
+                        return false;
                     }
-                } 
+                }
                 else
                 {
-                    if (midPrice >= midPrice1) {
-                        condition1++;
+                    if (lastClose[i] <= lastHma[i])
+                    {
+                        return false;
                     }
                 }
             }
 
-            if (condition1 > 1) {
-                return false;
-            }
-
-            var _2back = lookback - 2;
-            if (trend == Trend.Up) {
-                var midPriceLastCandle = (lastClose.LastOrDefault() + lastHigh.LastOrDefault()) / 2;
-                var midPrice2BackCandle = (lastClose[_2back] + lastHigh[_2back]) / 2;
-                if (midPriceLastCandle > midPrice2BackCandle) {
-                    return false;
-                }
-            } else {
-                var midPriceLastCandle = (lastClose.LastOrDefault() + lastLow.LastOrDefault()) / 2;
-                var midPrice2BackCandle = (lastClose[_2back] + lastLow[_2back]) / 2;
-                if (midPriceLastCandle < midPrice2BackCandle) {
+            var l = lastHma.Length;
+            if (trend == Trend.Up)
+            {
+                if (lastHma[l - 1] >= lastHma[l - 2])
+                {
                     return false;
                 }
             }
-
-            if (trend == Trend.Up && lastClose.FirstOrDefault() <= lastClose.LastOrDefault()) {
-                return false;
-            }
-
-            if (trend == Trend.Down && lastClose.FirstOrDefault() >= lastClose.LastOrDefault()) {
-                return false;
+            else
+            {
+                if (lastHma[l - 1] <= lastHma[l - 2])
+                {
+                    return false;
+                }
             }
 
             return true;
         }
 
-        public static decimal CalculateAvdCandleDifference(IEnumerable<decimal> open, IEnumerable<decimal> close) {
+        public static decimal CalculateAvdCandleDifference(IEnumerable<decimal> open, IEnumerable<decimal> close)
+        {
             var lookback = 5;
             var opens = open.ToArray();
             var closes = close.ToArray();
