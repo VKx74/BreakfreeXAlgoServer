@@ -658,7 +658,7 @@ namespace Algoserver.API.Helpers
             var tp = TradeProbability.Mid;
             if (trend == Trend.Up)
             {
-                if (lastClose.LastOrDefault() >= lastHma.LastOrDefault())
+                if (lastClose.LastOrDefault() >= lastHma.LastOrDefault() || lastClose[cl - 2] >= lastClose[cl - 3])
                 {
                     tp = TradeProbability.Low;
                 } else {
@@ -669,7 +669,7 @@ namespace Algoserver.API.Helpers
             }
             else
             {
-                if (lastClose.LastOrDefault() <= lastHma.LastOrDefault())
+                if (lastClose.LastOrDefault() <= lastHma.LastOrDefault() || lastClose[cl - 2] <= lastClose[cl - 3])
                 {
                     tp = TradeProbability.Low;
                 } else {
