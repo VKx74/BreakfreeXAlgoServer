@@ -83,7 +83,9 @@ namespace Algoserver.API.Services
             var lastClose = history.Close.LastOrDefault();
             var lastHigh = history.High.LastOrDefault();
             var lastLow = history.Low.LastOrDefault();
-            var hlcMid = (lastClose + lastHigh + lastLow) / 3;
+            var prevLow = history.Low[history.Low.Count - 2];
+            var prevHigh = history.High[history.High.Count - 2];
+            var prc = trend == Trend.Up ? prevLow : prevHigh;
 
             var high = history.High;
             var low = history.Low;
@@ -100,7 +102,7 @@ namespace Algoserver.API.Services
 
             if (trend == Trend.Up)
             {
-                if (hlcMid < natural || hlcMid >= (natural + resistance) / 2)
+                if (prc < natural || prc >= (natural + resistance) / 2)
                 {
                     return null;
                 }
@@ -108,7 +110,7 @@ namespace Algoserver.API.Services
             }
             else
             {
-                if (hlcMid > natural || hlcMid <= (natural + support) / 2)
+                if (prc > natural || prc <= (natural + support) / 2)
                 {
                     return null;
                 }
