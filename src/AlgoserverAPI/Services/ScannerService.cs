@@ -167,7 +167,7 @@ namespace Algoserver.API.Services
                 candlesToHit = 0;
             }
 
-            if (candlesToHit > 20)
+            if (candlesToHit > 10)
             {
                 return null;
             }
@@ -198,7 +198,9 @@ namespace Algoserver.API.Services
             var lastClose = history.Close.LastOrDefault();
             var lastHigh = history.High.LastOrDefault();
             var lastLow = history.Low.LastOrDefault();
-            var hlcMid = (lastClose + lastHigh + lastLow) / 3;
+            var prevLow = history.Low[history.Low.Count - 2];
+            var prevHigh = history.High[history.High.Count - 2];
+            var prc = trend == Trend.Up ? prevLow : prevHigh;
 
             var high = history.High;
             var low = history.Low;
@@ -216,12 +218,12 @@ namespace Algoserver.API.Services
             var stop = 0m;
 
             // check is price above/below natural level
-            if (trend == Trend.Up && hlcMid > (natural + bottomExt) / 2)
+            if (trend == Trend.Up && prc > (natural + bottomExt) / 2)
             {
                 return null;
             }
 
-            if (trend == Trend.Down && hlcMid < (natural + topExt) / 2)
+            if (trend == Trend.Down && prc < (natural + topExt) / 2)
             {
                 return null;
             }
@@ -280,7 +282,7 @@ namespace Algoserver.API.Services
                 candlesToHit = 0;
             }
 
-            if (candlesToHit > 20)
+            if (candlesToHit > 10)
             {
                 return null;
             }
