@@ -72,7 +72,7 @@ namespace Algoserver.API.Services
 
             foreach (var dailyHistory in _1Day)
             {
-                if (!dailyHistory.Bars.Any()) {
+                if (dailyHistory.Bars.Count() < 200) {
                     continue;
                 }
 
@@ -80,7 +80,7 @@ namespace Algoserver.API.Services
                 var extendedTrendData = TrendDetector.CalculateByMesaBy2TrendAdjusted(calculation_input);
                 var trendData = TrendDetector.MergeTrends(extendedTrendData);
 
-                if (_15Mins.TryGetValue(_historyService.GetKey(dailyHistory), out var history15Min) && trendData != Trend.Undefined && history15Min.Bars.Any())
+                if (_15Mins.TryGetValue(_historyService.GetKey(dailyHistory), out var history15Min) && trendData != Trend.Undefined && history15Min.Bars.Count() > 200)
                 {
                     var scanningResultBRC = _scanner.ScanBRC(_scanner.ToScanningHistory(history15Min.Bars), trendData);
                     if (scanningResultBRC != null)
@@ -99,7 +99,7 @@ namespace Algoserver.API.Services
                     }
                 }
 
-                if (_1Hour.TryGetValue(_historyService.GetKey(dailyHistory), out var history1H) && trendData != Trend.Undefined && history1H.Bars.Any())
+                if (_1Hour.TryGetValue(_historyService.GetKey(dailyHistory), out var history1H) && trendData != Trend.Undefined && history1H.Bars.Count() > 200)
                 {
                     var scanningResultBRC = _scanner.ScanBRC(_scanner.ToScanningHistory(history1H.Bars), trendData);
                     if (scanningResultBRC != null)
@@ -118,7 +118,7 @@ namespace Algoserver.API.Services
                     }
                 }
 
-                if (_4Hour.TryGetValue(_historyService.GetKey(dailyHistory), out var history4H) && history4H.Bars.Any())
+                if (_4Hour.TryGetValue(_historyService.GetKey(dailyHistory), out var history4H) && history4H.Bars.Count() > 200)
                 {
                     var tradeDetermined = false;
                     if (trendData != Trend.Undefined)

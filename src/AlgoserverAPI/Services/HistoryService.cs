@@ -38,9 +38,9 @@ namespace Algoserver.API.Services
             _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
-        public async Task<HistoryData> GetHistoryWithCount(string symbol, int granularity, string datafeed, string exchange, int count)
+        public async Task<HistoryData> GetHistoryWithCount(string symbol, int granularity, string datafeed, string exchange, int count, int repeatCount = 2)
         {
-            var result = await LoadHistoricalData(datafeed, symbol, granularity, count, exchange);
+            var result = await LoadHistoricalData(datafeed, symbol, granularity, count, exchange, repeatCount);
             return result;
         }
         public async Task<HistoryData> GetHistory(string symbol, int granularity, string datafeed, string exchange, string type, int replayBack = 0)
@@ -93,7 +93,7 @@ namespace Algoserver.API.Services
             return result;
         }
 
-        private async Task<HistoryData> LoadHistoricalData(string datafeed, string symbol, int granularity, long bars_count, string exchange)
+        private async Task<HistoryData> LoadHistoricalData(string datafeed, string symbol, int granularity, long bars_count, string exchange, int repeatCount = 5)
         {
             var bearerdatafeed = datafeed.ToLowerInvariant();
 
@@ -159,7 +159,7 @@ namespace Algoserver.API.Services
                     return result;
                 }
 
-                if (requestCount++ > 5)
+                if (requestCount++ > repeatCount)
                 {
                     return result;
                 }
