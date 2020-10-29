@@ -159,7 +159,7 @@ namespace Algoserver.API.Services
                     return result;
                 }
 
-                if (requestCount++ > 10)
+                if (requestCount++ > 5)
                 {
                     return result;
                 }
@@ -199,7 +199,13 @@ namespace Algoserver.API.Services
         {
             var existing_count = data.Bars.Count();
             var endDate = this.getEndDate(data);
-            long startDate = endDate - ((bars_count - existing_count) * data.Granularity * 3);
+            var mult = 3;
+
+            if (data.Granularity < 86400 && data.Datafeed == "Twelvedata") {
+                mult = 10;
+            }
+
+            long startDate = endDate - ((bars_count - existing_count) * data.Granularity * mult);
 
             if (startDate < 0)
             {
