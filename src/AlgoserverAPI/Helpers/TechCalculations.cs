@@ -605,7 +605,7 @@ namespace Algoserver.API.Helpers
         public static DirectionResponse ApproveDirection(List<decimal> cPrice, Trend trend, TradeType type)
         {
             var period = type == TradeType.EXT ? 14 : 14;
-            var possibleFoul = type == TradeType.EXT ? 1 : 0;
+            var possibleFoul = type == TradeType.EXT ? 1 : 1;
             List<decimal> prices = null;
 
             if (cPrice.Count > 300)
