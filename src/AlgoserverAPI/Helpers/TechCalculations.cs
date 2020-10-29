@@ -617,36 +617,41 @@ namespace Algoserver.API.Helpers
             }
 
             var hmaData = TechCalculations.Hma(prices, period);
-            var lookback = 3;
+            var lookback = 4;
             var lastClose = cPrice.TakeLast(lookback + 1).ToArray();
             var lastHma = hmaData.TakeLast(lookback + 1).ToArray();
             var last = lastClose.FirstOrDefault();
+            var foul = 0;
             for (var i = 0; i < lookback; i++)
             {
                 if (trend == Trend.Up)
                 {
                     if (lastClose[i] >= lastHma[i])
                     {
-                        return DirectionResponse.GetNegativeResponse();
+                        foul++;
                     }
                     if (lastClose[i] > last)
                     {
-                        return DirectionResponse.GetNegativeResponse();
+                        foul++;
                     }
                 }
                 else
                 {
                     if (lastClose[i] <= lastHma[i])
                     {
-                        return DirectionResponse.GetNegativeResponse();
+                        foul++;
                     }
                     if (lastClose[i] < last)
                     {
-                        return DirectionResponse.GetNegativeResponse();
+                        foul++;
                     }
                 }
 
                 last = lastClose[i];
+            }
+
+            if (foul > 1) {
+                return DirectionResponse.GetNegativeResponse();
             }
 
             var l = lastHma.Length;
@@ -666,10 +671,14 @@ namespace Algoserver.API.Helpers
                 }
             }
 
-            var tp = TradeProbability.Mid;
+            var tp = foul == 0 ? TradeProbability.High : TradeProbability.Mid;
             if (trend == Trend.Up)
             {
-                if (lastClose.LastOrDefault() >= lastHma.LastOrDefault() || lastClose[cl - 2] >= lastClose[cl - 3])
+                if (lastClose[cl - 2] >= lastHma[l - 2]) {
+                    return DirectionResponse.GetNegativeResponse();
+                }
+
+                if (lastClose.LastOrDefault() >= lastHma.LastOrDefault() || lastClose[cl - 1] >= lastClose[cl - 2])
                 {
                     tp = TradeProbability.Low;
                 }
@@ -683,7 +692,12 @@ namespace Algoserver.API.Helpers
             }
             else
             {
-                if (lastClose.LastOrDefault() <= lastHma.LastOrDefault() || lastClose[cl - 2] <= lastClose[cl - 3])
+
+                if (lastClose[cl - 2] <= lastHma[l - 2]) {
+                    return DirectionResponse.GetNegativeResponse();
+                }
+
+                if (lastClose.LastOrDefault() <= lastHma.LastOrDefault() || lastClose[cl - 1] <= lastClose[cl - 2])
                 {
                     tp = TradeProbability.Low;
                 }

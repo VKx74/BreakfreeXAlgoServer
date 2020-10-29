@@ -116,6 +116,7 @@ namespace Algoserver.API.Services
 
                 if (_4Hour.TryGetValue(_historyService.GetKey(dailyHistory), out var history4H))
                 {
+                    var tradeDetermined = false;
                     if (trendData != Trend.Undefined)
                     {
                         var scanningResultBRC = _scanner.ScanBRC(_scanner.ToScanningHistory(history4H.Bars), trendData);
@@ -124,6 +125,7 @@ namespace Algoserver.API.Services
                             var resp = _toResponse(scanningResultBRC, history4H, TimeframeHelper.HOUR4_GRANULARITY);
                             _tryAddHistory(resp, scanningResultBRC);
                             res.Add(resp);
+                            tradeDetermined = true;
                         }
 
                         var scanningResultExt = _scanner.ScanExt(_scanner.ToScanningHistory(history4H.Bars), trendData);
@@ -132,15 +134,19 @@ namespace Algoserver.API.Services
                             var resp = _toResponse(scanningResultExt, history4H, TimeframeHelper.HOUR4_GRANULARITY);
                             _tryAddHistory(resp, scanningResultExt);
                             res.Add(resp);
+                            tradeDetermined = true;
                         }
                     }
 
-                    var swingScannerResult = _scanner.ScanSwing(_scanner.ToScanningHistory(history4H.Bars), extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend);
-                    if (swingScannerResult != null)
+                    if (!tradeDetermined)
                     {
-                        var resp = _toResponse(swingScannerResult, history4H, TimeframeHelper.HOUR4_GRANULARITY);
-                        _tryAddHistory(resp, swingScannerResult);
-                        res.Add(resp);
+                        var swingScannerResult = _scanner.ScanSwing(_scanner.ToScanningHistory(history4H.Bars), extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend);
+                        if (swingScannerResult != null)
+                        {
+                            var resp = _toResponse(swingScannerResult, history4H, TimeframeHelper.HOUR4_GRANULARITY);
+                            _tryAddHistory(resp, swingScannerResult);
+                            res.Add(resp);
+                        }
                     }
                 }
 
