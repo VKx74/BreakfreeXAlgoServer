@@ -20,7 +20,7 @@ namespace Algoserver.API.Services
         private readonly string _serverUrl;
         private readonly ILogger<InstrumentService> _logger;
         private readonly List<OandaInstruments> _oandaInstruments = new List<OandaInstruments>();
-        private readonly List<TwelvedatsInstruments> _twelvedatsInstruments = new List<TwelvedatsInstruments>();
+        private readonly List<TwelvedataInstruments> _twelvedatsInstruments = new List<TwelvedataInstruments>();
         private readonly List<KaikoInstruments> _kaikoInstruments = new List<KaikoInstruments>();
 
         public InstrumentService(ILogger<InstrumentService> logger, IConfiguration configuration) {
@@ -40,8 +40,11 @@ namespace Algoserver.API.Services
             _kaikoInstruments.AddRange(kaikoInstruments.Data);
         }
 
-        public List<OandaInstruments> GetOandaInstruments() {
-            return this._oandaInstruments.ToList();
+        public List<IInstrument> GetOandaInstruments() {
+            return this._oandaInstruments.ToList<IInstrument>();
+        }
+        public List<IInstrument> GetTwelvedataInstruments() {
+            return this._twelvedatsInstruments.ToList<IInstrument>();
         }
 
         public bool SymbolExist(string datafeed, string symbol) {
@@ -85,7 +88,7 @@ namespace Algoserver.API.Services
             // TODO: Move out to config file
             var datafeed = "twelvedata";
 
-            var uri = $"{_serverUrl}/{datafeed.ToLowerInvariant()}/instruments?Kind=Forex&Skip=0&Take=10000";
+            var uri = $"{_serverUrl}/{datafeed.ToLowerInvariant()}/instruments/extended?Skip=0&Take=100000";
 
             var request = new HttpRequestMessage(HttpMethod.Get, uri);            
             var response = await _httpClient.SendAsync(request);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Algoserver.API.Helpers;
 using Algoserver.API.Models.REST;
 using Algoserver.Auth.Services;
 using Microsoft.Extensions.Caching.Memory;
@@ -33,13 +34,13 @@ namespace Algoserver.API.Services
         }
 
         public async Task<string> Refresh() {
-            var forexInstruments = _instrumentService.GetOandaInstruments();
+            var instruments = this._getInstruments();
             var stopWatch = new Stopwatch();
             var tasks15min = new List<HistoryRequest>();
-            foreach (var instrument in forexInstruments)
+            foreach (var instrument in instruments)
             {
-                var Exchange = instrument.Datafeed.ToLowerInvariant();
-                var Datafeed = instrument.Datafeed.ToLowerInvariant();
+                var Exchange = instrument.Exchange;
+                var Datafeed = instrument.Datafeed;
                 var Symbol = instrument.Symbol;
                 tasks15min.Add(new HistoryRequest {
                     Symbol = Symbol,
@@ -68,17 +69,17 @@ namespace Algoserver.API.Services
 
         public async Task<string> RefreshAll()
         {
-            var forexInstruments = _instrumentService.GetOandaInstruments();
+            var instruments = this._getInstruments();
             var stopWatch = new Stopwatch();
             var tasks15min = new List<HistoryRequest>();
             var tasks1h = new List<HistoryRequest>();
             var tasks4h = new List<HistoryRequest>();
             var tasks1d = new List<HistoryRequest>();
 
-            foreach (var instrument in forexInstruments)
+            foreach (var instrument in instruments)
             {
-                var Exchange = instrument.Datafeed.ToLowerInvariant();
-                var Datafeed = instrument.Datafeed.ToLowerInvariant();
+                var Exchange = instrument.Exchange;
+                var Datafeed = instrument.Datafeed;
                 var Symbol = instrument.Symbol;
                 tasks15min.Add(new HistoryRequest {
                     Symbol = Symbol,
@@ -212,7 +213,7 @@ namespace Algoserver.API.Services
 
         private async Task<List<HistoryData>> _loadPack(List<HistoryRequest> tasks) {
             var result = new List<HistoryData>();
-            var count = 2;
+            var count = 3;
 
             while(tasks.Count > 0) {
                 var tasksToProcess = tasks.Take(Math.Min(count, tasks.Count));
@@ -288,6 +289,23 @@ namespace Algoserver.API.Services
 
         private bool _isSameInstrument(HistoryData h1, HistoryData h2) {
             return String.Equals(h1.Exchange, h2.Exchange) || String.Equals(h1.Symbol, h2.Symbol);
+        }
+
+        private List<IInstrument> _getInstruments() {
+            var instruments = _instrumentService.GetOandaInstruments();
+            // var instruments = new List<IInstrument>();
+            var stockInstruments = _instrumentService.GetTwelvedataInstruments();
+            var allowedStocks = StockInstrumentHelper.StockInstrumentList;
+
+            foreach (var instrument in stockInstruments) {
+                if (allowedStocks.Any(_ => String.Equals(_.Symbol, instrument.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, instrument.Exchange, StringComparison.InvariantCultureIgnoreCase))) {
+                    if (!instruments.Any(_ => String.Equals(_.Symbol, instrument.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, instrument.Exchange, StringComparison.InvariantCultureIgnoreCase))) {
+                        instruments.Add(instrument);
+                    }
+                }
+            }
+
+            return instruments;
         }
     }
 }

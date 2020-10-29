@@ -20,10 +20,17 @@ namespace Algoserver.API.Models.REST
     {
         public IEnumerable<OandaInstruments> Data { get; set; }
     } 
+
+    public interface IInstrument {
+        string Symbol { get; }
+        string Datafeed { get; }
+        string Exchange { get; }
+    }
     
-    public class OandaInstruments
+    public class OandaInstruments : IInstrument
     {
         public string Datafeed { get; set; }
+        public string Exchange { get; set; } = "Oanda";
         public decimal PricePrecision { get; set; }
         public string Symbol { get; set; }
         public string Type { get; set; }
@@ -32,7 +39,7 @@ namespace Algoserver.API.Models.REST
     public class TwelvedatsInstrumentsResponse
     {
         public int Count { get; set; }
-        public IEnumerable<TwelvedatsInstruments> Data { get; set; }
+        public IEnumerable<TwelvedataInstruments> Data { get; set; }
     } 
     public class KaikoInstrumentsResponse
     {
@@ -40,15 +47,17 @@ namespace Algoserver.API.Models.REST
         public IEnumerable<KaikoInstruments> Data { get; set; }
     } 
     
-    public class TwelvedatsInstruments
+    public class TwelvedataInstruments : IInstrument
     {
-        public string Datafeed { get; set; }
+        public string Datafeed { get; set; } = "Twelvedata";
+        public string Exchange { get; set; }
         public string Symbol { get; set; }
     }
-    public class KaikoInstruments
+    public class KaikoInstruments : IInstrument
     {
         public string Datafeed { get; set; }
         public string Symbol { get; set; }
+        public string Exchange { get; set; } = "Kaiko";
     }
 
     public class BarMessage

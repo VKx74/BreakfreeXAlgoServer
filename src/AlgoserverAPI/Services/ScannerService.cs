@@ -172,6 +172,10 @@ namespace Algoserver.API.Services
             if (candlesToHit > 10)
             {
                 return null;
+            } 
+            if (candlesToHit > 5)
+            {
+                direction.TradeProbability = TradeProbability.Low;
             }
 
             return new ScanResponse
@@ -287,6 +291,10 @@ namespace Algoserver.API.Services
             if (candlesToHit > 10)
             {
                 return null;
+            }
+            if (candlesToHit > 5)
+            {
+                direction.TradeProbability = TradeProbability.Low;
             }
 
             return new ScanResponse

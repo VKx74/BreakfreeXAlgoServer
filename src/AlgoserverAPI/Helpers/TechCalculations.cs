@@ -605,6 +605,7 @@ namespace Algoserver.API.Helpers
         public static DirectionResponse ApproveDirection(List<decimal> cPrice, Trend trend, TradeType type)
         {
             var period = type == TradeType.EXT ? 14 : 14;
+            var possibleFoul = type == TradeType.EXT ? 1 : 0;
             List<decimal> prices = null;
 
             if (cPrice.Count > 300)
@@ -617,18 +618,19 @@ namespace Algoserver.API.Helpers
             }
 
             var hmaData = TechCalculations.Hma(prices, period);
-            var lookback = 4;
+            var lookback = type == TradeType.EXT ? 5 : 4;
             var lastClose = cPrice.TakeLast(lookback + 1).ToArray();
             var lastHma = hmaData.TakeLast(lookback + 1).ToArray();
             var last = lastClose.FirstOrDefault();
+            var priceDiff = new List<double>();
             var foul = 0;
-            for (var i = 0; i < lookback; i++)
+            for (var i = 1; i < lookback; i++)
             {
                 if (trend == Trend.Up)
                 {
                     if (lastClose[i] >= lastHma[i])
                     {
-                        foul++;
+                        return DirectionResponse.GetNegativeResponse();
                     }
                     if (lastClose[i] > last)
                     {
@@ -639,7 +641,7 @@ namespace Algoserver.API.Helpers
                 {
                     if (lastClose[i] <= lastHma[i])
                     {
-                        foul++;
+                        return DirectionResponse.GetNegativeResponse();
                     }
                     if (lastClose[i] < last)
                     {
@@ -647,10 +649,11 @@ namespace Algoserver.API.Helpers
                     }
                 }
 
+                priceDiff.Add(Math.Abs((double)lastClose[i] - (double)lastHma[i]));
                 last = lastClose[i];
             }
 
-            if (foul > 1) {
+            if (foul > possibleFoul) {
                 return DirectionResponse.GetNegativeResponse();
             }
 
@@ -671,7 +674,12 @@ namespace Algoserver.API.Helpers
                 }
             }
 
-            var tp = foul == 0 ? TradeProbability.High : TradeProbability.Mid;
+            var tp = TradeProbability.Mid;
+            var pdc = priceDiff.Count;
+            if (foul == 0 && priceDiff[pdc - 1] >= priceDiff[pdc - 2] && priceDiff[pdc - 2] >= priceDiff[pdc - 3]) {
+                tp = TradeProbability.High;
+            }
+
             if (trend == Trend.Up)
             {
                 if (lastClose[cl - 2] >= lastHma[l - 2]) {
@@ -684,15 +692,14 @@ namespace Algoserver.API.Helpers
                 }
                 else
                 {
-                    if (lastClose.LastOrDefault() <= lastClose[cl - 2] && lastClose[cl - 2] <= lastClose[cl - 3])
+                    if (lastClose.LastOrDefault() >= lastClose[cl - 2] || lastClose[cl - 2] >= lastClose[cl - 3])
                     {
-                        tp = TradeProbability.High;
+                        tp = TradeProbability.Low;
                     }
                 }
             }
             else
             {
-
                 if (lastClose[cl - 2] <= lastHma[l - 2]) {
                     return DirectionResponse.GetNegativeResponse();
                 }
@@ -703,9 +710,9 @@ namespace Algoserver.API.Helpers
                 }
                 else
                 {
-                    if (lastClose.LastOrDefault() >= lastClose[cl - 2] && lastClose[cl - 2] > lastClose[cl - 3])
+                    if (lastClose.LastOrDefault() <= lastClose[cl - 2] || lastClose[cl - 2] <= lastClose[cl - 3])
                     {
-                        tp = TradeProbability.High;
+                        tp = TradeProbability.Low;
                     }
                 }
             }
@@ -719,12 +726,12 @@ namespace Algoserver.API.Helpers
 
         public static decimal CalculateAvdCandleDifference(IEnumerable<decimal> open, IEnumerable<decimal> close)
         {
-            var lookback = 5;
+            var lookback = 2;
             var opens = open.ToArray();
             var closes = close.ToArray();
             var closesLength = closes.Length;
             var total = 0m;
-            for (var i = 1; i <= lookback; i++)
+            for (var i = 2; i <= lookback + 1; i++)
             {
                 total += Math.Abs(closes[closesLength - i] - opens[closesLength - i]);
             }
