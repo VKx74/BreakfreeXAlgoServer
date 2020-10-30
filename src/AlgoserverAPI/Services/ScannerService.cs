@@ -166,7 +166,7 @@ namespace Algoserver.API.Services
 
             if (candlesToHit <= 0)
             {
-                candlesToHit = 0;
+                candlesToHit = 1;
             }
 
             if (candlesToHit > 20)
@@ -176,11 +176,15 @@ namespace Algoserver.API.Services
             if (candlesToHit > 10)
             {
                 direction.TradeProbability = TradeProbability.Low;
+            } 
+            if (candlesToHit <= 2 && direction.TradeProbability != TradeProbability.Low)
+            {
+                direction.TradeProbability = TradeProbability.High;
             }
 
             return new ScanResponse
             {
-                tte = (int)candlesToHit + 1,
+                tte = (int)candlesToHit,
                 tp = direction.TradeProbability,
                 type = TradeType.BRC,
                 trend = trend,
@@ -285,7 +289,7 @@ namespace Algoserver.API.Services
 
             if (candlesToHit <= 0)
             {
-                candlesToHit = 0;
+                candlesToHit = 1;
             }
 
             if (candlesToHit > 20)
@@ -296,10 +300,14 @@ namespace Algoserver.API.Services
             {
                 direction.TradeProbability = TradeProbability.Low;
             }
+            if (candlesToHit <= 2 && direction.TradeProbability != TradeProbability.Low)
+            {
+                direction.TradeProbability = TradeProbability.High;
+            }
 
             return new ScanResponse
             {
-                tte = (int)candlesToHit + 1,
+                tte = (int)candlesToHit,
                 tp = direction.TradeProbability,
                 type = TradeType.EXT,
                 trend = trend,
