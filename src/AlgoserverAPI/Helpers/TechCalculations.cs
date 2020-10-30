@@ -687,7 +687,7 @@ namespace Algoserver.API.Helpers
 
         public static decimal CalculateAvdCandleDifference(IEnumerable<decimal> open, IEnumerable<decimal> close)
         {
-            var lookback = 2;
+            var lookback = 3;
             var opens = open.ToArray();
             var closes = close.ToArray();
             var closesLength = closes.Length;

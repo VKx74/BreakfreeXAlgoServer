@@ -169,7 +169,7 @@ namespace Algoserver.API.Services
                 candlesToHit = 0;
             }
 
-            if (candlesToHit > 15)
+            if (candlesToHit > 20)
             {
                 return null;
             } 
@@ -288,7 +288,7 @@ namespace Algoserver.API.Services
                 candlesToHit = 0;
             }
 
-            if (candlesToHit > 15)
+            if (candlesToHit > 20)
             {
                 return null;
             }
