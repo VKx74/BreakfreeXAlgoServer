@@ -604,8 +604,7 @@ namespace Algoserver.API.Helpers
 
         public static DirectionResponse ApproveDirection(List<decimal> cPrice, Trend trend, TradeType type)
         {
-            var period = type == TradeType.EXT ? 14 : 14;
-            var possibleFoul = type == TradeType.EXT ? 1 : 1;
+            var period = 14;
             List<decimal> prices = null;
 
             if (cPrice.Count > 300)
@@ -618,23 +617,16 @@ namespace Algoserver.API.Helpers
             }
 
             var hmaData = TechCalculations.Hma(prices, period);
-            var lookback = type == TradeType.EXT ? 5 : 4;
+            var lookback = 4;
             var lastClose = cPrice.TakeLast(lookback + 1).ToArray();
             var lastHma = hmaData.TakeLast(lookback + 1).ToArray();
-            var last = lastClose.FirstOrDefault();
-            var priceDiff = new List<double>();
-            var foul = 0;
-            for (var i = 1; i < lookback; i++)
+            for (var i = 0; i < lookback; i++)
             {
                 if (trend == Trend.Up)
                 {
                     if (lastClose[i] >= lastHma[i])
                     {
                         return DirectionResponse.GetNegativeResponse();
-                    }
-                    if (lastClose[i] > last)
-                    {
-                        foul++;
                     }
                 }
                 else
@@ -643,18 +635,7 @@ namespace Algoserver.API.Helpers
                     {
                         return DirectionResponse.GetNegativeResponse();
                     }
-                    if (lastClose[i] < last)
-                    {
-                        foul++;
-                    }
                 }
-
-                priceDiff.Add(Math.Abs((double)lastClose[i] - (double)lastHma[i]));
-                last = lastClose[i];
-            }
-
-            if (foul > possibleFoul) {
-                return DirectionResponse.GetNegativeResponse();
             }
 
             var l = lastHma.Length;
@@ -675,50 +656,30 @@ namespace Algoserver.API.Helpers
             }
 
             var tp = TradeProbability.Mid;
-            var pdc = priceDiff.Count;
-            if (foul == 0 && priceDiff[pdc - 1] >= priceDiff[pdc - 2] && priceDiff[pdc - 2] >= priceDiff[pdc - 3]) {
-                tp = TradeProbability.High;
-            }
-
             if (trend == Trend.Up)
             {
-                if (lastClose[cl - 2] >= lastHma[l - 2]) {
-                    return DirectionResponse.GetNegativeResponse();
-                }
-
-                if (lastClose.LastOrDefault() >= lastHma.LastOrDefault() || lastClose[cl - 1] >= lastClose[cl - 2])
+                if (lastClose.LastOrDefault() >= lastHma.LastOrDefault() || lastClose[cl - 2] >= lastClose[cl - 3])
                 {
                     tp = TradeProbability.Low;
-                }
-                else
-                {
-                    if (lastClose.LastOrDefault() >= lastClose[cl - 2] || lastClose[cl - 2] >= lastClose[cl - 3])
-                    {
-                        tp = TradeProbability.Low;
+                } else {
+                    if (lastClose.LastOrDefault() <= lastClose[cl - 2] && lastClose[cl - 2] <= lastClose[cl - 3]) {
+                        tp = TradeProbability.High;
                     }
                 }
             }
             else
             {
-                if (lastClose[cl - 2] <= lastHma[l - 2]) {
-                    return DirectionResponse.GetNegativeResponse();
-                }
-
-                if (lastClose.LastOrDefault() <= lastHma.LastOrDefault() || lastClose[cl - 1] <= lastClose[cl - 2])
+                if (lastClose.LastOrDefault() <= lastHma.LastOrDefault() || lastClose[cl - 2] <= lastClose[cl - 3])
                 {
                     tp = TradeProbability.Low;
-                }
-                else
-                {
-                    if (lastClose.LastOrDefault() <= lastClose[cl - 2] || lastClose[cl - 2] <= lastClose[cl - 3])
-                    {
-                        tp = TradeProbability.Low;
+                } else {
+                    if (lastClose.LastOrDefault() >= lastClose[cl - 2] && lastClose[cl - 2] > lastClose[cl - 3]) {
+                        tp = TradeProbability.High;
                     }
                 }
             }
 
-            return new DirectionResponse
-            {
+            return new DirectionResponse {
                 Approved = true,
                 TradeProbability = tp
             };

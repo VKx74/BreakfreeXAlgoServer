@@ -169,11 +169,11 @@ namespace Algoserver.API.Services
                 candlesToHit = 0;
             }
 
-            if (candlesToHit > 10)
+            if (candlesToHit > 15)
             {
                 return null;
             } 
-            if (candlesToHit > 5)
+            if (candlesToHit > 10)
             {
                 direction.TradeProbability = TradeProbability.Low;
             }
@@ -288,11 +288,11 @@ namespace Algoserver.API.Services
                 candlesToHit = 0;
             }
 
-            if (candlesToHit > 10)
+            if (candlesToHit > 15)
             {
                 return null;
             }
-            if (candlesToHit > 5)
+            if (candlesToHit > 10)
             {
                 direction.TradeProbability = TradeProbability.Low;
             }
