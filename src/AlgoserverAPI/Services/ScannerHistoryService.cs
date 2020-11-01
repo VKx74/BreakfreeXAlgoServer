@@ -159,7 +159,7 @@ namespace Algoserver.API.Services
             string elapsedTime1h = String.Format(" * 1 h {0:00}:{1:00} - data loaded " +  hourlyhistory.Count , ts1h.Minutes, ts1h.Seconds);
             string elapsedTime4h = String.Format(" * 4 h {0:00}:{1:00} - data loaded " +  hour4history.Count , ts4h.Minutes, ts4h.Seconds);
             string elapsedTime1d = String.Format(" * 1 d {0:00}:{1:00} - data loaded " +  dailyhistory.Count , ts1d.Minutes, ts1d.Seconds);
-
+            Console.WriteLine(">>> " + elapsedTime15 + " - " + elapsedTime1h  + " - " + elapsedTime4h  + " - " + elapsedTime1d);
             return elapsedTime15 + " - " + elapsedTime1h  + " - " + elapsedTime4h  + " - " + elapsedTime1d;
             
         }
@@ -213,7 +213,7 @@ namespace Algoserver.API.Services
 
         private async Task<List<HistoryData>> _loadPack(List<HistoryRequest> tasks) {
             var result = new List<HistoryData>();
-            var count = 5;
+            var count = 3;
 
             while(tasks.Count > 0) {
                 var tasksToProcess = tasks.Take(Math.Min(count, tasks.Count));
