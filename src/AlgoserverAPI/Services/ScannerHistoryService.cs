@@ -64,6 +64,7 @@ namespace Algoserver.API.Services
             _updateHigherTimeframes();
 
             string elapsedTime15 = String.Format(" * 15 min {0:00}:{1:00} - data loaded " +  min15history.Count , ts15.Minutes, ts15.Seconds);
+            Console.WriteLine(">>> " + elapsedTime15);
             return elapsedTime15;
         }
 
