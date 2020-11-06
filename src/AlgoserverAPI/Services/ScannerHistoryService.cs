@@ -213,7 +213,7 @@ namespace Algoserver.API.Services
 
         private async Task<List<HistoryData>> _loadPack(List<HistoryRequest> tasks) {
             var result = new List<HistoryData>();
-            var count = 3;
+            var count = 2;
 
             while(tasks.Count > 0) {
                 var tasksToProcess = tasks.Take(Math.Min(count, tasks.Count));
@@ -292,11 +292,21 @@ namespace Algoserver.API.Services
         }
 
         private List<IInstrument> _getInstruments() {
-            var instruments = _instrumentService.GetOandaInstruments();
-            // var instruments = new List<IInstrument>();
+            var instruments = new List<IInstrument>();
+
+            var forexInstruments = _instrumentService.GetOandaInstruments();
             var stockInstruments = _instrumentService.GetTwelvedataInstruments();
             var allowedStocks = StockInstrumentHelper.StockInstrumentList;
+            var allowedForex = StockInstrumentHelper.ForexInstrumentList;
 
+            foreach (var instrument in forexInstruments) {
+                if (allowedForex.Any(_ => String.Equals(_, instrument.Symbol, StringComparison.InvariantCultureIgnoreCase))) {
+                    if (!instruments.Any(_ => String.Equals(_.Symbol, instrument.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, instrument.Exchange, StringComparison.InvariantCultureIgnoreCase))) {
+                        instruments.Add(instrument);
+                    }
+                }
+            } 
+            
             foreach (var instrument in stockInstruments) {
                 if (allowedStocks.Any(_ => String.Equals(_.Symbol, instrument.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, instrument.Exchange, StringComparison.InvariantCultureIgnoreCase))) {
                     if (!instruments.Any(_ => String.Equals(_.Symbol, instrument.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, instrument.Exchange, StringComparison.InvariantCultureIgnoreCase))) {
