@@ -250,7 +250,7 @@ namespace Algoserver.API.Services
             {
                 return null;
             } 
-            if (candlesToHit > 20)
+            if (candlesToHit > 10)
             {
                 direction.TradeProbability = TradeProbability.Low;
             } 
@@ -373,7 +373,7 @@ namespace Algoserver.API.Services
             {
                 return null;
             }
-            if (candlesToHit > 20)
+            if (candlesToHit > 10)
             {
                 direction.TradeProbability = TradeProbability.Low;
             }
