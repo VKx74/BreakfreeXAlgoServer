@@ -86,6 +86,21 @@ namespace Algoserver.API.Services
             if (candlesToHit < 0) {
                 candlesToHit = 1;
             }
+            
+            if (trend == Trend.Up)
+            {
+                if (candlesPerformance > 0)
+                {
+                    candlesToHit *= 2;
+                }
+            }
+            if (trend == Trend.Down)
+            {
+                if (candlesPerformance < 0)
+                {
+                    candlesToHit *= 2;
+                }
+            }
 
             return new ScanResponse
             {

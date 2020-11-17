@@ -617,39 +617,29 @@ namespace Algoserver.API.Helpers
             }
 
             var hmaData = TechCalculations.Hma(prices, period);
-            var lookback = 4;
-            var lastClose = cPrice.TakeLast(lookback + 1).ToArray();
-            var lastHma = hmaData.TakeLast(lookback + 1).ToArray();
-            for (var i = 0; i < lookback; i++)
+            var lookback = 5;
+            var lastClose = cPrice.TakeLast(lookback).ToArray();
+            var lastHma = hmaData.TakeLast(lookback).ToArray();
+            var hmaSum = 0m;
+            var prevHMA = lastHma.FirstOrDefault();
+            for (var i = 1; i < lookback; i++)
             {
-                if (trend == Trend.Up)
-                {
-                    if (lastClose[i] >= lastHma[i])
-                    {
-                        return DirectionResponse.GetNegativeResponse();
-                    }
-                }
-                else
-                {
-                    if (lastClose[i] <= lastHma[i])
-                    {
-                        return DirectionResponse.GetNegativeResponse();
-                    }
-                }
+                hmaSum += prevHMA - lastHma[i];
+                prevHMA = lastHma[i];
             }
 
             var l = lastHma.Length;
             var cl = lastClose.Length;
             if (trend == Trend.Up)
             {
-                if (lastHma[l - 1] >= lastHma[l - 2])
+                if (hmaSum < 0)
                 {
                     return DirectionResponse.GetNegativeResponse();
                 }
             }
             else
             {
-                if (lastHma[l - 1] <= lastHma[l - 2])
+                if (hmaSum > 0)
                 {
                     return DirectionResponse.GetNegativeResponse();
                 }
@@ -658,7 +648,7 @@ namespace Algoserver.API.Helpers
             var tp = TradeProbability.Mid;
             if (trend == Trend.Up)
             {
-                if (lastClose.LastOrDefault() >= lastHma.LastOrDefault() || lastClose.LastOrDefault() >= lastClose[cl - 2])
+                if (lastClose.LastOrDefault() >= lastHma.LastOrDefault())
                 {
                     tp = TradeProbability.Low;
                 } else {
@@ -669,7 +659,7 @@ namespace Algoserver.API.Helpers
             }
             else
             {
-                if (lastClose.LastOrDefault() <= lastHma.LastOrDefault() || lastClose.LastOrDefault() <= lastClose[cl - 2])
+                if (lastClose.LastOrDefault() <= lastHma.LastOrDefault())
                 {
                     tp = TradeProbability.Low;
                 } else {
