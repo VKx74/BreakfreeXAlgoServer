@@ -246,11 +246,11 @@ namespace Algoserver.API.Services
                 candlesToHit = 1;
             }
 
-            if (candlesToHit > 20)
+            if (candlesToHit > 30)
             {
                 return null;
             } 
-            if (candlesToHit > 10)
+            if (candlesToHit > 20)
             {
                 direction.TradeProbability = TradeProbability.Low;
             } 
@@ -369,11 +369,11 @@ namespace Algoserver.API.Services
                 candlesToHit = 1;
             }
 
-            if (candlesToHit > 20)
+            if (candlesToHit > 30)
             {
                 return null;
             }
-            if (candlesToHit > 10)
+            if (candlesToHit > 20)
             {
                 direction.TradeProbability = TradeProbability.Low;
             }
