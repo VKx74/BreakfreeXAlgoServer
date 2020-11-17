@@ -36,6 +36,68 @@ namespace Algoserver.API.Services
             _historyService = historyService;
         }
 
+        public ScanResponse ScanSwingOldStrategy(ScanningHistory history) 
+        {
+            if (history.Close == null)
+            {
+                return null;
+            }
+
+            var high = history.High;
+            var low = history.Low;
+            var close = history.Close;
+            var open = history.Open;
+            var levels = TechCalculations.CalculateLevels(high, low);
+            var tick = 0.00001m;
+            var sar = SupportAndResistance.Calculate(levels, tick);
+            var trend = TrendDetector.CalculateByMesa(close);
+            var calculationData = new TradeSignalCalculationData
+            {
+                hma_period = 200,
+                levels = levels,
+                randomize = false,
+                sar = sar,
+                trend = trend,
+                history = history
+            };
+            var tradeEntry = TradeEntry.CalculateV2(calculationData);
+            if (tradeEntry.entry == Decimal.Zero) {
+                return null;
+            }
+
+            var difference = TechCalculations.CalculateAvdCandleDifference(open, close);
+            var candlesPerformance = TechCalculations.CalculatePriceMoveDirection(close);
+            var priceDiffToHit = 0m;
+            var lastClose = history.Close.LastOrDefault();
+
+            // check is price go needed direction
+            if (trend == Trend.Up)
+            {
+                priceDiffToHit = lastClose - tradeEntry.entry;
+            }
+            if (trend == Trend.Down)
+            {
+                priceDiffToHit = tradeEntry.entry - lastClose;
+            }
+
+            var candlesToHit = Math.Round(priceDiffToHit / Math.Abs(difference), 0);
+            var direction = TechCalculations.ApproveDirection(close, trend, TradeType.BRC);
+
+            if (candlesToHit < 0) {
+                candlesToHit = 1;
+            }
+
+            return new ScanResponse
+            {
+                tte = (int)candlesToHit,
+                tp = direction.TradeProbability,
+                type = TradeType.SwingN,
+                trend = trend,
+                entry = tradeEntry.entry,
+                stop = tradeEntry.stop
+            };
+        }
+
         public ScanResponse ScanSwing(ScanningHistory history, Trend trendGlobal, Trend trendLocal)
         {
             if (history.Close == null)

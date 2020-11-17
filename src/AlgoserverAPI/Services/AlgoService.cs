@@ -144,7 +144,10 @@ namespace Algoserver.API.Services
             
             if (scanRes == null)
             {
-                if (container.TimeframePeriod == "d" || (container.TimeframePeriod == "h" && container.TimeframeInterval == 4)) {
+                if (container.TimeframePeriod == "d") {
+                    scanRes = _scanner.ScanSwingOldStrategy(scanningHistory);
+                }
+                if (container.TimeframePeriod == "h" && container.TimeframeInterval == 4) {
                     scanRes = _scanner.ScanSwing(scanningHistory, extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend);
                 }
             }

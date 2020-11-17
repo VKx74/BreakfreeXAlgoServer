@@ -154,7 +154,7 @@ namespace Algoserver.API.Services
                     }
                 }
 
-                var swingDailyScannerResult = _scanner.ScanSwing(_scanner.ToScanningHistory(dailyHistory.Bars), extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend);
+                var swingDailyScannerResult = _scanner.ScanSwingOldStrategy(_scanner.ToScanningHistory(dailyHistory.Bars));
                 if (swingDailyScannerResult != null)
                 {
                     var resp = _toResponse(swingDailyScannerResult, dailyHistory, TimeframeHelper.DAILY_GRANULARITY);

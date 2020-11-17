@@ -1,9 +1,16 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Algoserver.API.Models.Algo;
+using Algoserver.API.Services;
 
 namespace Algoserver.API.Helpers
 {
+
+    public class OldStrategy {
+        public decimal entry { get; set; }
+        public decimal stop { get; set; }
+    }
 
     public class InfoPanelData
     {
@@ -52,6 +59,16 @@ namespace Algoserver.API.Helpers
         public int hma_period { get; set; }
         public bool randomize { get; set; } = true;
         public Trend trend { get; set; }
+    }
+
+    public class TradeSignalCalculationData
+    {
+        public Levels levels { get; set; }
+        public SupportAndResistanceResult sar { get; set; }
+        public int hma_period { get; set; }
+        public bool randomize { get; set; } = true;
+        public Trend trend { get; set; }
+        public ScanningHistory history { get; set; }
     }
 
     public static class TradeEntry
@@ -808,6 +825,350 @@ namespace Algoserver.API.Helpers
             var minShift = price / 100000;
             // from -0.01% to 0.01% shift from price
             return minShift * randomShift * randomShiftDirection;
+        }
+
+        public static OldStrategy CalculateV2(TradeSignalCalculationData calculationData)
+        {
+            // var container = calculationData.container;
+            var levels = calculationData.levels;
+            var closes = calculationData.history.Close;
+            var hma_period = calculationData.hma_period;
+            var isUpTranding = calculationData.trend == Trend.Up;
+            var isDownTranding = calculationData.trend == Trend.Down;
+            var randomize = calculationData.randomize;
+            var sar = calculationData.sar;
+
+            var isForex = true;
+            var buyMax = 0m;
+            var buyEntry = buyMax;
+            var buyEntryIs100 = false;
+
+            var Increment = levels.Level128.Increment; var AbsTop = levels.Level128.AbsTop;
+            var EightEight = levels.Level128.EightEight; var FourEight = levels.Level128.FourEight; var ZeroEight = levels.Level128.ZeroEight;
+            var EightEight1 = levels.Level32.EightEight; var FourEight1 = levels.Level32.FourEight; var ZeroEight1 = levels.Level32.ZeroEight;
+            var EightEight2 = levels.Level16.EightEight; var FourEight2 = levels.Level16.FourEight; var ZeroEight2 = levels.Level16.ZeroEight;
+            var EightEight3 = levels.Level8.EightEight; var FourEight3 = levels.Level8.FourEight; var ZeroEight3 = levels.Level8.ZeroEight;
+
+            var hmaData = TechCalculations.Hma(closes, hma_period);
+            var s1 = hmaData.LastOrDefault();
+
+            var smaTolBuy = (s1 * (1 - (isForex ? 0.001m : 0.01m)));
+
+            if (sar.ValidNeu100 && FourEight > smaTolBuy && FourEight > buyEntry && isUpTranding)
+            {
+                var dsma5 = TechCalculations.Sun(closes, 5);
+                if (FourEight < dsma5)
+                {
+                    buyEntry = FourEight;
+                    buyEntryIs100 = true;
+                }
+            }
+            if (sar.ValidSup100 && ZeroEight > smaTolBuy && ZeroEight > buyEntry && isUpTranding)
+            {
+                buyEntry = ZeroEight;
+                buyEntryIs100 = true;
+            }
+            if (sar.ValidSup75a && ZeroEight > smaTolBuy && ZeroEight > buyEntry && isUpTranding)
+            {
+                buyEntry = ZeroEight;
+            }
+            if (sar.ValidSup75b && ZeroEight1 > smaTolBuy && ZeroEight1 > buyEntry && isUpTranding)
+            {
+                buyEntry = ZeroEight1;
+            }
+
+            //Find long TP1
+            var buyTP1 = decimal.MaxValue;
+            if (sar.ValidRes100 && EightEight > smaTolBuy && EightEight > buyEntry && EightEight < buyTP1 && isUpTranding) { buyTP1 = EightEight; }
+            if (sar.ValidRes75a && EightEight > smaTolBuy && EightEight > buyEntry && EightEight < buyTP1 && isUpTranding) { buyTP1 = EightEight; }
+            if (sar.ValidRes75b && EightEight1 > smaTolBuy && EightEight1 > buyEntry && EightEight1 < buyTP1 && isUpTranding) { buyTP1 = EightEight1; }
+            if (sar.ValidRes50a && EightEight > smaTolBuy && EightEight > buyEntry && EightEight < buyTP1 && isUpTranding) { buyTP1 = EightEight; }
+            if (sar.ValidRes50b && EightEight1 > smaTolBuy && EightEight1 > buyEntry && EightEight1 < buyTP1 && isUpTranding) { buyTP1 = EightEight1; }
+            if (sar.ValidRes50c && EightEight2 > smaTolBuy && EightEight2 > buyEntry && EightEight2 < buyTP1 && isUpTranding) { buyTP1 = EightEight2; }
+            if (sar.ValidRes25a && EightEight > smaTolBuy && EightEight > buyEntry && EightEight < buyTP1 && isUpTranding) { buyTP1 = EightEight; }
+            if (sar.ValidRes25b && EightEight1 > smaTolBuy && EightEight1 > buyEntry && EightEight1 < buyTP1 && isUpTranding) { buyTP1 = EightEight1; }
+            if (sar.ValidRes25c && EightEight2 > smaTolBuy && EightEight2 > buyEntry && EightEight2 < buyTP1 && isUpTranding) { buyTP1 = EightEight2; }
+            if (sar.ValidRes25d && EightEight3 > smaTolBuy && EightEight3 > buyEntry && EightEight3 < buyTP1 && isUpTranding) { buyTP1 = EightEight3; }
+            if (sar.ValidNeu100 && FourEight > smaTolBuy && FourEight > buyEntry && FourEight < buyTP1 && isUpTranding) { buyTP1 = FourEight; }
+            if (sar.ValidNeu75a && FourEight > smaTolBuy && FourEight > buyEntry && FourEight < buyTP1 && isUpTranding) { buyTP1 = FourEight; }
+            if (sar.ValidNeu75b && FourEight1 > smaTolBuy && FourEight1 > buyEntry && FourEight1 < buyTP1 && isUpTranding) { buyTP1 = FourEight1; }
+            if (sar.ValidNeu50a && FourEight > smaTolBuy && FourEight > buyEntry && FourEight < buyTP1 && isUpTranding) { buyTP1 = FourEight; }
+            if (sar.ValidNeu50b && FourEight1 > smaTolBuy && FourEight1 > buyEntry && FourEight1 < buyTP1 && isUpTranding) { buyTP1 = FourEight1; }
+            if (sar.ValidNeu50c && FourEight2 > smaTolBuy && FourEight2 > buyEntry && FourEight2 < buyTP1 && isUpTranding) { buyTP1 = FourEight2; }
+            if (sar.ValidNeu25a && FourEight > smaTolBuy && FourEight > buyEntry && FourEight < buyTP1 && isUpTranding) { buyTP1 = FourEight; }
+            if (sar.ValidNeu25b && FourEight1 > smaTolBuy && FourEight1 > buyEntry && FourEight1 < buyTP1 && isUpTranding) { buyTP1 = FourEight1; }
+            if (sar.ValidNeu25c && FourEight2 > smaTolBuy && FourEight2 > buyEntry && FourEight2 < buyTP1 && isUpTranding) { buyTP1 = FourEight2; }
+            if (sar.ValidNeu25d && FourEight3 > smaTolBuy && FourEight3 > buyEntry && FourEight3 < buyTP1 && isUpTranding) { buyTP1 = FourEight3; }
+            if (sar.ValidSup100 && ZeroEight > smaTolBuy && ZeroEight > buyEntry && ZeroEight < buyTP1 && isUpTranding) { buyTP1 = ZeroEight; }
+            if (sar.ValidSup75a && ZeroEight > smaTolBuy && ZeroEight > buyEntry && ZeroEight < buyTP1 && isUpTranding) { buyTP1 = ZeroEight; }
+            if (sar.ValidSup75b && ZeroEight1 > smaTolBuy && ZeroEight1 > buyEntry && ZeroEight1 < buyTP1 && isUpTranding) { buyTP1 = ZeroEight1; }
+            if (sar.ValidSup50a && ZeroEight > smaTolBuy && ZeroEight > buyEntry && ZeroEight < buyTP1 && isUpTranding) { buyTP1 = ZeroEight; }
+            if (sar.ValidSup50b && ZeroEight1 > smaTolBuy && ZeroEight1 > buyEntry && ZeroEight1 < buyTP1 && isUpTranding) { buyTP1 = ZeroEight1; }
+            if (sar.ValidSup50c && ZeroEight2 > smaTolBuy && ZeroEight2 > buyEntry && ZeroEight2 < buyTP1 && isUpTranding) { buyTP1 = ZeroEight2; }
+            if (sar.ValidSup25a && ZeroEight > smaTolBuy && ZeroEight > buyEntry && ZeroEight < buyTP1 && isUpTranding) { buyTP1 = ZeroEight; }
+            if (sar.ValidSup25b && ZeroEight1 > smaTolBuy && ZeroEight1 > buyEntry && ZeroEight1 < buyTP1 && isUpTranding) { buyTP1 = ZeroEight1; }
+            if (sar.ValidSup25c && ZeroEight2 > smaTolBuy && ZeroEight2 > buyEntry && ZeroEight2 < buyTP1 && isUpTranding) { buyTP1 = ZeroEight2; }
+            if (sar.ValidSup25d && ZeroEight3 > smaTolBuy && ZeroEight3 > buyEntry && ZeroEight3 < buyTP1 && isUpTranding) { buyTP1 = ZeroEight3; }
+
+            //Find long TP2
+            var buyTP2 = decimal.MaxValue;
+            if (sar.ValidRes100 && EightEight > smaTolBuy && EightEight > buyEntry && EightEight < buyTP2 && EightEight > buyTP1 && isUpTranding) { buyTP2 = EightEight; }
+            if (sar.ValidRes75a && EightEight > smaTolBuy && EightEight > buyEntry && EightEight < buyTP2 && EightEight > buyTP1 && isUpTranding) { buyTP2 = EightEight; }
+            if (sar.ValidRes75b && EightEight1 > smaTolBuy && EightEight1 > buyEntry && EightEight1 < buyTP2 && EightEight1 > buyTP1 && isUpTranding) { buyTP2 = EightEight1; }
+            if (sar.ValidRes50a && EightEight > smaTolBuy && EightEight > buyEntry && EightEight < buyTP2 && EightEight > buyTP1 && isUpTranding) { buyTP2 = EightEight; }
+            if (sar.ValidRes50b && EightEight1 > smaTolBuy && EightEight1 > buyEntry && EightEight1 < buyTP2 && EightEight1 > buyTP1 && isUpTranding) { buyTP2 = EightEight1; }
+            if (sar.ValidRes50c && EightEight2 > smaTolBuy && EightEight2 > buyEntry && EightEight2 < buyTP2 && EightEight2 > buyTP1 && isUpTranding) { buyTP2 = EightEight2; }
+            if (sar.ValidRes25a && EightEight > smaTolBuy && EightEight > buyEntry && EightEight < buyTP2 && EightEight > buyTP1 && isUpTranding) { buyTP2 = EightEight; }
+            if (sar.ValidRes25b && EightEight1 > smaTolBuy && EightEight1 > buyEntry && EightEight1 < buyTP2 && EightEight1 > buyTP1 && isUpTranding) { buyTP2 = EightEight1; }
+            if (sar.ValidRes25c && EightEight2 > smaTolBuy && EightEight2 > buyEntry && EightEight2 < buyTP2 && EightEight2 > buyTP1 && isUpTranding) { buyTP2 = EightEight2; }
+            if (sar.ValidRes25d && EightEight3 > smaTolBuy && EightEight3 > buyEntry && EightEight3 < buyTP2 && EightEight3 > buyTP1 && isUpTranding) { buyTP2 = EightEight3; }
+            if (sar.ValidNeu100 && FourEight > smaTolBuy && FourEight > buyEntry && FourEight < buyTP2 && FourEight > buyTP1 && isUpTranding) { buyTP2 = FourEight; }
+            if (sar.ValidNeu75a && FourEight > smaTolBuy && FourEight > buyEntry && FourEight < buyTP2 && FourEight > buyTP1 && isUpTranding) { buyTP2 = FourEight; }
+            if (sar.ValidNeu75b && FourEight1 > smaTolBuy && FourEight1 > buyEntry && FourEight1 < buyTP2 && FourEight1 > buyTP1 && isUpTranding) { buyTP2 = FourEight1; }
+            if (sar.ValidNeu50a && FourEight > smaTolBuy && FourEight > buyEntry && FourEight < buyTP2 && FourEight > buyTP1 && isUpTranding) { buyTP2 = FourEight; }
+            if (sar.ValidNeu50b && FourEight1 > smaTolBuy && FourEight1 > buyEntry && FourEight1 < buyTP2 && FourEight1 > buyTP1 && isUpTranding) { buyTP2 = FourEight1; }
+            if (sar.ValidNeu50c && FourEight2 > smaTolBuy && FourEight2 > buyEntry && FourEight2 < buyTP2 && FourEight2 > buyTP1 && isUpTranding) { buyTP2 = FourEight2; }
+            if (sar.ValidNeu25a && FourEight > smaTolBuy && FourEight > buyEntry && FourEight < buyTP2 && FourEight > buyTP1 && isUpTranding) { buyTP2 = FourEight; }
+            if (sar.ValidNeu25b && FourEight1 > smaTolBuy && FourEight1 > buyEntry && FourEight1 < buyTP2 && FourEight1 > buyTP1 && isUpTranding) { buyTP2 = FourEight1; }
+            if (sar.ValidNeu25c && FourEight2 > smaTolBuy && FourEight2 > buyEntry && FourEight2 < buyTP2 && FourEight2 > buyTP1 && isUpTranding) { buyTP2 = FourEight2; }
+            if (sar.ValidNeu25d && FourEight3 > smaTolBuy && FourEight3 > buyEntry && FourEight3 < buyTP2 && FourEight3 > buyTP1 && isUpTranding) { buyTP2 = FourEight3; }
+            if (sar.ValidSup100 && ZeroEight > smaTolBuy && ZeroEight > buyEntry && ZeroEight < buyTP2 && ZeroEight > buyTP1 && isUpTranding) { buyTP2 = ZeroEight; }
+            if (sar.ValidSup75a && ZeroEight > smaTolBuy && ZeroEight > buyEntry && ZeroEight < buyTP2 && ZeroEight > buyTP1 && isUpTranding) { buyTP2 = ZeroEight; }
+            if (sar.ValidSup75b && ZeroEight1 > smaTolBuy && ZeroEight1 > buyEntry && ZeroEight1 < buyTP2 && ZeroEight1 > buyTP1 && isUpTranding) { buyTP2 = ZeroEight1; }
+            if (sar.ValidSup50a && ZeroEight > smaTolBuy && ZeroEight > buyEntry && ZeroEight < buyTP2 && ZeroEight > buyTP1 && isUpTranding) { buyTP2 = ZeroEight; }
+            if (sar.ValidSup50b && ZeroEight1 > smaTolBuy && ZeroEight1 > buyEntry && ZeroEight1 < buyTP2 && ZeroEight1 > buyTP1 && isUpTranding) { buyTP2 = ZeroEight1; }
+            if (sar.ValidSup50c && ZeroEight2 > smaTolBuy && ZeroEight2 > buyEntry && ZeroEight2 < buyTP2 && ZeroEight2 > buyTP1 && isUpTranding) { buyTP2 = ZeroEight2; }
+            if (sar.ValidSup25a && ZeroEight > smaTolBuy && ZeroEight > buyEntry && ZeroEight < buyTP2 && ZeroEight > buyTP1 && isUpTranding) { buyTP2 = ZeroEight; }
+            if (sar.ValidSup25b && ZeroEight1 > smaTolBuy && ZeroEight1 > buyEntry && ZeroEight1 < buyTP2 && ZeroEight1 > buyTP1 && isUpTranding) { buyTP2 = ZeroEight1; }
+            if (sar.ValidSup25c && ZeroEight2 > smaTolBuy && ZeroEight2 > buyEntry && ZeroEight2 < buyTP2 && ZeroEight2 > buyTP1 && isUpTranding) { buyTP2 = ZeroEight2; }
+            if (sar.ValidSup25d && ZeroEight3 > smaTolBuy && ZeroEight3 > buyEntry && ZeroEight3 < buyTP2 && ZeroEight3 > buyTP1 && isUpTranding) { buyTP2 = ZeroEight3; }
+
+            if (buyTP1 != decimal.MaxValue && buyTP2 == decimal.MaxValue)
+            {
+                buyTP2 = buyEntry + ((buyTP1 - buyEntry) / 2);
+            }
+
+            if (buyTP1 == decimal.MaxValue)
+            {
+                buyTP1 = decimal.Zero;
+            }
+
+            if (buyTP2 == decimal.MaxValue)
+            {
+                buyTP2 = decimal.Zero;
+            }
+
+            if (buyEntry == decimal.MaxValue)
+            {
+                buyEntry = decimal.Zero;
+            }
+
+
+            //Find sell entry under dsma200
+            var smaTolSell = (s1 * (1 + (isForex ? 0.001m : 0.01m)));
+            var sellMax = decimal.MaxValue;
+            var sellEntry = sellMax;
+            var sellEntryIs100 = false;
+
+            if (sar.ValidRes100 && EightEight < smaTolSell && EightEight < sellEntry && isDownTranding)
+            {
+                sellEntry = EightEight;
+                sellEntryIs100 = true;
+            }
+            if (sar.ValidRes75a && EightEight < smaTolSell && EightEight < sellEntry && isDownTranding)
+            {
+                sellEntry = EightEight;
+            }
+            if (sar.ValidRes75b && EightEight1 < smaTolSell && EightEight1 < sellEntry && isDownTranding)
+            {
+                sellEntry = EightEight1;
+            }
+            if (sar.ValidNeu100 && FourEight < smaTolSell && FourEight < sellEntry && isDownTranding)
+            {
+
+                var dsma5 = TechCalculations.Sun(closes, 5);
+                if (FourEight > dsma5)
+                {
+                    sellEntry = FourEight;
+                    sellEntryIs100 = true;
+                }
+            }
+
+            //Find sell TP1
+            var sellTP1 = 0m;
+            if (sar.ValidRes100 && EightEight < smaTolSell && EightEight < sellEntry && EightEight > sellTP1 && isDownTranding) { sellTP1 = EightEight; }
+            if (sar.ValidRes75a && EightEight < smaTolSell && EightEight < sellEntry && EightEight > sellTP1 && isDownTranding) { sellTP1 = EightEight; }
+            if (sar.ValidRes75b && EightEight1 < smaTolSell && EightEight1 < sellEntry && EightEight1 > sellTP1 && isDownTranding) { sellTP1 = EightEight1; }
+            if (sar.ValidRes50a && EightEight < smaTolSell && EightEight < sellEntry && EightEight > sellTP1 && isDownTranding) { sellTP1 = EightEight; }
+            if (sar.ValidRes50b && EightEight1 < smaTolSell && EightEight1 < sellEntry && EightEight1 > sellTP1 && isDownTranding) { sellTP1 = EightEight1; }
+            if (sar.ValidRes50c && EightEight2 < smaTolSell && EightEight2 < sellEntry && EightEight2 > sellTP1 && isDownTranding) { sellTP1 = EightEight2; }
+            if (sar.ValidRes25a && EightEight < smaTolSell && EightEight < sellEntry && EightEight > sellTP1 && isDownTranding) { sellTP1 = EightEight; }
+            if (sar.ValidRes25b && EightEight1 < smaTolSell && EightEight1 < sellEntry && EightEight1 > sellTP1 && isDownTranding) { sellTP1 = EightEight1; }
+            if (sar.ValidRes25c && EightEight2 < smaTolSell && EightEight2 < sellEntry && EightEight2 > sellTP1 && isDownTranding) { sellTP1 = EightEight2; }
+            if (sar.ValidRes25d && EightEight3 < smaTolSell && EightEight3 < sellEntry && EightEight3 > sellTP1 && isDownTranding) { sellTP1 = EightEight3; }
+            if (sar.ValidNeu100 && FourEight < smaTolSell && FourEight < sellEntry && FourEight > sellTP1 && isDownTranding) { sellTP1 = FourEight; }
+            if (sar.ValidNeu75a && FourEight < smaTolSell && FourEight < sellEntry && FourEight > sellTP1 && isDownTranding) { sellTP1 = FourEight; }
+            if (sar.ValidNeu75b && FourEight1 < smaTolSell && FourEight1 < sellEntry && FourEight1 > sellTP1 && isDownTranding) { sellTP1 = FourEight1; }
+            if (sar.ValidNeu50a && FourEight < smaTolSell && FourEight < sellEntry && FourEight > sellTP1 && isDownTranding) { sellTP1 = FourEight; }
+            if (sar.ValidNeu50b && FourEight1 < smaTolSell && FourEight1 < sellEntry && FourEight1 > sellTP1 && isDownTranding) { sellTP1 = FourEight1; }
+            if (sar.ValidNeu50c && FourEight2 < smaTolSell && FourEight2 < sellEntry && FourEight2 > sellTP1 && isDownTranding) { sellTP1 = FourEight2; }
+            if (sar.ValidNeu25a && FourEight < smaTolSell && FourEight < sellEntry && FourEight > sellTP1 && isDownTranding) { sellTP1 = FourEight; }
+            if (sar.ValidNeu25b && FourEight1 < smaTolSell && FourEight1 < sellEntry && FourEight1 > sellTP1 && isDownTranding) { sellTP1 = FourEight1; }
+            if (sar.ValidNeu25c && FourEight2 < smaTolSell && FourEight2 < sellEntry && FourEight2 > sellTP1 && isDownTranding) { sellTP1 = FourEight2; }
+            if (sar.ValidNeu25d && FourEight3 < smaTolSell && FourEight3 < sellEntry && FourEight3 > sellTP1 && isDownTranding) { sellTP1 = FourEight3; }
+            if (sar.ValidSup100 && ZeroEight < smaTolSell && ZeroEight < sellEntry && ZeroEight > sellTP1 && isDownTranding) { sellTP1 = ZeroEight; }
+            if (sar.ValidSup75a && ZeroEight < smaTolSell && ZeroEight < sellEntry && ZeroEight > sellTP1 && isDownTranding) { sellTP1 = ZeroEight; }
+            if (sar.ValidSup75b && ZeroEight1 < smaTolSell && ZeroEight1 < sellEntry && ZeroEight1 > sellTP1 && isDownTranding) { sellTP1 = ZeroEight1; }
+            if (sar.ValidSup50a && ZeroEight < smaTolSell && ZeroEight < sellEntry && ZeroEight > sellTP1 && isDownTranding) { sellTP1 = ZeroEight; }
+            if (sar.ValidSup50b && ZeroEight1 < smaTolSell && ZeroEight1 < sellEntry && ZeroEight1 > sellTP1 && isDownTranding) { sellTP1 = ZeroEight1; }
+            if (sar.ValidSup50c && ZeroEight2 < smaTolSell && ZeroEight2 < sellEntry && ZeroEight2 > sellTP1 && isDownTranding) { sellTP1 = ZeroEight2; }
+            if (sar.ValidSup25a && ZeroEight < smaTolSell && ZeroEight < sellEntry && ZeroEight > sellTP1 && isDownTranding) { sellTP1 = ZeroEight; }
+            if (sar.ValidSup25b && ZeroEight1 < smaTolSell && ZeroEight1 < sellEntry && ZeroEight1 > sellTP1 && isDownTranding) { sellTP1 = ZeroEight1; }
+            if (sar.ValidSup25c && ZeroEight2 < smaTolSell && ZeroEight2 < sellEntry && ZeroEight2 > sellTP1 && isDownTranding) { sellTP1 = ZeroEight2; }
+            if (sar.ValidSup25d && ZeroEight3 < smaTolSell && ZeroEight3 < sellEntry && ZeroEight3 > sellTP1 && isDownTranding) { sellTP1 = ZeroEight3; }
+
+            //Find sell TP2
+            var sellTP2 = 0m;
+            if (sar.ValidRes100 && EightEight < smaTolSell && EightEight < sellEntry && EightEight > sellTP2 && EightEight < sellTP1 && isDownTranding) { sellTP2 = EightEight; }
+            if (sar.ValidRes75a && EightEight < smaTolSell && EightEight < sellEntry && EightEight > sellTP2 && EightEight < sellTP1 && isDownTranding) { sellTP2 = EightEight; }
+            if (sar.ValidRes75b && EightEight1 < smaTolSell && EightEight1 < sellEntry && EightEight1 > sellTP2 && EightEight1 < sellTP1 && isDownTranding) { sellTP2 = EightEight1; }
+            if (sar.ValidRes50a && EightEight < smaTolSell && EightEight < sellEntry && EightEight > sellTP2 && EightEight < sellTP1 && isDownTranding) { sellTP2 = EightEight; }
+            if (sar.ValidRes50b && EightEight1 < smaTolSell && EightEight1 < sellEntry && EightEight1 > sellTP2 && EightEight1 < sellTP1 && isDownTranding) { sellTP2 = EightEight1; }
+            if (sar.ValidRes50c && EightEight2 < smaTolSell && EightEight2 < sellEntry && EightEight2 > sellTP2 && EightEight2 < sellTP1 && isDownTranding) { sellTP2 = EightEight2; }
+            if (sar.ValidRes25a && EightEight < smaTolSell && EightEight < sellEntry && EightEight > sellTP2 && EightEight < sellTP1 && isDownTranding) { sellTP2 = EightEight; }
+            if (sar.ValidRes25b && EightEight1 < smaTolSell && EightEight1 < sellEntry && EightEight1 > sellTP2 && EightEight1 < sellTP1 && isDownTranding) { sellTP2 = EightEight1; }
+            if (sar.ValidRes25c && EightEight2 < smaTolSell && EightEight2 < sellEntry && EightEight2 > sellTP2 && EightEight2 < sellTP1 && isDownTranding) { sellTP2 = EightEight2; }
+            if (sar.ValidRes25d && EightEight3 < smaTolSell && EightEight3 < sellEntry && EightEight3 > sellTP2 && EightEight3 < sellTP1 && isDownTranding) { sellTP2 = EightEight3; }
+            if (sar.ValidNeu100 && FourEight < smaTolSell && FourEight < sellEntry && FourEight > sellTP2 && FourEight < sellTP1 && isDownTranding) { sellTP2 = FourEight; }
+            if (sar.ValidNeu75a && FourEight < smaTolSell && FourEight < sellEntry && FourEight > sellTP2 && FourEight < sellTP1 && isDownTranding) { sellTP2 = FourEight; }
+            if (sar.ValidNeu75b && FourEight1 < smaTolSell && FourEight1 < sellEntry && FourEight1 > sellTP2 && FourEight1 < sellTP1 && isDownTranding) { sellTP2 = FourEight1; }
+            if (sar.ValidNeu50a && FourEight < smaTolSell && FourEight < sellEntry && FourEight > sellTP2 && FourEight < sellTP1 && isDownTranding) { sellTP2 = FourEight; }
+            if (sar.ValidNeu50b && FourEight1 < smaTolSell && FourEight1 < sellEntry && FourEight1 > sellTP2 && FourEight1 < sellTP1 && isDownTranding) { sellTP2 = FourEight1; }
+            if (sar.ValidNeu50c && FourEight2 < smaTolSell && FourEight2 < sellEntry && FourEight2 > sellTP2 && FourEight2 < sellTP1 && isDownTranding) { sellTP2 = FourEight2; }
+            if (sar.ValidNeu25a && FourEight < smaTolSell && FourEight < sellEntry && FourEight > sellTP2 && FourEight < sellTP1 && isDownTranding) { sellTP2 = FourEight; }
+            if (sar.ValidNeu25b && FourEight1 < smaTolSell && FourEight1 < sellEntry && FourEight1 > sellTP2 && FourEight1 < sellTP1 && isDownTranding) { sellTP2 = FourEight1; }
+            if (sar.ValidNeu25c && FourEight2 < smaTolSell && FourEight2 < sellEntry && FourEight2 > sellTP2 && FourEight2 < sellTP1 && isDownTranding) { sellTP2 = FourEight2; }
+            if (sar.ValidNeu25d && FourEight3 < smaTolSell && FourEight3 < sellEntry && FourEight3 > sellTP2 && FourEight3 < sellTP1 && isDownTranding) { sellTP2 = FourEight3; }
+            if (sar.ValidSup100 && ZeroEight < smaTolSell && ZeroEight < sellEntry && ZeroEight > sellTP2 && ZeroEight < sellTP1 && isDownTranding) { sellTP2 = ZeroEight; }
+            if (sar.ValidSup75a && ZeroEight < smaTolSell && ZeroEight < sellEntry && ZeroEight > sellTP2 && ZeroEight < sellTP1 && isDownTranding) { sellTP2 = ZeroEight; }
+            if (sar.ValidSup75b && ZeroEight1 < smaTolSell && ZeroEight1 < sellEntry && ZeroEight1 > sellTP2 && ZeroEight1 < sellTP1 && isDownTranding) { sellTP2 = ZeroEight1; }
+            if (sar.ValidSup50a && ZeroEight < smaTolSell && ZeroEight < sellEntry && ZeroEight > sellTP2 && ZeroEight < sellTP1 && isDownTranding) { sellTP2 = ZeroEight; }
+            if (sar.ValidSup50b && ZeroEight1 < smaTolSell && ZeroEight1 < sellEntry && ZeroEight1 > sellTP2 && ZeroEight1 < sellTP1 && isDownTranding) { sellTP2 = ZeroEight1; }
+            if (sar.ValidSup50c && ZeroEight2 < smaTolSell && ZeroEight2 < sellEntry && ZeroEight2 > sellTP2 && ZeroEight2 < sellTP1 && isDownTranding) { sellTP2 = ZeroEight2; }
+            if (sar.ValidSup25a && ZeroEight < smaTolSell && ZeroEight < sellEntry && ZeroEight > sellTP2 && ZeroEight < sellTP1 && isDownTranding) { sellTP2 = ZeroEight; }
+            if (sar.ValidSup25b && ZeroEight1 < smaTolSell && ZeroEight1 < sellEntry && ZeroEight1 > sellTP2 && ZeroEight1 < sellTP1 && isDownTranding) { sellTP2 = ZeroEight1; }
+            if (sar.ValidSup25c && ZeroEight2 < smaTolSell && ZeroEight2 < sellEntry && ZeroEight2 > sellTP2 && ZeroEight2 < sellTP1 && isDownTranding) { sellTP2 = ZeroEight2; }
+            if (sar.ValidSup25d && ZeroEight3 < smaTolSell && ZeroEight3 < sellEntry && ZeroEight3 > sellTP2 && ZeroEight3 < sellTP1 && isDownTranding) { sellTP2 = ZeroEight3; }
+
+            if (sellTP1 != 0 && sellTP2 == 0)
+            {
+                sellTP2 = sellEntry - ((sellEntry - sellTP1) / 2);
+            }
+
+            if (sellTP1 == decimal.MaxValue)
+            {
+                sellTP1 = decimal.Zero;
+            }
+
+            if (sellTP2 == decimal.MaxValue)
+            {
+                sellTP2 = decimal.Zero;
+            }
+
+            if (sellEntry == decimal.MaxValue)
+            {
+                sellEntry = decimal.Zero;
+            }
+
+
+            //N formation and hit TP1 within x candles? (true means cancel trade below)/
+            // var checkBuy100_d = false;
+            // var checkBuy75t_d = false;
+            // var checkSell100_d = false;
+            // var checkSell75t_d = false;
+            // var diMo = false;
+            // var sj_allow = new bool[] { true, true };
+            // var timeframe_isintraday = container.TimeframePeriod == Periodicity.HOUR || container.TimeframePeriod == Periodicity.MINUTE;
+            // var timeframe_isdaily = container.TimeframePeriod == Periodicity.DAY;
+            // var timeframe_isweekly = container.TimeframePeriod == Periodicity.WEEK;
+            // var timeframe_ismonthly = container.TimeframePeriod == Periodicity.MONTH;
+            // var timeframe_multiplier = container.TimeframeInterval;
+            // var timeframe_isdwm = timeframe_isdaily || timeframe_isweekly || timeframe_ismonthly;
+            // var greaterThan4hr = (!timeframe_isintraday) || (timeframe_multiplier > 240);
+            // var aRS = ((diMo && isForex) || (!diMo)) && (timeframe_isdwm || timeframe_multiplier >= 240) ? true : false; //allowRenderStrat
+            var aRS = true;
+
+
+            //trade cancelled checks
+            // var _byEntry100_can = (aRS && buyEntry != buyMax && buyTP1 != decimal.Zero && buyTP2 != decimal.Zero && buyEntryIs100) && (checkBuy100_d || !sj_allow[1]);
+            // var _byEntry75_can = (aRS && buyEntry != buyMax && buyTP1 != decimal.Zero && buyTP2 != decimal.Zero && (!buyEntryIs100)) && (checkBuy75t_d || !sj_allow[1]);
+            // var _byEntry100_4hr_can = (aRS && buyEntry != buyMax && buyTP1 != decimal.Zero && buyTP2 != decimal.Zero && buyEntryIs100 && (!greaterThan4hr)) && (!sj_allow[1]);
+            // var _byEntry75_4hr_can = (aRS && buyEntry != buyMax && buyTP1 != decimal.Zero && buyTP2 != decimal.Zero && (!buyEntryIs100) && (!greaterThan4hr)) && (!sj_allow[1]);
+
+            // var _slEntry100_can = (aRS && sellEntry != sellMax && sellTP1 != 0 && sellTP2 != 0 && sellEntryIs100) && (checkSell100_d || !sj_allow[1]);
+            // var _slEntry75_can = (aRS && sellEntry != sellMax && sellTP1 != 0 && sellTP2 != 0 && (!sellEntryIs100)) && (checkSell75t_d || !sj_allow[1]);
+            // var _slEntry100_4hr_can = (aRS && sellEntry != sellMax && sellTP1 != 0 && sellTP2 != 0 && sellEntryIs100 && (!greaterThan4hr)) && (!sj_allow[1]);
+            // var _slEntry75_4hr_can = (aRS && sellEntry != sellMax && sellTP1 != 0 && sellTP2 != 0 && (!sellEntryIs100) && (!greaterThan4hr)) && (!sj_allow[1]);
+
+            var _buyEntry100 = aRS && buyEntry != buyMax && buyTP1 != decimal.Zero && buyTP2 != decimal.Zero && buyEntryIs100 ? buyEntry : decimal.Zero;
+            var _buyEntry75 = aRS && buyEntry != buyMax && buyTP1 != decimal.Zero && buyTP2 != decimal.Zero && (!buyEntryIs100) ? buyEntry : decimal.Zero;
+            // var _buyEntry1004hr = aRS && buyEntry != buyMax && buyTP1 != decimal.Zero && buyTP2 != decimal.Zero && buyEntryIs100 && (!greaterThan4hr) && (!checkBuy100_4hr) && sj_allow[1] ? buyEntry : decimal.Zero;
+            // var _buyEntry754hr = aRS && buyEntry != buyMax && buyTP1 != decimal.Zero && buyTP2 != decimal.Zero && (!buyEntryIs100) && (!greaterThan4hr) && (!checkBuy75t_4hr) && sj_allow[1] ? buyEntry : decimal.Zero;
+            var _buyEntryExists = decimal.Zero != _buyEntry100 || decimal.Zero != _buyEntry75;
+            var _buyTP1 = aRS && buyEntry != buyMax && buyTP1 != decimal.Zero && _buyEntryExists ? Math.Min(buyTP1, buyTP2) : decimal.Zero;
+            var _buyTP2 = aRS && buyEntry != buyMax && buyTP2 != decimal.Zero && _buyEntryExists ? Math.Max(buyTP1, buyTP2) : decimal.Zero;
+
+            var _sellEntry100 = aRS && sellEntry != sellMax && sellTP1 != 0 && sellTP2 != 0 && sellEntryIs100 ? sellEntry : decimal.Zero;
+            var _sellEntry75 = aRS && sellEntry != sellMax && sellTP1 != 0 && sellTP2 != 0 && (!sellEntryIs100) ? sellEntry : decimal.Zero;
+            // var _sellEntry1004hr = aRS && sellEntry != sellMax && sellTP1 != 0 && sellTP2 != 0 && sellEntryIs100 && (!greaterThan4hr) && (!checkSell100_4hr) && sj_allow[1] ? sellEntry : decimal.Zero;
+            // var _sellEntry754hr = aRS && sellEntry != sellMax && sellTP1 != 0 && sellTP2 != 0 && (!sellEntryIs100) && (!greaterThan4hr) && (!checkSell75t_4hr) && sj_allow[1] ? sellEntry : decimal.Zero;
+            var _sellEntryExists = decimal.Zero != _sellEntry100 || decimal.Zero != _sellEntry75;
+            var _sellTP1 = aRS && sellEntry != sellMax && sellTP1 != 0 && _sellEntryExists ? Math.Max(sellTP1, sellTP2) : decimal.Zero;
+            var _sellTP2 = aRS && sellEntry != sellMax && sellTP2 != 0 && _sellEntryExists ? Math.Min(sellTP1, sellTP2) : decimal.Zero;
+
+            var stopLossEntry100 = 0m;
+            var stopLossEntry75 = 0m;
+            var stopLossEntry1004hr = 0m;
+            var stopLossEntry754hr = 0m;
+            // var lHLH = false;
+            var sLR = 1.7m;
+
+            if (_buyEntry100 != decimal.Zero)
+            {
+                stopLossEntry100 = _buyEntry100 - ((_buyTP2 - _buyEntry100) / sLR);
+            }
+            if (_buyEntry75 != decimal.Zero)
+            {
+                stopLossEntry75 = _buyEntry75 - ((_buyTP2 - _buyEntry75) / sLR);
+            }
+            if (_sellEntry100 != decimal.Zero)
+            {
+                stopLossEntry100 = _sellEntry100 + ((_sellEntry100 - _sellTP2) / sLR);
+            }
+            if (_sellEntry75 != decimal.Zero)
+            {
+                stopLossEntry75 = _sellEntry75 + ((_sellEntry75 - _sellTP2) / sLR);
+            }
+
+
+            // var return_TP1 = new decimal[] { _buyTP1, _sellTP1 }.FirstOrDefault(_ => _ != decimal.Zero);
+            // var return_TP2 = new decimal[] { _buyTP2, _sellTP2 }.FirstOrDefault(_ => _ != decimal.Zero);
+            var return_Entry = new decimal[] { _buyEntry100, _buyEntry75, _sellEntry100, _sellEntry75 }.FirstOrDefault(_ => _ != decimal.Zero);
+            var return_Stop = new decimal[] { stopLossEntry100, stopLossEntry1004hr, stopLossEntry75, stopLossEntry754hr }.FirstOrDefault(_ => _ != decimal.Zero);
+
+            var alogRandomizedShift = GetRandomizedShift(return_Entry);
+            if (!randomize)
+            {
+                alogRandomizedShift = decimal.Zero;
+            }
+
+
+            return new OldStrategy
+            {
+                entry = return_Entry,
+                stop = return_Stop
+            };
+
         }
 
     }
