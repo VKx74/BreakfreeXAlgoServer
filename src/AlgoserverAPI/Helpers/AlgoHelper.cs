@@ -35,7 +35,7 @@ namespace Algoserver.API.Helpers
                 return (((accountSize * (suggestedRisk / 100)) / Math.Abs(entry - sl))) / contractSize;
             }
 
-            return 0;
+            return 0;   
             // return (accountSize * (suggestedRisk / 100)) / Math.Abs(entry - sl) / 100;
         }
     }

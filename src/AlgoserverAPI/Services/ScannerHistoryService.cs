@@ -297,8 +297,8 @@ namespace Algoserver.API.Services
 
             var forexInstruments = _instrumentService.GetOandaInstruments();
             var stockInstruments = _instrumentService.GetTwelvedataInstruments();
-            var allowedStocks = StockInstrumentHelper.StockInstrumentList;
-            var allowedForex = StockInstrumentHelper.ForexInstrumentList;
+            var allowedStocks = InstrumentsHelper.StockInstrumentList;
+            var allowedForex = InstrumentsHelper.ForexInstrumentList;
 
             foreach (var instrument in forexInstruments) {
                 if (allowedForex.Any(_ => String.Equals(_, instrument.Symbol, StringComparison.InvariantCultureIgnoreCase))) {
