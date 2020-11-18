@@ -459,6 +459,8 @@ namespace Algoserver.API.Helpers
             var stopLossPosSell = lHLH ? CheckHaHigh(100, sellEntry, container) : stopLossPosSellPH;
 
             var positionValue = 0m;
+            var symbol = container.Symbol;
+            var type = container.Type;
             if (isLong || isShort)
             {
                 // buy
@@ -473,7 +475,7 @@ namespace Algoserver.API.Helpers
                     //     positionValue = (accountSize * (suggestedRisk / 100)) / Math.Abs(buyEntry - stopLossPosBuy); //stocks
                     // }
 
-                    positionValue = AlgoHelper.CalculatePositionValue(isForex, accountSize, suggestedRisk, buyEntry, stopLossPosBuy);
+                    positionValue = AlgoHelper.CalculatePositionValue(type, symbol, accountSize, suggestedRisk, buyEntry, stopLossPosBuy);
                 }
                 else if (isShort)
                 {
@@ -485,7 +487,7 @@ namespace Algoserver.API.Helpers
                     // {
                     //     positionValue = (accountSize * (suggestedRisk / 100)) / Math.Abs(sellEntry - stopLossPosSell); //stocks
                     // }
-                    positionValue = AlgoHelper.CalculatePositionValue(isForex, accountSize, suggestedRisk, sellEntry, stopLossPosSell);
+                    positionValue = AlgoHelper.CalculatePositionValue(type, symbol, accountSize, suggestedRisk, sellEntry, stopLossPosSell);
                 }
             }
 

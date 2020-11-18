@@ -129,6 +129,7 @@ namespace Algoserver.API.Services
                 Close = container.Close,
             };
             var isForex = container.Type == "forex";
+            var symbol = container.Symbol;
             var accountSize = container.InputAccountSize * container.UsdRatio;
             var suggestedRisk = container.InputRisk;
 
@@ -155,7 +156,7 @@ namespace Algoserver.API.Services
 
             if (scanRes != null)
             {
-                size = AlgoHelper.CalculatePositionValue(isForex, accountSize, suggestedRisk, scanRes.entry, scanRes.stop);
+                size = AlgoHelper.CalculatePositionValue(container.Type, symbol, accountSize, suggestedRisk, scanRes.entry, scanRes.stop);
             }
 
             var result = this.toResponseV2(levels, sar, scanRes, size);
