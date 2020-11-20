@@ -164,6 +164,8 @@ namespace Algoserver.API.Services
                     return result;
                 }
 
+                Console.WriteLine(">>> " + requestCount + " - " + result.Symbol);
+
             } while (result.Bars.Count() < bars_count);
 
             return result;
