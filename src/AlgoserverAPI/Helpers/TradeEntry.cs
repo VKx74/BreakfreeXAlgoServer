@@ -526,7 +526,7 @@ namespace Algoserver.API.Helpers
                 n_currencySymbol = currencySymbol
             };
 
-            infoPanelData.macrotrend = "No trend";
+            infoPanelData.macrotrend = "No trade zone";
 
             if (isUpTranding)
             {
