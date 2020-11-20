@@ -214,7 +214,7 @@ namespace Algoserver.API.Services
 
         private async Task<List<HistoryData>> _loadPack(List<HistoryRequest> tasks) {
             var result = new List<HistoryData>();
-            var count = 2;
+            var count = 5;
 
             while(tasks.Count > 0) {
                 var tasksToProcess = tasks.Take(Math.Min(count, tasks.Count));
