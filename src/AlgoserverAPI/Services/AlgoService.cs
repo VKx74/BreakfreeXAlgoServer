@@ -119,8 +119,6 @@ namespace Algoserver.API.Services
             var container = await InitAsync(req);
             var levels = TechCalculations.CalculateLevels(container.High, container.Low);
             var sar = SupportAndResistance.Calculate(levels, container.Mintick);
-            var extendedTrendData = TrendDetector.CalculateByMesaBy2TrendAdjusted(container.CloseD);
-            var trend = TrendDetector.MergeTrends(extendedTrendData);
             var scanningHistory = new ScanningHistory
             {
                 Open = container.Open,
@@ -132,26 +130,37 @@ namespace Algoserver.API.Services
             var symbol = container.Symbol;
             var accountSize = container.InputAccountSize * container.UsdRatio;
             var suggestedRisk = container.InputRisk;
+            var granularity = AlgoHelper.ConvertTimeframeToCranularity(container.TimeframeInterval, container.TimeframePeriod);
 
             ScanResponse scanRes = null;
-            if (container.TimeframePeriod != "d" && container.TimeframePeriod != "w")
+
+            if (granularity >= TimeframeHelper.MIN15_GRANULARITY)
             {
-                scanRes = _scanner.ScanExt(scanningHistory, trend);
+                var extendedTrendData = TrendDetector.CalculateByMesaBy2TrendAdjusted(container.CloseD);
+                var trend = TrendDetector.MergeTrends(extendedTrendData);
+                
+                if (container.TimeframePeriod != "d" && container.TimeframePeriod != "w")
+                {
+                    scanRes = _scanner.ScanExt(scanningHistory, trend);
+                    if (scanRes == null)
+                    {
+                        scanRes = _scanner.ScanBRC(scanningHistory, trend);
+                    }
+                }
+
                 if (scanRes == null)
                 {
-                    scanRes = _scanner.ScanBRC(scanningHistory, trend);
+                    if (container.TimeframePeriod == "d")
+                    {
+                        scanRes = _scanner.ScanSwingOldStrategy(scanningHistory);
+                    }
+                    if (container.TimeframePeriod == "h" && container.TimeframeInterval == 4)
+                    {
+                        scanRes = _scanner.ScanSwing(scanningHistory, extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend);
+                    }
                 }
             }
-            
-            if (scanRes == null)
-            {
-                if (container.TimeframePeriod == "d") {
-                    scanRes = _scanner.ScanSwingOldStrategy(scanningHistory);
-                }
-                if (container.TimeframePeriod == "h" && container.TimeframeInterval == 4) {
-                    scanRes = _scanner.ScanSwing(scanningHistory, extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend);
-                }
-            }
+
             var size = 0m;
 
             if (scanRes != null)

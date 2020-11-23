@@ -39,7 +39,7 @@ namespace Algoserver.API.HostedServices
                 } catch(Exception ex) {
                 }
 
-                await Task.Delay(TimeSpan.FromMinutes(3), stoppingToken).ConfigureAwait(false);
+                await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken).ConfigureAwait(false);
             }
         }
     }
