@@ -126,6 +126,9 @@ namespace Algoserver.API.Models.Algo
         [JsonProperty("input_accountsize")]
         public decimal InputAccountSize { get; set; }
 
+        [JsonProperty("contract_size")]
+        public decimal? ContractSize { get; set; }
+
         [JsonProperty("input_risk")]
         public decimal InputRisk { get; set; }
 
@@ -166,6 +169,7 @@ namespace Algoserver.API.Models.Algo
                 InputDetectLowHigh = req.inputDetectlowHigh.GetValueOrDefault(false),
                 InputSplitPositions = req.InputSplitPositions,
                 InputAccountSize = req.InputAccountSize,
+                ContractSize = req.ContractSize,
                 InputRisk = req.InputRisk,
                 Currency = req.Instrument.BaseInstrument,
                 QuotedCurrency = req.Instrument.DependInstrument,

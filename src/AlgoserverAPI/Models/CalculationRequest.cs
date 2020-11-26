@@ -27,6 +27,9 @@ namespace Algoserver.API.Models.REST
         [JsonProperty("input_accountsize")]
         public decimal InputAccountSize { get; set; }
 
+        [JsonProperty("contract_size")]
+        public decimal? ContractSize { get; set; }
+
         [JsonProperty("input_risk")]
         public decimal InputRisk { get; set; }
 

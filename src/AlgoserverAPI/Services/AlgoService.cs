@@ -165,7 +165,7 @@ namespace Algoserver.API.Services
 
             if (scanRes != null)
             {
-                size = AlgoHelper.CalculatePositionValue(container.Type, symbol, accountSize, suggestedRisk, scanRes.entry, scanRes.stop);
+                size = AlgoHelper.CalculatePositionValue(container.Type, symbol, accountSize, suggestedRisk, scanRes.entry, scanRes.stop, container.ContractSize);
             }
 
             var result = this.toResponseV2(levels, sar, scanRes, size);

@@ -28,11 +28,19 @@ namespace Algoserver.API.Helpers
             return (long)timeSpan.TotalSeconds;
         }
 
-        public static decimal CalculatePositionValue(string type, string symbol, decimal accountSize, decimal suggestedRisk, decimal entry, decimal sl) {
-            if (type == "forex")
+        public static decimal CalculatePositionValue(string type, string symbol, decimal accountSize, decimal suggestedRisk, decimal entry, decimal sl, decimal? contract = null) {
+
+            if (contract.HasValue) 
             {
-                var contractSize = InstrumentsHelper.GetContractSize(symbol);
-                return (((accountSize * (suggestedRisk / 100)) / Math.Abs(entry - sl))) / contractSize;
+                return (((accountSize * (suggestedRisk / 100)) / Math.Abs(entry - sl))) / contract.Value;
+            } 
+            else 
+            {
+                if (type == "forex")
+                {
+                    var contractSize = InstrumentsHelper.GetContractSize(symbol);
+                    return (((accountSize * (suggestedRisk / 100)) / Math.Abs(entry - sl))) / contractSize;
+                }
             }
 
             return 0;   
