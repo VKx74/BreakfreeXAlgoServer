@@ -29,7 +29,7 @@ namespace Algoserver.API.Helpers
         }
 
         public static decimal CalculatePositionValue(string type, string symbol, decimal accountSize, decimal suggestedRisk, decimal entry, decimal sl) {
-            if (type == "forex" || type == "metals")
+            if (type == "forex")
             {
                 var contractSize = InstrumentsHelper.GetContractSize(symbol);
                 return (((accountSize * (suggestedRisk / 100)) / Math.Abs(entry - sl))) / contractSize;
