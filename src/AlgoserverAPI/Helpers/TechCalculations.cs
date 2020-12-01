@@ -425,6 +425,13 @@ namespace Algoserver.API.Helpers
             return res.ToArray();
         }
 
+        public static decimal AverageRange(int period, IEnumerable<decimal> high, IEnumerable<decimal> low)
+        {
+            var substracted = TechCalculations.SubtractArrays(high.ToArray(), low.ToArray());
+            var avgRng = TechCalculations.Sun(substracted, period);
+            return avgRng;
+        }
+
         public static decimal PercentRank(decimal[] data, int count)
         {
             var numberEqualOrBellow = 0;

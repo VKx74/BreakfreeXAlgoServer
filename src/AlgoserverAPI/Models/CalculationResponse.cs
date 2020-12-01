@@ -113,9 +113,15 @@ namespace Algoserver.API.Models.REST
         public int tte { get; set; }
         public TradeProbability tp { get; set; }
         public decimal entry { get; set; }
+        public decimal entry_h { get; set; }
+        public decimal entry_l { get; set; }
+        public decimal take_profit { get; set; }
+        public decimal take_profit_h { get; set; }
+        public decimal take_profit_l { get; set; }
         public decimal stop { get; set; }
+        public decimal sl_ratio { get; set; }
+        public decimal risk { get; set; }
     }
-
     public class StrategyModeV1 {
 
         [JsonProperty("algo_TP2")]

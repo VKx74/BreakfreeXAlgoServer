@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Algoserver.API.Helpers;
 using Algoserver.API.Models.Algo;
 using Algoserver.API.Models.REST;
@@ -16,6 +15,13 @@ namespace Algoserver.API.Services
         public TradeProbability tp { get; set; }
         public TradeType type { get; set; }
         public Trend trend { get; set; }
+        public decimal entry_h { get; set; }
+        public decimal entry_l { get; set; }
+        public decimal take_profit { get; set; }
+        public decimal take_profit_h { get; set; }
+        public decimal take_profit_l { get; set; }
+        public decimal risk { get; set; }
+        public decimal sl_ratio { get; set; }
     }
 
     public class ScanningHistory
@@ -36,7 +42,7 @@ namespace Algoserver.API.Services
             _historyService = historyService;
         }
 
-        public ScanResponse ScanSwingOldStrategy(ScanningHistory history) 
+        public ScanResponse ScanSwingOldStrategy(ScanningHistory history, decimal sl_ration = 1.7m)
         {
             if (history.Close == null)
             {
@@ -60,7 +66,7 @@ namespace Algoserver.API.Services
                 trend = trend,
                 history = history
             };
-            var tradeEntry = TradeEntry.CalculateV2(calculationData);
+            var tradeEntry = TradeEntry.CalculateV2(calculationData, sl_ration);
             if (tradeEntry.entry == Decimal.Zero) {
                 return null;
             }
@@ -109,11 +115,17 @@ namespace Algoserver.API.Services
                 type = TradeType.SwingN,
                 trend = trend,
                 entry = tradeEntry.entry,
-                stop = tradeEntry.stop
+                entry_h = tradeEntry.entry_h,
+                entry_l = tradeEntry.entry_l,
+                take_profit = tradeEntry.tp,
+                take_profit_h = tradeEntry.tp_h,
+                take_profit_l = tradeEntry.tp_l,
+                stop = tradeEntry.stop,
+                sl_ratio = sl_ration
             };
         }
 
-        public ScanResponse ScanSwing(ScanningHistory history, Trend trendGlobal, Trend trendLocal)
+        public ScanResponse ScanSwing(ScanningHistory history, Trend trendGlobal, Trend trendLocal, decimal sl_ration = 1.7m)
         {
             if (history.Close == null)
             {
@@ -127,7 +139,7 @@ namespace Algoserver.API.Services
 
             if (trendGlobal == trendLocal)
             {
-                var swingN = ScanBRC(history, trendGlobal);
+                var swingN = ScanBRC(history, trendGlobal, sl_ration);
                 if (swingN != null)
                 {
                     swingN.type = TradeType.SwingN;
@@ -136,7 +148,7 @@ namespace Algoserver.API.Services
             }
             else
             {
-                var swingExt = ScanExt(history, trendGlobal);
+                var swingExt = ScanExt(history, trendGlobal, sl_ration);
                 if (swingExt != null)
                 {
                     swingExt.type = TradeType.SwingExt;
@@ -145,7 +157,7 @@ namespace Algoserver.API.Services
             }
         }
 
-        public ScanResponse ScanBRC(ScanningHistory history, Trend trend)
+        public ScanResponse ScanBRC(ScanningHistory history, Trend trend, decimal sl_ration = 1.7m)
         {
             if (history.Close == null)
             {
@@ -176,6 +188,9 @@ namespace Algoserver.API.Services
             var support = levels.ZeroEight;
             var resistance = levels.EightEight;
             var stop = 0m;
+            var take_profit = 0m;
+            var take_profit2 = 0m;
+            var shift = (Math.Abs(natural - support) / 3);
 
             if (trend == Trend.Up)
             {
@@ -183,7 +198,9 @@ namespace Algoserver.API.Services
                 {
                     return null;
                 }
-                stop = natural - (Math.Abs(natural - support) / 4);
+                stop = natural - shift;
+                take_profit = natural + (shift * sl_ration);
+                take_profit2 = natural + (shift * sl_ration / 2);
             }
             else
             {
@@ -191,7 +208,9 @@ namespace Algoserver.API.Services
                 {
                     return null;
                 }
-                stop = natural + (Math.Abs(natural - support) / 4);
+                stop = natural + shift;
+                take_profit = natural - (shift * sl_ration);
+                take_profit2 = natural - (shift * sl_ration / 2);
             }
 
             var direction = TechCalculations.ApproveDirection(close, trend, TradeType.BRC);
@@ -259,18 +278,31 @@ namespace Algoserver.API.Services
                 direction.TradeProbability = TradeProbability.High;
             }
 
+            var avgrange = TechCalculations.AverageRange(50, high, low);
+
+            var return_Entry = natural;
+            var return_Entry_high = return_Entry + (avgrange * 0.25m);
+            var return_Entry_low = return_Entry - (avgrange * 0.25m);
+            var return_TP_high = take_profit2 + (avgrange * 0.125m);
+            var return_TP_low = take_profit2 - (avgrange * 0.125m);
             return new ScanResponse
             {
                 tte = (int)candlesToHit,
                 tp = direction.TradeProbability,
                 type = TradeType.BRC,
                 trend = trend,
-                entry = natural,
-                stop = stop
+                entry = return_Entry,
+                entry_h = return_Entry_high,
+                entry_l = return_Entry_low,
+                take_profit = take_profit,
+                take_profit_h = return_TP_high,
+                take_profit_l = return_TP_low,
+                stop = stop,
+                sl_ratio = sl_ration
             };
         }
 
-        public ScanResponse ScanExt(ScanningHistory history, Trend trend)
+        public ScanResponse ScanExt(ScanningHistory history, Trend trend, decimal sl_ration = 1.7m)
         {
             if (history.Close == null)
             {
@@ -300,7 +332,9 @@ namespace Algoserver.API.Services
             var bottomExt = levels.Minus18;
             var support = levels.ZeroEight;
             var resistance = levels.EightEight;
-            var shift = Math.Abs((double)(levels.Plus28 - levels.Plus18)) * 0.3;
+            var shift = (decimal)(Math.Abs((double)(levels.Plus28 - levels.Plus18)) * 0.3);
+            var take_profit = 0m;
+            var take_profit2 = 0m;
             var avgEntry = 0m;
             var stop = 0m;
 
@@ -318,12 +352,18 @@ namespace Algoserver.API.Services
             if (trend == Trend.Up)
             {
                 avgEntry = (bottomExt + support) / 2;
-                stop = levels.Minus28 - (decimal)shift;
+                stop = levels.Minus28 - shift;
+                var diff = Math.Abs(avgEntry - stop);
+                take_profit = avgEntry + (diff * sl_ration);
+                take_profit2 = avgEntry + (diff * sl_ration / 2);
             }
             else
             {
                 avgEntry = (topExt + resistance) / 2;
                 stop = levels.Plus28 + (decimal)shift;
+                var diff = Math.Abs(stop - avgEntry);
+                take_profit = avgEntry - (diff * sl_ration);
+                take_profit2 = avgEntry - (diff * sl_ration / 2);
             }
 
             var direction = TechCalculations.ApproveDirection(close, trend, TradeType.EXT);
@@ -382,14 +422,32 @@ namespace Algoserver.API.Services
                 direction.TradeProbability = TradeProbability.High;
             }
 
+            var avgrange = TechCalculations.AverageRange(50, high, low);
+            var return_Entry = avgEntry;
+            var return_Entry_high = support;
+            var return_Entry_low = bottomExt;
+            var return_TP_high = take_profit2 + (avgrange * 0.25m);
+            var return_TP_low = take_profit2 - (avgrange * 0.25m);
+
+            if (trend == Trend.Down) {
+                return_Entry_high = topExt;
+                return_Entry_low = resistance;
+            }
+
             return new ScanResponse
             {
                 tte = (int)candlesToHit,
                 tp = direction.TradeProbability,
                 type = TradeType.EXT,
                 trend = trend,
-                entry = avgEntry,
-                stop = stop
+                entry = return_Entry,
+                entry_h = return_Entry_high,
+                entry_l = return_Entry_low,
+                take_profit = take_profit,
+                take_profit_h = return_TP_high,
+                take_profit_l = return_TP_low,
+                stop = stop,
+                sl_ratio = sl_ration
             };
         }
 

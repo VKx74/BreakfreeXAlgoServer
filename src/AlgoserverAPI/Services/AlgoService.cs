@@ -130,6 +130,7 @@ namespace Algoserver.API.Services
             var symbol = container.Symbol;
             var accountSize = container.InputAccountSize * container.UsdRatio;
             var suggestedRisk = container.InputRisk;
+            var sl_ratio = container.InputStoplossRatio;
             var granularity = AlgoHelper.ConvertTimeframeToCranularity(container.TimeframeInterval, container.TimeframePeriod);
 
             ScanResponse scanRes = null;
@@ -141,10 +142,10 @@ namespace Algoserver.API.Services
                 
                 if (container.TimeframePeriod != "d" && container.TimeframePeriod != "w")
                 {
-                    scanRes = _scanner.ScanExt(scanningHistory, trend);
+                    scanRes = _scanner.ScanExt(scanningHistory, trend, sl_ratio);
                     if (scanRes == null)
                     {
-                        scanRes = _scanner.ScanBRC(scanningHistory, trend);
+                        scanRes = _scanner.ScanBRC(scanningHistory, trend, sl_ratio);
                     }
                 }
 
@@ -152,11 +153,11 @@ namespace Algoserver.API.Services
                 {
                     if (container.TimeframePeriod == "d")
                     {
-                        scanRes = _scanner.ScanSwingOldStrategy(scanningHistory);
+                        scanRes = _scanner.ScanSwingOldStrategy(scanningHistory, sl_ratio);
                     }
                     if (container.TimeframePeriod == "h" && container.TimeframeInterval == 4)
                     {
-                        scanRes = _scanner.ScanSwing(scanningHistory, extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend);
+                        scanRes = _scanner.ScanSwing(scanningHistory, extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend, sl_ratio);
                     }
                 }
             }
@@ -165,6 +166,7 @@ namespace Algoserver.API.Services
 
             if (scanRes != null)
             {
+                scanRes.risk = suggestedRisk;
                 size = AlgoHelper.CalculatePositionValue(container.Type, symbol, accountSize, suggestedRisk, scanRes.entry, scanRes.stop, container.ContractSize);
             }
 
@@ -611,22 +613,35 @@ namespace Algoserver.API.Services
             };
         }
 
-        private CalculationResponseV2 toResponseV2(Levels levels, SupportAndResistanceResult sar, ScanResponse scanRes, decimal size)
-        {
-            var tradeResponse = scanRes != null ? new StrategyModeV2
+        private StrategyModeV2 toStrategyModeV2(ScanResponse scanRes) {
+            if (scanRes == null) {
+                return null;
+            }
+
+            return new StrategyModeV2
             {
                 trend = scanRes.trend,
                 type = scanRes.type,
                 tp = scanRes.tp,
                 tte = scanRes.tte,
                 entry = scanRes.entry,
-                stop = scanRes.stop
-            } : null;
+                stop = scanRes.stop,
+                risk = scanRes.risk,
+                sl_ratio = scanRes.sl_ratio,
+                entry_h = scanRes.entry_h,
+                entry_l = scanRes.entry_l,
+                take_profit = scanRes.take_profit,
+                take_profit_h = scanRes.take_profit_h,
+                take_profit_l = scanRes.take_profit_l
+            };
+        }
 
+        private CalculationResponseV2 toResponseV2(Levels levels, SupportAndResistanceResult sar, ScanResponse scanRes, decimal size)
+        {
             return new CalculationResponseV2
             {
                 levels = ToLevels(levels, sar),
-                trade = tradeResponse,
+                trade = toStrategyModeV2(scanRes),
                 size = size
             };
         }

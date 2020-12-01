@@ -9,6 +9,11 @@ namespace Algoserver.API.Helpers
 
     public class OldStrategy {
         public decimal entry { get; set; }
+        public decimal entry_h { get; set; }
+        public decimal entry_l { get; set; }
+        public decimal tp { get; set; }
+        public decimal tp_h { get; set; }
+        public decimal tp_l { get; set; }
         public decimal stop { get; set; }
     }
 
@@ -809,7 +814,7 @@ namespace Algoserver.API.Helpers
             return y;
         }
 
-        private static decimal AverageRange(int period, decimal scale_multiplier, InputDataContainer container)
+        public static decimal AverageRange(int period, decimal scale_multiplier, InputDataContainer container)
         {
             var substracted = TechCalculations.SubtractArrays(container.HighD.ToArray(), container.LowD.ToArray());
             var avgRng = TechCalculations.Sun(substracted, period) * scale_multiplier;
@@ -829,7 +834,7 @@ namespace Algoserver.API.Helpers
             return minShift * randomShift * randomShiftDirection;
         }
 
-        public static OldStrategy CalculateV2(TradeSignalCalculationData calculationData)
+        public static OldStrategy CalculateV2(TradeSignalCalculationData calculationData, decimal sl_ration = 1.7m)
         {
             // var container = calculationData.container;
             var levels = calculationData.levels;
@@ -1133,7 +1138,7 @@ namespace Algoserver.API.Helpers
             var stopLossEntry1004hr = 0m;
             var stopLossEntry754hr = 0m;
             // var lHLH = false;
-            var sLR = 1.7m;
+            var sLR = sl_ration;
 
             if (_buyEntry100 != decimal.Zero)
             {
@@ -1153,8 +1158,8 @@ namespace Algoserver.API.Helpers
             }
 
 
-            // var return_TP1 = new decimal[] { _buyTP1, _sellTP1 }.FirstOrDefault(_ => _ != decimal.Zero);
-            // var return_TP2 = new decimal[] { _buyTP2, _sellTP2 }.FirstOrDefault(_ => _ != decimal.Zero);
+            var return_TP1 = new decimal[] { _buyTP1, _sellTP1 }.FirstOrDefault(_ => _ != decimal.Zero);
+            var return_TP2 = new decimal[] { _buyTP2, _sellTP2 }.FirstOrDefault(_ => _ != decimal.Zero);
             var return_Entry = new decimal[] { _buyEntry100, _buyEntry75, _sellEntry100, _sellEntry75 }.FirstOrDefault(_ => _ != decimal.Zero);
             var return_Stop = new decimal[] { stopLossEntry100, stopLossEntry1004hr, stopLossEntry75, stopLossEntry754hr }.FirstOrDefault(_ => _ != decimal.Zero);
 
@@ -1164,10 +1169,21 @@ namespace Algoserver.API.Helpers
                 alogRandomizedShift = decimal.Zero;
             }
 
+            var avgrange = TechCalculations.AverageRange(100, calculationData.history.High, calculationData.history.Low);
+
+            var return_Entry_high = return_Entry + (avgrange * 0.125m);
+            var return_Entry_low = return_Entry - (avgrange * 0.125m);
+            var return_TP_high = return_TP1 + (avgrange * 0.0625m);
+            var return_TP_low = return_TP1 - (avgrange * 0.0625m);
 
             return new OldStrategy
             {
                 entry = return_Entry,
+                entry_h = return_Entry_high,
+                entry_l = return_Entry_low,
+                tp = return_TP2,
+                tp_h = return_TP_high,
+                tp_l = return_TP_low,
                 stop = return_Stop
             };
 
