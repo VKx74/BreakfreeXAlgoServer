@@ -281,10 +281,10 @@ namespace Algoserver.API.Services
             var avgrange = TechCalculations.AverageRange(50, high, low);
 
             var return_Entry = natural;
-            var return_Entry_high = return_Entry + (avgrange * 0.2m);
-            var return_Entry_low = return_Entry - (avgrange * 0.2m);
-            var return_TP_high = take_profit2 + (avgrange * 0.1m);
-            var return_TP_low = take_profit2 - (avgrange * 0.1m);
+            var return_Entry_high = return_Entry + (avgrange * 0.25m);
+            var return_Entry_low = return_Entry - (avgrange * 0.25m);
+            var return_TP_high = take_profit2 + (avgrange * 0.125m);
+            var return_TP_low = take_profit2 - (avgrange * 0.125m);
             return new ScanResponse
             {
                 tte = (int)candlesToHit,
