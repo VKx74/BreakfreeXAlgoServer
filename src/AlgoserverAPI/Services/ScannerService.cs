@@ -125,7 +125,7 @@ namespace Algoserver.API.Services
             };
         }
 
-        public ScanResponse ScanSwing(ScanningHistory history, Trend trendGlobal, Trend trendLocal, decimal sl_ration = 1.7m)
+        public ScanResponse ScanSwing(ScanningHistory history, ScanningHistory dailyHistory, Trend trendGlobal, Trend trendLocal, decimal sl_ration = 1.7m)
         {
             if (history.Close == null)
             {
@@ -148,7 +148,7 @@ namespace Algoserver.API.Services
             }
             else
             {
-                var swingExt = ScanExt(history, trendGlobal, sl_ration);
+                var swingExt = ScanExt(history, dailyHistory, trendGlobal, sl_ration);
                 if (swingExt != null)
                 {
                     swingExt.type = TradeType.SwingExt;
@@ -302,7 +302,7 @@ namespace Algoserver.API.Services
             };
         }
 
-        public ScanResponse ScanExt(ScanningHistory history, Trend trend, decimal sl_ration = 1.7m)
+        public ScanResponse ScanExt(ScanningHistory history, ScanningHistory dailyHistory, Trend trend, decimal sl_ration = 1.7m)
         {
             if (history.Close == null)
             {
@@ -422,6 +422,11 @@ namespace Algoserver.API.Services
                 direction.TradeProbability = TradeProbability.High;
             }
 
+            var isDailySAndRValid = isDailySupportAndResistanceValid(dailyHistory, trend);
+            if (!isDailySAndRValid) {
+                return null;
+            }
+
             var avgrange = TechCalculations.AverageRange(50, high, low);
             var return_Entry = avgEntry;
             var return_Entry_high = support;
@@ -449,6 +454,36 @@ namespace Algoserver.API.Services
                 stop = stop,
                 sl_ratio = sl_ration
             };
+        }
+
+        private bool isDailySupportAndResistanceValid(ScanningHistory dailyHistory, Trend trend) {
+            var high = dailyHistory.High;
+            var low = dailyHistory.Low;
+            var close = dailyHistory.Close;
+            var levels = TechCalculations.CalculateLevel128(high, low);
+            var natural = levels.FourEight;
+            var support = levels.ZeroEight;
+            var resistance = levels.EightEight;
+            var allowedDiff = Math.Abs(natural - support) / 5;
+            var lastClose = close.LastOrDefault();
+
+            if (lastClose == decimal.Zero) {
+                return false;
+            }
+
+            if (trend == Trend.Down) {
+                var priceToTargetDiff = Math.Abs(support - lastClose);
+                if (support >= lastClose || allowedDiff > priceToTargetDiff) {
+                    return false;
+                }
+            } else {
+                var priceToTargetDiff = Math.Abs(resistance - lastClose);
+                if (lastClose >= resistance || allowedDiff > priceToTargetDiff) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public ScanningHistory ToScanningHistory(IEnumerable<BarMessage> history)

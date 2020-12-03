@@ -125,7 +125,16 @@ namespace Algoserver.API.Services
                 High = container.High,
                 Low = container.Low,
                 Close = container.Close,
+            }; 
+            
+            var dailyScanningHistory = new ScanningHistory
+            {
+                Open = container.OpenD,
+                High = container.HighD,
+                Low = container.LowD,
+                Close = container.CloseD,
             };
+            
             var isForex = container.Type == "forex";
             var symbol = container.Symbol;
             var accountSize = container.InputAccountSize * container.UsdRatio;
@@ -142,7 +151,7 @@ namespace Algoserver.API.Services
                 
                 if (container.TimeframePeriod != "d" && container.TimeframePeriod != "w")
                 {
-                    scanRes = _scanner.ScanExt(scanningHistory, trend, sl_ratio);
+                    scanRes = _scanner.ScanExt(scanningHistory, dailyScanningHistory, trend, sl_ratio);
                     if (scanRes == null)
                     {
                         scanRes = _scanner.ScanBRC(scanningHistory, trend, sl_ratio);
@@ -157,7 +166,7 @@ namespace Algoserver.API.Services
                     }
                     if (container.TimeframePeriod == "h" && container.TimeframeInterval == 4)
                     {
-                        scanRes = _scanner.ScanSwing(scanningHistory, extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend, sl_ratio);
+                        scanRes = _scanner.ScanSwing(scanningHistory, dailyScanningHistory, extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend, sl_ratio);
                     }
                 }
             }

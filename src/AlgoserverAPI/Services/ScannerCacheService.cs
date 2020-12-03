@@ -79,6 +79,7 @@ namespace Algoserver.API.Services
                 var calculation_input = dailyHistory.Bars.Select(_ => _.Close).ToList();
                 var extendedTrendData = TrendDetector.CalculateByMesaBy2TrendAdjusted(calculation_input);
                 var trendData = TrendDetector.MergeTrends(extendedTrendData);
+                var dailyScanningHistory = _scanner.ToScanningHistory(dailyHistory.Bars);
 
                 if (_15Mins.TryGetValue(_historyService.GetKey(dailyHistory), out var history15Min) && trendData != Trend.Undefined && history15Min.Bars.Count() > 200)
                 {
@@ -90,7 +91,7 @@ namespace Algoserver.API.Services
                         res.Add(resp);
                     }
 
-                    var scanningResultExt = _scanner.ScanExt(_scanner.ToScanningHistory(history15Min.Bars), trendData);
+                    var scanningResultExt = _scanner.ScanExt(_scanner.ToScanningHistory(history15Min.Bars), dailyScanningHistory, trendData);
                     if (scanningResultExt != null)
                     {
                         var resp = _toResponse(scanningResultExt, history15Min, TimeframeHelper.MIN15_GRANULARITY);
@@ -109,7 +110,7 @@ namespace Algoserver.API.Services
                         res.Add(resp);
                     }
 
-                    var scanningResultExt = _scanner.ScanExt(_scanner.ToScanningHistory(history1H.Bars), trendData);
+                    var scanningResultExt = _scanner.ScanExt(_scanner.ToScanningHistory(history1H.Bars), dailyScanningHistory, trendData);
                     if (scanningResultExt != null)
                     {
                         var resp = _toResponse(scanningResultExt, history1H, TimeframeHelper.HOURLY_GRANULARITY);
@@ -132,7 +133,7 @@ namespace Algoserver.API.Services
                             tradeDetermined = true;
                         }
 
-                        var scanningResultExt = _scanner.ScanExt(_scanner.ToScanningHistory(history4H.Bars), trendData);
+                        var scanningResultExt = _scanner.ScanExt(_scanner.ToScanningHistory(history4H.Bars), dailyScanningHistory, trendData);
                         if (scanningResultExt != null)
                         {
                             var resp = _toResponse(scanningResultExt, history4H, TimeframeHelper.HOUR4_GRANULARITY);
@@ -144,7 +145,7 @@ namespace Algoserver.API.Services
 
                     if (!tradeDetermined)
                     {
-                        var swingScannerResult = _scanner.ScanSwing(_scanner.ToScanningHistory(history4H.Bars), extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend);
+                        var swingScannerResult = _scanner.ScanSwing(_scanner.ToScanningHistory(history4H.Bars), dailyScanningHistory, extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend);
                         if (swingScannerResult != null)
                         {
                             var resp = _toResponse(swingScannerResult, history4H, TimeframeHelper.HOUR4_GRANULARITY);
@@ -154,7 +155,7 @@ namespace Algoserver.API.Services
                     }
                 }
 
-                var swingDailyScannerResult = _scanner.ScanSwingOldStrategy(_scanner.ToScanningHistory(dailyHistory.Bars));
+                var swingDailyScannerResult = _scanner.ScanSwingOldStrategy(dailyScanningHistory);
                 if (swingDailyScannerResult != null)
                 {
                     var resp = _toResponse(swingDailyScannerResult, dailyHistory, TimeframeHelper.DAILY_GRANULARITY);
