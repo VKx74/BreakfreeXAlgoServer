@@ -34,7 +34,6 @@ namespace Algoserver.API.Services
 
     public class ScannerService
     {
-
         private readonly HistoryService _historyService;
 
         public ScannerService(HistoryService historyService)

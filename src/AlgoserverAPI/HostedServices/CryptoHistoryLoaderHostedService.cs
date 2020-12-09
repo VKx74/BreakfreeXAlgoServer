@@ -7,15 +7,15 @@ using Microsoft.Extensions.Logging;
 
 namespace Algoserver.API.HostedServices
 {
-    public class HistoryLoaderHostedService : BackgroundService
+    public class CryptoHistoryLoaderHostedService : BackgroundService
     {
         private int _preHour = -1;
-        private readonly ILogger<HistoryLoaderHostedService> _logger;
+        private readonly ILogger<CryptoHistoryLoaderHostedService> _logger;
         private readonly ScannerHistoryService _scannerHistory;
         private readonly ScannerCacheService _scannerCache;
         private Timer _timer;
 
-        public HistoryLoaderHostedService(ILogger<HistoryLoaderHostedService> logger, ScannerHistoryService scannerHistory, ScannerCacheService scannerCache)
+        public CryptoHistoryLoaderHostedService(ILogger<CryptoHistoryLoaderHostedService> logger, ScannerCryptoHistoryService scannerHistory, ScannerCryptoCacheService scannerCache)
         {
             _logger = logger;
             _scannerHistory = scannerHistory;

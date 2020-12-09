@@ -38,13 +38,6 @@ namespace Algoserver.API.Models.REST
     public class ScannerResponse
     {
         public IEnumerable<ScannerResponseItem> items { get; set; }
-        public int scanning_time { get; set; }
-        public int data_count_15_min { get; set; }
-        public int data_count_1_h { get; set; }
-        public int data_count_4_h { get; set; }
-        public int data_count_1_d { get; set; }
-        public string refresh_time { get; set; }
-        public string refresh_time_all { get; set; }
     } 
     
     public class ScannerHistoryResponse

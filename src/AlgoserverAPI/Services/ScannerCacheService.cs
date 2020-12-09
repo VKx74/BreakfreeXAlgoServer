@@ -8,17 +8,38 @@ using Algoserver.API.Models.REST;
 
 namespace Algoserver.API.Services
 {
-    public class ScannerCacheService
+    public class ScannerForexCacheService : ScannerCacheService
     {
-        private readonly ScannerHistoryService _historyService;
-        private readonly ScannerService _scanner;
-        private readonly List<ScannerResponseItem> _scannerResults = new List<ScannerResponseItem>();
-        private readonly List<ScannerResponseHistoryItem> _resultHistory = new List<ScannerResponseHistoryItem>();
-        private int scanning_time { get; set; }
-        private int data_count_15_min { get; set; }
-        private int data_count_1_h { get; set; }
-        private int data_count_4_h { get; set; }
-        private int data_count_1_d { get; set; }
+        public ScannerForexCacheService(ScannerForexHistoryService historyService, ScannerService scanner) : base(historyService, scanner)
+        {
+        }
+    }
+
+    public class ScannerStockCacheService : ScannerCacheService
+    {
+        public ScannerStockCacheService(ScannerStockHistoryService historyService, ScannerService scanner) : base(historyService, scanner)
+        {
+        }
+    }
+
+    public class ScannerCryptoCacheService : ScannerCacheService
+    {
+        public ScannerCryptoCacheService(ScannerCryptoHistoryService historyService, ScannerService scanner) : base(historyService, scanner)
+        {
+        }
+    }
+
+    public abstract class ScannerCacheService
+    {
+        protected readonly ScannerHistoryService _historyService;
+        protected readonly ScannerService _scanner;
+        protected readonly List<ScannerResponseItem> _scannerResults = new List<ScannerResponseItem>();
+        protected readonly List<ScannerResponseHistoryItem> _resultHistory = new List<ScannerResponseHistoryItem>();
+        protected int scanning_time { get; set; }
+        protected int data_count_15_min { get; set; }
+        protected int data_count_1_h { get; set; }
+        protected int data_count_4_h { get; set; }
+        protected int data_count_1_d { get; set; }
 
         public string RefreshAllMarketsTime { get; set; }
         public string RefreshMarketsTime { get; set; }
@@ -29,37 +50,22 @@ namespace Algoserver.API.Services
             _scanner = scanner;
         }
 
-        public ScannerResponse GetData()
+        public List<ScannerResponseItem> GetData()
         {
             List<ScannerResponseItem> res;
             lock (_scannerResults)
             {
-                res = _scannerResults.ToList();
+                return _scannerResults.ToList();
             }
-            return new ScannerResponse
-            {
-                items = res,
-                data_count_15_min = data_count_15_min,
-                data_count_1_d = data_count_1_d,
-                data_count_1_h = data_count_1_h,
-                data_count_4_h = data_count_4_h,
-                scanning_time = scanning_time,
-                refresh_time = RefreshMarketsTime,
-                refresh_time_all = RefreshAllMarketsTime
-            };
         }
 
-        public ScannerHistoryResponse GetHistoryData()
+        public List<ScannerResponseHistoryItem> GetHistoryData()
         {
             List<ScannerResponseHistoryItem> res;
             lock (_resultHistory)
             {
-                res = _resultHistory.ToList();
+                return _resultHistory.ToList();
             }
-            return new ScannerHistoryResponse
-            {
-                items = res
-            };
         }
 
         public void ScanMarkets()
@@ -72,7 +78,8 @@ namespace Algoserver.API.Services
 
             foreach (var dailyHistory in _1Day)
             {
-                if (dailyHistory.Bars.Count() < 200) {
+                if (dailyHistory.Bars.Count() < 200)
+                {
                     continue;
                 }
 
@@ -177,7 +184,7 @@ namespace Algoserver.API.Services
             scanning_time = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
         }
 
-        private ScannerResponseItem _toResponse(ScanResponse response, HistoryData data, int timeframe)
+        protected ScannerResponseItem _toResponse(ScanResponse response, HistoryData data, int timeframe)
         {
             var lastBar = data.Bars.LastOrDefault();
             return new ScannerResponseItem
@@ -194,7 +201,7 @@ namespace Algoserver.API.Services
             };
         }
 
-        private void _tryAddHistory(ScannerResponseItem item, ScanResponse resp)
+        protected void _tryAddHistory(ScannerResponseItem item, ScanResponse resp)
         {
             ScannerResponseHistoryItem last;
             lock (_resultHistory)

@@ -43,8 +43,13 @@ namespace Algoserver.API.Services
         public List<IInstrument> GetOandaInstruments() {
             return this._oandaInstruments.ToList<IInstrument>();
         }
+
         public List<IInstrument> GetTwelvedataInstruments() {
             return this._twelvedatsInstruments.ToList<IInstrument>();
+        }
+
+        public List<IInstrument> GetKaikoInstruments() {
+            return this._kaikoInstruments.ToList<IInstrument>();
         }
 
         public bool SymbolExist(string datafeed, string symbol) {
@@ -108,7 +113,7 @@ namespace Algoserver.API.Services
             // TODO: Move out to config file
             var datafeed = "kaiko";
 
-            var uri = $"{_serverUrl}/{datafeed.ToLowerInvariant()}/instruments?Skip=0&Take=10000";
+            var uri = $"{_serverUrl}/{datafeed.ToLowerInvariant()}/instruments/extended?Skip=0&Take=10000";
 
             var request = new HttpRequestMessage(HttpMethod.Get, uri);            
             var response = await _httpClient.SendAsync(request);

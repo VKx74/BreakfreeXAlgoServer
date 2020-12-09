@@ -50,11 +50,18 @@ namespace Algoserver.API
             services.AddSingleton<PriceRatioCalculationService>();
             services.AddSingleton<AlgoService>();
             services.AddSingleton<ScannerService>();
-            services.AddSingleton<ScannerHistoryService>();
-            services.AddSingleton<ScannerCacheService>();
+            services.AddSingleton<ScannerCryptoHistoryService>();
+            services.AddSingleton<ScannerForexHistoryService>();
+            services.AddSingleton<ScannerStockHistoryService>();
+            services.AddSingleton<ScannerForexCacheService>();
+            services.AddSingleton<ScannerStockCacheService>();
+            services.AddSingleton<ScannerCryptoCacheService>();
+            services.AddSingleton<ScannerResultService>();
             services.AddSingleton<RTDService>();
             services.AddSingleton<StatisticsService>();
-            services.AddHostedService<HistoryLoaderHostedService>();
+            services.AddHostedService<StockHistoryLoaderHostedService>();
+            services.AddHostedService<ForexHistoryLoaderHostedService>();
+            services.AddHostedService<CryptoHistoryLoaderHostedService>();
 
             services.AddCors(options =>
             {
@@ -107,7 +114,7 @@ namespace Algoserver.API
             services.AddMemoryCache();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, InstrumentService instrumentService, ScannerHistoryService scannerHistoryService)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, InstrumentService instrumentService)
         {
             instrumentService.Init();
             

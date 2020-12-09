@@ -18,21 +18,19 @@ namespace Algoserver.API.Controllers
 {
     public class AlgoController : Controller
     {
-        private ScannerCacheService _scannerCache;
+        private ScannerResultService _scannerResultService;
         private AlgoService _algoService;
         private RTDService _rtdService;
         private ScannerService _scanerService;
         private StatisticsService _statisticsService;
-        private ScannerHistoryService _scannerHistoryService;
 
-        public AlgoController(AlgoService algoService, RTDService rtdService, ScannerService scanerService, StatisticsService statisticsService, ScannerCacheService scannerCache, ScannerHistoryService scannerHistoryService)
+        public AlgoController(AlgoService algoService, RTDService rtdService, ScannerService scanerService, StatisticsService statisticsService, ScannerResultService scannerResultService)
         {
             _algoService = algoService;
             _rtdService = rtdService;
             _scanerService = scanerService;
             _statisticsService = statisticsService;
-            _scannerHistoryService = scannerHistoryService;
-            _scannerCache = scannerCache;
+            _scannerResultService = scannerResultService;
         }
 
         [Authorize]
@@ -146,22 +144,11 @@ namespace Algoserver.API.Controllers
         }
 
         [Authorize]
-        [HttpPost(Routes.RefreshInstruments)]
-        [ProducesResponseType(typeof(Response<object>), 200)]
-        public async Task<IActionResult> LoadInstruments([FromBody] object request)
-        {
-            var res = await _scannerHistoryService.RefreshAll();
-            return ToEncryptedResponse(new {
-                res = res
-            });
-        }
-        
-        [Authorize]
         [HttpGet(Routes.ScannerResults)]
         [ProducesResponseType(typeof(Response<ScannerResponse>), 200)]
         public IActionResult ScannerResults([FromQuery] string segment = "")
         {
-            var res = _scannerCache.GetData();
+            var res = _scannerResultService.GetData();
             return ToEncryptedResponse(res);
         } 
         
@@ -170,7 +157,7 @@ namespace Algoserver.API.Controllers
         [ProducesResponseType(typeof(Response<ScannerHistoryResponse>), 200)]
         public IActionResult ScannerHistoryResults([FromQuery] string segment = "")
         {
-            var res = _scannerCache.GetHistoryData();
+            var res = _scannerResultService.GetHistoryData();
             return ToEncryptedResponse(res);
         }
 

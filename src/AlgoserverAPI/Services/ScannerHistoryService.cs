@@ -3,14 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Algoserver.API.Helpers;
 using Algoserver.API.Models.REST;
-using Algoserver.Auth.Services;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace Algoserver.API.Services
 {
-    class HistoryRequest {
+    public class HistoryRequest {
         public string Symbol { get; set; }
         public string Datafeed { get; set; }
         public string Exchange { get; set; }
@@ -18,14 +15,14 @@ namespace Algoserver.API.Services
         public int Count { get; set; }
     }
 
-    public class ScannerHistoryService
+    public abstract class ScannerHistoryService
     {
-        private readonly HistoryService _historyService;
-        private readonly InstrumentService _instrumentService;
-        private readonly List<HistoryData> _15MinHistory = new List<HistoryData>();
-        private readonly List<HistoryData> _1hHistory = new List<HistoryData>();
-        private readonly List<HistoryData> _4hHistory = new List<HistoryData>();
-        private readonly List<HistoryData> _dailyHistory = new List<HistoryData>();
+        protected readonly HistoryService _historyService;
+        protected readonly InstrumentService _instrumentService;
+        protected readonly List<HistoryData> _15MinHistory = new List<HistoryData>();
+        protected readonly List<HistoryData> _1hHistory = new List<HistoryData>();
+        protected readonly List<HistoryData> _4hHistory = new List<HistoryData>();
+        protected readonly List<HistoryData> _dailyHistory = new List<HistoryData>();
 
         public ScannerHistoryService(HistoryService historyService, InstrumentService instrumentService)
         {
@@ -212,7 +209,7 @@ namespace Algoserver.API.Services
             }
         }
 
-        private async Task<List<HistoryData>> _loadPack(List<HistoryRequest> tasks) {
+        protected async Task<List<HistoryData>> _loadPack(List<HistoryRequest> tasks) {
             var result = new List<HistoryData>();
             var count = 3;
 
@@ -240,7 +237,7 @@ namespace Algoserver.API.Services
             return result;
         }
 
-        private void _updateHigherTimeframes() {
+        protected void _updateHigherTimeframes() {
             var _15Mins = Get15MinData();
             var _1Hour = Get1HDataDictionary();
             var _4Hour = Get4HDataDictionary();
@@ -264,7 +261,7 @@ namespace Algoserver.API.Services
         public string GetKey(HistoryData data) {
             return data.Symbol + data.Exchange;
         }
-        private void _updateLastBar(HistoryData hLow, HistoryData hHigh) {
+        protected void _updateLastBar(HistoryData hLow, HistoryData hHigh) {
             var length = hLow.Bars.Count();
             if (length < 2)  {
                 return;
@@ -288,35 +285,10 @@ namespace Algoserver.API.Services
             }
         }
 
-        private bool _isSameInstrument(HistoryData h1, HistoryData h2) {
+        protected bool _isSameInstrument(HistoryData h1, HistoryData h2) {
             return String.Equals(h1.Exchange, h2.Exchange) || String.Equals(h1.Symbol, h2.Symbol);
         }
 
-        private List<IInstrument> _getInstruments() {
-            var instruments = new List<IInstrument>();
-
-            var forexInstruments = _instrumentService.GetOandaInstruments();
-            var stockInstruments = _instrumentService.GetTwelvedataInstruments();
-            var allowedStocks = InstrumentsHelper.StockInstrumentList;
-            var allowedForex = InstrumentsHelper.ForexInstrumentList;
-
-            foreach (var instrument in forexInstruments) {
-                if (allowedForex.Any(_ => String.Equals(_, instrument.Symbol, StringComparison.InvariantCultureIgnoreCase))) {
-                    if (!instruments.Any(_ => String.Equals(_.Symbol, instrument.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, instrument.Exchange, StringComparison.InvariantCultureIgnoreCase))) {
-                        instruments.Add(instrument);
-                    }
-                }
-            } 
-            
-            foreach (var instrument in stockInstruments) {
-                if (allowedStocks.Any(_ => String.Equals(_.Symbol, instrument.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, instrument.Exchange, StringComparison.InvariantCultureIgnoreCase))) {
-                    if (!instruments.Any(_ => String.Equals(_.Symbol, instrument.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, instrument.Exchange, StringComparison.InvariantCultureIgnoreCase))) {
-                        instruments.Add(instrument);
-                    }
-                }
-            }
-
-            return instruments;
-        }
+        protected abstract List<IInstrument> _getInstruments();
     }
 }

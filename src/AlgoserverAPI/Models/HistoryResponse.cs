@@ -55,9 +55,9 @@ namespace Algoserver.API.Models.REST
     }
     public class KaikoInstruments : IInstrument
     {
-        public string Datafeed { get; set; }
+        public string Datafeed { get; set; } = "Kaiko";
         public string Symbol { get; set; }
-        public string Exchange { get; set; } = "Kaiko";
+        public string Exchange { get; set; }
     }
 
     public class BarMessage

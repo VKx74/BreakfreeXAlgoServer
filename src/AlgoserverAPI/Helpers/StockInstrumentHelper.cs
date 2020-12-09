@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Algoserver.API.Helpers
 {
-    public class StockInstrument
+    public class InstrumentDescription
     {
         public string Symbol { get; set; }
         public string Exchange { get; set; }
@@ -19,12 +19,43 @@ namespace Algoserver.API.Helpers
 
         public static decimal CommoditiesContractSize = 10000;
 
-        public static List<StockInstrument> StockInstrumentList
+        public static List<InstrumentDescription> StockInstrumentList
         {
             get
             {
-                return new List<StockInstrument> {
-                    new StockInstrument { Symbol = "AAPL", Exchange = "NASDAQ" }, new StockInstrument { Symbol = "AMD", Exchange = "NASDAQ" }, new StockInstrument { Symbol = "AMZN", Exchange = "NASDAQ" }, new StockInstrument { Symbol = "ATVI", Exchange = "NASDAQ" }, new StockInstrument { Symbol = "BA", Exchange = "NYSE" }, new StockInstrument { Symbol = "BAC-A", Exchange = "NYSE" }, new StockInstrument { Symbol = "BIDU", Exchange = "NASDAQ" }, new StockInstrument { Symbol = "C-J", Exchange = "NYSE" }, new StockInstrument { Symbol = "FB", Exchange = "NASDAQ" }, new StockInstrument { Symbol = "FCX", Exchange = "NYSE" }, new StockInstrument { Symbol = "FSLR", Exchange = "NASDAQ" }, new StockInstrument { Symbol = "GM", Exchange = "NYSE" }, new StockInstrument { Symbol = "GOOG", Exchange = "NASDAQ" }, new StockInstrument { Symbol = "GOOGL", Exchange = "NASDAQ" }, new StockInstrument { Symbol = "GS", Exchange = "NYSE" }, new StockInstrument { Symbol = "GWPH", Exchange = "NASDAQ" }, new StockInstrument { Symbol = "JPM", Exchange = "NYSE" }, new StockInstrument { Symbol = "MCD", Exchange = "NYSE" }, new StockInstrument { Symbol = "MSFT", Exchange = "NASDAQ" }, new StockInstrument { Symbol = "NFLX", Exchange = "NASDAQ" }, new StockInstrument { Symbol = "NKE", Exchange = "NYSE" }, new StockInstrument { Symbol = "NVDA", Exchange = "NASDAQ" }, new StockInstrument { Symbol = "PFE", Exchange = "NYSE" }, new StockInstrument { Symbol = "PGHH", Exchange = "NSE" }, new StockInstrument { Symbol = "PTON", Exchange = "NASDAQ" }, new StockInstrument { Symbol = "QCOM", Exchange = "NASDAQ" }, new StockInstrument { Symbol = "RACE", Exchange = "NYSE" }, new StockInstrument { Symbol = "SNAP", Exchange = "NYSE" }, new StockInstrument { Symbol = "TLRY", Exchange = "NASDAQ" }, new StockInstrument { Symbol = "BYND", Exchange = "NASDAQ" }, new StockInstrument { Symbol = "TSLA", Exchange = "NASDAQ" }, new StockInstrument { Symbol = "TWTR", Exchange = "NYSE" }, new StockInstrument { Symbol = "UBER", Exchange = "NYSE" }, new StockInstrument { Symbol = "WMT", Exchange = "NYSE" }, new StockInstrument { Symbol = "XOM", Exchange = "NYSE" }, new StockInstrument { Symbol = "ZM", Exchange = "NASDAQ" }, new StockInstrument { Symbol = "GE", Exchange = "NYSE" }, new StockInstrument { Symbol = "AAL", Exchange = "NASDAQ" }, new StockInstrument { Symbol = "DELTA", Exchange = "BSE" }, new StockInstrument { Symbol = "GPRO", Exchange = "NASDAQ" }, new StockInstrument { Symbol = "ACB", Exchange = "TSX" }, new StockInstrument { Symbol = "CUK", Exchange = "NYSE" }, new StockInstrument { Symbol = "CCL", Exchange = "BSE" }, new StockInstrument { Symbol = "NCLH", Exchange = "NYSE" }, new StockInstrument { Symbol = "FIT", Exchange = "NYSE" }, new StockInstrument { Symbol = "PLUG", Exchange = "NASDAQ" }, new StockInstrument { Symbol = "UAL", Exchange = "NASDAQ" }, new StockInstrument { Symbol = "WEED", Exchange = "TSX" }, new StockInstrument { Symbol = "CSCO", Exchange = "NASDAQ" }
+                return new List<InstrumentDescription> {
+                    new InstrumentDescription { Symbol = "AAPL", Exchange = "NASDAQ" }, new InstrumentDescription { Symbol = "AMD", Exchange = "NASDAQ" }, new InstrumentDescription { Symbol = "AMZN", Exchange = "NASDAQ" }, new InstrumentDescription { Symbol = "ATVI", Exchange = "NASDAQ" }, new InstrumentDescription { Symbol = "BA", Exchange = "NYSE" }, new InstrumentDescription { Symbol = "BAC-A", Exchange = "NYSE" }, new InstrumentDescription { Symbol = "BIDU", Exchange = "NASDAQ" }, new InstrumentDescription { Symbol = "C-J", Exchange = "NYSE" }, new InstrumentDescription { Symbol = "FB", Exchange = "NASDAQ" }, new InstrumentDescription { Symbol = "FCX", Exchange = "NYSE" }, new InstrumentDescription { Symbol = "FSLR", Exchange = "NASDAQ" }, new InstrumentDescription { Symbol = "GM", Exchange = "NYSE" }, new InstrumentDescription { Symbol = "GOOG", Exchange = "NASDAQ" }, new InstrumentDescription { Symbol = "GOOGL", Exchange = "NASDAQ" }, new InstrumentDescription { Symbol = "GS", Exchange = "NYSE" }, new InstrumentDescription { Symbol = "GWPH", Exchange = "NASDAQ" }, new InstrumentDescription { Symbol = "JPM", Exchange = "NYSE" }, new InstrumentDescription { Symbol = "MCD", Exchange = "NYSE" }, new InstrumentDescription { Symbol = "MSFT", Exchange = "NASDAQ" }, new InstrumentDescription { Symbol = "NFLX", Exchange = "NASDAQ" }, new InstrumentDescription { Symbol = "NKE", Exchange = "NYSE" }, new InstrumentDescription { Symbol = "NVDA", Exchange = "NASDAQ" }, new InstrumentDescription { Symbol = "PFE", Exchange = "NYSE" }, new InstrumentDescription { Symbol = "PGHH", Exchange = "NSE" }, new InstrumentDescription { Symbol = "PTON", Exchange = "NASDAQ" }, new InstrumentDescription { Symbol = "QCOM", Exchange = "NASDAQ" }, new InstrumentDescription { Symbol = "RACE", Exchange = "NYSE" }, new InstrumentDescription { Symbol = "SNAP", Exchange = "NYSE" }, new InstrumentDescription { Symbol = "TLRY", Exchange = "NASDAQ" }, new InstrumentDescription { Symbol = "BYND", Exchange = "NASDAQ" }, new InstrumentDescription { Symbol = "TSLA", Exchange = "NASDAQ" }, new InstrumentDescription { Symbol = "TWTR", Exchange = "NYSE" }, new InstrumentDescription { Symbol = "UBER", Exchange = "NYSE" }, new InstrumentDescription { Symbol = "WMT", Exchange = "NYSE" }, new InstrumentDescription { Symbol = "XOM", Exchange = "NYSE" }, new InstrumentDescription { Symbol = "ZM", Exchange = "NASDAQ" }, new InstrumentDescription { Symbol = "GE", Exchange = "NYSE" }, new InstrumentDescription { Symbol = "AAL", Exchange = "NASDAQ" }, new InstrumentDescription { Symbol = "DELTA", Exchange = "BSE" }, new InstrumentDescription { Symbol = "GPRO", Exchange = "NASDAQ" }, new InstrumentDescription { Symbol = "ACB", Exchange = "TSX" }, new InstrumentDescription { Symbol = "CUK", Exchange = "NYSE" }, new InstrumentDescription { Symbol = "CCL", Exchange = "BSE" }, new InstrumentDescription { Symbol = "NCLH", Exchange = "NYSE" }, new InstrumentDescription { Symbol = "FIT", Exchange = "NYSE" }, new InstrumentDescription { Symbol = "PLUG", Exchange = "NASDAQ" }, new InstrumentDescription { Symbol = "UAL", Exchange = "NASDAQ" }, new InstrumentDescription { Symbol = "WEED", Exchange = "TSX" }, new InstrumentDescription { Symbol = "CSCO", Exchange = "NASDAQ" }
+                };
+            }
+        }
+        public static List<InstrumentDescription> CryptoInstrumentList
+        {
+            get
+            {
+                return new List<InstrumentDescription> {
+                    new InstrumentDescription { Symbol = "eth-btc", Exchange = "Binance" },
+                    new InstrumentDescription { Symbol = "xrp-btc", Exchange = "Binance" },
+                    new InstrumentDescription { Symbol = "xlm-btc", Exchange = "Binance" },
+                    new InstrumentDescription { Symbol = "ltc-btc", Exchange = "Binance" },
+                    new InstrumentDescription { Symbol = "link-btc", Exchange = "Binance" },
+                    new InstrumentDescription { Symbol = "yfi-btc", Exchange = "Binance" },
+                    new InstrumentDescription { Symbol = "ada-btc", Exchange = "Binance" },
+                    new InstrumentDescription { Symbol = "xem-btc", Exchange = "Binance" },
+                    new InstrumentDescription { Symbol = "xmr-btc", Exchange = "Binance" },
+                    new InstrumentDescription { Symbol = "bch-btc", Exchange = "Binance" },
+                    new InstrumentDescription { Symbol = "eos-btc", Exchange = "Binance" },
+                    new InstrumentDescription { Symbol = "trx-btc", Exchange = "Binance" },
+                    new InstrumentDescription { Symbol = "eth-usdt", Exchange = "Binance" },
+                    new InstrumentDescription { Symbol = "btc-usdt", Exchange = "Binance" },
+                    new InstrumentDescription { Symbol = "bch-usdt", Exchange = "Binance" },
+                    new InstrumentDescription { Symbol = "xrp-usdt", Exchange = "Binance" },
+                    new InstrumentDescription { Symbol = "ltc-usdt", Exchange = "Binance" },
+                    new InstrumentDescription { Symbol = "link-usdt", Exchange = "Binance" },
+                    new InstrumentDescription { Symbol = "ada-usdt", Exchange = "Binance" },
+                    new InstrumentDescription { Symbol = "yfi-usdt", Exchange = "Binance" },
+                    new InstrumentDescription { Symbol = "xmr-usdt", Exchange = "Binance" },
+                    new InstrumentDescription { Symbol = "trx-usdt", Exchange = "Binance" },
+                    new InstrumentDescription { Symbol = "eos-usdt", Exchange = "Binance" }
                 };
             }
         }
