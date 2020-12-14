@@ -41,7 +41,7 @@ namespace Algoserver.API.Services
             _historyService = historyService;
         }
 
-        public ScanResponse ScanSwingOldStrategy(ScanningHistory history, decimal sl_ration = 1.7m)
+        protected ScanResponse _scanSwingOldStrategy(ScanningHistory history, decimal sl_ration = 1.7m)
         {
             if (history.Close == null)
             {
@@ -123,9 +123,17 @@ namespace Algoserver.API.Services
                 sl_ratio = sl_ration
             };
         }
-
-        public ScanResponse ScanSwing(ScanningHistory history, ScanningHistory dailyHistory, Trend trendGlobal, Trend trendLocal, decimal sl_ration = 1.7m)
+        public ScanResponse ScanSwingOldStrategy(ScanningHistory history, decimal sl_ration = 1.7m)
         {
+            try {
+                return this._scanSwingOldStrategy(history, sl_ration);
+            } catch(Exception ex) {
+                return null;
+            }
+        }
+
+
+        protected ScanResponse _scanSwing(ScanningHistory history, ScanningHistory dailyHistory, Trend trendGlobal, Trend trendLocal, decimal sl_ration = 1.7m) {
             if (history.Close == null)
             {
                 return null;
@@ -155,8 +163,17 @@ namespace Algoserver.API.Services
                 return swingExt;
             }
         }
+        public ScanResponse ScanSwing(ScanningHistory history, ScanningHistory dailyHistory, Trend trendGlobal, Trend trendLocal, decimal sl_ration = 1.7m)
+        {
+            try {
+                return this._scanSwing(history, dailyHistory, trendGlobal, trendLocal, sl_ration);
+            } catch(Exception ex) {
+                return null;
+            }
+        }
 
-        public ScanResponse ScanBRC(ScanningHistory history, Trend trend, decimal sl_ration = 1.7m)
+
+        protected ScanResponse _scanBRC(ScanningHistory history, Trend trend, decimal sl_ration = 1.7m) 
         {
             if (history.Close == null)
             {
@@ -301,7 +318,17 @@ namespace Algoserver.API.Services
             };
         }
 
-        public ScanResponse ScanExt(ScanningHistory history, ScanningHistory dailyHistory, Trend trend, decimal sl_ration = 1.7m)
+        public ScanResponse ScanBRC(ScanningHistory history, Trend trend, decimal sl_ration = 1.7m)
+        {
+            try {
+                return this._scanBRC(history, trend, sl_ration);
+            } catch(Exception ex) {
+                return null;
+            }
+        }
+
+
+        protected ScanResponse _scanExt(ScanningHistory history, ScanningHistory dailyHistory, Trend trend, decimal sl_ration = 1.7m)
         {
             if (history.Close == null)
             {
@@ -454,6 +481,16 @@ namespace Algoserver.API.Services
                 sl_ratio = sl_ration
             };
         }
+
+        public ScanResponse ScanExt(ScanningHistory history, ScanningHistory dailyHistory, Trend trend, decimal sl_ration = 1.7m)
+        {
+            try {
+                return this._scanExt(history, dailyHistory, trend, sl_ration);
+            } catch(Exception ex) {
+                return null;
+            }
+        }
+
 
         private bool isDailySupportAndResistanceValid(ScanningHistory dailyHistory, Trend trend) {
             var high = dailyHistory.High;
