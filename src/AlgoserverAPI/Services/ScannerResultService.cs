@@ -37,6 +37,18 @@ namespace Algoserver.API.Services
             res1.AddRange(res2);
             res1.AddRange(res3);
 
+            // todo move this calc on front
+            res1.Sort((a, b) => {
+                var diff = a.time - b.time;
+                if (diff == 0) {
+                    return 0;
+                } else if (diff > 0) {
+                    return 1;
+                } else {
+                    return -1;
+                }
+            });
+
             return new ScannerHistoryResponse
             {
                 items = res1

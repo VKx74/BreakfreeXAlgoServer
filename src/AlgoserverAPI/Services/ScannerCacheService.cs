@@ -217,7 +217,7 @@ namespace Algoserver.API.Services
 
             lock (_resultHistory)
             {
-                while (_resultHistory.Count >= 1000)
+                while (_resultHistory.Count >= 500)
                 {
                     _resultHistory.RemoveAt(0);
                 }
