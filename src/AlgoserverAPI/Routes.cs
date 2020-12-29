@@ -4,6 +4,7 @@
     {
         public const string Calculate = "calculate";
         public const string CalculateV2 = "calculate_v2";
+        public const string CalculateMarketInfo = "calculate_market_info";
         public const string Backtest = "backtest";
         public const string StrategyV2Backtest = "strategy_v2_backtest";
         public const string HitTestExtensions = "hittest_ext";

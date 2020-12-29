@@ -10,6 +10,15 @@ namespace Algoserver.API.Models.REST
         public StrategyModeV1 trade {get;set;}
     }
 
+    public class CalculationMarketInfoResponse {
+        public decimal support { get; set; }
+        public decimal resistance { get; set; }
+        public decimal natural { get; set; }
+        public decimal last_price { get; set; }
+        public Trend local_trend { get; set; }
+        public Trend global_trend { get; set; }
+    }
+
     public class CalculationResponseV2 {
         public CalculationLevels levels {get;set;}
         public StrategyModeV2 trade {get;set;}

@@ -114,6 +114,30 @@ namespace Algoserver.API.Services
             return result;
         }
 
+        public async Task<CalculationMarketInfoResponse> CalculateMarketInfoAsync(Instrument instrument) {
+            var data = await _historyService.GetHistory(instrument.Id, TimeframeHelper.DAILY_GRANULARITY, instrument.Datafeed, instrument.Exchange, instrument.Type);
+            var high = data.Bars.Select(_ => _.High);
+            var low = data.Bars.Select(_ => _.Low);
+            var close = data.Bars.Select(_ => _.Close).ToList();
+
+            var levels = TechCalculations.CalculateLevel128(high, low);
+            var trend = TrendDetector.CalculateByMesaBy2TrendAdjusted(close);
+
+            var topExt = levels.Plus18;
+            var natural = levels.FourEight;
+            var bottomExt = levels.Minus18;
+            var support = levels.ZeroEight;
+            var resistance = levels.EightEight;
+            return new CalculationMarketInfoResponse {
+                global_trend = trend.GlobalTrend,
+                local_trend = trend.LocalTrend,
+                natural = natural,
+                resistance = resistance,
+                support = support,
+                last_price = close.LastOrDefault()
+            };
+        }
+
         public async Task<CalculationResponseV2> CalculateV2Async(CalculationRequest req)
         {
             var container = await InitAsync(req);
