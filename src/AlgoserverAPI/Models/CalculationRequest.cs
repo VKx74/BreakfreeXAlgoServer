@@ -71,5 +71,10 @@ namespace Algoserver.API.Models.REST
 
         [JsonProperty("dependInstrument")]
         public string DependInstrument { get; set; } // AUD
+        
+        public override string ToString()
+        {
+            return $"{Id}-{Exchange}-{Datafeed}";
+        }
     }
 }

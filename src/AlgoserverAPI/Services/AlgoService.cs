@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Algoserver.API.Helpers;
 using Algoserver.API.Models.Algo;
 using Algoserver.API.Models.REST;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 namespace Algoserver.API.Services
@@ -15,13 +16,15 @@ namespace Algoserver.API.Services
         private readonly ILogger<AlgoService> _logger;
         private readonly HistoryService _historyService;
         private readonly ScannerService _scanner;
+        private readonly IMemoryCache _cache;
         private readonly PriceRatioCalculationService _priceRatioCalculationService;
 
-        public AlgoService(ILogger<AlgoService> logger, HistoryService historyService, PriceRatioCalculationService priceRatioCalculationService, ScannerService scanner)
+        public AlgoService(ILogger<AlgoService> logger, HistoryService historyService, PriceRatioCalculationService priceRatioCalculationService, ScannerService scanner, IMemoryCache cache)
         {
             _logger = logger;
             _historyService = historyService;
             _scanner = scanner;
+            _cache = cache;
             _priceRatioCalculationService = priceRatioCalculationService;
         }
 
@@ -115,6 +118,12 @@ namespace Algoserver.API.Services
         }
 
         public async Task<CalculationMarketInfoResponse> CalculateMarketInfoAsync(Instrument instrument) {
+            var cachedResponse = tryGetCalculateMarketInfoFromCache(instrument);
+
+            if (cachedResponse != null) {
+                return cachedResponse;
+            }
+           
             var data = await _historyService.GetHistory(instrument.Id, TimeframeHelper.DAILY_GRANULARITY, instrument.Datafeed, instrument.Exchange, instrument.Type);
             var high = data.Bars.Select(_ => _.High);
             var low = data.Bars.Select(_ => _.Low);
@@ -128,7 +137,7 @@ namespace Algoserver.API.Services
             var bottomExt = levels.Minus18;
             var support = levels.ZeroEight;
             var resistance = levels.EightEight;
-            return new CalculationMarketInfoResponse {
+            var result = new CalculationMarketInfoResponse {
                 global_trend = trend.GlobalTrend,
                 local_trend = trend.LocalTrend,
                 natural = natural,
@@ -136,6 +145,10 @@ namespace Algoserver.API.Services
                 support = support,
                 last_price = close.LastOrDefault()
             };
+
+            tryAddCalculateMarketInfoInCache(instrument, result);
+
+            return result;
         }
 
         public async Task<CalculationResponseV2> CalculateV2Async(CalculationRequest req)
@@ -677,6 +690,36 @@ namespace Algoserver.API.Services
                 trade = toStrategyModeV2(scanRes),
                 size = size
             };
+        }
+        private CalculationMarketInfoResponse tryGetCalculateMarketInfoFromCache(Instrument instrument) {
+            var hash = instrument.ToString() + "_marketinfo";
+            try
+            {
+                if (_cache.TryGetValue(hash, out CalculationMarketInfoResponse cachedResponse))
+                {
+                    return cachedResponse;
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Failed to get cached response for marketinfo");
+                _logger.LogError(e.Message);
+            }
+
+            return null;
+        } 
+        
+        private void tryAddCalculateMarketInfoInCache(Instrument instrument, CalculationMarketInfoResponse data) {
+            var hash = instrument.ToString() + "_marketinfo";
+            try
+            {
+                _cache.Set(hash, data, TimeSpan.FromMinutes(10));
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Failed to add cached response for marketinfo");
+                _logger.LogError(e.Message);
+            }
         }
 
         public CalculationLevels ToLevels(Levels levels, SupportAndResistanceResult sar)
