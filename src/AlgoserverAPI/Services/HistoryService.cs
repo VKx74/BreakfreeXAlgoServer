@@ -253,6 +253,15 @@ namespace Algoserver.API.Services
 
         private string getHash(string symbol, int granularity, string datafeed, string exchange = "")
         {
+            if (!String.IsNullOrEmpty(symbol)) {
+                symbol = symbol.ToLowerInvariant();
+            }
+            if (!String.IsNullOrEmpty(datafeed)) {
+                datafeed = datafeed.ToLowerInvariant();
+            }
+            if (!String.IsNullOrEmpty(exchange)) {
+                exchange = exchange.ToLowerInvariant();
+            }
             return $"{symbol}{granularity}{datafeed}{exchange}";
         }
     }
