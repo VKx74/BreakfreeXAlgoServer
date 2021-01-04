@@ -8,6 +8,8 @@ namespace Algoserver.API.Helpers
     public class ExtendedTrendResult {
         public Trend GlobalTrend { get; set; }
         public Trend LocalTrend { get; set; }
+        public decimal LocalTrendSpread { get; set; }
+        public decimal GlobalTrendSpread { get; set; }
     }
     public static class TrendDetector
     {
@@ -27,9 +29,14 @@ namespace Algoserver.API.Helpers
             var mesa_global_value = mesa_global.LastOrDefault();
             var mesa_local_value = mesa_local.LastOrDefault();
 
+            var globalTrendDiff = Math.Abs(mesa_global_value.Fast - mesa_global_value.Slow) / Math.Min(mesa_global_value.Fast, mesa_global_value.Slow) * 100;
+            var localTrendDiff = Math.Abs(mesa_local_value.Fast - mesa_local_value.Slow) / Math.Min(mesa_local_value.Fast, mesa_local_value.Slow) * 100;
+
             return new ExtendedTrendResult {
                 GlobalTrend = mesa_global_value.Fast > mesa_global_value.Slow ? Trend.Up : Trend.Down,
                 LocalTrend = mesa_local_value.Fast > mesa_local_value.Slow ? Trend.Up : Trend.Down,
+                LocalTrendSpread = localTrendDiff,
+                GlobalTrendSpread = globalTrendDiff
             };
         }
         

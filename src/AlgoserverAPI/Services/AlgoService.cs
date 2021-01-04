@@ -143,7 +143,9 @@ namespace Algoserver.API.Services
                 natural = natural,
                 resistance = resistance,
                 support = support,
-                last_price = close.LastOrDefault()
+                last_price = close.LastOrDefault(),
+                global_trend_spread = trend.GlobalTrendSpread,
+                local_trend_spread = trend.LocalTrendSpread
             };
 
             tryAddCalculateMarketInfoInCache(instrument, result);
