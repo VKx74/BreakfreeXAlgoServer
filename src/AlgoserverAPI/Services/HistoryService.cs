@@ -21,13 +21,12 @@ namespace Algoserver.API.Services
     {
         private const int BARS_COUNT = 500;
         private const int ONE_DAY_TIME_SHIFT = 60 * 60 * 24;
-
         private readonly HttpClient _httpClient;
         private readonly ILogger<HistoryService> _logger;
-        // private readonly IHttpContextAccessor _contextAccessor;
         private readonly AuthService _auth;
         private readonly string _serverUrl;
         private readonly IMemoryCache _cache;
+        private readonly Dictionary<string, Task<HistoryData>> _requestCache = new Dictionary<string, Task<HistoryData>>();
 
         public HistoryService(ILogger<HistoryService> logger, IConfiguration configuration, IMemoryCache cache, AuthService auth)
         {
@@ -97,7 +96,7 @@ namespace Algoserver.API.Services
             return result;
         }
 
-        private async Task<HistoryData> LoadHistoricalData(string datafeed, string symbol, int granularity, long bars_count, string exchange, int repeatCount = 5)
+        private async Task<HistoryData> SendHistoricalRequest(string datafeed, string symbol, int granularity, long bars_count, string exchange, int repeatCount)
         {
             var bearerdatafeed = datafeed.ToLowerInvariant();
 
@@ -173,6 +172,42 @@ namespace Algoserver.API.Services
             return result;
         }
 
+        private async Task<HistoryData> LoadHistoricalData(string datafeed, string symbol, int granularity, long bars_count, string exchange, int repeatCount = 5)
+        {
+            var hash = GetHistoricalRequestHash(datafeed, symbol, granularity, bars_count, exchange, repeatCount);
+            HistoryData returnResult = null;
+            try
+            {
+                Task<HistoryData> res;
+                lock (_requestCache)
+                {
+                    if (!_requestCache.TryGetValue(hash, out res))
+                    {
+                        res = SendHistoricalRequest(datafeed, symbol, granularity, bars_count, exchange, repeatCount);
+                        _requestCache.TryAdd(hash, res);
+                    }
+                }
+                returnResult = await res;
+            }
+            catch (Exception ex)
+            {
+            }
+            finally
+            {
+                lock (_requestCache)
+                {
+                    _requestCache.Remove(hash);
+                }
+            }
+
+            return returnResult;
+        }
+
+        private string GetHistoricalRequestHash(string datafeed, string symbol, int granularity, long bars_count, string exchange, int repeatCount)
+        {
+            return datafeed + symbol + granularity.ToString() + bars_count + exchange + repeatCount.ToString();
+        }
+
         private IEnumerable<BarMessage> mergeBars(IEnumerable<BarMessage> existingBars, IEnumerable<BarMessage> newBars)
         {
             var firstBar = existingBars.FirstOrDefault();
@@ -205,7 +240,8 @@ namespace Algoserver.API.Services
             var endDate = this.getEndDate(data);
             var mult = 3;
 
-            if (data.Granularity < 86400 && data.Datafeed == "Twelvedata") {
+            if (data.Granularity < 86400 && data.Datafeed == "Twelvedata")
+            {
                 mult = 10;
             }
 
@@ -253,13 +289,16 @@ namespace Algoserver.API.Services
 
         private string getHash(string symbol, int granularity, string datafeed, string exchange = "")
         {
-            if (!String.IsNullOrEmpty(symbol)) {
+            if (!String.IsNullOrEmpty(symbol))
+            {
                 symbol = symbol.ToLowerInvariant();
             }
-            if (!String.IsNullOrEmpty(datafeed)) {
+            if (!String.IsNullOrEmpty(datafeed))
+            {
                 datafeed = datafeed.ToLowerInvariant();
             }
-            if (!String.IsNullOrEmpty(exchange)) {
+            if (!String.IsNullOrEmpty(exchange))
+            {
                 exchange = exchange.ToLowerInvariant();
             }
             return $"{symbol}{granularity}{datafeed}{exchange}";

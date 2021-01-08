@@ -41,6 +41,8 @@ namespace Algoserver.API
             .AddDataAnnotations()
             .AddAuthorization();
 
+            var scanInstruments = Configuration.GetValue<bool>("ScanInstruments");
+
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddLogging(opt => opt.AddConsole().AddDebug());
             services.AddSingleton<IConfiguration>(Configuration);
@@ -59,9 +61,12 @@ namespace Algoserver.API
             services.AddSingleton<ScannerResultService>();
             services.AddSingleton<RTDService>();
             services.AddSingleton<StatisticsService>();
-            services.AddHostedService<StockHistoryLoaderHostedService>();
-            services.AddHostedService<ForexHistoryLoaderHostedService>();
-            services.AddHostedService<CryptoHistoryLoaderHostedService>();
+
+            if (scanInstruments) {
+                // services.AddHostedService<StockHistoryLoaderHostedService>();
+                services.AddHostedService<ForexHistoryLoaderHostedService>();
+                // services.AddHostedService<CryptoHistoryLoaderHostedService>();
+            }
 
             services.AddCors(options =>
             {
