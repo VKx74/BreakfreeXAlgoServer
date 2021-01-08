@@ -63,9 +63,9 @@ namespace Algoserver.API
             services.AddSingleton<StatisticsService>();
 
             if (scanInstruments) {
-                // services.AddHostedService<StockHistoryLoaderHostedService>();
+                services.AddHostedService<StockHistoryLoaderHostedService>();
                 services.AddHostedService<ForexHistoryLoaderHostedService>();
-                // services.AddHostedService<CryptoHistoryLoaderHostedService>();
+                services.AddHostedService<CryptoHistoryLoaderHostedService>();
             }
 
             services.AddCors(options =>
