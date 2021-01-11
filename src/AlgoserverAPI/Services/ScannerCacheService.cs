@@ -10,62 +10,80 @@ namespace Algoserver.API.Services
 {
     public class ScannerForexCacheService : ScannerCacheService
     {
-        public ScannerForexCacheService(ScannerForexHistoryService historyService, ScannerService scanner) : base(historyService, scanner)
+        public ScannerForexCacheService(ScannerForexHistoryService historyService, ScannerService scanner, ICacheService cache) : base(historyService, scanner, cache)
         {
+        }
+
+        protected override string cachePrefix()
+        {
+            return "ForexScanner_";
         }
     }
 
     public class ScannerStockCacheService : ScannerCacheService
     {
-        public ScannerStockCacheService(ScannerStockHistoryService historyService, ScannerService scanner) : base(historyService, scanner)
+        public ScannerStockCacheService(ScannerStockHistoryService historyService, ScannerService scanner, ICacheService cache) : base(historyService, scanner, cache)
         {
+        }
+        protected override string cachePrefix()
+        {
+            return "StockScanner_";
         }
     }
 
     public class ScannerCryptoCacheService : ScannerCacheService
     {
-        public ScannerCryptoCacheService(ScannerCryptoHistoryService historyService, ScannerService scanner) : base(historyService, scanner)
+        public ScannerCryptoCacheService(ScannerCryptoHistoryService historyService, ScannerService scanner, ICacheService cache) : base(historyService, scanner, cache)
         {
+        }
+        protected override string cachePrefix()
+        {
+            return "CryptoScanner_";
         }
     }
 
     public abstract class ScannerCacheService
     {
+        protected readonly ICacheService _cache;
         protected readonly ScannerHistoryService _historyService;
         protected readonly ScannerService _scanner;
-        protected readonly List<ScannerResponseItem> _scannerResults = new List<ScannerResponseItem>();
+        protected readonly string _scannerDataCacheKey = "data";
+        protected readonly string _scannerHistoryCacheKey = "history";
+        // protected readonly List<ScannerResponseItem> _scannerResults = new List<ScannerResponseItem>();
         protected readonly List<ScannerResponseHistoryItem> _resultHistory = new List<ScannerResponseHistoryItem>();
         protected int scanning_time { get; set; }
         protected int data_count_15_min { get; set; }
         protected int data_count_1_h { get; set; }
         protected int data_count_4_h { get; set; }
         protected int data_count_1_d { get; set; }
-
         public string RefreshAllMarketsTime { get; set; }
         public string RefreshMarketsTime { get; set; }
 
-        public ScannerCacheService(ScannerHistoryService historyService, ScannerService scanner)
+        public ScannerCacheService(ScannerHistoryService historyService, ScannerService scanner, ICacheService cache)
         {
+            _cache = cache;
             _historyService = historyService;
             _scanner = scanner;
         }
 
         public List<ScannerResponseItem> GetData()
         {
-            List<ScannerResponseItem> res;
-            lock (_scannerResults)
+            if (_cache.TryGetValue(cachePrefix(), _scannerDataCacheKey, out List<ScannerResponseItem> cachedResponse))
             {
-                return _scannerResults.ToList();
+                return cachedResponse.ToList();
             }
+
+            return new List<ScannerResponseItem>();
         }
 
         public List<ScannerResponseHistoryItem> GetHistoryData()
         {
-            List<ScannerResponseHistoryItem> res;
-            lock (_resultHistory)
+            if (_cache.TryGetValue(cachePrefix(), _scannerHistoryCacheKey, out List<ScannerResponseHistoryItem> cachedResponse))
             {
-                return _resultHistory.ToList();
+                return cachedResponse.ToList();
             }
+
+            return new List<ScannerResponseHistoryItem>();
         }
 
         public void ScanMarkets()
@@ -171,11 +189,11 @@ namespace Algoserver.API.Services
                 }
             }
 
-            lock (_scannerResults)
+            try
             {
-                _scannerResults.Clear();
-                _scannerResults.AddRange(res);
+                _cache.Set(cachePrefix(), _scannerDataCacheKey, res.ToList(), TimeSpan.FromDays(1));
             }
+            catch (Exception ex) { }
 
             data_count_15_min = _15Mins.Count;
             data_count_1_h = _1Hour.Count;
@@ -228,6 +246,14 @@ namespace Algoserver.API.Services
                     time = AlgoHelper.UnixTimeNow()
                 });
             }
+
+
+            try
+            {
+                _cache.Set(cachePrefix(), _scannerHistoryCacheKey, _resultHistory.ToList(), TimeSpan.FromDays(1));
+            }
+            catch (Exception ex) { }
         }
+        protected abstract string cachePrefix();
     }
 }

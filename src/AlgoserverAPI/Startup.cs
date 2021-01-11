@@ -43,6 +43,8 @@ namespace Algoserver.API
 
             var scanInstruments = Configuration.GetValue<bool>("ScanInstruments");
 
+
+            services.AddSingleton<ICacheService, MemoryCacheService>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddLogging(opt => opt.AddConsole().AddDebug());
             services.AddSingleton<IConfiguration>(Configuration);

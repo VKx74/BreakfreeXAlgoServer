@@ -25,10 +25,11 @@ namespace Algoserver.API.Services
         private readonly ILogger<HistoryService> _logger;
         private readonly AuthService _auth;
         private readonly string _serverUrl;
-        private readonly IMemoryCache _cache;
+        private readonly ICacheService _cache;
+        private string _cachePrefix = "History_";
         private readonly Dictionary<string, Task<HistoryData>> _requestCache = new Dictionary<string, Task<HistoryData>>();
 
-        public HistoryService(ILogger<HistoryService> logger, IConfiguration configuration, IMemoryCache cache, AuthService auth)
+        public HistoryService(ILogger<HistoryService> logger, IConfiguration configuration, ICacheService cache, AuthService auth)
         {
             _logger = logger;
             _cache = cache;
@@ -48,7 +49,7 @@ namespace Algoserver.API.Services
 
             try
             {
-                if (_cache.TryGetValue(hash, out HistoryData cachedResponse))
+                if (_cache.TryGetValue(_cachePrefix, hash, out HistoryData cachedResponse))
                 {
                     if (cachedResponse.Bars != null && cachedResponse.Bars.Count() - replayBack >= InputDataContainer.MIN_BARS_COUNT)
                     {
@@ -75,15 +76,15 @@ namespace Algoserver.API.Services
                 {
                     if (granularity > 60 * 15)
                     {
-                        _cache.Set(hash, result, TimeSpan.FromMinutes(5));
+                        _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(5));
                     }
                     else if (granularity > 60)
                     {
-                        _cache.Set(hash, result, TimeSpan.FromMinutes(3));
+                        _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(3));
                     }
                     else
                     {
-                        _cache.Set(hash, result, TimeSpan.FromMinutes(1));
+                        _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(1));
                     }
                 }
             }

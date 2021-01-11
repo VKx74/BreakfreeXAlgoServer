@@ -16,10 +16,11 @@ namespace Algoserver.API.Services
         private readonly ILogger<AlgoService> _logger;
         private readonly HistoryService _historyService;
         private readonly ScannerService _scanner;
-        private readonly IMemoryCache _cache;
+        private readonly ICacheService _cache;
+        private string _cachePrefix = "MarketInfo_";
         private readonly PriceRatioCalculationService _priceRatioCalculationService;
 
-        public AlgoService(ILogger<AlgoService> logger, HistoryService historyService, PriceRatioCalculationService priceRatioCalculationService, ScannerService scanner, IMemoryCache cache)
+        public AlgoService(ILogger<AlgoService> logger, HistoryService historyService, PriceRatioCalculationService priceRatioCalculationService, ScannerService scanner, ICacheService cache)
         {
             _logger = logger;
             _historyService = historyService;
@@ -697,7 +698,7 @@ namespace Algoserver.API.Services
             var hash = instrument.ToString() + "_marketinfo";
             try
             {
-                if (_cache.TryGetValue(hash, out CalculationMarketInfoResponse cachedResponse))
+                if (_cache.TryGetValue(_cachePrefix, hash, out CalculationMarketInfoResponse cachedResponse))
                 {
                     return cachedResponse;
                 }
@@ -715,7 +716,7 @@ namespace Algoserver.API.Services
             var hash = instrument.ToString() + "_marketinfo";
             try
             {
-                _cache.Set(hash, data, TimeSpan.FromMinutes(10));
+                _cache.Set(_cachePrefix, hash, data, TimeSpan.FromMinutes(10));
             }
             catch (Exception e)
             {

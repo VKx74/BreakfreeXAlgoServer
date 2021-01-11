@@ -13,9 +13,10 @@ namespace Algoserver.API.Services
         private readonly ILogger<PriceRatioCalculationService> _logger;
         private readonly HistoryService _historyService;
         private readonly InstrumentService _instrumentService;
-        private readonly IMemoryCache _cache;
+        private readonly ICacheService _cache;
+        private string _cachePrefix = "PriceRatio";
 
-        public PriceRatioCalculationService(ILogger<PriceRatioCalculationService> logger, HistoryService historyService, InstrumentService instrumentService, IMemoryCache cache)
+        public PriceRatioCalculationService(ILogger<PriceRatioCalculationService> logger, HistoryService historyService, InstrumentService instrumentService, ICacheService cache)
         {
             _cache = cache;
             _logger = logger;
@@ -26,7 +27,7 @@ namespace Algoserver.API.Services
         public async Task<decimal> GetUSDRatio(string symbol, string datafeed, string type, string exchange)
         {
             try {
-                if (_cache.TryGetValue(symbol, out decimal cachedResponse)) {
+                if (_cache.TryGetValue(_cachePrefix, symbol, out decimal cachedResponse)) {
                     return cachedResponse;
                 }
             } catch(Exception e) {
@@ -74,7 +75,7 @@ namespace Algoserver.API.Services
             }
 
             try {
-                _cache.Set(symbol, result, TimeSpan.FromHours(1));
+                _cache.Set(_cachePrefix, symbol, result, TimeSpan.FromHours(1));
             } catch(Exception e) {
                 _logger.LogError("Failed to set cached response");
                 _logger.LogError(e.Message);
