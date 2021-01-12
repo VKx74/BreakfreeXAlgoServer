@@ -44,7 +44,7 @@ namespace Algoserver.API.Controllers
             }
 
             var result = await _algoService.CalculateV2Async(request);
-            return ToEncryptedResponse(result);
+            return await ToEncryptedResponse(result);
         }
 
         [Authorize]
@@ -58,7 +58,7 @@ namespace Algoserver.API.Controllers
             }
 
             var result = await _algoService.CalculateMarketInfoAsync(request);
-            return ToEncryptedResponse(result);
+            return await ToEncryptedResponse(result);
         }
             
         [Authorize]
@@ -94,7 +94,7 @@ namespace Algoserver.API.Controllers
                 SplitPositions = request.InputSplitPositions
             });
 
-            return ToEncryptedResponse(result);
+            return await ToEncryptedResponse(result);
         }
         
         [Authorize]
@@ -109,7 +109,7 @@ namespace Algoserver.API.Controllers
 
             var result = await _algoService.BacktestAsync(request);
 
-            return ToEncryptedResponse(result);
+            return await ToEncryptedResponse(result);
         } 
         
         [Authorize]
@@ -124,7 +124,7 @@ namespace Algoserver.API.Controllers
 
             var result = await _algoService.Strategy2BacktestAsync(request);
 
-            return ToEncryptedResponse(result);
+            return await ToEncryptedResponse(result);
         } 
         
         [Authorize]
@@ -139,7 +139,7 @@ namespace Algoserver.API.Controllers
 
             var result = await _algoService.HitTestExtensionsAsync(request);
 
-            return ToEncryptedResponse(result);
+            return await ToEncryptedResponse(result);
         }
 
         [Authorize]
@@ -154,33 +154,35 @@ namespace Algoserver.API.Controllers
 
             var result = await _rtdService.CalculateMESARTD(request);
 
-            return ToEncryptedResponse(result);
+            return await ToEncryptedResponse(result);
         }
 
         [Authorize]
         [HttpGet(Routes.ScannerResults)]
         [ProducesResponseType(typeof(Response<ScannerResponse>), 200)]
-        public IActionResult ScannerResults([FromQuery] string segment = "")
+        public async Task<IActionResult> ScannerResults([FromQuery] string segment = "")
         {
             var res = _scannerResultService.GetData();
-            return ToEncryptedResponse(res);
+            return await ToEncryptedResponse(res);
         } 
         
         [Authorize]
         [HttpGet(Routes.ScannerHistoryResults)]
         [ProducesResponseType(typeof(Response<ScannerHistoryResponse>), 200)]
-        public IActionResult ScannerHistoryResults([FromQuery] string segment = "")
+        public async Task<IActionResult> ScannerHistoryResults([FromQuery] string segment = "")
         {
             var res = _scannerResultService.GetHistoryData();
-            return ToEncryptedResponse(res);
+            return await ToEncryptedResponse(res);
         }
 
         [NonAction]
-        public ActionResult ToEncryptedResponse(object data) {
-            var res = JsonConvert.SerializeObject(data);
-            var encryptedRes = EncryptionHelper.Encrypt(res);
-            return Json(new EncryptedResponse {
-                data = encryptedRes
+        public Task<JsonResult> ToEncryptedResponse(object data) {
+            return Task.Run(() => {
+                var res = JsonConvert.SerializeObject(data);
+                var encryptedRes = EncryptionHelper.Encrypt(res);
+                return Json(new EncryptedResponse {
+                    data = encryptedRes
+                });
             });
         }
     }

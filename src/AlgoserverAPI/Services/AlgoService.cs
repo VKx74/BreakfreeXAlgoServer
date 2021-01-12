@@ -118,13 +118,23 @@ namespace Algoserver.API.Services
             return result;
         }
 
-        public async Task<CalculationMarketInfoResponse> CalculateMarketInfoAsync(Instrument instrument) {
+        public Task<CalculationMarketInfoResponse> CalculateMarketInfoAsync(Instrument instrument)
+        {
+            return Task.Run(() =>
+            {
+                return calculateMarketInfoAsync(instrument);
+            });
+        }
+
+        private async Task<CalculationMarketInfoResponse> calculateMarketInfoAsync(Instrument instrument)
+        {
             var cachedResponse = tryGetCalculateMarketInfoFromCache(instrument);
 
-            if (cachedResponse != null) {
+            if (cachedResponse != null)
+            {
                 return cachedResponse;
             }
-           
+
             var data = await _historyService.GetHistory(instrument.Id, TimeframeHelper.DAILY_GRANULARITY, instrument.Datafeed, instrument.Exchange, instrument.Type);
             var high = data.Bars.Select(_ => _.High);
             var low = data.Bars.Select(_ => _.Low);
@@ -138,7 +148,8 @@ namespace Algoserver.API.Services
             var bottomExt = levels.Minus18;
             var support = levels.ZeroEight;
             var resistance = levels.EightEight;
-            var result = new CalculationMarketInfoResponse {
+            var result = new CalculationMarketInfoResponse
+            {
                 global_trend = trend.GlobalTrend,
                 local_trend = trend.LocalTrend,
                 natural = natural,
@@ -154,7 +165,15 @@ namespace Algoserver.API.Services
             return result;
         }
 
-        public async Task<CalculationResponseV2> CalculateV2Async(CalculationRequest req)
+        internal Task<CalculationResponseV2> CalculateV2Async(CalculationRequest req)
+        {
+            return Task.Run(() =>
+            {
+                return calculateV2Async(req);
+            });
+        }
+
+        private async Task<CalculationResponseV2> calculateV2Async(CalculationRequest req)
         {
             var container = await InitAsync(req);
             var levels = TechCalculations.CalculateLevels(container.High, container.Low);
@@ -165,8 +184,8 @@ namespace Algoserver.API.Services
                 High = container.High,
                 Low = container.Low,
                 Close = container.Close,
-            }; 
-            
+            };
+
             var dailyScanningHistory = new ScanningHistory
             {
                 Open = container.OpenD,
@@ -174,7 +193,7 @@ namespace Algoserver.API.Services
                 Low = container.LowD,
                 Close = container.CloseD,
             };
-            
+
             var isForex = container.Type == "forex";
             var symbol = container.Symbol;
             var accountSize = container.InputAccountSize * container.UsdRatio;
@@ -188,7 +207,7 @@ namespace Algoserver.API.Services
             {
                 var extendedTrendData = TrendDetector.CalculateByMesaBy2TrendAdjusted(container.CloseD);
                 var trend = TrendDetector.MergeTrends(extendedTrendData);
-                
+
                 if (container.TimeframePeriod != "d" && container.TimeframePeriod != "w")
                 {
                     scanRes = _scanner.ScanExt(scanningHistory, dailyScanningHistory, trend, sl_ratio);
@@ -662,8 +681,10 @@ namespace Algoserver.API.Services
             };
         }
 
-        private StrategyModeV2 toStrategyModeV2(ScanResponse scanRes) {
-            if (scanRes == null) {
+        private StrategyModeV2 toStrategyModeV2(ScanResponse scanRes)
+        {
+            if (scanRes == null)
+            {
                 return null;
             }
 
@@ -694,7 +715,8 @@ namespace Algoserver.API.Services
                 size = size
             };
         }
-        private CalculationMarketInfoResponse tryGetCalculateMarketInfoFromCache(Instrument instrument) {
+        private CalculationMarketInfoResponse tryGetCalculateMarketInfoFromCache(Instrument instrument)
+        {
             var hash = instrument.ToString() + "_marketinfo";
             try
             {
@@ -710,9 +732,10 @@ namespace Algoserver.API.Services
             }
 
             return null;
-        } 
-        
-        private void tryAddCalculateMarketInfoInCache(Instrument instrument, CalculationMarketInfoResponse data) {
+        }
+
+        private void tryAddCalculateMarketInfoInCache(Instrument instrument, CalculationMarketInfoResponse data)
+        {
             var hash = instrument.ToString() + "_marketinfo";
             try
             {

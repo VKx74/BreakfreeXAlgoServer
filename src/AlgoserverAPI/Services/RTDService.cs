@@ -26,9 +26,9 @@ namespace Algoserver.API.Services
         
         internal Task<RTDCalculationResponse> CalculateMESARTD(RTDCalculationRequest req)
         {
-            return Task.Run(async () =>
+            return Task.Run(() =>
             {
-                return await calculateMESARTD(req);
+                return calculateMESARTD(req);
             });
         }
 

@@ -163,6 +163,10 @@ namespace Algoserver.API.Services
                     return result;
                 }
 
+                if (requestCount > 0) {
+                    Console.WriteLine($"History request count {requestCount} - {uri}");
+                }
+
                 if (requestCount++ > repeatCount)
                 {
                     return result;
