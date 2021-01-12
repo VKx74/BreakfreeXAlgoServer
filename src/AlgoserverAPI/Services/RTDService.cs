@@ -44,8 +44,10 @@ namespace Algoserver.API.Services
             var calculation_input = dailyPriceData.Bars.Select(_ => _.Close).ToList();
             var dates = dailyPriceData.Bars.Select(_ => _.Timestamp).ToList();
 
-            var rtd1 = TechCalculations.MESA(calculation_input, req.FastLimit, req.SlowLimit);
-            var rtd2 = TechCalculations.MESA(calculation_input, req.FastLimit2, req.SlowLimit2);
+            // var rtd1 = TechCalculations.MESA(calculation_input, req.FastLimit, req.SlowLimit);
+            // var rtd2 = TechCalculations.MESA(calculation_input, req.FastLimit2, req.SlowLimit2);
+            var rtd1 = new List<MESAData>();
+            var rtd2 = new List<MESAData>();
 
             var mesa_local_value = rtd1.LastOrDefault();
             var mesa_global_value = rtd2.LastOrDefault();
