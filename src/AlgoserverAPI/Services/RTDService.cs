@@ -44,27 +44,31 @@ namespace Algoserver.API.Services
             var calculation_input = dailyPriceData.Bars.Select(_ => _.Close).ToList();
             var dates = dailyPriceData.Bars.Select(_ => _.Timestamp).ToList();
 
-            // var rtd1 = TechCalculations.MESA(calculation_input, req.FastLimit, req.SlowLimit);
-            // var rtd2 = TechCalculations.MESA(calculation_input, req.FastLimit2, req.SlowLimit2);
-            var rtd1 = new List<MESAData>();
-            var rtd2 = new List<MESAData>();
+
+            Console.WriteLine(">>> calculation_input: " + calculation_input.Count);
+            var rtd1 = TechCalculations.MESA(calculation_input, req.FastLimit, req.SlowLimit);
+            var rtd2 = TechCalculations.MESA(calculation_input, req.FastLimit2, req.SlowLimit2);
 
             var mesa_local_value = rtd1.LastOrDefault();
             var mesa_global_value = rtd2.LastOrDefault();
 
+            Console.WriteLine(">>> rtd1: " + rtd1.Length);
+            Console.WriteLine(">>> rtd2: " + rtd2.Length);
+
             var globalTrendDiff = 0m;
             var localTrendDiff = 0m;
-            if (mesa_global_value != null && mesa_local_value != null) {
-                globalTrendDiff = Math.Abs(mesa_global_value.Fast - mesa_global_value.Slow) / Math.Min(mesa_global_value.Fast, mesa_global_value.Slow) * 100;
-                localTrendDiff = Math.Abs(mesa_local_value.Fast - mesa_local_value.Slow) / Math.Min(mesa_local_value.Fast, mesa_local_value.Slow) * 100;
-            }
+            // if (mesa_global_value != null && mesa_local_value != null) {
+            //     globalTrendDiff = Math.Abs(mesa_global_value.Fast - mesa_global_value.Slow) / Math.Min(mesa_global_value.Fast, mesa_global_value.Slow) * 100;
+            //     localTrendDiff = Math.Abs(mesa_local_value.Fast - mesa_local_value.Slow) / Math.Min(mesa_local_value.Fast, mesa_local_value.Slow) * 100;
+            // }
+
 
             return new RTDCalculationResponse {
-                dates = dates,
-                fast = rtd1.Select(_ => _.Fast),
-                slow = rtd1.Select(_ => _.Slow),
-                fast_2 = rtd2.Select(_ => _.Fast),
-                slow_2 = rtd2.Select(_ => _.Slow),
+                dates = new List<long>(),
+                fast = new List<decimal>(),
+                slow = new List<decimal>(),
+                fast_2 = new List<decimal>(),
+                slow_2 = new List<decimal>(),
                 global_trend_spread = globalTrendDiff,
                 local_trend_spread = localTrendDiff
             };
