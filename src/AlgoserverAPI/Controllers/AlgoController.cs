@@ -155,6 +155,19 @@ namespace Algoserver.API.Controllers
             var result = await _rtdService.CalculateMESARTD(request);
             return await ToEncryptedResponse(result);
         }
+        
+        [HttpPost("rtd_test")]
+        [ProducesResponseType(typeof(Response<RTDCalculationResponse>), 200)]
+        public async Task<IActionResult> CalculateTestRTD([FromBody] RTDCalculationRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
+            }
+
+            var result = await _rtdService.CalculateMESARTD(request);
+            return Json(result);
+        }
 
         [Authorize]
         [HttpGet(Routes.ScannerResults)]
