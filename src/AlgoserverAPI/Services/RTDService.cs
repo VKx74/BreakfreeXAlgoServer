@@ -42,7 +42,7 @@ namespace Algoserver.API.Services
             var dailyPriceData = await _historyService.GetHistory(Symbol, TimeframeHelper.DAILY_GRANULARITY, Datafeed, Exchange, Type, req.BarsCount);
 
             var calculation_input = dailyPriceData.Bars.Select(_ => _.Close).ToList();
-            var dates = dailyPriceData.Bars.Select(_ => _.Timestamp).ToList();
+            var dates = dailyPriceData.Bars.Select(_ => _.Timestamp).ToArray();
 
             var rtd1 = TechCalculations.MESA(calculation_input, req.FastLimit, req.SlowLimit);
             var rtd2 = TechCalculations.MESA(calculation_input, req.FastLimit2, req.SlowLimit2);
@@ -59,10 +59,10 @@ namespace Algoserver.API.Services
 
             return new RTDCalculationResponse {
                 dates = dates,
-                fast = rtd1.Select(_ => _.Fast),
-                slow = rtd1.Select(_ => _.Slow),
-                fast_2 = rtd2.Select(_ => _.Fast),
-                slow_2 = rtd2.Select(_ => _.Slow),
+                fast = rtd1.Select(_ => _.Fast).ToArray(),
+                slow = rtd1.Select(_ => _.Slow).ToArray(),
+                fast_2 = rtd2.Select(_ => _.Fast).ToArray(),
+                slow_2 = rtd2.Select(_ => _.Slow).ToArray(),
                 global_trend_spread = globalTrendDiff,
                 local_trend_spread = localTrendDiff
             };
