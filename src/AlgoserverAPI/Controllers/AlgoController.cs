@@ -166,7 +166,8 @@ namespace Algoserver.API.Controllers
             }
 
             var result = await _rtdService.CalculateMESARTD(request);
-            return Json(result);
+            return Ok();
+            // return Json(result);
         }
 
         [Authorize]
