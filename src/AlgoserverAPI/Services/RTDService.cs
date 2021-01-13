@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Algoserver.API.Exceptions;
 using Algoserver.API.Helpers;
-using Algoserver.API.Models.Algo;
 using Algoserver.API.Models.REST;
 using Microsoft.Extensions.Logging;
 
@@ -41,6 +37,9 @@ namespace Algoserver.API.Services
             var Symbol = req.Instrument.Id;
 
             var dailyPriceData = await _historyService.GetHistory(Symbol, TimeframeHelper.DAILY_GRANULARITY, Datafeed, Exchange, Type, req.BarsCount);
+
+            if (dailyPriceData == null)
+                return null;
 
             var calculation_input = dailyPriceData.Bars.Select(_ => _.Close).ToList();
 

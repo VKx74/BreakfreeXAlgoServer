@@ -96,7 +96,7 @@ namespace Algoserver.API.Services
 
             foreach (var dailyHistory in _1Day)
             {
-                if (dailyHistory.Bars.Count() < 200)
+                if (dailyHistory == null || dailyHistory.Bars.Count() < 200)
                 {
                     continue;
                 }

@@ -134,7 +134,7 @@ namespace Algoserver.API
             app.UseAuthentication();
 
 #if !DEBUG
-            app.UseHttpsRedirection();
+            // app.UseHttpsRedirection();
 #endif
             var swaggerUIRoutePrefix = RoutePrefix + "/swagger";
             var swaggerEndpoint = $"/{RoutePrefix}/swagger/v1/swagger.json";
