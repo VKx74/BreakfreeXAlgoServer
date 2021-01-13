@@ -1,4 +1,5 @@
-﻿using Algoserver.API.Helpers;
+﻿using System;
+using Algoserver.API.Helpers;
 using Algoserver.API.Models.Algo;
 using Algoserver.API.Services;
 using Newtonsoft.Json;
@@ -10,6 +11,7 @@ namespace Algoserver.API.Models.REST
         public StrategyModeV1 trade {get;set;}
     }
 
+    [Serializable]
     public class CalculationMarketInfoResponse {
         public decimal support { get; set; }
         public decimal resistance { get; set; }

@@ -17,6 +17,7 @@ using Algoserver.API.Services;
 using Microsoft.AspNetCore.Http;
 using Algoserver.Auth.Services;
 using Algoserver.API.HostedServices;
+using Algoserver.API.Services.CacheServices;
 
 namespace Algoserver.API
 {
@@ -43,8 +44,13 @@ namespace Algoserver.API
 
             var scanInstruments = Configuration.GetValue<bool>("ScanInstruments");
 
-
-            services.AddSingleton<ICacheService, MemoryCacheService>();
+            services.AddDistributedRedisCache(options =>
+            {
+                options.Configuration = Configuration.GetConnectionString("RedisConnection");
+            });
+            
+            //services.AddSingleton<ICacheService, MemoryCacheService>();
+            services.AddSingleton<ICacheService, RedisCacheService>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddLogging(opt => opt.AddConsole().AddDebug());
             services.AddSingleton<IConfiguration>(Configuration);

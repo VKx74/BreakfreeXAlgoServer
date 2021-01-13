@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Algoserver.API.Helpers;
 using Algoserver.API.Models.Algo;
 using Algoserver.API.Models.REST;
-using Microsoft.Extensions.Caching.Memory;
+using Algoserver.API.Services.CacheServices;
 using Microsoft.Extensions.Logging;
 
 namespace Algoserver.API.Services
