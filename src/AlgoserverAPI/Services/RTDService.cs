@@ -75,7 +75,8 @@ namespace Algoserver.API.Services
                 fast_2 = rtd2.Select(_ => _.Fast),
                 slow_2 = rtd2.Select(_ => _.Slow),
                 global_trend_spread = globalTrendDiff,
-                local_trend_spread = localTrendDiff
+                local_trend_spread = localTrendDiff,
+                id = req.Id
             };
         }
     }

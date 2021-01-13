@@ -10,5 +10,6 @@ namespace Algoserver.API.Models.REST
         public IEnumerable<decimal> slow_2 { get; set; }
         public decimal local_trend_spread { get; set; }
         public decimal global_trend_spread { get; set; }
+        public string id { get; set; }
     }
 }
