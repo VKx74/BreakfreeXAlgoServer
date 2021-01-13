@@ -18,7 +18,6 @@ namespace Algoserver.API.Controllers
 {
     public class AlgoController : Controller
     {
-        public static string cached =  null;
         private ScannerResultService _scannerResultService;
         private AlgoService _algoService;
         private RTDService _rtdService;
@@ -161,17 +160,13 @@ namespace Algoserver.API.Controllers
         [ProducesResponseType(typeof(Response<RTDCalculationResponse>), 200)]
         public async Task<IActionResult> CalculateTestRTD([FromBody] RTDCalculationRequest request)
         {
-            if (!ModelState.IsValid)
+           if (!ModelState.IsValid)
             {
                 return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
             }
 
-            if (string.IsNullOrEmpty(AlgoController.cached)) {
-                var result = await _rtdService.CalculateMESARTD(request);
-                var res = JsonConvert.SerializeObject(result);
-                AlgoController.cached = res;
-            }
-            return Ok(AlgoController.cached);
+            var result = await _rtdService.CalculateMESARTD(request);
+            return await ToEncryptedResponse(result);
         }
 
         [Authorize]
