@@ -13,6 +13,7 @@ using IdentityModel;
 using RabbitMQ.Client.Impl;
 using Newtonsoft.Json;
 using Algoserver.API.Helpers;
+using System.Collections.Generic;
 
 namespace Algoserver.API.Controllers
 {
@@ -165,8 +166,14 @@ namespace Algoserver.API.Controllers
                 return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
             }
 
-            var result = await _rtdService.CalculateMESARTD(request);
-            return Json(result);
+            // var result = await _rtdService.CalculateMESARTD(request);
+            var list = new List<decimal>();
+            var d = 0.0m;
+            for (var i = 0; i < request.BarsCount; i++) {
+                list.Add(d);
+                d += 0.00000001m;
+            }
+            return await ToEncryptedResponse(list);
         }
 
         [Authorize]
