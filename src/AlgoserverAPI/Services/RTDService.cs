@@ -70,10 +70,10 @@ namespace Algoserver.API.Services
 
             return new RTDCalculationResponse {
                 dates = dates,
-                fast = rtd1.Select(_ => _.Fast).ToArray(),
-                slow = rtd1.Select(_ => _.Slow).ToArray(),
-                fast_2 = rtd2.Select(_ => _.Fast).ToArray(),
-                slow_2 = rtd2.Select(_ => _.Slow).ToArray(),
+                fast = rtd1.Select(_ => _.Fast),
+                slow = rtd1.Select(_ => _.Slow),
+                fast_2 = rtd2.Select(_ => _.Fast),
+                slow_2 = rtd2.Select(_ => _.Slow),
                 global_trend_spread = globalTrendDiff,
                 local_trend_spread = localTrendDiff
             };
