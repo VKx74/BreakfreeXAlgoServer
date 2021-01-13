@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using Algoserver.API.Exceptions;
 using Algoserver.API.Helpers;
@@ -24,12 +25,12 @@ namespace Algoserver.API.Services
             _historyService = historyService;
         }
         
-        internal Task<RTDCalculationResponse> CalculateMESARTD(RTDCalculationRequest req)
+        internal Task<RTDCalculationResponse> CalculateMESARTD(RTDCalculationRequest req, CancellationToken token)
         {
             return Task.Run(() =>
             {
                 return calculateMESARTD(req);
-            });
+            }, token);
         }
 
         private async Task<RTDCalculationResponse> calculateMESARTD(RTDCalculationRequest req) {

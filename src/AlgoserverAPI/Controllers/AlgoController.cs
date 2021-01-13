@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Security.Claims;
+using System.Threading;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -45,13 +46,13 @@ namespace Algoserver.API.Controllers
             }
 
             var result = await _algoService.CalculateV2Async(request);
-            return await ToEncryptedResponse(result);
+            return await ToEncryptedResponse(result, CancellationToken.None);
         }
 
         [Authorize]
         [HttpPost(Routes.CalculateMarketInfo)]
         [ProducesResponseType(typeof(Response<CalculationMarketInfoResponse>), 200)]
-        public async Task<IActionResult> CalculateMarketInfoAsync([FromBody] Instrument request)
+        public async Task<IActionResult> CalculateMarketInfoAsync([FromBody] Instrument request, CancellationToken token)
         {  
             if (!ModelState.IsValid)
             {
@@ -59,13 +60,13 @@ namespace Algoserver.API.Controllers
             }
 
             var result = await _algoService.CalculateMarketInfoAsync(request);
-            return await ToEncryptedResponse(result);
+            return await ToEncryptedResponse(result, token);
         }
             
         [Authorize]
         [HttpPost(Routes.Calculate)]
         [ProducesResponseType(typeof(Response<CalculationResponse>), 200)]
-        public async Task<IActionResult> CalculateAsync([FromBody] CalculationRequest request)
+        public async Task<IActionResult> CalculateAsync([FromBody] CalculationRequest request, CancellationToken token)
         {
             if (!ModelState.IsValid)
             {
@@ -95,13 +96,13 @@ namespace Algoserver.API.Controllers
                 SplitPositions = request.InputSplitPositions
             });
 
-            return await ToEncryptedResponse(result);
+            return await ToEncryptedResponse(result, token);
         }
         
         [Authorize]
         [HttpPost(Routes.Backtest)]
         [ProducesResponseType(typeof(Response<CalculationResponse>), 200)]
-        public async Task<IActionResult> BacktestAsync([FromBody] BacktestRequest request)
+        public async Task<IActionResult> BacktestAsync([FromBody] BacktestRequest request, CancellationToken token)
         {
             if (!ModelState.IsValid)
             {
@@ -110,13 +111,13 @@ namespace Algoserver.API.Controllers
 
             var result = await _algoService.BacktestAsync(request);
 
-            return await ToEncryptedResponse(result);
+            return await ToEncryptedResponse(result, token);
         } 
         
         [Authorize]
         [HttpPost(Routes.StrategyV2Backtest)]
         [ProducesResponseType(typeof(Response<CalculationResponse>), 200)]
-        public async Task<IActionResult> Strategy2BacktestAsync([FromBody] Strategy2BacktestRequest request)
+        public async Task<IActionResult> Strategy2BacktestAsync([FromBody] Strategy2BacktestRequest request, CancellationToken token)
         {
             if (!ModelState.IsValid)
             {
@@ -125,13 +126,13 @@ namespace Algoserver.API.Controllers
 
             var result = await _algoService.Strategy2BacktestAsync(request);
 
-            return await ToEncryptedResponse(result);
+            return await ToEncryptedResponse(result, token);
         } 
         
         [Authorize]
         [HttpPost(Routes.HitTestExtensions)]
         [ProducesResponseType(typeof(Response<CalculationResponse>), 200)]
-        public async Task<IActionResult> HitTestExtensions([FromBody] HittestRequest request)
+        public async Task<IActionResult> HitTestExtensions([FromBody] HittestRequest request, CancellationToken token)
         {
             if (!ModelState.IsValid)
             {
@@ -140,41 +141,38 @@ namespace Algoserver.API.Controllers
 
             var result = await _algoService.HitTestExtensionsAsync(request);
 
-            return await ToEncryptedResponse(result);
+            return await ToEncryptedResponse(result, token);
         }
 
         [Authorize]
         [HttpPost(Routes.RTCalculation)]
         [ProducesResponseType(typeof(Response<RTDCalculationResponse>), 200)]
-        public async Task<IActionResult> CalculateRTD([FromBody] RTDCalculationRequest request)
+        public async Task<IActionResult> CalculateRTD([FromBody] RTDCalculationRequest request, CancellationToken token)
         {
             if (!ModelState.IsValid)
             {
                 return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
             }
 
-            var result = await _rtdService.CalculateMESARTD(request);
-            return await ToEncryptedResponse(result);
+            var result = await _rtdService.CalculateMESARTD(request, token);
+            return await ToEncryptedResponse(result, token);
         }
         
-        // [HttpPost("rtd_test")]
-        // [ProducesResponseType(typeof(Response<RTDCalculationResponse>), 200)]
-        // public async Task<IActionResult> CalculateTestRTD([FromBody] RTDCalculationRequest request)
-        // {
-        //    if (!ModelState.IsValid)
-        //     {
-        //         return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
-        //     }
+        [HttpPost("rtd_test")]
+        [ProducesResponseType(typeof(Response<RTDCalculationResponse>), 200)]
+        public async Task<IActionResult> CalculateTestRTD([FromBody] RTDCalculationRequest request, CancellationToken token)
+        {
 
-        //     // var result = await _rtdService.CalculateMESARTD(request);
-        //     var list = new List<decimal>();
-        //     var d = 0.0m;
-        //     for (var i = 0; i < request.BarsCount; i++) {
-        //         list.Add(d);
-        //         d += 0.00000001m;
-        //     }
-        //     return await ToEncryptedResponse(list);
-        // }
+            if (!ModelState.IsValid)
+            {
+               return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
+            }
+
+            var result = await _rtdService.CalculateMESARTD(request, token);
+            // return new JsonResult(result); ~ 500
+            // return Json(result); ~ 500
+            return await ToEncryptedResponse(result, token);
+        }
 
         [Authorize]
         [HttpGet(Routes.ScannerResults)]
@@ -182,7 +180,7 @@ namespace Algoserver.API.Controllers
         public async Task<IActionResult> ScannerResults([FromQuery] string segment = "")
         {
             var res = _scannerResultService.GetData();
-            return await ToEncryptedResponse(res);
+            return await ToEncryptedResponse(res, CancellationToken.None);
         } 
         
         [Authorize]
@@ -191,18 +189,18 @@ namespace Algoserver.API.Controllers
         public async Task<IActionResult> ScannerHistoryResults([FromQuery] string segment = "")
         {
             var res = _scannerResultService.GetHistoryData();
-            return await ToEncryptedResponse(res);
+            return await ToEncryptedResponse(res, CancellationToken.None);
         }
 
         [NonAction]
-        public Task<JsonResult> ToEncryptedResponse(object data) {
+        public Task<JsonResult> ToEncryptedResponse(object data, CancellationToken token = default) {
             return Task.Run(() => {
                 var res = JsonConvert.SerializeObject(data);
                 var encryptedRes = EncryptionHelper.Encrypt(res);
                 return Json(new EncryptedResponse {
                     data = encryptedRes
                 });
-            });
+            }, token);
         }
     }
 }

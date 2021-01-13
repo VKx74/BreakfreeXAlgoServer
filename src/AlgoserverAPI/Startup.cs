@@ -34,7 +34,7 @@ namespace Algoserver.API
                 var routeAttribute = new RouteAttribute(RoutePrefix);
                 options.Conventions.Insert(0, new RouteConvention(routeAttribute));
             })
-            .AddJsonOptions(options => options.SerializerSettings.ContractResolver = new DefaultContractResolver())
+            //.AddJsonOptions(options => options.SerializerSettings.ContractResolver = new DefaultContractResolver())
             .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
             .AddApiExplorer()
             .AddJsonFormatters()
