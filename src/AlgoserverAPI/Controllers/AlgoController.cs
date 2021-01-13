@@ -18,6 +18,7 @@ namespace Algoserver.API.Controllers
 {
     public class AlgoController : Controller
     {
+        public static string cached =  null;
         private ScannerResultService _scannerResultService;
         private AlgoService _algoService;
         private RTDService _rtdService;
@@ -165,9 +166,12 @@ namespace Algoserver.API.Controllers
                 return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
             }
 
-            var result = await _rtdService.CalculateMESARTD(request);
-            // return Ok(result);
-            return Json(result);
+            if (string.IsNullOrEmpty(AlgoController.cached)) {
+                var result = await _rtdService.CalculateMESARTD(request);
+                var res = JsonConvert.SerializeObject(result);
+                AlgoController.cached = res;
+            }
+            return Ok(AlgoController.cached);
         }
 
         [Authorize]
