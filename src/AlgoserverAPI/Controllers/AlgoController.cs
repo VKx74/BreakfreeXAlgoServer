@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Security.Claims;
+using System.Threading;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
 using System.Threading.Tasks;
 using Algoserver.API.Exceptions;
 using Algoserver.API.Models;
 using Algoserver.API.Models.REST;
 using Algoserver.API.Services;
 using IdentityModel;
-using RabbitMQ.Client.Impl;
 using Newtonsoft.Json;
 using Algoserver.API.Helpers;
 
@@ -44,7 +43,7 @@ namespace Algoserver.API.Controllers
             }
 
             var result = await _algoService.CalculateV2Async(request);
-            return ToEncryptedResponse(result);
+            return await ToEncryptedResponse(result, CancellationToken.None);
         }
 
         [Authorize]
@@ -58,7 +57,7 @@ namespace Algoserver.API.Controllers
             }
 
             var result = await _algoService.CalculateMarketInfoAsync(request);
-            return ToEncryptedResponse(result);
+            return await ToEncryptedResponse(result, HttpContext.RequestAborted);
         }
             
         [Authorize]
@@ -94,7 +93,7 @@ namespace Algoserver.API.Controllers
                 SplitPositions = request.InputSplitPositions
             });
 
-            return ToEncryptedResponse(result);
+            return await ToEncryptedResponse(result, HttpContext.RequestAborted);
         }
         
         [Authorize]
@@ -109,7 +108,7 @@ namespace Algoserver.API.Controllers
 
             var result = await _algoService.BacktestAsync(request);
 
-            return ToEncryptedResponse(result);
+            return await ToEncryptedResponse(result, HttpContext.RequestAborted);
         } 
         
         [Authorize]
@@ -124,7 +123,7 @@ namespace Algoserver.API.Controllers
 
             var result = await _algoService.Strategy2BacktestAsync(request);
 
-            return ToEncryptedResponse(result);
+            return await ToEncryptedResponse(result, HttpContext.RequestAborted);
         } 
         
         [Authorize]
@@ -139,7 +138,7 @@ namespace Algoserver.API.Controllers
 
             var result = await _algoService.HitTestExtensionsAsync(request);
 
-            return ToEncryptedResponse(result);
+            return await ToEncryptedResponse(result, HttpContext.RequestAborted);
         }
 
         [Authorize]
@@ -152,36 +151,37 @@ namespace Algoserver.API.Controllers
                 return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
             }
 
-            var result = await _rtdService.CalculateMESARTD(request);
-
-            return ToEncryptedResponse(result);
+            var result = await _rtdService.CalculateMESARTD(request, HttpContext.RequestAborted);
+            return await ToEncryptedResponse(result, HttpContext.RequestAborted);
         }
 
         [Authorize]
         [HttpGet(Routes.ScannerResults)]
         [ProducesResponseType(typeof(Response<ScannerResponse>), 200)]
-        public IActionResult ScannerResults([FromQuery] string segment = "")
+        public async Task<IActionResult> ScannerResults([FromQuery] string segment = "")
         {
             var res = _scannerResultService.GetData();
-            return ToEncryptedResponse(res);
+            return await ToEncryptedResponse(res, HttpContext.RequestAborted);
         } 
         
         [Authorize]
         [HttpGet(Routes.ScannerHistoryResults)]
         [ProducesResponseType(typeof(Response<ScannerHistoryResponse>), 200)]
-        public IActionResult ScannerHistoryResults([FromQuery] string segment = "")
+        public async Task<IActionResult> ScannerHistoryResults([FromQuery] string segment = "")
         {
             var res = _scannerResultService.GetHistoryData();
-            return ToEncryptedResponse(res);
+            return await ToEncryptedResponse(res, HttpContext.RequestAborted);
         }
 
         [NonAction]
-        public ActionResult ToEncryptedResponse(object data) {
-            var res = JsonConvert.SerializeObject(data);
-            var encryptedRes = EncryptionHelper.Encrypt(res);
-            return Json(new EncryptedResponse {
-                data = encryptedRes
-            });
+        public Task<JsonResult> ToEncryptedResponse(object data, CancellationToken token = default) {
+            return Task.Run(() => {
+                var res = JsonConvert.SerializeObject(data);
+                var encryptedRes = EncryptionHelper.Encrypt(res);
+                return Json(new EncryptedResponse {
+                    data = encryptedRes
+                });
+            }, token);
         }
     }
 }

@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
-using Algoserver.API.Exceptions;
 using Algoserver.API.Helpers;
-using Algoserver.API.Models.Algo;
 using Algoserver.API.Models.REST;
 using Microsoft.Extensions.Logging;
 
@@ -24,12 +21,12 @@ namespace Algoserver.API.Services
             _historyService = historyService;
         }
         
-        internal Task<RTDCalculationResponse> CalculateMESARTD(RTDCalculationRequest req)
+        internal Task<RTDCalculationResponse> CalculateMESARTD(RTDCalculationRequest req, CancellationToken token)
         {
-            return Task.Run(async () =>
+            return Task.Run(() =>
             {
-                return await calculateMESARTD(req);
-            });
+                return calculateMESARTD(req);
+            }, token);
         }
 
         private async Task<RTDCalculationResponse> calculateMESARTD(RTDCalculationRequest req) {
@@ -41,11 +38,20 @@ namespace Algoserver.API.Services
 
             var dailyPriceData = await _historyService.GetHistory(Symbol, TimeframeHelper.DAILY_GRANULARITY, Datafeed, Exchange, Type, req.BarsCount);
 
+            if (dailyPriceData == null)
+                return null;
+
             var calculation_input = dailyPriceData.Bars.Select(_ => _.Close).ToList();
-            var dates = dailyPriceData.Bars.Select(_ => _.Timestamp).ToList();
 
             var rtd1 = TechCalculations.MESA(calculation_input, req.FastLimit, req.SlowLimit);
             var rtd2 = TechCalculations.MESA(calculation_input, req.FastLimit2, req.SlowLimit2);
+
+            if (rtd1.Length > req.BarsCount + 1) {
+                rtd1 = rtd1.TakeLast(req.BarsCount + 1).ToArray();
+            }
+            if (rtd2.Length > req.BarsCount + 1) {
+                rtd2 = rtd2.TakeLast(req.BarsCount + 1).ToArray();
+            }
 
             var mesa_local_value = rtd1.LastOrDefault();
             var mesa_global_value = rtd2.LastOrDefault();
@@ -57,6 +63,11 @@ namespace Algoserver.API.Services
                 localTrendDiff = Math.Abs(mesa_local_value.Fast - mesa_local_value.Slow) / Math.Min(mesa_local_value.Fast, mesa_local_value.Slow) * 100;
             }
 
+            var dates = dailyPriceData.Bars.Select(_ => _.Timestamp).ToArray();
+            if (dates.Length > req.BarsCount + 1) {
+                dates = dates.TakeLast(req.BarsCount + 1).ToArray();
+            }
+
             return new RTDCalculationResponse {
                 dates = dates,
                 fast = rtd1.Select(_ => _.Fast),
@@ -64,7 +75,8 @@ namespace Algoserver.API.Services
                 fast_2 = rtd2.Select(_ => _.Fast),
                 slow_2 = rtd2.Select(_ => _.Slow),
                 global_trend_spread = globalTrendDiff,
-                local_trend_spread = localTrendDiff
+                local_trend_spread = localTrendDiff,
+                id = req.Id
             };
         }
     }

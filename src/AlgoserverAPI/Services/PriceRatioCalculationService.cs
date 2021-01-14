@@ -75,7 +75,7 @@ namespace Algoserver.API.Services
             }
 
             try {
-                _cache.Set(_cachePrefix, symbol, result, TimeSpan.FromHours(1));
+                _cache.Set(_cachePrefix, symbol, result, TimeSpan.FromHours(6));
             } catch(Exception e) {
                 _logger.LogError("Failed to set cached response");
                 _logger.LogError(e.Message);
@@ -83,6 +83,5 @@ namespace Algoserver.API.Services
 
             return result;
         }
-        
     }
 }

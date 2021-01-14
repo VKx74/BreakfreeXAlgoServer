@@ -125,6 +125,8 @@ namespace Algoserver.API.Services
                     uri = $"{uri}&exchange={exchange}";
                 }
 
+                Console.WriteLine(uri);
+
                 var token = await _auth.GetToken();
                 var request = new HttpRequestMessage(HttpMethod.Get, uri)
                 {
@@ -161,6 +163,10 @@ namespace Algoserver.API.Services
                 if (prevCount == afterCount)
                 {
                     return result;
+                }
+
+                if (requestCount > 0) {
+                    Console.WriteLine($"History request count {requestCount} - {uri}");
                 }
 
                 if (requestCount++ > repeatCount)

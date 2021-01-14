@@ -211,7 +211,7 @@ namespace Algoserver.API.Services
 
         protected async Task<List<HistoryData>> _loadPack(List<HistoryRequest> tasks) {
             var result = new List<HistoryData>();
-            var count = 3;
+            var count = 1;
 
             while(tasks.Count > 0) {
                 var tasksToProcess = tasks.Take(Math.Min(count, tasks.Count));
@@ -258,9 +258,13 @@ namespace Algoserver.API.Services
             }
         }
 
-        public string GetKey(HistoryData data) {
+        public string GetKey(HistoryData data)
+        {
+            if (data == null) return string.Empty;
+
             return data.Symbol + data.Exchange;
         }
+
         protected void _updateLastBar(HistoryData hLow, HistoryData hHigh) {
             var length = hLow.Bars.Count();
             if (length < 2)  {
