@@ -47,8 +47,8 @@ namespace Algoserver.API.Helpers
         public static TrendsStrengthResult MeasureTrendsStrength(MESAData[] mesa_global, MESAData[] mesa_local) {
             var length = mesa_global.Length;
             var count = mesa_global.Length / 2;
-            if (count > 250) {
-                count = 250;
+            if (count > 200) {
+                count = 200;
             }
 
             var global_spreads = new List<decimal>();
