@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Http;
 using Algoserver.Auth.Services;
 using Algoserver.API.HostedServices;
 using Algoserver.API.Services.CacheServices;
+using Algoserver.API.Settings;
 
 namespace Algoserver.API
 {
@@ -44,11 +45,17 @@ namespace Algoserver.API
 
             var scanInstruments = Configuration.GetValue<bool>("ScanInstruments");
 
-            services.AddDistributedRedisCache(options =>
+            services.AddDistributedRedisCache(option =>
             {
-                options.Configuration = Configuration.GetConnectionString("RedisConnection");
+                var redisSettings = Configuration.GetSection("RedisSettings").Get<RedisSettings>();
+                option.InstanceName = redisSettings.InstanceName;
+                option.ConfigurationOptions = new StackExchange.Redis.ConfigurationOptions();
+                option.ConfigurationOptions.Ssl = redisSettings.UseSSL;
+                option.ConfigurationOptions.Password = redisSettings.Password;
+                option.ConfigurationOptions.DefaultDatabase = redisSettings.DefaultDatabase;
+                option.ConfigurationOptions.EndPoints.Add(redisSettings.Host, redisSettings.Port);
             });
-            
+
             //services.AddSingleton<ICacheService, MemoryCacheService>();
             services.AddSingleton<ICacheService, RedisCacheService>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
