@@ -45,22 +45,14 @@ namespace Algoserver.API.Services
 
             var rtd1 = TechCalculations.MESA(calculation_input, req.FastLimit, req.SlowLimit);
             var rtd2 = TechCalculations.MESA(calculation_input, req.FastLimit2, req.SlowLimit2);
+            
+            var trendsStrength = TrendDetector.MeasureTrendsStrength(rtd2, rtd1);
 
             if (rtd1.Length > req.BarsCount + 1) {
                 rtd1 = rtd1.TakeLast(req.BarsCount + 1).ToArray();
             }
             if (rtd2.Length > req.BarsCount + 1) {
                 rtd2 = rtd2.TakeLast(req.BarsCount + 1).ToArray();
-            }
-
-            var mesa_local_value = rtd1.LastOrDefault();
-            var mesa_global_value = rtd2.LastOrDefault();
-
-            var globalTrendDiff = 0m;
-            var localTrendDiff = 0m;
-            if (mesa_global_value != null && mesa_local_value != null) {
-                globalTrendDiff = Math.Abs(mesa_global_value.Fast - mesa_global_value.Slow) / Math.Min(mesa_global_value.Fast, mesa_global_value.Slow) * 100;
-                localTrendDiff = Math.Abs(mesa_local_value.Fast - mesa_local_value.Slow) / Math.Min(mesa_local_value.Fast, mesa_local_value.Slow) * 100;
             }
 
             var dates = dailyPriceData.Bars.Select(_ => _.Timestamp).ToArray();
@@ -74,8 +66,8 @@ namespace Algoserver.API.Services
                 slow = rtd1.Select(_ => _.Slow),
                 fast_2 = rtd2.Select(_ => _.Fast),
                 slow_2 = rtd2.Select(_ => _.Slow),
-                global_trend_spread = globalTrendDiff,
-                local_trend_spread = localTrendDiff,
+                global_trend_spread = trendsStrength.GlobalTrendSpread,
+                local_trend_spread = trendsStrength.LocalTrendSpread,
                 id = req.Id
             };
         }

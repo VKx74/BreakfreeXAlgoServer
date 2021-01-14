@@ -11,6 +11,11 @@ namespace Algoserver.API.Helpers
         public decimal LocalTrendSpread { get; set; }
         public decimal GlobalTrendSpread { get; set; }
     }
+    public class TrendsStrengthResult {
+        public decimal LocalTrendSpread { get; set; }
+        public decimal GlobalTrendSpread { get; set; }
+    }
+
     public static class TrendDetector
     {
         public static Trend CalculateByHma(List<decimal> data, int period = 200)
@@ -29,21 +34,48 @@ namespace Algoserver.API.Helpers
             var mesa_global_value = mesa_global.LastOrDefault();
             var mesa_local_value = mesa_local.LastOrDefault();
 
-            var globalTrendDiff = 0m;
-            var localTrendDiff = 0m;
-            if (mesa_global_value != null && mesa_local_value != null) {
-                globalTrendDiff = Math.Abs(mesa_global_value.Fast - mesa_global_value.Slow) / Math.Min(mesa_global_value.Fast, mesa_global_value.Slow) * 100;
-                localTrendDiff = Math.Abs(mesa_local_value.Fast - mesa_local_value.Slow) / Math.Min(mesa_local_value.Fast, mesa_local_value.Slow) * 100;
-            }
+            var trendsStrength = TrendDetector.MeasureTrendsStrength(mesa_global, mesa_local);
 
             return new ExtendedTrendResult {
                 GlobalTrend = mesa_global_value.Fast > mesa_global_value.Slow ? Trend.Up : Trend.Down,
                 LocalTrend = mesa_local_value.Fast > mesa_local_value.Slow ? Trend.Up : Trend.Down,
+                LocalTrendSpread = trendsStrength.LocalTrendSpread,
+                GlobalTrendSpread = trendsStrength.GlobalTrendSpread
+            };
+        }
+        
+        public static TrendsStrengthResult MeasureTrendsStrength(MESAData[] mesa_global, MESAData[] mesa_local) {
+            var length = mesa_global.Length;
+            var count = mesa_global.Length / 2;
+            if (count > 250) {
+                count = 250;
+            }
+
+            var global_spreads = new List<decimal>();
+            var local_spreads = new List<decimal>();
+            for (var i = 1; i < count; i++) {
+                var global = mesa_global[length - i];
+                var globalSpread = Math.Abs(global.Fast - global.Slow);
+                var local = mesa_local[length - i];
+                var localSpread = Math.Abs(local.Fast - local.Slow);
+
+                global_spreads.Add(globalSpread);
+                local_spreads.Add(localSpread);
+            }
+            var global_avg = global_spreads.Sum() / count;
+            var local_avg = local_spreads.Sum() / count;
+            var global_current = global_spreads.FirstOrDefault();
+            var local_current = local_spreads.FirstOrDefault();
+
+            var globalTrendDiff = global_current / global_avg;
+            var localTrendDiff = local_current / local_avg;
+
+            return new TrendsStrengthResult {
                 LocalTrendSpread = localTrendDiff,
                 GlobalTrendSpread = globalTrendDiff
             };
         }
-        
+
         public static Trend CalculateByMesa(List<decimal> data, decimal diff = 0.1m, decimal global_fast = 0.25m, decimal global_slow = 0.05m, decimal local_fast = 1.2m, decimal local_slow = 0.6m)
         {
             var mesa_global = TechCalculations.MESA(data, (double)global_fast, (double)global_slow);
