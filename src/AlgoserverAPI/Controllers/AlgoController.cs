@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Security.Claims;
 using System.Threading;
 using Microsoft.AspNetCore.Authorization;
@@ -182,6 +184,12 @@ namespace Algoserver.API.Controllers
                     data = encryptedRes
                 });
             }, token);
+        }
+
+        [HttpGet(Routes.Version)]
+        public ActionResult<IEnumerable<string>> Version()
+        {
+            return Ok(Assembly.GetExecutingAssembly().GetName().Version.ToString());
         }
     }
 }
