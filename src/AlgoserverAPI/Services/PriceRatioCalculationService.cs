@@ -1,14 +1,14 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Memory;
+using Algoserver.API.Services.CacheServices;
 using Microsoft.Extensions.Logging;
 
 namespace Algoserver.API.Services
 {
     public class PriceRatioCalculationService
     {
-        private const int DAILYG_RANULARITY = 86400;
+        private const int DAILY_GRANULARITY = 86400;
 
         private readonly ILogger<PriceRatioCalculationService> _logger;
         private readonly HistoryService _historyService;
@@ -65,7 +65,7 @@ namespace Algoserver.API.Services
             var result = 1m;
 
             try {
-                var dailyPriceData = await _historyService.GetHistory(crossSymbol, DAILYG_RANULARITY, datafeed, type, exchange);
+                var dailyPriceData = await _historyService.GetHistory(crossSymbol, DAILY_GRANULARITY, datafeed, type, exchange);
                 if (dailyPriceData != null && dailyPriceData.Bars != null && dailyPriceData.Bars.Any()) {
                     var price = dailyPriceData.Bars.Last().Close;
                     result = direct ? price : 1 / price;

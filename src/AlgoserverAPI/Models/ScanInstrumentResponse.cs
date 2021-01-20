@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using Algoserver.API.Models.Algo;
 
 namespace Algoserver.API.Models.REST
 {
+    [Serializable]
     public class ScanInstrumentResponse
     {
         public Trend trend { get; set; }
@@ -15,6 +17,7 @@ namespace Algoserver.API.Models.REST
         public int tp_240 { get; set; }
     }
 
+    [Serializable]
     public class ScannerResponseItem
     {
         public Trend trend { get; set; }
@@ -28,6 +31,7 @@ namespace Algoserver.API.Models.REST
         public decimal stop { get; set; }
     } 
     
+    [Serializable]
     public class ScannerResponseHistoryItem
     {
         public ScannerResponseItem responseItem { get; set; }
@@ -35,11 +39,13 @@ namespace Algoserver.API.Models.REST
         public decimal avgEntry { get; set; }
     }
 
+    [Serializable]
     public class ScannerResponse
     {
         public IEnumerable<ScannerResponseItem> items { get; set; }
-    } 
-    
+    }
+
+    [Serializable]
     public class ScannerHistoryResponse
     {
         public IEnumerable<ScannerResponseHistoryItem> items { get; set; }

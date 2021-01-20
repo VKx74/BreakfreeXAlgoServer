@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Algoserver.API.Models.REST
 {
@@ -7,6 +8,7 @@ namespace Algoserver.API.Models.REST
         public HistoryData Data { get; set; }
     } 
     
+    [Serializable]
     public class HistoryData
     {
         public string Symbol { get; set; }
@@ -60,6 +62,7 @@ namespace Algoserver.API.Models.REST
         public string Exchange { get; set; }
     }
 
+    [Serializable]
     public class BarMessage
     {
         public long Timestamp { get; set; }

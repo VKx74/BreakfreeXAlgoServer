@@ -1,12 +1,9 @@
 using System;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace Algoserver.API.Services {
-    public interface ICacheService {
-        bool TryGetValue<T>(string prefix, string key, out T result);
-        bool Set(string prefix, string key, object value, TimeSpan expiration);
-    }
-
+namespace Algoserver.API.Services.CacheServices {
+    
     public class MemoryCacheService: ICacheService {
         private readonly IMemoryCache _cache;
 
