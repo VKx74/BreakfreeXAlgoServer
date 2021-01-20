@@ -30,6 +30,21 @@ deploy-latest:
   - docker tag $IMAGE_NAME $CONTAINER_IMAGE:latest
   - docker push $CONTAINER_IMAGE:latest
   - docker logout
+  - apk update && apk add curl jq
+  - curl -LO https://stedolan.github.io/jq/download/linux64/jq
+  - chmod u+x jq && mv jq /bin/jq
+  - curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.19.2/bin/linux/amd64/kubectl
+  - chmod u+x kubectl && mv kubectl /bin/kubectl
+  - LATEST_DIGEST=$(curl -s --header "PRIVATE-TOKEN:$PRIVATE_TOKEN" "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/registry/repositories/1222029/tags/latest" | jq -r '.digest')
+  - echo "Image '$CONTAINER_IMAGE@$LATEST_DIGEST'"
+  - kubectl config set-cluster k8s --server=${K8S_SERVER}
+  - kubectl config set clusters.k8s.certificate-authority-data ${K8S_CERTIFICATE_AUTHORITY_DATA}
+  - kubectl config set-credentials ${K8S_USER} --token="${K8S_USER_TOKEN}"
+  - kubectl config set-context k8s-stage --cluster=k8s --user=${K8S_USER}
+  - kubectl config use-context k8s-stage
+  - kubectl config current-context
+  - kubectl set image deployment/algoserver algoserver=$CONTAINER_IMAGE@$LATEST_DIGEST --namespace staging
+  - kubectl get pods -n staging
   # tags: 
   # - docker
 
