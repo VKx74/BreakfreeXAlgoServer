@@ -46,24 +46,32 @@ namespace Algoserver.API.Helpers
         
         public static TrendsStrengthResult MeasureTrendsStrength(MESAData[] mesa_global, MESAData[] mesa_local) {
             var length = mesa_global.Length;
-            var count = mesa_global.Length / 2;
-            if (count > 100) {
-                count = 100;
+            var count_global = mesa_global.Length / 2;
+            if (count_global > 100) {
+                count_global = 100;
+            }   
+            var count_local = 50;
+            if (count_local > count_global) {
+                count_local = count_global;
             }
 
             var global_spreads = new List<decimal>();
             var local_spreads = new List<decimal>();
-            for (var i = 1; i < count; i++) {
+
+            for (var i = 1; i < count_global; i++) {
                 var global = mesa_global[length - i];
                 var globalSpread = Math.Abs(global.Fast - global.Slow);
+                global_spreads.Add(globalSpread);
+            }
+
+            for (var i = 1; i < count_local; i++) {
                 var local = mesa_local[length - i];
                 var localSpread = Math.Abs(local.Fast - local.Slow);
-
-                global_spreads.Add(globalSpread);
                 local_spreads.Add(localSpread);
             }
-            var global_avg = global_spreads.Sum() / count;
-            var local_avg = local_spreads.Sum() / count;
+
+            var global_avg = global_spreads.Sum() / count_global;
+            var local_avg = local_spreads.Sum() / count_local;
             var global_current = global_spreads.FirstOrDefault();
             var local_current = local_spreads.FirstOrDefault();
 
