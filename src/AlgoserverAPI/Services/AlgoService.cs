@@ -152,6 +152,7 @@ namespace Algoserver.API.Services
             {
                 global_trend = trend.GlobalTrend,
                 local_trend = trend.LocalTrend,
+                is_overhit = trend.IsOverhit,
                 natural = natural,
                 resistance = resistance,
                 support = support,

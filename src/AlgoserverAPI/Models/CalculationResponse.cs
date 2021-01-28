@@ -19,6 +19,7 @@ namespace Algoserver.API.Models.REST
         public decimal last_price { get; set; }
         public Trend local_trend { get; set; }
         public Trend global_trend { get; set; }
+        public bool is_overhit { get; set; }
         public decimal local_trend_spread { get; set; }
         public decimal global_trend_spread { get; set; }
     }
