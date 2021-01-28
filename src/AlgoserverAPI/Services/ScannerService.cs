@@ -317,7 +317,6 @@ namespace Algoserver.API.Services
                 sl_ratio = sl_ration
             };
         }
-
         public ScanResponse ScanBRC(ScanningHistory history, Trend trend, decimal sl_ration = 1.7m)
         {
             try {
@@ -481,7 +480,6 @@ namespace Algoserver.API.Services
                 sl_ratio = sl_ration
             };
         }
-
         public ScanResponse ScanExt(ScanningHistory history, ScanningHistory dailyHistory, Trend trend, decimal sl_ration = 1.7m)
         {
             try {

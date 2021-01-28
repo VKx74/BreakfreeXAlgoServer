@@ -168,7 +168,7 @@ namespace Algoserver.API.Services
                         }
                     }
 
-                    if (!tradeDetermined)
+                    if (!tradeDetermined && !extendedTrendData.IsOverhit)
                     {
                         var swingScannerResult = _scanner.ScanSwing(_scanner.ToScanningHistory(history4H.Bars), dailyScanningHistory, extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend);
                         if (swingScannerResult != null)

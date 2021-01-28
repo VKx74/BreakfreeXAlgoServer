@@ -225,7 +225,9 @@ namespace Algoserver.API.Services
                     }
                     if (container.TimeframePeriod == "h" && container.TimeframeInterval == 4)
                     {
-                        scanRes = _scanner.ScanSwing(scanningHistory, dailyScanningHistory, extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend, sl_ratio);
+                        if (!extendedTrendData.IsOverhit) {
+                            scanRes = _scanner.ScanSwing(scanningHistory, dailyScanningHistory, extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend, sl_ratio);
+                        }
                     }
                 }
             }

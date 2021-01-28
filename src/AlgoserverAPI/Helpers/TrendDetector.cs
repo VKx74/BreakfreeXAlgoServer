@@ -10,6 +10,7 @@ namespace Algoserver.API.Helpers
         public Trend LocalTrend { get; set; }
         public decimal LocalTrendSpread { get; set; }
         public decimal GlobalTrendSpread { get; set; }
+        public bool IsOverhit { get; set; }
     }
     public class TrendsStrengthResult {
         public decimal LocalTrendSpread { get; set; }
@@ -35,12 +36,29 @@ namespace Algoserver.API.Helpers
             var mesa_local_value = mesa_local.LastOrDefault();
 
             var trendsStrength = TrendDetector.MeasureTrendsStrength(mesa_global, mesa_local);
+            var isOverhit = false;
+
+            if (mesa_global_value.Fast > mesa_global_value.Slow)
+            {
+                if (mesa_global_value.Slow > mesa_local_value.Slow || mesa_global_value.Slow > mesa_local_value.Fast)
+                {
+                    isOverhit = true;
+                }
+            }
+            else if (mesa_global_value.Fast < mesa_global_value.Slow)
+            {
+                if (mesa_global_value.Slow < mesa_local_value.Slow || mesa_global_value.Slow < mesa_local_value.Fast)
+                {
+                    isOverhit = true;
+                }
+            }
 
             return new ExtendedTrendResult {
                 GlobalTrend = mesa_global_value.Fast > mesa_global_value.Slow ? Trend.Up : Trend.Down,
                 LocalTrend = mesa_local_value.Fast > mesa_local_value.Slow ? Trend.Up : Trend.Down,
                 LocalTrendSpread = trendsStrength.LocalTrendSpread,
-                GlobalTrendSpread = trendsStrength.GlobalTrendSpread
+                GlobalTrendSpread = trendsStrength.GlobalTrendSpread,
+                IsOverhit = isOverhit
             };
         }
         
