@@ -55,14 +55,6 @@ deploy-release:
   services:
     - docker:dind
   image: docker:latest
-  # before_script:
-  # - apk add --no-cache curl jq python py-pip
-  # - pip install awscli
-  # - apk update && apk add git
-  # - TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
-  # - MINORVERSION=$(git rev-list --all --count)
-  # - MAJORVERSION=${TAG:-0.0}
-  # - VERSION=$MAJORVERSION.$MINORVERSION
   only:
     - ci
     - master
@@ -74,11 +66,21 @@ deploy-release:
   - docker tag $IMAGE_NAME $CONTAINER_IMAGE:stable
   - docker push $CONTAINER_IMAGE:stable
   - docker logout
-  #- $(aws ecr get-login --no-include-email --region ap-southeast-1)
-  #- docker tag $IMAGE_NAME $AWS_REGISTRY/$IMAGE_NAME:$VERSION
-  #- docker tag $IMAGE_NAME $AWS_REGISTRY/$IMAGE_NAME:stable
-  #- docker push $AWS_REGISTRY/$IMAGE_NAME:$VERSION
-  #- docker push $AWS_REGISTRY/$IMAGE_NAME:stable
-  #- docker logout
+  - apk update && apk add curl jq
+  - curl -LO https://stedolan.github.io/jq/download/linux64/jq
+  - chmod u+x jq && mv jq /bin/jq
+  - curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.19.2/bin/linux/amd64/kubectl
+  - chmod u+x kubectl && mv kubectl /bin/kubectl
+  - LATEST_DIGEST=$(curl -s --header "PRIVATE-TOKEN:$PRIVATE_TOKEN" "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/registry/repositories/1222029/tags/stable" | jq -r '.digest')
+  - echo "Image '$CONTAINER_IMAGE@$LATEST_DIGEST'"
+  - kubectl config set-cluster k8s --server=${K8S_SERVER_PROD}
+  - kubectl config set clusters.k8s.certificate-authority-data ${K8S_CERTIFICATE_AUTHORITY_DATA_PROD}
+  - kubectl config set-credentials ${K8S_USER_PROD} --token="${K8S_USER_TOKEN_PROD}"
+  - kubectl config set-context k8s-stage --cluster=k8s --user=${K8S_USER_PROD}
+  - kubectl config use-context k8s-stage
+  - kubectl config current-context
+  #- kubectl set image deployment/algoserver algoserver=$CONTAINER_IMAGE@$LATEST_DIGEST --namespace prod
+  #- kubectl set image deployment/algoscanner algoscanner=$CONTAINER_IMAGE@$LATEST_DIGEST --namespace prod
+  - kubectl get pods -n prod
   #tags:
   #  - docker
