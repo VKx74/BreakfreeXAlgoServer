@@ -23,14 +23,12 @@ namespace Algoserver.API.Controllers
         private AlgoService _algoService;
         private RTDService _rtdService;
         private ScannerService _scanerService;
-        private StatisticsService _statisticsService;
 
-        public AlgoController(AlgoService algoService, RTDService rtdService, ScannerService scanerService, StatisticsService statisticsService, ScannerResultService scannerResultService)
+        public AlgoController(AlgoService algoService, RTDService rtdService, ScannerService scanerService, ScannerResultService scannerResultService)
         {
             _algoService = algoService;
             _rtdService = rtdService;
             _scanerService = scanerService;
-            _statisticsService = statisticsService;
             _scannerResultService = scannerResultService;
         }
 
@@ -78,22 +76,22 @@ namespace Algoserver.API.Controllers
                 .Replace("_", "")
                 .Replace("/","");
 
-            _statisticsService.AddToCache(new Statistic
-            {
-                CreatedAt = DateTime.UtcNow,
-                UserId = User.FindFirstValue(JwtClaimTypes.Subject),
-                Email = User.FindFirstValue(JwtClaimTypes.Email),
-                FirstName = User.FindFirstValue("first_name"),
-                LastName = User.FindFirstValue("last_name"),
-                Ip = HttpContext.Request.ClientIp(),
-                AccountSize = request.InputAccountSize,
-                Market = $"{instrument}-{request.Instrument.Exchange}",
-                TimeFramePeriodicity = request.Timeframe.Periodicity,
-                TimeFrameInterval = request.Timeframe.Interval,
-                StopLossRatio = request.InputStoplossRatio,
-                RiskOverride = request.InputRisk,
-                SplitPositions = request.InputSplitPositions
-            });
+            // _statisticsService.AddToCache(new Statistic
+            // {
+            //     CreatedAt = DateTime.UtcNow,
+            //     UserId = User.FindFirstValue(JwtClaimTypes.Subject),
+            //     Email = User.FindFirstValue(JwtClaimTypes.Email),
+            //     FirstName = User.FindFirstValue("first_name"),
+            //     LastName = User.FindFirstValue("last_name"),
+            //     Ip = HttpContext.Request.ClientIp(),
+            //     AccountSize = request.InputAccountSize,
+            //     Market = $"{instrument}-{request.Instrument.Exchange}",
+            //     TimeFramePeriodicity = request.Timeframe.Periodicity,
+            //     TimeFrameInterval = request.Timeframe.Interval,
+            //     StopLossRatio = request.InputStoplossRatio,
+            //     RiskOverride = request.InputRisk,
+            //     SplitPositions = request.InputSplitPositions
+            // });
 
             return await ToEncryptedResponse(result, HttpContext.RequestAborted);
         }
