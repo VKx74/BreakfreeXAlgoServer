@@ -40,14 +40,14 @@ namespace Algoserver.API.Helpers
 
             if (mesa_global_value.Fast > mesa_global_value.Slow)
             {
-                if (mesa_global_value.Slow > mesa_local_value.Slow || mesa_global_value.Slow > mesa_local_value.Fast)
+                if (mesa_global_value.Slow > mesa_local_value.Slow && mesa_global_value.Slow > mesa_local_value.Fast)
                 {
                     isOverhit = true;
                 }
             }
             else if (mesa_global_value.Fast < mesa_global_value.Slow)
             {
-                if (mesa_global_value.Slow < mesa_local_value.Slow || mesa_global_value.Slow < mesa_local_value.Fast)
+                if (mesa_global_value.Slow < mesa_local_value.Slow && mesa_global_value.Slow < mesa_local_value.Fast)
                 {
                     isOverhit = true;
                 }
@@ -129,7 +129,7 @@ namespace Algoserver.API.Helpers
 
             if (mesa_global_value.Fast > mesa_global_value.Slow)
             {
-                if (mesa_global_value.Slow > mesa_local_value.Slow || mesa_global_value.Slow > mesa_local_value.Fast)
+                if (mesa_global_value.Slow > mesa_local_value.Slow && mesa_global_value.Slow > mesa_local_value.Fast)
                 {
                     return Trend.Undefined;
                 }
@@ -137,7 +137,7 @@ namespace Algoserver.API.Helpers
             }
             else if (mesa_global_value.Fast < mesa_global_value.Slow)
             {
-                if (mesa_global_value.Slow < mesa_local_value.Slow || mesa_global_value.Slow < mesa_local_value.Fast)
+                if (mesa_global_value.Slow < mesa_local_value.Slow && mesa_global_value.Slow < mesa_local_value.Fast)
                 {
                     return Trend.Undefined;
                 }
