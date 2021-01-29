@@ -125,7 +125,7 @@ namespace Algoserver.API.Services
                     uri = $"{uri}&exchange={exchange}";
                 }
 
-                Console.WriteLine(uri);
+                // Console.WriteLine(uri);
 
                 var token = await _auth.GetToken();
                 var request = new HttpRequestMessage(HttpMethod.Get, uri)
