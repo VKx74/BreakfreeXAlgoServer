@@ -23,8 +23,10 @@ namespace Algoserver.API.Services.CacheServices {
                     return true;
                 }
             }
-            catch (Exception e)
-            {}
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during update of cache: {ex.Message}");
+            }
 
             result = default(T);
 
@@ -40,8 +42,10 @@ namespace Algoserver.API.Services.CacheServices {
                 });
                 return true;
             }
-            catch (Exception e)
-            {}
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during update of cache: {ex.Message}");
+            }
 
             return false;
         }
