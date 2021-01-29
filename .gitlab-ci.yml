@@ -44,6 +44,7 @@ deploy-latest:
   - kubectl config use-context k8s-stage
   - kubectl config current-context
   - kubectl set image deployment/algoserver algoserver=$CONTAINER_IMAGE@$LATEST_DIGEST --namespace staging
+  - kubectl set image deployment/algoscanner algoscanner=$CONTAINER_IMAGE@$LATEST_DIGEST --namespace staging
   - kubectl get pods -n staging
   # tags: 
   # - docker
