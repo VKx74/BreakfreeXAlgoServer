@@ -13,6 +13,9 @@ namespace Algoserver.API.Models.REST
 
     [Serializable]
     public class CalculationMarketInfoResponse {
+        public decimal daily_support { get; set; }
+        public decimal daily_resistance { get; set; }
+        public decimal daily_natural { get; set; }
         public decimal support { get; set; }
         public decimal resistance { get; set; }
         public decimal natural { get; set; }

@@ -4,6 +4,16 @@ using Newtonsoft.Json;
 
 namespace Algoserver.API.Models.REST
 {
+    public class MarketInfoCalculationRequest
+    {
+
+        [JsonProperty("granularity")]
+        public int? Granularity { get; set; }
+
+        [JsonProperty("instrument")]
+        public Instrument Instrument { get; set; }
+    }
+
     public class CalculationRequest
     {
         [JsonProperty("id")]

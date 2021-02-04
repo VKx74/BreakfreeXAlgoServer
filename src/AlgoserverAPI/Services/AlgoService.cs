@@ -18,6 +18,7 @@ namespace Algoserver.API.Services
         private readonly ScannerService _scanner;
         private readonly ICacheService _cache;
         private string _cachePrefix = "MarketInfo_";
+        private string _cachePrefixV2 = "MarketInfoV2_";
         private readonly PriceRatioCalculationService _priceRatioCalculationService;
 
         public AlgoService(ILogger<AlgoService> logger, HistoryService historyService, PriceRatioCalculationService priceRatioCalculationService, ScannerService scanner, ICacheService cache)
@@ -73,6 +74,7 @@ namespace Algoserver.API.Services
             return container;
         }
 
+
         internal Task<BacktestResponse> BacktestAsync(BacktestRequest req)
         {
             return Task.Run(async () =>
@@ -126,6 +128,14 @@ namespace Algoserver.API.Services
             });
         }
 
+        public Task<CalculationMarketInfoResponse> CalculateMarketInfoV2Async(MarketInfoCalculationRequest request)
+        {
+            return Task.Run(() =>
+            {
+                return calculateMarketInfoV2Async(request);
+            });
+        }
+
         private async Task<CalculationMarketInfoResponse> calculateMarketInfoAsync(Instrument instrument)
         {
             var cachedResponse = tryGetCalculateMarketInfoFromCache(instrument);
@@ -156,12 +166,77 @@ namespace Algoserver.API.Services
                 natural = natural,
                 resistance = resistance,
                 support = support,
+                daily_natural = natural,
+                daily_resistance = resistance,
+                daily_support = support,
                 last_price = close.LastOrDefault(),
                 global_trend_spread = trend.GlobalTrendSpread,
                 local_trend_spread = trend.LocalTrendSpread
             };
 
             tryAddCalculateMarketInfoInCache(instrument, result);
+
+            return result;
+        }
+
+        private async Task<CalculationMarketInfoResponse> calculateMarketInfoV2Async(MarketInfoCalculationRequest request)
+        {
+            var instrument = request.Instrument;
+            var timeframe = request.Granularity.GetValueOrDefault(TimeframeHelper.DAILY_GRANULARITY);
+            var cachedResponse = tryGetCalculateMarketInfoV2FromCache(instrument, timeframe);
+
+            if (cachedResponse != null)
+            {
+                return cachedResponse;
+            }
+
+            var dataDaily = await _historyService.GetHistory(instrument.Id, TimeframeHelper.DAILY_GRANULARITY, instrument.Datafeed, instrument.Exchange, instrument.Type);
+            var highDaily = dataDaily.Bars.Select(_ => _.High);
+            var lowDaily = dataDaily.Bars.Select(_ => _.Low);
+            var closeDaily = dataDaily.Bars.Select(_ => _.Close).ToList();
+
+            var levelsDaily = TechCalculations.CalculateLevel128(highDaily, lowDaily);
+            var exactTFLevels = levelsDaily;
+
+            if (timeframe != TimeframeHelper.DAILY_GRANULARITY) {
+                var dataTF = await _historyService.GetHistory(instrument.Id, timeframe, instrument.Datafeed, instrument.Exchange, instrument.Type);
+                var highFT = dataTF.Bars.Select(_ => _.High);
+                var lowFT = dataTF.Bars.Select(_ => _.Low);
+                exactTFLevels = TechCalculations.CalculateLevel128(highFT, lowFT);
+            }
+
+
+            var topDailyExt = levelsDaily.Plus18;
+            var naturalDaily = levelsDaily.FourEight;
+            var bottomDailyExt = levelsDaily.Minus18;
+            var supportDaily = levelsDaily.ZeroEight;
+            var resistanceDaily = levelsDaily.EightEight;
+
+            var topTFExt = exactTFLevels.Plus18;
+            var naturalTF = exactTFLevels.FourEight;
+            var bottomTFExt = exactTFLevels.Minus18;
+            var supportTF = exactTFLevels.ZeroEight;
+            var resistanceTF = exactTFLevels.EightEight;
+
+            var trend = TrendDetector.CalculateByMesaBy2TrendAdjusted(closeDaily);
+
+            var result = new CalculationMarketInfoResponse
+            {
+                global_trend = trend.GlobalTrend,
+                local_trend = trend.LocalTrend,
+                is_overhit = trend.IsOverhit,
+                daily_natural = naturalDaily,
+                daily_resistance = resistanceDaily,
+                daily_support = supportDaily,
+                natural = naturalTF,
+                resistance = resistanceTF,
+                support = supportTF,
+                last_price = closeDaily.LastOrDefault(),
+                global_trend_spread = trend.GlobalTrendSpread,
+                local_trend_spread = trend.LocalTrendSpread
+            };
+
+            tryAddCalculateMarketInfoV2InCache(instrument, timeframe, result);
 
             return result;
         }
@@ -740,6 +815,38 @@ namespace Algoserver.API.Services
         private void tryAddCalculateMarketInfoInCache(Instrument instrument, CalculationMarketInfoResponse data)
         {
             var hash = instrument.ToString() + "_marketinfo";
+            try
+            {
+                _cache.Set(_cachePrefix, hash, data, TimeSpan.FromMinutes(10));
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Failed to add cached response for marketinfo");
+                _logger.LogError(e.Message);
+            }
+        }
+        private CalculationMarketInfoResponse tryGetCalculateMarketInfoV2FromCache(Instrument instrument, int timeframe)
+        {
+            var hash = instrument.ToString() + timeframe + "_marketinfoV2";
+            try
+            {
+                if (_cache.TryGetValue(_cachePrefix, hash, out CalculationMarketInfoResponse cachedResponse))
+                {
+                    return cachedResponse;
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Failed to get cached response for marketinfo");
+                _logger.LogError(e.Message);
+            }
+
+            return null;
+        }
+
+        private void tryAddCalculateMarketInfoV2InCache(Instrument instrument, int timeframe, CalculationMarketInfoResponse data)
+        {
+            var hash = instrument.ToString() + timeframe + "_marketinfoV2";
             try
             {
                 _cache.Set(_cachePrefix, hash, data, TimeSpan.FromMinutes(10));

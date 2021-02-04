@@ -59,6 +59,20 @@ namespace Algoserver.API.Controllers
             var result = await _algoService.CalculateMarketInfoAsync(request);
             return await ToEncryptedResponse(result, HttpContext.RequestAborted);
         }
+
+        [Authorize]
+        [HttpPost(Routes.CalculateMarketInfoV2)]
+        [ProducesResponseType(typeof(Response<CalculationMarketInfoResponse>), 200)]
+        public async Task<IActionResult> CalculateMarketInfoV2Async([FromBody] MarketInfoCalculationRequest request)
+        {  
+            if (!ModelState.IsValid)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
+            }
+
+            var result = await _algoService.CalculateMarketInfoV2Async(request);
+            return await ToEncryptedResponse(result, HttpContext.RequestAborted);
+        }
             
         [Authorize]
         [HttpPost(Routes.Calculate)]
