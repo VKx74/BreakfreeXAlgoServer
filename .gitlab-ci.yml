@@ -79,8 +79,8 @@ deploy-release:
   - kubectl config set-context k8s-stage --cluster=k8s --user=${K8S_USER_PROD}
   - kubectl config use-context k8s-stage
   - kubectl config current-context
-  #- kubectl set image deployment/algoserver algoserver=$CONTAINER_IMAGE@$LATEST_DIGEST --namespace prod
-  #- kubectl set image deployment/algoscanner algoscanner=$CONTAINER_IMAGE@$LATEST_DIGEST --namespace prod
+  - kubectl set image deployment/algoserver algoserver=$CONTAINER_IMAGE@$LATEST_DIGEST --namespace prod
+  - kubectl set image deployment/algoscanner algoscanner=$CONTAINER_IMAGE@$LATEST_DIGEST --namespace prod
   - kubectl get pods -n prod
   #tags:
   #  - docker
