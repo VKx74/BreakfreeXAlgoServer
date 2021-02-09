@@ -4,6 +4,25 @@ using Newtonsoft.Json;
 
 namespace Algoserver.API.Models.REST
 {
+    public class CalculatePositionSizeRequest
+    {
+
+        [JsonProperty("input_accountsize")]
+        public decimal InputAccountSize { get; set; }
+
+        [JsonProperty("contract_size")]
+        public decimal? ContractSize { get; set; }
+
+        [JsonProperty("instrument")]
+        public Instrument Instrument { get; set; }
+
+        [JsonProperty("input_risk")]
+        public decimal InputRisk { get; set; }
+        
+        [JsonProperty("price_diff")]
+        public decimal PriceDiff { get; set; }
+    }
+
     public class MarketInfoCalculationRequest
     {
 

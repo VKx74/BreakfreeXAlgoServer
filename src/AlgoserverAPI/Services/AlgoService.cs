@@ -74,6 +74,13 @@ namespace Algoserver.API.Services
             return container;
         }
 
+        internal Task<CalculatePositionSizeResponse> CalculatePositionSize(CalculatePositionSizeRequest req)
+        {
+            return Task.Run(async () =>
+            {
+                return await calculatePositionSize(req);
+            });
+        }
 
         internal Task<BacktestResponse> BacktestAsync(BacktestRequest req)
         {
@@ -198,7 +205,8 @@ namespace Algoserver.API.Services
             var levelsDaily = TechCalculations.CalculateLevel128(highDaily, lowDaily);
             var exactTFLevels = levelsDaily;
 
-            if (timeframe != TimeframeHelper.DAILY_GRANULARITY) {
+            if (timeframe != TimeframeHelper.DAILY_GRANULARITY)
+            {
                 var dataTF = await _historyService.GetHistory(instrument.Id, timeframe, instrument.Datafeed, instrument.Exchange, instrument.Type);
                 var highFT = dataTF.Bars.Select(_ => _.High);
                 var lowFT = dataTF.Bars.Select(_ => _.Low);
@@ -301,7 +309,8 @@ namespace Algoserver.API.Services
                     }
                     if (container.TimeframePeriod == "h" && container.TimeframeInterval == 4)
                     {
-                        if (!extendedTrendData.IsOverhit) {
+                        if (!extendedTrendData.IsOverhit)
+                        {
                             scanRes = _scanner.ScanSwing(scanningHistory, dailyScanningHistory, extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend, sl_ratio);
                         }
                     }
@@ -319,6 +328,31 @@ namespace Algoserver.API.Services
             var result = this.toResponseV2(levels, sar, scanRes, size);
             result.id = container.Id;
             return result;
+        }
+
+        private async Task<CalculatePositionSizeResponse> calculatePositionSize(CalculatePositionSizeRequest req)
+        {
+            var type = req.Instrument.Type.ToLowerInvariant();
+            var datafeed = req.Instrument.Datafeed.ToLowerInvariant();
+            var exchange = req.Instrument.Exchange.ToLowerInvariant();
+            var symbol = req.Instrument.Id;
+            var suggestedRisk = req.InputRisk;
+            var priceDiff = req.PriceDiff;
+            var contractSize = req.ContractSize;
+            var usdRatio = 1m;
+
+            if (type == "forex")
+            {
+                usdRatio = await _priceRatioCalculationService.GetUSDRatio(symbol, datafeed, type, exchange);
+            }
+
+            var accountSize = req.InputAccountSize * usdRatio;
+
+            var size = AlgoHelper.CalculatePositionValue(type, symbol, accountSize, suggestedRisk, priceDiff, contractSize);
+
+            return new CalculatePositionSizeResponse {
+                size = size
+            };
         }
 
         private async Task<BacktestResponse> backtestAsync(BacktestRequest req)

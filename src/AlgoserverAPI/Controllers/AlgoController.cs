@@ -47,6 +47,20 @@ namespace Algoserver.API.Controllers
         }
 
         [Authorize]
+        [HttpPost(Routes.CalculatePositionSize)]
+        [ProducesResponseType(typeof(Response<CalculatePositionSizeResponse>), 200)]
+        public async Task<IActionResult> CalculatePositionSize([FromBody] CalculatePositionSizeRequest request)
+        {  
+            if (!ModelState.IsValid)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
+            }
+
+            var result = await _algoService.CalculatePositionSize(request);
+            return await ToEncryptedResponse(result, CancellationToken.None);
+        }
+
+        [Authorize]
         [HttpPost(Routes.CalculateMarketInfo)]
         [ProducesResponseType(typeof(Response<CalculationMarketInfoResponse>), 200)]
         public async Task<IActionResult> CalculateMarketInfoAsync([FromBody] Instrument request)
