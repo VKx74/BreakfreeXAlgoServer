@@ -4,6 +4,15 @@ using Newtonsoft.Json;
 
 namespace Algoserver.API.Models.REST
 {
+    public class CalculatePriceRatioRequest
+    {
+        [JsonProperty("instrument")]
+        public Instrument Instrument { get; set; }
+
+        [JsonProperty("account_currency")]
+        public string AccountCurrency { get; set; }
+    }
+
     public class CalculatePositionSizeRequest
     {
 

@@ -61,6 +61,20 @@ namespace Algoserver.API.Controllers
         }
 
         [Authorize]
+        [HttpPost(Routes.CalculatePriceRatio)]
+        [ProducesResponseType(typeof(Response<CalculatePriceRatioResponse>), 200)]
+        public async Task<IActionResult> CalculatePriceRatio([FromBody] CalculatePriceRatioRequest request)
+        {  
+            if (!ModelState.IsValid)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
+            }
+
+            var result = await _algoService.CalculatePriceRatio(request);
+            return await ToEncryptedResponse(result, CancellationToken.None);
+        }
+
+        [Authorize]
         [HttpPost(Routes.CalculateMarketInfo)]
         [ProducesResponseType(typeof(Response<CalculationMarketInfoResponse>), 200)]
         public async Task<IActionResult> CalculateMarketInfoAsync([FromBody] Instrument request)

@@ -82,6 +82,14 @@ namespace Algoserver.API.Services
             });
         }
 
+        internal Task<CalculatePriceRatioResponse> CalculatePriceRatio(CalculatePriceRatioRequest req)
+        {
+            return Task.Run(async () =>
+            {
+                return await calculatePriceRatio(req);
+            });
+        }
+
         internal Task<BacktestResponse> BacktestAsync(BacktestRequest req)
         {
             return Task.Run(async () =>
@@ -352,6 +360,23 @@ namespace Algoserver.API.Services
 
             return new CalculatePositionSizeResponse {
                 size = size
+            };
+        }
+        private async Task<CalculatePriceRatioResponse> calculatePriceRatio(CalculatePriceRatioRequest req)
+        {
+            var type = req.Instrument.Type.ToLowerInvariant();
+            var datafeed = req.Instrument.Datafeed.ToLowerInvariant();
+            var exchange = req.Instrument.Exchange.ToLowerInvariant();
+            var symbol = req.Instrument.Id;
+            var usdRatio = 1m;
+
+            if (type == "forex")
+            {
+                usdRatio = await _priceRatioCalculationService.GetUSDRatio(symbol, datafeed, type, exchange);
+            }
+
+            return new CalculatePriceRatioResponse {
+                ratio = usdRatio
             };
         }
 
