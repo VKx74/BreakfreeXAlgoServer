@@ -15,8 +15,8 @@ namespace Algoserver.API.Services
         protected override List<IInstrument> _getInstruments() 
         {
             var instruments = new List<IInstrument>();
-            // var forexInstruments = _instrumentService.GetOandaInstruments();
-            var forexInstruments = _instrumentService.GetTwelvedataInstruments();
+            var forexInstruments = _instrumentService.GetOandaInstruments();
+            // var forexInstruments = _instrumentService.GetTwelvedataInstruments();
             var allowedForex = InstrumentsHelper.ForexInstrumentList;
 
             foreach (var instrument in forexInstruments) {
