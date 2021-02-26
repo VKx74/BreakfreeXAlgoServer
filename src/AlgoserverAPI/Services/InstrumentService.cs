@@ -31,13 +31,24 @@ namespace Algoserver.API.Services
         }
 
         public void Init() {
-            var oandaInstruments = LoadOandaInstruments().GetAwaiter().GetResult();
-            var twelvedataInstruments = LoadTwelvedataInstruments().GetAwaiter().GetResult();
-            var kaikoInstruments = LoadKaikoInstruments().GetAwaiter().GetResult();
+            try {
+                var oandaInstruments = LoadOandaInstruments().GetAwaiter().GetResult();
+                _oandaInstruments.AddRange(oandaInstruments.Data);
+            } catch(Exception ex) {
 
-            _oandaInstruments.AddRange(oandaInstruments.Data);
-            _twelvedatsInstruments.AddRange(twelvedataInstruments.Data);
-            _kaikoInstruments.AddRange(kaikoInstruments.Data);
+            }
+            try {
+                var twelvedataInstruments = LoadTwelvedataInstruments().GetAwaiter().GetResult();
+                _twelvedatsInstruments.AddRange(twelvedataInstruments.Data);
+            } catch(Exception ex) {
+
+            }
+            try {
+                var kaikoInstruments = LoadKaikoInstruments().GetAwaiter().GetResult();
+                _kaikoInstruments.AddRange(kaikoInstruments.Data);
+            } catch(Exception ex) {
+
+            }
         }
 
         public List<IInstrument> GetOandaInstruments() {
