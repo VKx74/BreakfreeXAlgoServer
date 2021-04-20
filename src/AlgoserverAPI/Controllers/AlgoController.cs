@@ -1,23 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Security.Claims;
 using System.Threading;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using Algoserver.API.Exceptions;
-using Algoserver.API.Models;
 using Algoserver.API.Models.REST;
 using Algoserver.API.Services;
-using IdentityModel;
-using Newtonsoft.Json;
-using Algoserver.API.Helpers;
 
 namespace Algoserver.API.Controllers
 {
-    public class AlgoController : Controller
+
+    public class AlgoController : AlgoControllerBase
     {
         private ScannerResultService _scannerResultService;
         private AlgoService _algoService;
@@ -36,7 +31,7 @@ namespace Algoserver.API.Controllers
         [HttpPost(Routes.CalculateV2)]
         [ProducesResponseType(typeof(Response<CalculationResponseV2>), 200)]
         public async Task<IActionResult> CalculateV2Async([FromBody] CalculationRequest request)
-        {  
+        {
             if (!ModelState.IsValid)
             {
                 return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
@@ -50,7 +45,7 @@ namespace Algoserver.API.Controllers
         [HttpPost(Routes.CalculatePositionSize)]
         [ProducesResponseType(typeof(Response<CalculatePositionSizeResponse>), 200)]
         public async Task<IActionResult> CalculatePositionSize([FromBody] CalculatePositionSizeRequest request)
-        {  
+        {
             if (!ModelState.IsValid)
             {
                 return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
@@ -64,7 +59,7 @@ namespace Algoserver.API.Controllers
         [HttpPost(Routes.CalculatePriceRatio)]
         [ProducesResponseType(typeof(Response<CalculatePriceRatioResponse>), 200)]
         public async Task<IActionResult> CalculatePriceRatio([FromBody] CalculatePriceRatioRequest request)
-        {  
+        {
             if (!ModelState.IsValid)
             {
                 return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
@@ -78,7 +73,7 @@ namespace Algoserver.API.Controllers
         [HttpPost(Routes.CalculateMarketInfo)]
         [ProducesResponseType(typeof(Response<CalculationMarketInfoResponse>), 200)]
         public async Task<IActionResult> CalculateMarketInfoAsync([FromBody] Instrument request)
-        {  
+        {
             if (!ModelState.IsValid)
             {
                 return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
@@ -92,7 +87,7 @@ namespace Algoserver.API.Controllers
         [HttpPost(Routes.CalculateMarketInfoV2)]
         [ProducesResponseType(typeof(Response<CalculationMarketInfoResponse>), 200)]
         public async Task<IActionResult> CalculateMarketInfoV2Async([FromBody] MarketInfoCalculationRequest request)
-        {  
+        {
             if (!ModelState.IsValid)
             {
                 return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
@@ -101,7 +96,7 @@ namespace Algoserver.API.Controllers
             var result = await _algoService.CalculateMarketInfoV2Async(request);
             return await ToEncryptedResponse(result, HttpContext.RequestAborted);
         }
-            
+
         [Authorize]
         [HttpPost(Routes.Calculate)]
         [ProducesResponseType(typeof(Response<CalculationResponse>), 200)]
@@ -116,69 +111,7 @@ namespace Algoserver.API.Controllers
 
             var instrument = request.Instrument.Id
                 .Replace("_", "")
-                .Replace("/","");
-
-            // _statisticsService.AddToCache(new Statistic
-            // {
-            //     CreatedAt = DateTime.UtcNow,
-            //     UserId = User.FindFirstValue(JwtClaimTypes.Subject),
-            //     Email = User.FindFirstValue(JwtClaimTypes.Email),
-            //     FirstName = User.FindFirstValue("first_name"),
-            //     LastName = User.FindFirstValue("last_name"),
-            //     Ip = HttpContext.Request.ClientIp(),
-            //     AccountSize = request.InputAccountSize,
-            //     Market = $"{instrument}-{request.Instrument.Exchange}",
-            //     TimeFramePeriodicity = request.Timeframe.Periodicity,
-            //     TimeFrameInterval = request.Timeframe.Interval,
-            //     StopLossRatio = request.InputStoplossRatio,
-            //     RiskOverride = request.InputRisk,
-            //     SplitPositions = request.InputSplitPositions
-            // });
-
-            return await ToEncryptedResponse(result, HttpContext.RequestAborted);
-        }
-        
-        [Authorize]
-        [HttpPost(Routes.Backtest)]
-        [ProducesResponseType(typeof(Response<CalculationResponse>), 200)]
-        public async Task<IActionResult> BacktestAsync([FromBody] BacktestRequest request)
-        {
-            if (!ModelState.IsValid)
-            {
-                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
-            }
-
-            var result = await _algoService.BacktestAsync(request);
-
-            return await ToEncryptedResponse(result, HttpContext.RequestAborted);
-        } 
-        
-        [Authorize]
-        [HttpPost(Routes.StrategyV2Backtest)]
-        [ProducesResponseType(typeof(Response<CalculationResponse>), 200)]
-        public async Task<IActionResult> Strategy2BacktestAsync([FromBody] Strategy2BacktestRequest request)
-        {
-            if (!ModelState.IsValid)
-            {
-                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
-            }
-
-            var result = await _algoService.Strategy2BacktestAsync(request);
-
-            return await ToEncryptedResponse(result, HttpContext.RequestAborted);
-        } 
-        
-        [Authorize]
-        [HttpPost(Routes.HitTestExtensions)]
-        [ProducesResponseType(typeof(Response<CalculationResponse>), 200)]
-        public async Task<IActionResult> HitTestExtensions([FromBody] HittestRequest request)
-        {
-            if (!ModelState.IsValid)
-            {
-                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
-            }
-
-            var result = await _algoService.HitTestExtensionsAsync(request);
+                .Replace("/", "");
 
             return await ToEncryptedResponse(result, HttpContext.RequestAborted);
         }
@@ -204,8 +137,8 @@ namespace Algoserver.API.Controllers
         {
             var res = _scannerResultService.GetData();
             return await ToEncryptedResponse(res, HttpContext.RequestAborted);
-        } 
-        
+        }
+
         [Authorize]
         [HttpGet(Routes.ScannerHistoryResults)]
         [ProducesResponseType(typeof(Response<ScannerHistoryResponse>), 200)]
@@ -213,17 +146,6 @@ namespace Algoserver.API.Controllers
         {
             var res = _scannerResultService.GetHistoryData();
             return await ToEncryptedResponse(res, HttpContext.RequestAborted);
-        }
-
-        [NonAction]
-        public Task<JsonResult> ToEncryptedResponse(object data, CancellationToken token = default) {
-            return Task.Run(() => {
-                var res = JsonConvert.SerializeObject(data);
-                var encryptedRes = EncryptionHelper.Encrypt(res);
-                return Json(new EncryptedResponse {
-                    data = encryptedRes
-                });
-            }, token);
         }
 
         [HttpGet(Routes.Version)]
