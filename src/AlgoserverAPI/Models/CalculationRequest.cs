@@ -101,9 +101,6 @@ namespace Algoserver.API.Models.REST
         [JsonProperty("tickSize")]
         public decimal TickSize { get; set; }
 
-        [JsonProperty("pricePrecision")]
-        public decimal PricePrecision { get; set; }
-
         [JsonProperty("baseInstrument")]
         public string BaseInstrument { get; set; } // USD
 

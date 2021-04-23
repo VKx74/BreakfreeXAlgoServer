@@ -33,6 +33,11 @@ namespace Algoserver.API.Models.REST
         public decimal size {get;set;}
         public string id { get; set; }
     }
+
+    public class BacktestExtensionsResponse {
+        public CalculationLevels levels {get;set;}
+        public long timestamp { get; set; }
+    }
     
     public class CalculatePositionSizeResponse {
         public decimal size {get;set;}

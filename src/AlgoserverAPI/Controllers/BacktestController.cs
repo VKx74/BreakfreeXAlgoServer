@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Algoserver.API.Models.REST;
 using Algoserver.API.Services;
+using System.Collections.Generic;
 
 namespace Algoserver.API.Controllers
 {
@@ -59,6 +60,21 @@ namespace Algoserver.API.Controllers
             var result = await _algoService.HitTestExtensionsAsync(request);
 
             return await ToEncryptedResponse(result, HttpContext.RequestAborted);
+        }
+
+        [Authorize]
+        [HttpPost(Routes.BacktestExtensions)]
+        [ProducesResponseType(typeof(Response<List<BacktestExtensionsResponse>>), 200)]
+        public async Task<IActionResult> BacktestExtensions([FromBody] BacktestExtensions request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
+            }
+
+            var result = await _algoService.BacktestExtensionsAsync(request);
+
+            return Ok(result);
         }
 
     }

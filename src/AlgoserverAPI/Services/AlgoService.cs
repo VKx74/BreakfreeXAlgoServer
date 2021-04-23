@@ -114,6 +114,14 @@ namespace Algoserver.API.Services
             });
         }
 
+        internal Task<List<BacktestExtensionsResponse>> BacktestExtensionsAsync(BacktestExtensions req)
+        {
+            return Task.Run(async () =>
+            {
+                return await backtestExtensionsAsync(req);
+            });
+        }
+
         public async Task<CalculationResponse> CalculateAsync(CalculationRequest req)
         {
             var container = await InitAsync(req);
@@ -749,6 +757,38 @@ namespace Algoserver.API.Services
             var signalProcessor = new SignalsV2Processor(currentPriceData.Bars, response.signals, req.breakeven_candles);
             var orders = signalProcessor.Backtest();
             response.orders = orders;
+
+            return response;
+        }
+
+        private async Task<List<BacktestExtensionsResponse>> backtestExtensionsAsync(BacktestExtensions req)
+        {
+            var instrument = req.Instrument;
+            var granularity = req.Granularity.GetValueOrDefault(TimeframeHelper.DAILY_GRANULARITY);
+            var currentPriceData = await _historyService.GetHistoryByDates(instrument.Datafeed, instrument.Id, granularity, instrument.Exchange, req.From, req.To);
+            var container = new InputDataContainer();
+            var bars = currentPriceData.Bars.ToList();
+
+            // need at least 128 bars to calculate SAR
+            var replayBack = bars.Count - 128;
+            var response = new List<BacktestExtensionsResponse>();
+
+            while (replayBack-- >= 0)
+            {
+                container.AddNext(currentPriceData.Bars, null, null, replayBack);
+                var levels = TechCalculations.CalculateLevels(container.High, container.Low);
+                var sar = SupportAndResistance.Calculate(levels, container.Mintick);
+                var lastLevel = response.LastOrDefault();
+
+                if (lastLevel == null || lastLevel.levels.ZE != levels.Level128.ZeroEight || lastLevel.levels.EE != levels.Level128.EightEight)
+                {
+                    var responseItem = ToLevels(levels, sar);
+                    response.Add(new BacktestExtensionsResponse {
+                        levels = responseItem,
+                        timestamp = container.Time.LastOrDefault()
+                    });
+                }
+            }
 
             return response;
         }

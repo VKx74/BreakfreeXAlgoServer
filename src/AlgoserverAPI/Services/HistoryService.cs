@@ -97,10 +97,91 @@ namespace Algoserver.API.Services
             return result;
         }
 
+        public async Task<HistoryData> GetHistoryByDates(string datafeed, string symbol, int granularity, string exchange, long start, long end)
+        {
+            var hash = getHash(symbol, granularity, datafeed, exchange) + start + end;
+            try
+            {
+                if (_cache.TryGetValue(_cachePrefix, hash, out HistoryData cachedResponse))
+                {
+                    return cachedResponse;
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Failed to get cached response");
+                _logger.LogError(e.Message);
+            }
+
+            var bars = await SendHistoricalRequest(datafeed, symbol, granularity, exchange, start, end);
+            var result = new HistoryData
+            {
+                Bars = bars,
+                Datafeed = datafeed,
+                Exchange = exchange,
+                Granularity = granularity,
+                Symbol = symbol
+            };
+
+            try
+            {
+                if (result.Bars != null && result.Bars.Any())
+                {
+                    _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(60));
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Failed to set cached response");
+                _logger.LogError(e.Message);
+            }
+
+            return result;
+        }
+
+        private async Task<List<BarMessage>> SendHistoricalRequest(string datafeed, string symbol, int granularity, string exchange, long start, long end)
+        {
+
+            var bearerdatafeed = datafeed.ToLowerInvariant();
+            var uri = $"{_serverUrl}/{bearerdatafeed}/history?" +
+                        $"kind=daterange&symbol={symbol}&granularity={granularity}&from={start}&to={end}";
+
+            if (!string.IsNullOrWhiteSpace(exchange))
+            {
+                uri = $"{uri}&exchange={exchange}";
+            }
+
+            var token = await _auth.GetToken();
+            var request = new HttpRequestMessage(HttpMethod.Get, uri)
+            {
+                Headers = {
+                { HttpRequestHeader.Authorization.ToString(), token }
+            }
+            };
+
+            var response = await _httpClient.SendAsync(request);
+            var content = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError($"Error occured while sending http request to {request.RequestUri}, response string: {content}");
+                response.EnsureSuccessStatusCode();
+            }
+
+            if (bearerdatafeed == "oanda")
+            {
+                var oandaResponse = JsonConvert.DeserializeObject<OandaHistoryResponse>(content);
+                return oandaResponse.Data.Bars.ToList();
+            }
+            else
+            {
+                var historyResponse = JsonConvert.DeserializeObject<HistoryData>(content);
+                return historyResponse.Bars.ToList();
+            }
+        }
+
         private async Task<HistoryData> SendHistoricalRequest(string datafeed, string symbol, int granularity, long bars_count, string exchange, int repeatCount)
         {
-            var bearerdatafeed = datafeed.ToLowerInvariant();
-
             var result = new HistoryData
             {
                 Bars = new List<BarMessage>(),
@@ -114,47 +195,10 @@ namespace Algoserver.API.Services
 
             do
             {
-                var endDate = this.getEndDate(result);
+                var endDate = this.getEndDate(result, AlgoHelper.UnixTimeNow());
                 var startDate = this.getStartDate(result, bars_count);
 
-                var uri = $"{_serverUrl}/{bearerdatafeed}/history?" +
-                          $"kind=daterange&symbol={symbol}&granularity={granularity}&from={startDate}&to={endDate}";
-
-                if (!string.IsNullOrWhiteSpace(exchange))
-                {
-                    uri = $"{uri}&exchange={exchange}";
-                }
-
-                // Console.WriteLine(uri);
-
-                var token = await _auth.GetToken();
-                var request = new HttpRequestMessage(HttpMethod.Get, uri)
-                {
-                    Headers = {
-                    { HttpRequestHeader.Authorization.ToString(), token }
-                }
-                };
-
-                var response = await _httpClient.SendAsync(request);
-                var content = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    _logger.LogError($"Error occured while sending http request to {request.RequestUri}, response string: {content}");
-                    response.EnsureSuccessStatusCode();
-                }
-
-                IEnumerable<BarMessage> bars = null;
-                if (bearerdatafeed == "oanda")
-                {
-                    var oandaResponse = JsonConvert.DeserializeObject<OandaHistoryResponse>(content);
-                    bars = oandaResponse.Data.Bars;
-                }
-                else
-                {
-                    var historyResponse = JsonConvert.DeserializeObject<HistoryData>(content);
-                    bars = historyResponse.Bars;
-                }
+                var bars = await SendHistoricalRequest(datafeed, symbol, granularity, exchange, startDate, endDate);
 
                 var prevCount = result.Bars.Count();
                 result.Bars = this.mergeBars(result.Bars, bars);
@@ -165,8 +209,9 @@ namespace Algoserver.API.Services
                     return result;
                 }
 
-                if (requestCount > 0) {
-                    Console.WriteLine($"History request count {requestCount} - {uri}");
+                if (requestCount > 0)
+                {
+                    Console.WriteLine($"History request count {requestCount} - {symbol} - {granularity} - {bars_count}");
                 }
 
                 if (requestCount++ > repeatCount)
@@ -229,13 +274,13 @@ namespace Algoserver.API.Services
             return barsToAppend;
         }
 
-        private long getEndDate(HistoryData data)
+        private long getEndDate(HistoryData data, long defaultEndDate)
         {
             var firstBar = data.Bars.FirstOrDefault();
 
             if (firstBar == null)
             {
-                return AlgoHelper.UnixTimeNow();
+                return defaultEndDate;
             }
 
             return firstBar.Timestamp + 1;
@@ -244,7 +289,7 @@ namespace Algoserver.API.Services
         private long getStartDate(HistoryData data, long bars_count)
         {
             var existing_count = data.Bars.Count();
-            var endDate = this.getEndDate(data);
+            var endDate = this.getEndDate(data, AlgoHelper.UnixTimeNow());
             var mult = 3;
 
             if (data.Granularity < 86400 && data.Datafeed == "Twelvedata")
