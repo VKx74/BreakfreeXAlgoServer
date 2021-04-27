@@ -124,7 +124,7 @@ namespace Algoserver.API
                 .AddIdentityServerAuthentication(options =>
                 {
                     options.Authority = Configuration.GetValue<string>("Authority");
-                    options.ApiName = Scopes.USER_API;
+                    options.ApiName = Scopes.ALGO;
                     options.RequireHttpsMetadata = false;
                     options.EnableCaching = true;
                 });
