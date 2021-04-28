@@ -19,6 +19,8 @@ using Algoserver.Auth.Services;
 using Algoserver.API.HostedServices;
 using Algoserver.API.Services.CacheServices;
 using Algoserver.API.Settings;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Algoserver.API
 {
@@ -41,7 +43,15 @@ namespace Algoserver.API
             .AddApiExplorer()
             .AddJsonFormatters()
             .AddDataAnnotations()
-            .AddAuthorization();
+            .AddAuthorization(options =>
+            {
+                options.AddPolicy("free_user_restriction", policy =>
+                {
+                    policy.AuthenticationSchemes.Add(JwtBearerDefaults.AuthenticationScheme);
+                    policy.RequireAuthenticatedUser();
+                    policy.Requirements.Add(new GuestRightProtectionRequirement());
+                });
+            });
 
             var scanInstruments = Configuration.GetValue<bool>("ScanInstruments");
 
@@ -57,6 +67,7 @@ namespace Algoserver.API
             });
 
             //services.AddSingleton<ICacheService, MemoryCacheService>();
+            services.AddSingleton<IAuthorizationHandler, GuestRightProtectionHandler>();
             services.AddSingleton<ICacheService, RedisCacheService>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddLogging(opt => opt.AddConsole().AddDebug());

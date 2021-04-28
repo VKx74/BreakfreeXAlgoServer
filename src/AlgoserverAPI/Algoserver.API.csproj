@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Fintatech.TDS.ClientIdentity.External" Version="1.0.14" />
+    <PackageReference Include="Fintatech.TDS.ClientIdentity.External" Version="1.0.16" />
     <PackageReference Include="Fintatech.TDS.HealthCheck" Version="1.0.0" />
     <PackageReference Include="Fintatech.TDS.Common.Protocol" Version="1.0.0" />
     <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="2.7.0" />

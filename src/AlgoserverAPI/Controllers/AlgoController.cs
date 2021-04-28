@@ -27,7 +27,7 @@ namespace Algoserver.API.Controllers
             _scannerResultService = scannerResultService;
         }
 
-        [Authorize]
+        [Authorize(Policy="free_user_restriction")]
         [HttpPost(Routes.CalculateV2)]
         [ProducesResponseType(typeof(Response<CalculationResponseV2>), 200)]
         public async Task<IActionResult> CalculateV2Async([FromBody] CalculationRequest request)
@@ -97,7 +97,7 @@ namespace Algoserver.API.Controllers
             return await ToEncryptedResponse(result, HttpContext.RequestAborted);
         }
 
-        [Authorize]
+        [Authorize(Policy="free_user_restriction")]
         [HttpPost(Routes.Calculate)]
         [ProducesResponseType(typeof(Response<CalculationResponse>), 200)]
         public async Task<IActionResult> CalculateAsync([FromBody] CalculationRequest request)
@@ -116,7 +116,7 @@ namespace Algoserver.API.Controllers
             return await ToEncryptedResponse(result, HttpContext.RequestAborted);
         }
 
-        [Authorize]
+        [Authorize(Policy="free_user_restriction")]
         [HttpPost(Routes.RTCalculation)]
         [ProducesResponseType(typeof(Response<RTDCalculationResponse>), 200)]
         public async Task<IActionResult> CalculateRTD([FromBody] RTDCalculationRequest request)
@@ -130,7 +130,7 @@ namespace Algoserver.API.Controllers
             return await ToEncryptedResponse(result, HttpContext.RequestAborted);
         }
 
-        [Authorize]
+        [Authorize(Policy="free_user_restriction")]
         [HttpGet(Routes.ScannerResults)]
         [ProducesResponseType(typeof(Response<ScannerResponse>), 200)]
         public async Task<IActionResult> ScannerResults([FromQuery] string segment = "")
@@ -139,7 +139,7 @@ namespace Algoserver.API.Controllers
             return await ToEncryptedResponse(res, HttpContext.RequestAborted);
         }
 
-        [Authorize]
+        [Authorize(Policy="free_user_restriction")]
         [HttpGet(Routes.ScannerHistoryResults)]
         [ProducesResponseType(typeof(Response<ScannerHistoryResponse>), 200)]
         public async Task<IActionResult> ScannerHistoryResults([FromQuery] string segment = "")
