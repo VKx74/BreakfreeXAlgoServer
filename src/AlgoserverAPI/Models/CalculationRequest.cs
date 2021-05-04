@@ -19,6 +19,9 @@ namespace Algoserver.API.Models.REST
         [JsonProperty("input_accountsize")]
         public decimal InputAccountSize { get; set; }
 
+        [JsonProperty("account_currency")]
+        public string AccountCurrency { get; set; }
+
         [JsonProperty("contract_size")]
         public decimal? ContractSize { get; set; }
 
@@ -64,6 +67,9 @@ namespace Algoserver.API.Models.REST
 
         [JsonProperty("input_accountsize")]
         public decimal InputAccountSize { get; set; }
+        
+        [JsonProperty("account_currency")]
+        public string AccountCurrency { get; set; }
 
         [JsonProperty("contract_size")]
         public decimal? ContractSize { get; set; }

@@ -41,7 +41,7 @@ namespace Algoserver.API.Services
 
             if (container.Type == "forex")
             {
-                var usdRatio = await _priceRatioCalculationService.GetUSDRatio(container.Symbol, container.Datafeed, container.Type, container.Exchange);
+                var usdRatio = await _priceRatioCalculationService.GetSymbolRatio(container.Symbol, req.AccountCurrency, container.Datafeed, container.Type, container.Exchange);
                 container.setUsdRatio(usdRatio);
             }
             else
@@ -359,7 +359,7 @@ namespace Algoserver.API.Services
 
             if (type == "forex")
             {
-                usdRatio = await _priceRatioCalculationService.GetUSDRatio(symbol, datafeed, type, exchange);
+                usdRatio = await _priceRatioCalculationService.GetSymbolRatio(symbol, req.AccountCurrency, datafeed, type, exchange);
             }
 
             var accountSize = req.InputAccountSize * usdRatio;
@@ -380,7 +380,7 @@ namespace Algoserver.API.Services
 
             if (type == "forex")
             {
-                usdRatio = await _priceRatioCalculationService.GetUSDRatio(symbol, datafeed, type, exchange);
+                usdRatio = await _priceRatioCalculationService.GetSymbolRatio(symbol, req.AccountCurrency, datafeed, type, exchange);
             }
 
             return new CalculatePriceRatioResponse {
