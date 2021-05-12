@@ -147,6 +147,42 @@ namespace Algoserver.API.Controllers
             var res = _scannerResultService.GetHistoryData();
             return await ToEncryptedResponse(res, HttpContext.RequestAborted);
         }
+        
+        [HttpPost(Routes.RTCalculationGuest)]
+        [ProducesResponseType(typeof(Response<RTDCalculationResponse>), 200)]
+        public async Task<IActionResult> CalculateRTDGuest([FromBody] RTDCalculationRequest request)
+        {
+            if (!ModelState.IsValid || request.Instrument == null || string.IsNullOrEmpty(request.Instrument.Id))
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
+            }
+
+            if (string.Equals(request.Instrument.Id.Replace("_", ""), "eurusd", StringComparison.InvariantCultureIgnoreCase)) 
+            {
+                return StatusCode(StatusCodes.Status403Forbidden);
+            }
+
+            var result = await _rtdService.CalculateMESARTD(request, HttpContext.RequestAborted);
+            return await ToEncryptedResponse(result, HttpContext.RequestAborted);
+        }
+
+        [HttpPost(Routes.CalculateV2Guest)]
+        [ProducesResponseType(typeof(Response<CalculationResponseV2>), 200)]
+        public async Task<IActionResult> CalculateV2GuestAsync([FromBody] CalculationRequest request)
+        {
+            if (!ModelState.IsValid || request.Instrument == null || string.IsNullOrEmpty(request.Instrument.Id))
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
+            }
+
+            if (string.Equals(request.Instrument.Id.Replace("_", ""), "eurusd", StringComparison.InvariantCultureIgnoreCase)) 
+            {
+                return StatusCode(StatusCodes.Status403Forbidden);
+            }
+
+            var result = await _algoService.CalculateV2Async(request);
+            return await ToEncryptedResponse(result, CancellationToken.None);
+        }
 
         [HttpGet(Routes.Version)]
         public ActionResult<IEnumerable<string>> Version()
