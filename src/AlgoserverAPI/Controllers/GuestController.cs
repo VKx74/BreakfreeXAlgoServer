@@ -30,7 +30,7 @@ namespace Algoserver.API.Controllers
                 return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
             }
 
-            if (string.Equals(request.Instrument.Id.Replace("_", ""), "eurusd", StringComparison.InvariantCultureIgnoreCase))
+            if (!string.Equals(request.Instrument.Id.Replace("_", ""), "eurusd", StringComparison.InvariantCultureIgnoreCase))
             {
                 return StatusCode(StatusCodes.Status403Forbidden);
             }
@@ -49,7 +49,7 @@ namespace Algoserver.API.Controllers
                 return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
             }
 
-            if (string.Equals(request.Instrument.Id.Replace("_", ""), "eurusd", StringComparison.InvariantCultureIgnoreCase))
+            if (!string.Equals(request.Instrument.Id.Replace("_", ""), "eurusd", StringComparison.InvariantCultureIgnoreCase))
             {
                 return StatusCode(StatusCodes.Status403Forbidden);
             }
