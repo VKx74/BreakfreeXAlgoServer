@@ -13,6 +13,7 @@
         public const string StrategyV2Backtest = "strategy_v2_backtest";
         public const string HitTestExtensions = "hittest_ext";
         public const string BacktestExtensions = "backtest_ext";
+        public const string BacktestScanner = "backtest_scanner";
         public const string RTCalculation = "rtd";
         public const string RTCalculationGuest = "rtd_guest";
         public const string ScanInstrument = "scan_instrument";

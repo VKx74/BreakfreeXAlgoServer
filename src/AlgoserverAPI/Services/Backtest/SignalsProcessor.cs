@@ -6,19 +6,16 @@ using Algoserver.API.Models.REST;
 
 namespace Algoserver.API.Services
 {
-    public class SignalsProcessor
-    {
-        private readonly IEnumerable<BarMessage> _history;
-        private readonly IEnumerable<BacktestSignal> _signals;
-        private readonly int _breakevenCandles;
-        private readonly DemoBroker _demoBroker;
 
-        public SignalsProcessor(IEnumerable<BarMessage> history, IEnumerable<BacktestSignal> signals, int breakevenCandles)
+    public class SignalsProcessor: SignalProcessorBase
+    {
+        protected readonly IEnumerable<BacktestSignal> _signals;
+        protected readonly int _breakevenCandles;
+
+        public SignalsProcessor(IEnumerable<BarMessage> history, IEnumerable<BacktestSignal> signals, int breakevenCandles): base(history)
         {
-            _history = history;
             _signals = signals;
             _breakevenCandles = breakevenCandles;
-            _demoBroker = new DemoBroker();
         }
 
         public List<Order> Backtest(int entryCount = 3)
@@ -51,7 +48,7 @@ namespace Algoserver.API.Services
 
                 if (prevSignal != null && prevSignal.end_timestamp > 0 && prevSignal.end_timestamp <= bar.Timestamp)
                 {
-                    cancelOrders();
+                    _cancelOrders();
                     prevSignal = null;
                 }
 
@@ -69,7 +66,7 @@ namespace Algoserver.API.Services
 
                 signals.Dequeue();
 
-                cancelOrders();
+                _cancelOrders();
 
                 prevSignal = signal;
 
@@ -127,74 +124,6 @@ namespace Algoserver.API.Services
             }
 
             return _demoBroker.Orders;
-        }
-
-        private void cancelOrders()
-        {
-            var openOrders = _demoBroker.GetOrders(OrderStatus.Open);
-            foreach (var openOrder in openOrders)
-            {
-                _demoBroker.CancelOrder(openOrder.id);
-            }
-        }
-
-        private void _validateBreakevenCandles(IEnumerable<BarMessage> barsBack)
-        {
-            var filledOrders = _demoBroker.GetOrders(OrderStatus.Filled);
-            foreach (var filledOrder in filledOrders)
-            {
-                if (!_validateBreakevenCandlesOrder(filledOrder, barsBack))
-                {
-                    try
-                    {
-                        _demoBroker.EditOrder(new EditOrderRequest
-                        {
-                            id = filledOrder.id,
-                            tp_price = filledOrder.price,
-                            sl_price = filledOrder.sl_price
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                    }
-                }
-            }
-        }
-
-        private bool _validateBreakevenCandlesOrder(Order order, IEnumerable<BarMessage> barsBack)
-        {
-            var prices = new List<decimal>();
-            foreach (var bar in barsBack)
-            {
-                if (order.side == OrderSide.Buy)
-                {
-                    prices.Add(bar.Low);
-                }
-                else
-                {
-                    prices.Add(bar.High);
-                }
-            }
-
-            foreach (var price in prices)
-            {
-                if (order.side == OrderSide.Buy)
-                {
-                    if (price >= order.price)
-                    {
-                        return true;
-                    }
-                }
-                else
-                {
-                    if (price <= order.price)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
         }
 
         private BacktestSignal _getSignalByDate(long timestamp)

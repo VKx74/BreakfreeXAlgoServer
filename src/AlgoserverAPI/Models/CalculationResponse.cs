@@ -33,11 +33,6 @@ namespace Algoserver.API.Models.REST
         public decimal size {get;set;}
         public string id { get; set; }
     }
-
-    public class BacktestExtensionsResponse {
-        public CalculationLevels levels {get;set;}
-        public long timestamp { get; set; }
-    }
     
     public class CalculatePositionSizeResponse {
         public decimal size {get;set;}
@@ -152,6 +147,7 @@ namespace Algoserver.API.Models.REST
         public decimal sl_ratio { get; set; }
         public decimal risk { get; set; }
     }
+    
     public class StrategyModeV1 {
 
         [JsonProperty("algo_TP2")]
@@ -206,27 +202,4 @@ namespace Algoserver.API.Models.REST
         public string NCurrencySymbol { get; set; }
     }
 
-    public class BacktestSignal
-    {
-        public long timestamp { get; set; }
-        public long end_timestamp { get; set; }
-        public CalculationResponse data { get; set; }
-    }
-
-    public class ExtHitTestSignal
-    {
-        public long timestamp { get; set; }
-        public long end_timestamp { get; set; }
-        public decimal top_sl { get; set; }
-        public decimal bottom_sl { get; set; }
-        public decimal top_entry { get; set; }
-        public decimal bottom_entry { get; set; }
-        public CalculationResponse data { get; set; }
-        public bool topext1hit { get; set; }
-        public bool bottomext1hit { get; set; }
-        public bool backhit { get; set; }
-        public bool wentout { get; set; }
-        public bool breakeven { get; set; }
-        public Trend trend { get; set; }
-    }
 }

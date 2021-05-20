@@ -12,6 +12,7 @@ namespace Algoserver.API.Helpers
         public decimal GlobalTrendSpread { get; set; }
         public bool IsOverhit { get; set; }
     }
+    
     public class TrendsStrengthResult {
         public decimal LocalTrendSpread { get; set; }
         public decimal GlobalTrendSpread { get; set; }

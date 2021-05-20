@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Algoserver.API.Models.REST;
 using Algoserver.API.Services;
+using System;
 
 namespace Algoserver.API.Controllers
 {
@@ -69,20 +70,6 @@ namespace Algoserver.API.Controllers
         }
 
         [Authorize]
-        [HttpPost(Routes.CalculateMarketInfo)]
-        [ProducesResponseType(typeof(Response<CalculationMarketInfoResponse>), 200)]
-        public async Task<IActionResult> CalculateMarketInfoAsync([FromBody] Instrument request)
-        {
-            if (!ModelState.IsValid)
-            {
-                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
-            }
-
-            var result = await _algoService.CalculateMarketInfoAsync(request);
-            return await ToEncryptedResponse(result, HttpContext.RequestAborted);
-        }
-
-        [Authorize]
         [HttpPost(Routes.CalculateMarketInfoV2)]
         [ProducesResponseType(typeof(Response<CalculationMarketInfoResponse>), 200)]
         public async Task<IActionResult> CalculateMarketInfoV2Async([FromBody] MarketInfoCalculationRequest request)
@@ -93,25 +80,6 @@ namespace Algoserver.API.Controllers
             }
 
             var result = await _algoService.CalculateMarketInfoV2Async(request);
-            return await ToEncryptedResponse(result, HttpContext.RequestAborted);
-        }
-
-        [Authorize(Policy = "free_user_restriction")]
-        [HttpPost(Routes.Calculate)]
-        [ProducesResponseType(typeof(Response<CalculationResponse>), 200)]
-        public async Task<IActionResult> CalculateAsync([FromBody] CalculationRequest request)
-        {
-            if (!ModelState.IsValid)
-            {
-                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
-            }
-
-            var result = await _algoService.CalculateAsync(request);
-
-            var instrument = request.Instrument.Id
-                .Replace("_", "")
-                .Replace("/", "");
-
             return await ToEncryptedResponse(result, HttpContext.RequestAborted);
         }
 
@@ -151,6 +119,41 @@ namespace Algoserver.API.Controllers
         public ActionResult<IEnumerable<string>> Version()
         {
             return Ok(Assembly.GetExecutingAssembly().GetName().Version.ToString());
+        }
+
+        [Obsolete]
+        [Authorize(Policy = "free_user_restriction")]
+        [HttpPost(Routes.Calculate)]
+        [ProducesResponseType(typeof(Response<CalculationResponse>), 200)]
+        public async Task<IActionResult> CalculateAsync([FromBody] CalculationRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
+            }
+
+            var result = await _algoService.CalculateAsync(request);
+
+            var instrument = request.Instrument.Id
+                .Replace("_", "")
+                .Replace("/", "");
+
+            return await ToEncryptedResponse(result, HttpContext.RequestAborted);
+        }
+
+        [Obsolete]
+        [Authorize]
+        [HttpPost(Routes.CalculateMarketInfo)]
+        [ProducesResponseType(typeof(Response<CalculationMarketInfoResponse>), 200)]
+        public async Task<IActionResult> CalculateMarketInfoAsync([FromBody] Instrument request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
+            }
+
+            var result = await _algoService.CalculateMarketInfoAsync(request);
+            return await ToEncryptedResponse(result, HttpContext.RequestAborted);
         }
     }
 }

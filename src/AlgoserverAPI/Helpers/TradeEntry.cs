@@ -1,8 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Algoserver.API.Models.Algo;
-using Algoserver.API.Services;
+using Algoserver.API.Models.REST;
 
 namespace Algoserver.API.Helpers
 {

@@ -77,6 +77,8 @@ namespace Algoserver.API
             services.AddSingleton<HistoryService>();
             services.AddSingleton<PriceRatioCalculationService>();
             services.AddSingleton<AlgoService>();
+            services.AddSingleton<BacktestService>();
+            services.AddSingleton<ScannerBacktestService>();
             services.AddSingleton<ScannerService>();
             services.AddSingleton<ScannerCryptoHistoryService>();
             services.AddSingleton<ScannerForexHistoryService>();

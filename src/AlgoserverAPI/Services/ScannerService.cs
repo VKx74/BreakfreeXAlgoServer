@@ -7,31 +7,6 @@ using Algoserver.API.Models.REST;
 
 namespace Algoserver.API.Services
 {
-    public class ScanResponse
-    {
-        public decimal entry { get; set; }
-        public decimal stop { get; set; }
-        public int tte { get; set; }
-        public TradeProbability tp { get; set; }
-        public TradeType type { get; set; }
-        public Trend trend { get; set; }
-        public decimal entry_h { get; set; }
-        public decimal entry_l { get; set; }
-        public decimal take_profit { get; set; }
-        public decimal take_profit_h { get; set; }
-        public decimal take_profit_l { get; set; }
-        public decimal risk { get; set; }
-        public decimal sl_ratio { get; set; }
-    }
-
-    public class ScanningHistory
-    {
-        public List<decimal> Open { get; set; }
-        public List<decimal> High { get; set; }
-        public List<decimal> Low { get; set; }
-        public List<decimal> Close { get; set; }
-    }
-
     public class ScannerService
     {
         private readonly HistoryService _historyService;
@@ -490,6 +465,17 @@ namespace Algoserver.API.Services
         }
 
 
+        public ScanningHistory ToScanningHistory(IEnumerable<BarMessage> history)
+        {
+            return new ScanningHistory
+            {
+                Open = history.Select(_ => _.Open).ToList(),
+                High = history.Select(_ => _.High).ToList(),
+                Low = history.Select(_ => _.Low).ToList(),
+                Close = history.Select(_ => _.Close).ToList(),
+            };
+        }
+
         private bool isDailySupportAndResistanceValid(ScanningHistory dailyHistory, Trend trend) {
             var high = dailyHistory.High;
             var low = dailyHistory.Low;
@@ -518,17 +504,6 @@ namespace Algoserver.API.Services
             }
 
             return true;
-        }
-
-        public ScanningHistory ToScanningHistory(IEnumerable<BarMessage> history)
-        {
-            return new ScanningHistory
-            {
-                Open = history.Select(_ => _.Open).ToList(),
-                High = history.Select(_ => _.High).ToList(),
-                Low = history.Select(_ => _.Low).ToList(),
-                Close = history.Select(_ => _.Close).ToList(),
-            };
         }
     }
 }
