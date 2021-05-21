@@ -83,10 +83,10 @@ namespace Algoserver.API.Services
                     continue;
                 }
 
-                if (this._isTradeEquals(signal, prevSignal))
-                {
-                    continue;
-                }
+                // if (this._isTradeEquals(signal, prevSignal))
+                // {
+                //     continue;
+                // }
 
                 prevSignal = signal;
 
