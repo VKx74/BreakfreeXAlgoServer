@@ -72,7 +72,7 @@ namespace Algoserver.API.Services
                 container.AddNext(currentPriceData.Bars, null, dailyPriceData.Bars, replayBack);
                 replayBack--;
 
-                var extendedTrendData = TrendDetector.CalculateByMesaBy2TrendAdjusted(container.CloseD);
+                var extendedTrendData = TrendDetector.CalculateByMesaBy2TrendAdjusted(container.CloseD, req.global_fast, req.global_slow, req.local_fast, req.local_slow);
                 var trend = TrendDetector.MergeTrends(extendedTrendData);
 
                 var scanningHistory = new ScanningHistory
@@ -115,7 +115,9 @@ namespace Algoserver.API.Services
                     continue;
                 }
 
-                 var lastBacktestSignal = response.signals.LastOrDefault();
+                lastSignal = signal;
+
+                var lastBacktestSignal = response.signals.LastOrDefault();
                 if (lastBacktestSignal != null && lastBacktestSignal.end_timestamp == 0)
                 {
                     lastBacktestSignal.end_timestamp = container.Time.LastOrDefault();
@@ -125,8 +127,6 @@ namespace Algoserver.API.Services
                 {
                     continue;
                 }
-
-                lastSignal = signal;
 
                 var size = 1m;
                 var levels = TechCalculations.CalculateLevels(container.High, container.Low);

@@ -29,6 +29,10 @@ namespace Algoserver.API.Models.REST
         public int cancellation_candles { get; set; } = 0;
         public bool single_position { get; set; }
         public TradeType type { get; set; }
+        public decimal global_fast { get; set; } = 0.25m;
+        public decimal global_slow { get; set; } = 0.05m;
+        public decimal local_fast { get; set; } = 1.2m;
+        public decimal local_slow { get; set; } = 0.6m;
     }
 
     public class HittestRequest : BacktestRequest
