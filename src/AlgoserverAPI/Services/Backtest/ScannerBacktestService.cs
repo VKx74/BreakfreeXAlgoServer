@@ -135,7 +135,9 @@ namespace Algoserver.API.Services
                 response.signals.Add(new ScannerBacktestSignal
                 {
                     data = result,
-                    timestamp = container.Time.LastOrDefault()
+                    timestamp = container.Time.LastOrDefault(),
+                    local_trend = extendedTrendData.LocalTrend,
+                    global_trend = extendedTrendData.GlobalTrend
                 });
             }
 

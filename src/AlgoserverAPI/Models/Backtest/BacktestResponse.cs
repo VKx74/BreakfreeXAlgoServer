@@ -16,6 +16,8 @@ namespace Algoserver.API.Models.REST
     {
         public long timestamp { get; set; }
         public long end_timestamp { get; set; }
+        public Trend local_trend { get; set; }
+        public Trend global_trend { get; set; }
         public CalculationResponseV2 data { get; set; }
     }
 
