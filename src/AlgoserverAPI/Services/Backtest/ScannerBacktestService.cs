@@ -137,7 +137,15 @@ namespace Algoserver.API.Services
                     data = result,
                     timestamp = container.Time.LastOrDefault(),
                     local_trend = extendedTrendData.LocalTrend,
-                    global_trend = extendedTrendData.GlobalTrend
+                    global_trend = extendedTrendData.GlobalTrend,
+                    local_trend_spread = extendedTrendData.LocalTrendSpread,
+                    global_trend_spread = extendedTrendData.GlobalTrendSpread,
+                    local_trend_spread_Value = extendedTrendData.LocalTrendSpreadValue,
+                    global_trend_spread_Value = extendedTrendData.GlobalTrendSpreadValue,
+                    global_fast_value = extendedTrendData.GlobalFastValue,
+                    global_slow_value = extendedTrendData.GlobalSlowValue,
+                    local_fast_value = extendedTrendData.LocalFastValue,
+                    local_slow_value = extendedTrendData.LocalSlowValue,
                 });
             }
 

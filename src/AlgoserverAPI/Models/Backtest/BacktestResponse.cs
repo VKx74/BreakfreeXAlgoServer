@@ -18,6 +18,14 @@ namespace Algoserver.API.Models.REST
         public long end_timestamp { get; set; }
         public Trend local_trend { get; set; }
         public Trend global_trend { get; set; }
+        public decimal local_trend_spread { get; set; }
+        public decimal global_trend_spread { get; set; }
+        public decimal local_trend_spread_Value { get; set; }
+        public decimal global_trend_spread_Value { get; set; }
+        public decimal global_fast_value { get; set; }
+        public decimal global_slow_value { get; set; }
+        public decimal local_fast_value { get; set; }
+        public decimal local_slow_value { get; set; }
         public CalculationResponseV2 data { get; set; }
     }
 

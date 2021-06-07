@@ -11,11 +11,23 @@ namespace Algoserver.API.Helpers
         public decimal LocalTrendSpread { get; set; }
         public decimal GlobalTrendSpread { get; set; }
         public bool IsOverhit { get; set; }
+        public decimal LocalTrendSpreadValue { get; set; }
+        public decimal GlobalTrendSpreadValue { get; set; }
+        public decimal GlobalFastValue { get; set; }
+        public decimal GlobalSlowValue { get; set; }
+        public decimal LocalFastValue { get; set; }
+        public decimal LocalSlowValue { get; set; }
     }
     
     public class TrendsStrengthResult {
         public decimal LocalTrendSpread { get; set; }
         public decimal GlobalTrendSpread { get; set; }
+        public decimal LocalTrendSpreadValue { get; set; }
+        public decimal GlobalTrendSpreadValue { get; set; }
+        public decimal GlobalFastValue { get; set; }
+        public decimal GlobalSlowValue { get; set; }
+        public decimal LocalFastValue { get; set; }
+        public decimal LocalSlowValue { get; set; }
     }
 
     public static class TrendDetector
@@ -59,6 +71,12 @@ namespace Algoserver.API.Helpers
                 LocalTrend = mesa_local_value.Fast > mesa_local_value.Slow ? Trend.Up : Trend.Down,
                 LocalTrendSpread = trendsStrength.LocalTrendSpread,
                 GlobalTrendSpread = trendsStrength.GlobalTrendSpread,
+                LocalTrendSpreadValue = trendsStrength.LocalTrendSpreadValue,
+                GlobalTrendSpreadValue = trendsStrength.GlobalTrendSpreadValue,
+                GlobalFastValue = trendsStrength.GlobalFastValue,
+                GlobalSlowValue = trendsStrength.GlobalSlowValue,
+                LocalFastValue = trendsStrength.LocalFastValue,
+                LocalSlowValue = trendsStrength.LocalSlowValue,
                 IsOverhit = isOverhit
             };
         }
@@ -99,7 +117,13 @@ namespace Algoserver.API.Helpers
 
             return new TrendsStrengthResult {
                 LocalTrendSpread = localTrendDiff,
-                GlobalTrendSpread = globalTrendDiff
+                GlobalTrendSpread = globalTrendDiff,
+                LocalTrendSpreadValue = local_current,
+                GlobalTrendSpreadValue = global_current,
+                GlobalFastValue = length > 0 ? mesa_global[length - 1].Fast : 0,
+                GlobalSlowValue = length > 0 ? mesa_global[length - 1].Slow : 0,
+                LocalFastValue = length > 0 ? mesa_local[length - 1].Fast : 0,
+                LocalSlowValue = length > 0 ? mesa_local[length - 1].Slow : 0
             };
         }
 
