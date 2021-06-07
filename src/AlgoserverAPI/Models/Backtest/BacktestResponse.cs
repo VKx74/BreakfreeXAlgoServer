@@ -20,8 +20,8 @@ namespace Algoserver.API.Models.REST
         public Trend global_trend { get; set; }
         public decimal local_trend_spread { get; set; }
         public decimal global_trend_spread { get; set; }
-        public decimal local_trend_spread_Value { get; set; }
-        public decimal global_trend_spread_Value { get; set; }
+        public decimal local_trend_spread_value { get; set; }
+        public decimal global_trend_spread_value { get; set; }
         public decimal global_fast_value { get; set; }
         public decimal global_slow_value { get; set; }
         public decimal local_fast_value { get; set; }
