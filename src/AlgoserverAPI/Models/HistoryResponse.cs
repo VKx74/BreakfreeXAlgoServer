@@ -48,6 +48,11 @@ namespace Algoserver.API.Models.REST
         public int Count { get; set; }
         public IEnumerable<KaikoInstruments> Data { get; set; }
     } 
+    public class BinanceInstrumentsResponse
+    {
+        public int Count { get; set; }
+        public IEnumerable<BinanceInstruments> Data { get; set; }
+    } 
     
     public class TwelvedataInstruments : IInstrument
     {
@@ -58,6 +63,12 @@ namespace Algoserver.API.Models.REST
     public class KaikoInstruments : IInstrument
     {
         public string Datafeed { get; set; } = "Kaiko";
+        public string Symbol { get; set; }
+        public string Exchange { get; set; }
+    }
+    public class BinanceInstruments : IInstrument
+    {
+        public string Datafeed { get; set; } = "Binance";
         public string Symbol { get; set; }
         public string Exchange { get; set; }
     }

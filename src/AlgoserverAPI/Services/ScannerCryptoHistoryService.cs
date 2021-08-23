@@ -15,11 +15,12 @@ namespace Algoserver.API.Services
         protected override List<IInstrument> _getInstruments() 
         {
             var instruments = new List<IInstrument>();
-            var cryptoInstruments = _instrumentService.GetKaikoInstruments();
+            var cryptoInstruments = _instrumentService.GetBinanceInstruments();
             var allowedCrypto = InstrumentsHelper.CryptoInstrumentList;
 
             foreach (var instrument in cryptoInstruments) {
-                if (allowedCrypto.Any(_ => String.Equals(_.Symbol, instrument.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, instrument.Exchange, StringComparison.InvariantCultureIgnoreCase))) {
+                var symbol = instrument.Symbol.Replace("-", "");
+                if (allowedCrypto.Any(_ => String.Equals(_.Symbol, symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, instrument.Exchange, StringComparison.InvariantCultureIgnoreCase))) {
                     if (!instruments.Any(_ => String.Equals(_.Symbol, instrument.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, instrument.Exchange, StringComparison.InvariantCultureIgnoreCase))) {
                         instruments.Add(instrument);
                     }

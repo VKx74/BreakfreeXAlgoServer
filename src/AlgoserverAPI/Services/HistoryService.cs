@@ -16,7 +16,7 @@ using Newtonsoft.Json;
 
 namespace Algoserver.API.Services
 {
-    // Provide historical data from oanda or twelvedata or kaiko datafeeds
+    // Provide historical data from oanda or twelvedata or kaiko or binance datafeeds
     public class HistoryService
     {
         private const int BARS_COUNT = 500;
@@ -292,9 +292,13 @@ namespace Algoserver.API.Services
             var endDate = this.getEndDate(data, AlgoHelper.UnixTimeNow());
             var mult = 3;
 
-            if (data.Granularity < 86400 && data.Datafeed == "Twelvedata")
+            if (data.Granularity < 86400 && string.Equals(data.Datafeed, "Twelvedata", StringComparison.InvariantCultureIgnoreCase))
             {
                 mult = 10;
+            }
+            if (string.Equals(data.Datafeed, "binance", StringComparison.InvariantCultureIgnoreCase))
+            {
+                mult = 2;
             }
 
             long startDate = endDate - ((bars_count - existing_count) * data.Granularity * mult);
