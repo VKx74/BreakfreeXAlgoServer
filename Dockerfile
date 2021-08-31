@@ -1,5 +1,5 @@
 # Stage 1 
-FROM  microsoft/dotnet:2.2-sdk AS builder
+FROM  mcr.microsoft.com/dotnet/core/sdk:2.2 AS builder
 WORKDIR /app
 
 COPY ./NuGet.Config ./NuGet.Config
@@ -9,7 +9,7 @@ RUN dotnet restore "./src/AlgoserverAPI/Algoserver.API.csproj" --configfile ./Nu
 RUN	dotnet publish "./src/AlgoserverAPI/Algoserver.API.csproj" -c Release -o /dist
 
 # Stage 2
-FROM microsoft/dotnet:2.2-aspnetcore-runtime
+FROM mcr.microsoft.com/dotnet/core/aspnet:2.2
 WORKDIR /app
 
 COPY --from=builder /dist .
