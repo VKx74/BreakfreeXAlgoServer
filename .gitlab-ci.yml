@@ -6,7 +6,7 @@ variables:
   IMAGE_NAME: "algoserver"
 
 build:
-  image: microsoft/dotnet:2.2-sdk
+  image: mcr.microsoft.com/dotnet/core/sdk:2.2
   stage: build
   script:
     - dotnet restore --configfile ./NuGet.Config
