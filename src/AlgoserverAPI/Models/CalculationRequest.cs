@@ -45,6 +45,23 @@ namespace Algoserver.API.Models.REST
         public Instrument Instrument { get; set; }
     }
 
+    public class HistoryDataRequest
+    {
+
+        [JsonProperty("symbol")]
+        public string Symbol { get; set; }
+
+        [JsonProperty("exchange")]
+        public string Exchange { get; set; }
+
+        [JsonProperty("timeframe")]
+        public int Timeframe { get; set; }
+
+        [JsonProperty("time")]
+        public long Time { get; set; }
+
+    }
+
     public class CalculationRequest
     {
         [JsonProperty("id")]

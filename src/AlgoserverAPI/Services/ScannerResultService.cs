@@ -38,13 +38,19 @@ namespace Algoserver.API.Services
             res1.AddRange(res3);
 
             // todo move this calc on front
-            res1.Sort((a, b) => {
+            res1.Sort((a, b) =>
+            {
                 var diff = a.time - b.time;
-                if (diff == 0) {
+                if (diff == 0)
+                {
                     return 0;
-                } else if (diff > 0) {
+                }
+                else if (diff > 0)
+                {
                     return 1;
-                } else {
+                }
+                else
+                {
                     return -1;
                 }
             });
@@ -53,6 +59,29 @@ namespace Algoserver.API.Services
             {
                 items = res1
             };
+        }
+
+        public ScannerCacheItem GetSonarHistoryCache(string symbol, string exchange, int timeframe, long time)
+        {
+            var res1 = _forex.GetSonarHistoryCache(symbol, exchange, timeframe, time);
+            if (res1 != null)
+            {
+                return res1;
+            }
+
+            var res2 = _stock.GetSonarHistoryCache(symbol, exchange, timeframe, time);
+            if (res2 != null)
+            {
+                return res2;
+            }
+
+            var res3 = _crypto.GetSonarHistoryCache(symbol, exchange, timeframe, time);
+            if (res3 != null)
+            {
+                return res3;
+            }
+
+            return null;
         }
     }
 }

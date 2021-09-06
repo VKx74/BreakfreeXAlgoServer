@@ -38,6 +38,15 @@ namespace Algoserver.API.Models.REST
         public long time { get; set; }
         public decimal avgEntry { get; set; }
     }
+    
+    [Serializable]
+    public class ScannerCacheItem
+    {
+        public ScannerResponseItem responseItem { get; set; }
+        public ScanResponse trade { get; set; }
+        public long time { get; set; }
+        public decimal avgEntry { get; set; }
+    }
 
     [Serializable]
     public class ScannerResponse

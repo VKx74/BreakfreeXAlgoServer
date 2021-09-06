@@ -253,6 +253,7 @@ namespace Algoserver.API.Services
                 High = container.High,
                 Low = container.Low,
                 Close = container.Close,
+                Time = container.Time
             };
 
             var dailyScanningHistory = new ScanningHistory
@@ -261,6 +262,7 @@ namespace Algoserver.API.Services
                 High = container.HighD,
                 Low = container.LowD,
                 Close = container.CloseD,
+                Time = container.TimeD
             };
 
             var isForex = container.Type == "forex";

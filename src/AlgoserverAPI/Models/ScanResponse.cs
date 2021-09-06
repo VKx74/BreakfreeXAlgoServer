@@ -17,6 +17,7 @@ namespace Algoserver.API.Models.REST
         public decimal take_profit_l { get; set; }
         public decimal risk { get; set; }
         public decimal sl_ratio { get; set; }
+        public long time { get; set; }
 
         public static bool IsEquals(ScanResponse a, ScanResponse b)
         {

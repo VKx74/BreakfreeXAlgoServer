@@ -86,6 +86,17 @@ namespace Algoserver.API.Services
             return new List<ScannerResponseHistoryItem>();
         }
 
+        public ScannerCacheItem GetSonarHistoryCache(string symbol, string exchange, int timeframe, long time)
+        {
+            var key = $"{symbol}-{exchange}-{timeframe}-{time}".ToUpper();   
+            if (_cache.TryGetValue(cachePrefix(), key, out ScannerCacheItem cachedResponse))
+            {
+                return cachedResponse;
+            }
+
+            return null;
+        }
+
         public void ScanMarkets()
         {
             var _15Mins = _historyService.Get15MinDataDictionary();
@@ -235,7 +246,7 @@ namespace Algoserver.API.Services
 
             lock (_resultHistory)
             {
-                while (_resultHistory.Count >= 500)
+                while (_resultHistory.Count >= 1000)
                 {
                     _resultHistory.RemoveAt(0);
                 }
@@ -251,6 +262,21 @@ namespace Algoserver.API.Services
             try
             {
                 _cache.Set(cachePrefix(), _scannerHistoryCacheKey, _resultHistory.ToList(), TimeSpan.FromDays(1));
+            }
+            catch (Exception ex) { }
+            
+            try
+            {
+                var key = $"{item.symbol}-{item.exchange}-{item.timeframe}-{resp.time}".ToUpper();
+                var expirationInSeconds = item.timeframe * 1000;
+                var data = new ScannerCacheItem
+                {
+                    responseItem = item,
+                    trade = resp,
+                    avgEntry = resp.entry,
+                    time = AlgoHelper.UnixTimeNow()
+                };
+                _cache.Set(cachePrefix(), key, data, TimeSpan.FromSeconds(expirationInSeconds));
             }
             catch (Exception ex) { }
         }

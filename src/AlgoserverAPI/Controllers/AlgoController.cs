@@ -115,6 +115,20 @@ namespace Algoserver.API.Controllers
             return await ToEncryptedResponse(res, HttpContext.RequestAborted);
         }
 
+        [Authorize]
+        [HttpPost(Routes.SonarHistoryCache)]
+        [ProducesResponseType(typeof(Response<ScannerCacheItem>), 200)]
+        public async Task<IActionResult> GetSonarHistoryCache([FromBody] HistoryDataRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
+            }
+
+            var res = _scannerResultService.GetSonarHistoryCache(request.Symbol, request.Exchange, request.Timeframe, request.Time);
+            return await ToEncryptedResponse(res, HttpContext.RequestAborted);
+        }
+
         [HttpGet(Routes.Version)]
         public ActionResult<IEnumerable<string>> Version()
         {

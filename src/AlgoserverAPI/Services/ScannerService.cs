@@ -27,6 +27,7 @@ namespace Algoserver.API.Services
             var low = history.Low;
             var close = history.Close;
             var open = history.Open;
+            var time = history.Time.LastOrDefault();
             var levels = TechCalculations.CalculateLevels(high, low);
             var tick = 0.00001m;
             var sar = SupportAndResistance.Calculate(levels, tick);
@@ -95,7 +96,8 @@ namespace Algoserver.API.Services
                 take_profit_h = tradeEntry.tp_h,
                 take_profit_l = tradeEntry.tp_l,
                 stop = tradeEntry.stop,
-                sl_ratio = sl_ration
+                sl_ratio = sl_ration,
+                time = time
             };
         }
         public ScanResponse ScanSwingOldStrategy(ScanningHistory history, decimal sl_ration = 1.7m)
@@ -163,6 +165,8 @@ namespace Algoserver.API.Services
             var lastClose = history.Close.LastOrDefault();
             var lastHigh = history.High.LastOrDefault();
             var lastLow = history.Low.LastOrDefault();
+            var time = history.Time.LastOrDefault();
+
             var prevLow = history.Low[history.Low.Count - 2];
             var prevHigh = history.High[history.High.Count - 2];
             var prc = trend == Trend.Up ? prevLow : prevHigh;
@@ -289,7 +293,8 @@ namespace Algoserver.API.Services
                 take_profit_h = return_TP_high,
                 take_profit_l = return_TP_low,
                 stop = stop,
-                sl_ratio = sl_ration
+                sl_ratio = sl_ration,
+                time = time
             };
         }
         public ScanResponse ScanBRC(ScanningHistory history, Trend trend, decimal sl_ration = 1.7m)
@@ -317,6 +322,8 @@ namespace Algoserver.API.Services
             var lastClose = history.Close.LastOrDefault();
             var lastHigh = history.High.LastOrDefault();
             var lastLow = history.Low.LastOrDefault();
+            var time = history.Time.LastOrDefault();
+
             var prevLow = history.Low[history.Low.Count - 2];
             var prevHigh = history.High[history.High.Count - 2];
             var prc = trend == Trend.Up ? prevLow : prevHigh;
@@ -452,7 +459,8 @@ namespace Algoserver.API.Services
                 take_profit_h = return_TP_high,
                 take_profit_l = return_TP_low,
                 stop = stop,
-                sl_ratio = sl_ration
+                sl_ratio = sl_ration,
+                time = time
             };
         }
         public ScanResponse ScanExt(ScanningHistory history, ScanningHistory dailyHistory, Trend trend, decimal sl_ration = 1.7m)
@@ -473,6 +481,7 @@ namespace Algoserver.API.Services
                 High = history.Select(_ => _.High).ToList(),
                 Low = history.Select(_ => _.Low).ToList(),
                 Close = history.Select(_ => _.Close).ToList(),
+                Time = history.Select(_ => _.Timestamp).ToList()
             };
         }
 
