@@ -1,7 +1,9 @@
+using System;
 using Algoserver.API.Models.Algo;
 
 namespace Algoserver.API.Models.REST
 {
+    [Serializable]
     public class ScanResponse
     {
         public decimal entry { get; set; }
