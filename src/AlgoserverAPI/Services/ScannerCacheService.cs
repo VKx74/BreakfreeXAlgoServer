@@ -232,6 +232,21 @@ namespace Algoserver.API.Services
 
         protected void _tryAddHistory(ScannerResponseItem item, ScanResponse resp)
         {
+            try
+            {
+                var key = $"{item.symbol}-{item.exchange}-{item.timeframe}-{resp.time}".ToUpper();
+                var expirationInSeconds = item.timeframe * 1000;
+                var data = new ScannerCacheItem
+                {
+                    responseItem = item,
+                    trade = resp,
+                    avgEntry = resp.entry,
+                    time = AlgoHelper.UnixTimeNow()
+                };
+                _cache.Set(cachePrefix(), key, data, TimeSpan.FromSeconds(expirationInSeconds));
+            }
+            catch (Exception ex) { }
+
             ScannerResponseHistoryItem last;
             lock (_resultHistory)
             {
@@ -262,21 +277,6 @@ namespace Algoserver.API.Services
             try
             {
                 _cache.Set(cachePrefix(), _scannerHistoryCacheKey, _resultHistory.ToList(), TimeSpan.FromDays(1));
-            }
-            catch (Exception ex) { }
-            
-            try
-            {
-                var key = $"{item.symbol}-{item.exchange}-{item.timeframe}-{resp.time}".ToUpper();
-                var expirationInSeconds = item.timeframe * 1000;
-                var data = new ScannerCacheItem
-                {
-                    responseItem = item,
-                    trade = resp,
-                    avgEntry = resp.entry,
-                    time = AlgoHelper.UnixTimeNow()
-                };
-                _cache.Set(cachePrefix(), key, data, TimeSpan.FromSeconds(expirationInSeconds));
             }
             catch (Exception ex) { }
         }
