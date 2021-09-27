@@ -32,6 +32,21 @@ namespace Algoserver.API.Models.REST
         public string id { get; set; }
         public long time { get; set; }
     } 
+
+    [Serializable]
+    public class TrendResponse {
+        public Trend globalTrend { get; set; }
+        public Trend localTrend { get; set; }
+        public decimal localTrendSpread { get; set; }
+        public decimal globalTrendSpread { get; set; }
+        public decimal localTrendSpreadValue { get; set; }
+        public decimal globalTrendSpreadValue { get; set; }
+        public decimal globalFastValue { get; set; }
+        public decimal globalSlowValue { get; set; }
+        public decimal localFastValue { get; set; }
+        public decimal localSlowValue { get; set; }
+    }
+    
     
     [Serializable]
     public class ScannerResponseHistoryItem
@@ -46,6 +61,7 @@ namespace Algoserver.API.Models.REST
     {
         public ScannerResponseItem responseItem { get; set; }
         public ScanResponse trade { get; set; }
+        public TrendResponse trend { get; set; }
         public long time { get; set; }
         public decimal avgEntry { get; set; }
     }

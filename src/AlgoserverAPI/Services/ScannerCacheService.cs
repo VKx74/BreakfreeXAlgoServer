@@ -123,7 +123,7 @@ namespace Algoserver.API.Services
                     if (scanningResultBRC != null)
                     {
                         var resp = _toResponse(scanningResultBRC, history15Min, TimeframeHelper.MIN15_GRANULARITY);
-                        _tryAddHistory(resp, scanningResultBRC);
+                        _tryAddHistory(resp, scanningResultBRC, extendedTrendData);
                         res.Add(resp);
                     }
 
@@ -131,7 +131,7 @@ namespace Algoserver.API.Services
                     if (scanningResultExt != null)
                     {
                         var resp = _toResponse(scanningResultExt, history15Min, TimeframeHelper.MIN15_GRANULARITY);
-                        _tryAddHistory(resp, scanningResultExt);
+                        _tryAddHistory(resp, scanningResultExt, extendedTrendData);
                         res.Add(resp);
                     }
                 }
@@ -142,7 +142,7 @@ namespace Algoserver.API.Services
                     if (scanningResultBRC != null)
                     {
                         var resp = _toResponse(scanningResultBRC, history1H, TimeframeHelper.HOURLY_GRANULARITY);
-                        _tryAddHistory(resp, scanningResultBRC);
+                        _tryAddHistory(resp, scanningResultBRC, extendedTrendData);
                         res.Add(resp);
                     }
 
@@ -150,7 +150,7 @@ namespace Algoserver.API.Services
                     if (scanningResultExt != null)
                     {
                         var resp = _toResponse(scanningResultExt, history1H, TimeframeHelper.HOURLY_GRANULARITY);
-                        _tryAddHistory(resp, scanningResultExt);
+                        _tryAddHistory(resp, scanningResultExt, extendedTrendData);
                         res.Add(resp);
                     }
                 }
@@ -164,7 +164,7 @@ namespace Algoserver.API.Services
                         if (scanningResultBRC != null)
                         {
                             var resp = _toResponse(scanningResultBRC, history4H, TimeframeHelper.HOUR4_GRANULARITY);
-                            _tryAddHistory(resp, scanningResultBRC);
+                            _tryAddHistory(resp, scanningResultBRC, extendedTrendData);
                             res.Add(resp);
                             tradeDetermined = true;
                         }
@@ -173,7 +173,7 @@ namespace Algoserver.API.Services
                         if (scanningResultExt != null)
                         {
                             var resp = _toResponse(scanningResultExt, history4H, TimeframeHelper.HOUR4_GRANULARITY);
-                            _tryAddHistory(resp, scanningResultExt);
+                            _tryAddHistory(resp, scanningResultExt, extendedTrendData);
                             res.Add(resp);
                             tradeDetermined = true;
                         }
@@ -185,7 +185,7 @@ namespace Algoserver.API.Services
                         if (swingScannerResult != null)
                         {
                             var resp = _toResponse(swingScannerResult, history4H, TimeframeHelper.HOUR4_GRANULARITY);
-                            _tryAddHistory(resp, swingScannerResult);
+                            _tryAddHistory(resp, swingScannerResult, extendedTrendData);
                             res.Add(resp);
                         }
                     }
@@ -195,7 +195,7 @@ namespace Algoserver.API.Services
                 if (swingDailyScannerResult != null)
                 {
                     var resp = _toResponse(swingDailyScannerResult, dailyHistory, TimeframeHelper.DAILY_GRANULARITY);
-                    _tryAddHistory(resp, swingDailyScannerResult);
+                    _tryAddHistory(resp, swingDailyScannerResult, extendedTrendData);
                     res.Add(resp);
                 }
             }
@@ -233,7 +233,7 @@ namespace Algoserver.API.Services
             };
         }
 
-        protected void _tryAddHistory(ScannerResponseItem item, ScanResponse resp)
+        protected void _tryAddHistory(ScannerResponseItem item, ScanResponse resp, ExtendedTrendResult extendedTrendData)
         {
             try
             {
@@ -242,6 +242,7 @@ namespace Algoserver.API.Services
                 var data = new ScannerCacheItem
                 {
                     responseItem = item,
+                    trend = _toTrendResponse(extendedTrendData),
                     trade = resp,
                     avgEntry = resp.entry,
                     time = AlgoHelper.UnixTimeNow()
@@ -283,6 +284,22 @@ namespace Algoserver.API.Services
             }
             catch (Exception ex) { }
         }
+
+        protected TrendResponse _toTrendResponse(ExtendedTrendResult extendedTrendData) {
+            return new TrendResponse {
+                globalFastValue = extendedTrendData.GlobalFastValue,
+                globalSlowValue = extendedTrendData.GlobalSlowValue,
+                globalTrend = extendedTrendData.GlobalTrend,
+                globalTrendSpread = extendedTrendData.GlobalTrendSpread,
+                globalTrendSpreadValue = extendedTrendData.GlobalTrendSpreadValue,
+                localFastValue = extendedTrendData.LocalFastValue,
+                localSlowValue = extendedTrendData.LocalSlowValue,
+                localTrend = extendedTrendData.LocalTrend,
+                localTrendSpread = extendedTrendData.LocalTrendSpread,
+                localTrendSpreadValue = extendedTrendData.LocalTrendSpreadValue
+            };
+        }
+
         protected abstract string cachePrefix();
     }
 }
