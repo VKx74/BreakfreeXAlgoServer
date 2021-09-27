@@ -29,6 +29,8 @@ namespace Algoserver.API.Models.REST
         public string symbol { get; set; }
         public decimal entry { get; set; }
         public decimal stop { get; set; }
+        public string id { get; set; }
+        public long time { get; set; }
     } 
     
     [Serializable]

@@ -216,6 +216,7 @@ namespace Algoserver.API.Services
         protected ScannerResponseItem _toResponse(ScanResponse response, HistoryData data, int timeframe)
         {
             var lastBar = data.Bars.LastOrDefault();
+            var key = $"{data.Symbol}-{data.Exchange}-{timeframe}-{response.time}".ToUpper();
             return new ScannerResponseItem
             {
                 type = response.type,
@@ -226,7 +227,9 @@ namespace Algoserver.API.Services
                 tp = response.tp,
                 tte = response.tte,
                 entry = response.entry,
-                stop = response.stop
+                stop = response.stop,
+                time = response.time,
+                id = key
             };
         }
 
@@ -234,7 +237,7 @@ namespace Algoserver.API.Services
         {
             try
             {
-                var key = $"{item.symbol}-{item.exchange}-{item.timeframe}-{resp.time}".ToUpper();
+                var key = item.id;
                 var expirationInSeconds = item.timeframe * 1000;
                 var data = new ScannerCacheItem
                 {
