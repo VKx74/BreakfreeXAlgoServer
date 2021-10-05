@@ -72,6 +72,7 @@ namespace Algoserver.API
                 var redisSettings = Configuration.GetSection("RedisSettings").Get<RedisSettings>();
                 options.InstanceName = redisSettings.InstanceName;
                 options.ConfigurationOptions = new StackExchange.Redis.ConfigurationOptions();
+                options.ConfigurationOptions.CertificateValidation += (a, b, c, d) => true; //WARNING! not for production
                 options.ConfigurationOptions.AbortOnConnectFail = false;
                 options.ConfigurationOptions.Ssl = redisSettings.UseSSL;
                 options.ConfigurationOptions.Password = redisSettings.Password;
