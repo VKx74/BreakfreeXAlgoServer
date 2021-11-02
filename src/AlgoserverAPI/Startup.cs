@@ -55,15 +55,29 @@ namespace Algoserver.API
 
             var scanInstruments = Configuration.GetValue<bool>("ScanInstruments");
 
-            services.AddDistributedRedisCache(option =>
+            //services.AddDistributedRedisCache(option =>
+            //{
+            //    var redisSettings = Configuration.GetSection("RedisSettings").Get<RedisSettings>();
+            //    option.InstanceName = redisSettings.InstanceName;
+            //    option.ConfigurationOptions = new StackExchange.Redis.ConfigurationOptions();
+            //    option.ConfigurationOptions.AbortOnConnectFail = false;
+            //    option.ConfigurationOptions.Ssl = redisSettings.UseSSL;
+            //    option.ConfigurationOptions.Password = redisSettings.Password;
+            //    option.ConfigurationOptions.DefaultDatabase = redisSettings.DefaultDatabase;
+            //    option.ConfigurationOptions.EndPoints.Add(redisSettings.Host, redisSettings.Port);
+            //});
+
+            services.AddStackExchangeRedisCache(options =>
             {
                 var redisSettings = Configuration.GetSection("RedisSettings").Get<RedisSettings>();
-                option.InstanceName = redisSettings.InstanceName;
-                option.ConfigurationOptions = new StackExchange.Redis.ConfigurationOptions();
-                option.ConfigurationOptions.Ssl = redisSettings.UseSSL;
-                option.ConfigurationOptions.Password = redisSettings.Password;
-                option.ConfigurationOptions.DefaultDatabase = redisSettings.DefaultDatabase;
-                option.ConfigurationOptions.EndPoints.Add(redisSettings.Host, redisSettings.Port);
+                options.InstanceName = redisSettings.InstanceName;
+                options.ConfigurationOptions = new StackExchange.Redis.ConfigurationOptions();
+                options.ConfigurationOptions.CertificateValidation += (a, b, c, d) => true; //WARNING! not for production
+                options.ConfigurationOptions.AbortOnConnectFail = false;
+                options.ConfigurationOptions.Ssl = redisSettings.UseSSL;
+                options.ConfigurationOptions.Password = redisSettings.Password;
+                options.ConfigurationOptions.DefaultDatabase = redisSettings.DefaultDatabase;
+                options.ConfigurationOptions.EndPoints.Add(redisSettings.Host, redisSettings.Port);
             });
 
             // services.AddSingleton<ICacheService, MemoryCacheService>();
