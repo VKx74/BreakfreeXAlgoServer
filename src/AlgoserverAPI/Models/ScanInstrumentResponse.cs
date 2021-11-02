@@ -27,6 +27,7 @@ namespace Algoserver.API.Models.REST
         public int timeframe { get; set; }
         public string exchange { get; set; }
         public string symbol { get; set; }
+        public string marketType { get; set; }
         public decimal entry { get; set; }
         public decimal stop { get; set; }
         public string id { get; set; }

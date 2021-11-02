@@ -229,7 +229,8 @@ namespace Algoserver.API.Services
                 entry = response.entry,
                 stop = response.stop,
                 time = response.time,
-                id = key
+                id = key,
+                marketType = InstrumentsHelper.GetInstrumentType(data.Symbol)
             };
         }
 
