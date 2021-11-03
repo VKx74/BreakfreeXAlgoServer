@@ -258,8 +258,8 @@ namespace Algoserver.API.Helpers
             get
             {
                 return new List<string> {
-                    "AUD_SGD", "EUR_DKK", "EUR_HKD", "EUR_NOK", "EUR_PLN", "EUR_SEK", "EUR_SGD", "EUR_TRY", "EUR_ZAR", "SGD_JPY", "USD_CNH",
-                    "USD_CZK", "USD_DKK", "USD_HKD", "USD_MXN", "USD_NOK", "USD_PLN", "USD_RUB", "USD_SEK", "USD_THB", "USD_TRY", "USD_ZAR"
+                    "AUD_SGD", "EUR_DKK", "EUR_HKD", "EUR_NOK", "EUR_PLN", "EUR_SEK", "EUR_SGD", "EUR_TRY", "EUR_ZAR", "SGD_JPY", "USD_CNH", "NZD_SGD", 
+                    "GBP_SGD", "USD_CZK", "USD_DKK", "USD_HKD", "USD_MXN", "USD_NOK", "USD_PLN", "USD_RUB", "USD_SEK", "USD_THB", "USD_TRY", "USD_ZAR"
                 };
             }
         }
@@ -269,7 +269,7 @@ namespace Algoserver.API.Helpers
             get
             {
                 return new List<string> {
-                    "AUD_USD", "EUR_CHF", "EUR_JPY", "EUR_USD", "GBP_JPY", "GBP_USD", "NZD_USD", "USD_CAD", "USD_CHF", "USD_JPY"
+                    "AUD_USD", "EUR_JPY", "EUR_USD", "GBP_JPY", "GBP_USD", "NZD_USD", "USD_CAD", "USD_CHF", "USD_JPY"
                 };
             }
         }
@@ -279,8 +279,8 @@ namespace Algoserver.API.Helpers
             get
             {
                 return new List<string> {
-                    "AUD_NZD", "AUD_CAD", "AUD_JPY", "CHF_JPY", "EUR_GBP", "EUR_AUD", "EUR_CHF", "EUR_JPY", "EUR_NZD", "EUR_CAD", "GBP_CHF",
-                    "GBP_JPY", "CAD_CHF", "CAD_JPY", "GBP_AUD", "GBP_CAD", "GBP_NZD", "NZD_CAD", "NZD_CHF", "NZD_JPY", "NZD_USD", "USD_SGD"
+                    "AUD_NZD", "AUD_CAD", "AUD_JPY", "CHF_JPY", "EUR_GBP", "EUR_AUD", "EUR_CHF", "EUR_NZD", "EUR_CAD", "GBP_CHF",
+                    "CAD_CHF", "CAD_JPY", "GBP_AUD", "GBP_CAD", "GBP_NZD", "NZD_CAD", "NZD_CHF", "NZD_JPY", "USD_SGD"
                 };
             }
         }
