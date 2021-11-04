@@ -216,6 +216,7 @@ namespace Algoserver.API.Services
         protected ScannerResponseItem _toResponse(ScanResponse response, HistoryData data, int timeframe)
         {
             var lastBar = data.Bars.LastOrDefault();
+            var timestamp = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
             var key = $"{data.Symbol}-{data.Exchange}-{timeframe}-{response.time}".ToUpper();
             return new ScannerResponseItem
             {
@@ -230,7 +231,8 @@ namespace Algoserver.API.Services
                 stop = response.stop,
                 time = response.time,
                 id = key,
-                marketType = InstrumentsHelper.GetInstrumentType(data.Symbol)
+                marketType = InstrumentsHelper.GetInstrumentType(data.Symbol),
+                expiration = timestamp + (timeframe * 10)
             };
         }
 

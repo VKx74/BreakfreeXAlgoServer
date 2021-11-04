@@ -32,6 +32,7 @@ namespace Algoserver.API.Models.REST
         public decimal stop { get; set; }
         public string id { get; set; }
         public long time { get; set; }
+        public long expiration { get; set; }
     } 
 
     [Serializable]
