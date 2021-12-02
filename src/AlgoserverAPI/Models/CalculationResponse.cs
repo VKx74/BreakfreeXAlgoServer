@@ -25,6 +25,7 @@ namespace Algoserver.API.Models.REST
         public bool is_overhit { get; set; }
         public decimal local_trend_spread { get; set; }
         public decimal global_trend_spread { get; set; }
+        public decimal cvar { get; set; }
     }
 
     public class CalculationResponseV2 {

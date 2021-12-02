@@ -152,6 +152,7 @@ namespace Algoserver.API.Services
 
             var levels = TechCalculations.CalculateLevel128(high, low);
             var trend = TrendDetector.CalculateByMesaBy2TrendAdjusted(close);
+            var cvar = TechCalculations.CalculateCVAR(close);
 
             var topExt = levels.Plus18;
             var natural = levels.FourEight;
@@ -171,7 +172,8 @@ namespace Algoserver.API.Services
                 daily_support = support,
                 last_price = close.LastOrDefault(),
                 global_trend_spread = trend.GlobalTrendSpread,
-                local_trend_spread = trend.LocalTrendSpread
+                local_trend_spread = trend.LocalTrendSpread,
+                cvar = cvar
             };
 
             tryAddCalculateMarketInfoInCache(instrument, result);
@@ -220,6 +222,7 @@ namespace Algoserver.API.Services
             var resistanceTF = exactTFLevels.EightEight;
 
             var trend = TrendDetector.CalculateByMesaBy2TrendAdjusted(closeDaily);
+            var cvar = TechCalculations.CalculateCVAR(closeDaily);
 
             var result = new CalculationMarketInfoResponse
             {
@@ -234,7 +237,8 @@ namespace Algoserver.API.Services
                 support = supportTF,
                 last_price = closeDaily.LastOrDefault(),
                 global_trend_spread = trend.GlobalTrendSpread,
-                local_trend_spread = trend.LocalTrendSpread
+                local_trend_spread = trend.LocalTrendSpread,
+                cvar = cvar
             };
 
             tryAddCalculateMarketInfoV2InCache(instrument, timeframe, result);

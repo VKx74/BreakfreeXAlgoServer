@@ -658,8 +658,11 @@ namespace Algoserver.API.Helpers
                 if (lastClose[cl - 2] >= lastHma[l - 2])
                 {
                     tp = TradeProbability.Low;
-                } else {
-                    if (lastClose.LastOrDefault() <= lastClose[cl - 2] && lastClose[cl - 2] <= lastClose[cl - 3]) {
+                }
+                else
+                {
+                    if (lastClose.LastOrDefault() <= lastClose[cl - 2] && lastClose[cl - 2] <= lastClose[cl - 3])
+                    {
                         tp = TradeProbability.High;
                     }
                 }
@@ -669,14 +672,18 @@ namespace Algoserver.API.Helpers
                 if (lastClose[cl - 2] <= lastHma[l - 2])
                 {
                     tp = TradeProbability.Low;
-                } else {
-                    if (lastClose.LastOrDefault() >= lastClose[cl - 2] && lastClose[cl - 2] > lastClose[cl - 3]) {
+                }
+                else
+                {
+                    if (lastClose.LastOrDefault() >= lastClose[cl - 2] && lastClose[cl - 2] > lastClose[cl - 3])
+                    {
                         tp = TradeProbability.High;
                     }
                 }
             }
 
-            return new DirectionResponse {
+            return new DirectionResponse
+            {
                 Approved = true,
                 TradeProbability = tp
             };
@@ -703,6 +710,34 @@ namespace Algoserver.API.Helpers
             var closesLength = closes.Length;
 
             return closes[closesLength - 2] - closes[closesLength - lookback - 1];
+        }
+
+        public static decimal CalculateCVAR(IEnumerable<decimal> cPrice)
+        {
+            var quotesHist = cPrice.ToList();
+            var maxCount = 100;
+            if (quotesHist.Count > maxCount)
+            {
+                quotesHist = quotesHist.TakeLast(maxCount).ToList();
+            }
+
+            var total = quotesHist.Count - 1;
+            var returns = new List<decimal>(total);
+
+            var idx = 0;
+            while (++idx <= total)
+                returns.Add(Math.Abs(quotesHist[idx] - quotesHist[idx - 1]) / quotesHist[idx - 1]);
+
+            returns.Sort();
+
+            var percentile = 90;
+            var index = (int)((total - 1) * percentile / 100);
+            var sum = 0m;
+            for (var ind = index; ind < total; ind++)
+                sum += returns[ind];
+
+            var condRiskVal = sum / (total - index);
+            return Math.Round(condRiskVal * 100, 4);
         }
     }
 }
