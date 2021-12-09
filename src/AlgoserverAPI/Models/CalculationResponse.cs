@@ -27,6 +27,11 @@ namespace Algoserver.API.Models.REST
         public decimal global_trend_spread { get; set; }
         public decimal cvar { get; set; }
     }
+    
+    [Serializable]
+    public class CVarInfoResponse {
+        public decimal? cvar { get; set; }
+    }
 
     public class CalculationResponseV2 {
         public CalculationLevels levels {get;set;}

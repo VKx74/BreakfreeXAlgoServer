@@ -120,6 +120,14 @@ namespace Algoserver.API.Services
             });
         }
 
+        public Task<decimal?> CalculateCVarAsync(Instrument instrument)
+        {
+            return Task.Run(() =>
+            {
+                return calculateCVarAsync(instrument);
+            });
+        }
+
         public Task<CalculationMarketInfoResponse> CalculateMarketInfoV2Async(MarketInfoCalculationRequest request)
         {
             return Task.Run(() =>
@@ -134,6 +142,21 @@ namespace Algoserver.API.Services
             {
                 return calculateV2Async(req);
             });
+        }
+
+        private async Task<decimal?> calculateCVarAsync(Instrument instrument)
+        {
+            var cvar = tryGetCVarFromCache(instrument);
+
+            if (!cvar.HasValue)
+            {
+                var dataDaily = await _historyService.GetHistory(instrument.Id, TimeframeHelper.DAILY_GRANULARITY, instrument.Datafeed, instrument.Exchange, instrument.Type);
+                var closeDaily = dataDaily.Bars.Select(_ => _.Close).ToList();
+                cvar = TechCalculations.CalculateCVAR(closeDaily);
+                tryAddCVarInCache(instrument, cvar.Value);
+            }
+
+            return cvar;
         }
 
         private async Task<CalculationMarketInfoResponse> calculateMarketInfoAsync(Instrument instrument)
@@ -152,7 +175,13 @@ namespace Algoserver.API.Services
 
             var levels = TechCalculations.CalculateLevel128(high, low);
             var trend = TrendDetector.CalculateByMesaBy2TrendAdjusted(close);
-            var cvar = TechCalculations.CalculateCVAR(close);
+            var cvar = tryGetCVarFromCache(instrument);
+
+            if (!cvar.HasValue)
+            {
+                cvar = TechCalculations.CalculateCVAR(close);
+                tryAddCVarInCache(instrument, cvar.Value);
+            }
 
             var topExt = levels.Plus18;
             var natural = levels.FourEight;
@@ -173,7 +202,7 @@ namespace Algoserver.API.Services
                 last_price = close.LastOrDefault(),
                 global_trend_spread = trend.GlobalTrendSpread,
                 local_trend_spread = trend.LocalTrendSpread,
-                cvar = cvar
+                cvar = cvar.GetValueOrDefault(0)
             };
 
             tryAddCalculateMarketInfoInCache(instrument, result);
@@ -222,7 +251,13 @@ namespace Algoserver.API.Services
             var resistanceTF = exactTFLevels.EightEight;
 
             var trend = TrendDetector.CalculateByMesaBy2TrendAdjusted(closeDaily);
-            var cvar = TechCalculations.CalculateCVAR(closeDaily);
+            var cvar = tryGetCVarFromCache(instrument);
+
+            if (!cvar.HasValue)
+            {
+                cvar = TechCalculations.CalculateCVAR(closeDaily);
+                tryAddCVarInCache(instrument, cvar.Value);
+            }
 
             var result = new CalculationMarketInfoResponse
             {
@@ -238,7 +273,7 @@ namespace Algoserver.API.Services
                 last_price = closeDaily.LastOrDefault(),
                 global_trend_spread = trend.GlobalTrendSpread,
                 local_trend_spread = trend.LocalTrendSpread,
-                cvar = cvar
+                cvar = cvar.GetValueOrDefault(0)
             };
 
             tryAddCalculateMarketInfoV2InCache(instrument, timeframe, result);
@@ -341,7 +376,8 @@ namespace Algoserver.API.Services
 
             var size = AlgoHelper.CalculatePositionValue(type, symbol, accountSize, suggestedRisk, priceDiff, contractSize);
 
-            return new CalculatePositionSizeResponse {
+            return new CalculatePositionSizeResponse
+            {
                 size = size
             };
         }
@@ -359,11 +395,12 @@ namespace Algoserver.API.Services
                 usdRatio = await _priceRatioCalculationService.GetSymbolRatio(symbol, req.AccountCurrency, datafeed, type, exchange);
             }
 
-            return new CalculatePriceRatioResponse {
+            return new CalculatePriceRatioResponse
+            {
                 ratio = usdRatio
             };
         }
-        
+
         private CalculationMarketInfoResponse tryGetCalculateMarketInfoFromCache(Instrument instrument)
         {
             var hash = instrument.ToString() + "_marketinfo";
@@ -401,7 +438,26 @@ namespace Algoserver.API.Services
 
             return null;
         }
-        
+
+        private decimal? tryGetCVarFromCache(Instrument instrument)
+        {
+            var hash = instrument.ToString() + "_cvar";
+            try
+            {
+                if (_cache.TryGetValue(_cachePrefix, hash, out decimal cachedResponse))
+                {
+                    return cachedResponse;
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Failed to get cached response for cvar");
+                _logger.LogError(e.Message);
+            }
+
+            return null;
+        }
+
         private void tryAddCalculateMarketInfoInCache(Instrument instrument, CalculationMarketInfoResponse data)
         {
             var hash = instrument.ToString() + "_marketinfo";
@@ -422,6 +478,20 @@ namespace Algoserver.API.Services
             try
             {
                 _cache.Set(_cachePrefix, hash, data, TimeSpan.FromMinutes(10));
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Failed to add cached response for marketinfo");
+                _logger.LogError(e.Message);
+            }
+        }
+
+        private void tryAddCVarInCache(Instrument instrument, decimal value)
+        {
+            var hash = instrument.ToString() + "_cvar";
+            try
+            {
+                _cache.Set(_cachePrefix, hash, value, TimeSpan.FromDays(1));
             }
             catch (Exception e)
             {

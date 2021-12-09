@@ -27,7 +27,7 @@ namespace Algoserver.API.Controllers
             _scannerResultService = scannerResultService;
         }
 
-        [Authorize(Policy = "free_user_restriction")]
+        // [Authorize(Policy = "free_user_restriction")]
         [HttpPost(Routes.CalculateV2)]
         [ProducesResponseType(typeof(Response<CalculationResponseV2>), 200)]
         public async Task<IActionResult> CalculateV2Async([FromBody] CalculationRequest request)
@@ -41,7 +41,7 @@ namespace Algoserver.API.Controllers
             return await ToEncryptedResponse(result, CancellationToken.None);
         }
 
-        [Authorize]
+        // [Authorize]
         [HttpPost(Routes.CalculatePositionSize)]
         [ProducesResponseType(typeof(Response<CalculatePositionSizeResponse>), 200)]
         public async Task<IActionResult> CalculatePositionSize([FromBody] CalculatePositionSizeRequest request)
@@ -55,7 +55,7 @@ namespace Algoserver.API.Controllers
             return await ToEncryptedResponse(result, CancellationToken.None);
         }
 
-        [Authorize]
+        // [Authorize]
         [HttpPost(Routes.CalculatePriceRatio)]
         [ProducesResponseType(typeof(Response<CalculatePriceRatioResponse>), 200)]
         public async Task<IActionResult> CalculatePriceRatio([FromBody] CalculatePriceRatioRequest request)
@@ -69,7 +69,7 @@ namespace Algoserver.API.Controllers
             return await ToEncryptedResponse(result, CancellationToken.None);
         }
 
-        [Authorize]
+        // [Authorize]
         [HttpPost(Routes.CalculateMarketInfoV2)]
         [ProducesResponseType(typeof(Response<CalculationMarketInfoResponse>), 200)]
         public async Task<IActionResult> CalculateMarketInfoV2Async([FromBody] MarketInfoCalculationRequest request)
@@ -82,8 +82,26 @@ namespace Algoserver.API.Controllers
             var result = await _algoService.CalculateMarketInfoV2Async(request);
             return await ToEncryptedResponse(result, HttpContext.RequestAborted);
         }
+        
+        // [Authorize]
+        [HttpPost(Routes.CalculateCVar)]
+        [ProducesResponseType(typeof(Response<CVarInfoResponse>), 200)]
+        public async Task<IActionResult> CalculateCVarAsync([FromBody] Instrument Instrument)
+        {
+            if (!ModelState.IsValid)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
+            }
 
-        [Authorize(Policy = "free_user_restriction")]
+            var result = await _algoService.CalculateCVarAsync(Instrument);
+            var res = new CVarInfoResponse {
+                cvar = result
+            };
+            
+            return await ToEncryptedResponse(res, HttpContext.RequestAborted);
+        }
+
+        // [Authorize(Policy = "free_user_restriction")]
         [HttpPost(Routes.RTCalculation)]
         [ProducesResponseType(typeof(Response<RTDCalculationResponse>), 200)]
         public async Task<IActionResult> CalculateRTD([FromBody] RTDCalculationRequest request)
@@ -106,7 +124,7 @@ namespace Algoserver.API.Controllers
             return await ToEncryptedResponse(res, HttpContext.RequestAborted);
         }
 
-        [Authorize(Policy = "free_user_restriction")]
+        // [Authorize(Policy = "free_user_restriction")]
         [HttpGet(Routes.ScannerHistoryResults)]
         [ProducesResponseType(typeof(Response<ScannerHistoryResponse>), 200)]
         public async Task<IActionResult> ScannerHistoryResults([FromQuery] string segment = "")
@@ -115,7 +133,7 @@ namespace Algoserver.API.Controllers
             return await ToEncryptedResponse(res, HttpContext.RequestAborted);
         }
 
-        [Authorize]
+        // [Authorize]
         [HttpPost(Routes.SonarHistoryCache)]
         [ProducesResponseType(typeof(Response<ScannerCacheItem>), 200)]
         public async Task<IActionResult> GetSonarHistoryCache([FromBody] HistoryDataRequest request)
@@ -136,7 +154,7 @@ namespace Algoserver.API.Controllers
         }
 
         [Obsolete]
-        [Authorize(Policy = "free_user_restriction")]
+        // [Authorize(Policy = "free_user_restriction")]
         [HttpPost(Routes.Calculate)]
         [ProducesResponseType(typeof(Response<CalculationResponse>), 200)]
         public async Task<IActionResult> CalculateAsync([FromBody] CalculationRequest request)
@@ -156,7 +174,7 @@ namespace Algoserver.API.Controllers
         }
 
         [Obsolete]
-        [Authorize]
+        // [Authorize]
         [HttpPost(Routes.CalculateMarketInfo)]
         [ProducesResponseType(typeof(Response<CalculationMarketInfoResponse>), 200)]
         public async Task<IActionResult> CalculateMarketInfoAsync([FromBody] Instrument request)
