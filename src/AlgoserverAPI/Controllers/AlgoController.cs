@@ -115,7 +115,7 @@ namespace Algoserver.API.Controllers
             return await ToEncryptedResponse(result, HttpContext.RequestAborted);
         }
 
-        [Authorize(Policy="free_user_restriction")]
+        // [Authorize(Policy="free_user_restriction")]
         [HttpGet(Routes.ScannerResults)]
         [ProducesResponseType(typeof(Response<ScannerResponse>), 200)]
         public async Task<IActionResult> ScannerResults([FromQuery] string segment = "")
