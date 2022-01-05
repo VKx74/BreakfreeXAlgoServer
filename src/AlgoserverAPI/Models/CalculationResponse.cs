@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Algoserver.API.Helpers;
 using Algoserver.API.Models.Algo;
 using Algoserver.API.Services;
@@ -6,13 +7,15 @@ using Newtonsoft.Json;
 
 namespace Algoserver.API.Models.REST
 {
-    public class CalculationResponse {
-        public CalculationLevels levels {get;set;}
-        public StrategyModeV1 trade {get;set;}
+    public class CalculationResponse
+    {
+        public CalculationLevels levels { get; set; }
+        public StrategyModeV1 trade { get; set; }
     }
 
     [Serializable]
-    public class CalculationMarketInfoResponse {
+    public class CalculationMarketInfoResponse
+    {
         public decimal daily_support { get; set; }
         public decimal daily_resistance { get; set; }
         public decimal daily_natural { get; set; }
@@ -27,25 +30,29 @@ namespace Algoserver.API.Models.REST
         public decimal global_trend_spread { get; set; }
         public decimal cvar { get; set; }
     }
-    
+
     [Serializable]
-    public class CVarInfoResponse {
+    public class CVarInfoResponse
+    {
         public decimal? cvar { get; set; }
     }
 
-    public class CalculationResponseV2 {
-        public CalculationLevels levels {get;set;}
-        public StrategyModeV2 trade {get;set;}
-        public decimal size {get;set;}
+    public class CalculationResponseV2
+    {
+        public CalculationLevels levels { get; set; }
+        public StrategyModeV2 trade { get; set; }
+        public decimal size { get; set; }
         public string id { get; set; }
     }
-    
-    public class CalculatePositionSizeResponse {
-        public decimal size {get;set;}
+
+    public class CalculatePositionSizeResponse
+    {
+        public decimal size { get; set; }
     }
 
-    public class CalculatePriceRatioResponse {
-        public decimal ratio {get;set;}
+    public class CalculatePriceRatioResponse
+    {
+        public decimal ratio { get; set; }
     }
 
     public class CalculationLevels
@@ -138,7 +145,8 @@ namespace Algoserver.API.Models.REST
         public decimal P28 { get; set; }
     }
 
-    public class StrategyModeV2 {
+    public class StrategyModeV2
+    {
         public Trend trend { get; set; }
         public TradeType type { get; set; }
         public int tte { get; set; }
@@ -153,8 +161,9 @@ namespace Algoserver.API.Models.REST
         public decimal sl_ratio { get; set; }
         public decimal risk { get; set; }
     }
-    
-    public class StrategyModeV1 {
+
+    public class StrategyModeV1
+    {
 
         [JsonProperty("algo_TP2")]
         public decimal? AlgoTP2 { get; set; }
@@ -206,6 +215,28 @@ namespace Algoserver.API.Models.REST
 
         [JsonProperty("n_currencySymbol")]
         public string NCurrencySymbol { get; set; }
+    }
+
+
+    public class MLDataResponseItem
+    {
+        public decimal open { get; set; }
+        public decimal high { get; set; }
+        public decimal low { get; set; }
+        public decimal close { get; set; }
+        public long time { get; set; }
+        public decimal n { get; set; }
+        public decimal s { get; set; }
+        public decimal r { get; set; }
+        public decimal upExt1 { get; set; }
+        public decimal upExt2 { get; set; }
+        public decimal downExt1 { get; set; }
+        public decimal downExt2 { get; set; }
+    }
+
+    public class MLDataResponse
+    {
+        public List<MLDataResponseItem> data { get; set; }
     }
 
 }

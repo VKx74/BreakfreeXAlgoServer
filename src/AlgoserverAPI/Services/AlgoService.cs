@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Algoserver.API.Helpers;
@@ -499,5 +500,55 @@ namespace Algoserver.API.Services
                 _logger.LogError(e.Message);
             }
         }
+
+        // -------- for ML //
+
+        public Task<MLDataResponse> CalculateSRAsync(string symbol, int granularity)
+        {
+            return Task.Run(async () =>
+            {
+                return await calculateSRAsync(symbol, granularity);
+            });
+        }
+
+        private async Task<MLDataResponse> calculateSRAsync(string symbol, int granularity)
+        {
+            var res = new MLDataResponse();
+            res.data = new List<MLDataResponseItem>();
+
+            var data = await _historyService.GetHistory(symbol, granularity, "Oanda", "Oanda", "Forex");
+            var bars = data.Bars.ToList();
+
+            for (var i = 0; i < bars.Count; i++) 
+            {
+                var item = new MLDataResponseItem {
+                    open = bars[i].Open,
+                    high = bars[i].High,
+                    low = bars[i].Low,
+                    close = bars[i].Close,
+                    time = bars[i].Timestamp
+                };
+
+                res.data.Add(item);
+
+                if (i > 128) {
+                    var high = res.data.Select(_ => _.high);
+                    var low = res.data.Select(_ => _.low);
+                    var levels = TechCalculations.CalculateLevel128(high, low);
+                    
+                    item.upExt1 = levels.Plus18;
+                    item.upExt2 = levels.Plus28;
+                    item.downExt1 = levels.Minus18;
+                    item.downExt2 = levels.Minus28;
+
+                    item.n = levels.FourEight;
+                    item.s = levels.ZeroEight;
+                    item.r = levels.EightEight;
+                }
+            }
+
+            return res;
+        }
+        
     }
 }
