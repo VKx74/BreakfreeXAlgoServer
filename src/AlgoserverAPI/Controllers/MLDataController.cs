@@ -22,7 +22,7 @@ namespace Algoserver.API.Controllers
             _scannerResultService = scannerResultService;
         }
 
-        [HttpGet()]
+        [HttpGet("mldata")]
         [ProducesResponseType(typeof(Response<MLDataResponse>), 200)]
         public async Task<IActionResult> CalculateSR([FromQuery] string symbol, [FromQuery] int granularity)
         {
