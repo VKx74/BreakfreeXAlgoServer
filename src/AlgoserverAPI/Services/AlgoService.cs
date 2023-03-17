@@ -321,7 +321,7 @@ namespace Algoserver.API.Services
 
                 if (container.TimeframePeriod != "d" && container.TimeframePeriod != "w")
                 {
-                    scanRes = _scanner.ScanExt(scanningHistory, dailyScanningHistory, trend, sl_ratio);
+                    scanRes = _scanner.ScanExt(scanningHistory, dailyScanningHistory, extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend, sl_ratio);
                     if (scanRes == null)
                     {
                         scanRes = _scanner.ScanBRC(scanningHistory, trend, sl_ratio);

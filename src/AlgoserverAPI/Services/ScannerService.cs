@@ -100,6 +100,7 @@ namespace Algoserver.API.Services
                 time = time
             };
         }
+     
         public ScanResponse ScanSwingOldStrategy(ScanningHistory history, decimal sl_ration = 1.7m)
         {
             try {
@@ -132,7 +133,7 @@ namespace Algoserver.API.Services
             }
             else
             {
-                var swingExt = ScanExt(history, dailyHistory, trendGlobal, sl_ration);
+                var swingExt = ScanExt(history, dailyHistory, trendGlobal, trendLocal, sl_ration);
                 if (swingExt != null)
                 {
                     swingExt.type = TradeType.SwingExt;
@@ -140,6 +141,7 @@ namespace Algoserver.API.Services
                 return swingExt;
             }
         }
+        
         public ScanResponse ScanSwing(ScanningHistory history, ScanningHistory dailyHistory, Trend trendGlobal, Trend trendLocal, decimal sl_ration = 1.7m)
         {
             try {
@@ -339,19 +341,19 @@ namespace Algoserver.API.Services
             var bottomExt = levels.Minus18;
             var support = levels.ZeroEight;
             var resistance = levels.EightEight;
-            var shift = (decimal)(Math.Abs((double)(levels.Plus28 - levels.Plus18)) * 0.3);
+            var shift = (decimal)(Math.Abs((double)(levels.Plus28 - levels.Plus18)) * 0.5);
             var take_profit = 0m;
             var take_profit2 = 0m;
             var avgEntry = 0m;
             var stop = 0m;
 
             // check is price above/below natural level
-            if (trend == Trend.Up && prc > (natural + bottomExt) / 2)
+            if (trend == Trend.Up && prc > (natural + support) / 2)
             {
                 return null;
             }
 
-            if (trend == Trend.Down && prc < (natural + topExt) / 2)
+            if (trend == Trend.Down && prc < (natural + resistance) / 2)
             {
                 return null;
             }
@@ -388,20 +390,20 @@ namespace Algoserver.API.Services
             // check is price go needed direction
             if (trend == Trend.Up)
             {
-                if (candlesPerformance > 0)
-                {
-                    return null;
-                }
+                // if (candlesPerformance > 0)
+                // {
+                //     return null;
+                // }
 
                 priceDiffToHit = lastClose - bottomExt;
             }
 
             if (trend == Trend.Down)
             {
-                if (candlesPerformance < 0)
-                {
-                    return null;
-                }
+                // if (candlesPerformance < 0)
+                // {
+                //     return null;
+                // }
                 priceDiffToHit = topExt - lastClose;
             }
 
@@ -416,10 +418,10 @@ namespace Algoserver.API.Services
                 candlesToHit = 1;
             }
 
-            if (candlesToHit > 30)
-            {
-                return null;
-            }
+            // if (candlesToHit > 30)
+            // {
+            //     return null;
+            // }
             if (candlesToHit > 10)
             {
                 direction.TradeProbability = TradeProbability.Low;
@@ -463,10 +465,10 @@ namespace Algoserver.API.Services
                 time = time
             };
         }
-        public ScanResponse ScanExt(ScanningHistory history, ScanningHistory dailyHistory, Trend trend, decimal sl_ration = 1.7m)
+        public ScanResponse ScanExt(ScanningHistory history, ScanningHistory dailyHistory, Trend global, Trend local, decimal sl_ration = 1.7m)
         {
             try {
-                return this._scanExt(history, dailyHistory, trend, sl_ration);
+                return this._scanExt(history, dailyHistory, global, sl_ration);
             } catch(Exception ex) {
                 return null;
             }
