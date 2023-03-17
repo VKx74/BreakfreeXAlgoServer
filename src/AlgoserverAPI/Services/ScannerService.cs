@@ -378,10 +378,10 @@ namespace Algoserver.API.Services
             var direction = TechCalculations.ApproveDirection(close, trend, TradeType.EXT);
             var directionApproved = direction.Approved;
 
-            if (!directionApproved)
-            {
-                return null;
-            }
+            // if (!directionApproved)
+            // {
+            //     return null;
+            // }
 
             var candlesPerformance = TechCalculations.CalculatePriceMoveDirection(close);
             var difference = TechCalculations.CalculateAvdCandleDifference(open, close);
