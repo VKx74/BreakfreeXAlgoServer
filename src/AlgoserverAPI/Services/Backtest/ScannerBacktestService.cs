@@ -105,7 +105,7 @@ namespace Algoserver.API.Services
                 }
                 else if (req.type == TradeType.EXT)
                 {
-                    signal = _scanner.ScanExt(scanningHistory, dailyScanningHistory, extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend, sl_ratio);
+                    signal = _scanner.ScanExt(scanningHistory, dailyScanningHistory, trend, sl_ratio);
                 }
                 else if (req.type == TradeType.BRC)
                 {

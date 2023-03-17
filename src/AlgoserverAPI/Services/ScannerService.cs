@@ -133,7 +133,7 @@ namespace Algoserver.API.Services
             }
             else
             {
-                var swingExt = ScanExt(history, dailyHistory, trendGlobal, trendLocal, sl_ration);
+                var swingExt = ScanExt(history, dailyHistory, trendGlobal, sl_ration);
                 if (swingExt != null)
                 {
                     swingExt.type = TradeType.SwingExt;
@@ -465,10 +465,10 @@ namespace Algoserver.API.Services
                 time = time
             };
         }
-        public ScanResponse ScanExt(ScanningHistory history, ScanningHistory dailyHistory, Trend global, Trend local, decimal sl_ration = 1.7m)
+        public ScanResponse ScanExt(ScanningHistory history, ScanningHistory dailyHistory, Trend trend, decimal sl_ration = 1.7m)
         {
             try {
-                return this._scanExt(history, dailyHistory, global, sl_ration);
+                return this._scanExt(history, dailyHistory, trend, sl_ration);
             } catch(Exception ex) {
                 return null;
             }
