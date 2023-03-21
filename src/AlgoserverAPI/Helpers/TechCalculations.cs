@@ -627,8 +627,11 @@ namespace Algoserver.API.Helpers
             var lookback = 5;
             var lastClose = cPrice.TakeLast(lookback).ToArray();
             var lastHma = hmaData.TakeLast(lookback).ToArray();
+            var hmaToVerify = hmaData.TakeLast(lookback * 2).ToArray();
             var hmaSum = 0m;
             var prevHMA = lastHma.FirstOrDefault();
+            var firstHMA = hmaToVerify.FirstOrDefault();
+            var lastHMA = hmaToVerify.LastOrDefault();
             for (var i = 1; i < lookback; i++)
             {
                 hmaSum += prevHMA - lastHma[i];
@@ -641,14 +644,18 @@ namespace Algoserver.API.Helpers
             {
                 if (hmaSum < 0)
                 {
-                    return DirectionResponse.GetNegativeResponse();
+                    if (lastHMA > firstHMA) {
+                        return DirectionResponse.GetNegativeResponse();
+                    }
                 }
             }
             else
             {
                 if (hmaSum > 0)
                 {
-                    return DirectionResponse.GetNegativeResponse();
+                    if (lastHMA < firstHMA) {
+                        return DirectionResponse.GetNegativeResponse();
+                    }
                 }
             }
 

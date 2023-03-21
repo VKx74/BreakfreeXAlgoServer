@@ -238,19 +238,19 @@ namespace Algoserver.API.Services
             // check is price go needed direction
             if (trend == Trend.Up)
             {
-                if (candlesPerformance > 0)
-                {
-                    return null;
-                }
+                // if (candlesPerformance > 0)
+                // {
+                //     return null;
+                // }
 
                 priceDiffToHit = lastClose - natural;
             }
             if (trend == Trend.Down)
             {
-                if (candlesPerformance < 0)
-                {
-                    return null;
-                }
+                // if (candlesPerformance < 0)
+                // {
+                //     return null;
+                // }
 
                 priceDiffToHit = natural - lastClose;
             }
@@ -418,10 +418,10 @@ namespace Algoserver.API.Services
                 candlesToHit = 1;
             }
 
-            // if (candlesToHit > 30)
-            // {
-            //     return null;
-            // }
+            if (candlesToHit > 30)
+            {
+                return null;
+            }
             if (candlesToHit > 10)
             {
                 direction.TradeProbability = TradeProbability.Low;
