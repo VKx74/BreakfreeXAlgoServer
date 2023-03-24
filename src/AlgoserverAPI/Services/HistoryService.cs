@@ -74,18 +74,19 @@ namespace Algoserver.API.Services
             {
                 if (result != null && result != null && result.Bars != null && result.Bars.Any())
                 {
-                    if (granularity > 60 * 15)
-                    {
-                        _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(5));
-                    }
-                    else if (granularity > 60)
-                    {
-                        _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(3));
-                    }
-                    else
-                    {
-                        _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(1));
-                    }
+                    // if (granularity > 60 * 15)
+                    // {
+                    //     _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(5));
+                    // }
+                    // else if (granularity > 60)
+                    // {
+                    //     _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(3));
+                    // }
+                    // else
+                    // {
+                    //     _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(1));
+                    // }
+                    _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(30));
                 }
             }
             catch (Exception e)

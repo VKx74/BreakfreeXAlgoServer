@@ -173,7 +173,7 @@ namespace Algoserver.API.Helpers
         }
 
         public static Trend MergeTrends(ExtendedTrendResult trends)
-        {
+        {  
             if (trends.GlobalTrend == Trend.Up && trends.LocalTrend == Trend.Up)
             {
                 return Trend.Up;

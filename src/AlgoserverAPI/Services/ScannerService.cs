@@ -46,7 +46,7 @@ namespace Algoserver.API.Services
                 return null;
             }
 
-            var difference = TechCalculations.CalculateAvdCandleDifference(open, close);
+            var difference = TechCalculations.CalculateAvgCandleDifference(open, close);
             var candlesPerformance = TechCalculations.CalculatePriceMoveDirection(close);
             var priceDiffToHit = 0m;
             var lastClose = history.Close.LastOrDefault();
@@ -231,7 +231,7 @@ namespace Algoserver.API.Services
                 return null;
             }
 
-            var difference = TechCalculations.CalculateAvdCandleDifference(open, close);
+            var difference = TechCalculations.CalculateAvgCandleDifference(open, close);
             var candlesPerformance = TechCalculations.CalculatePriceMoveDirection(close);
             var priceDiffToHit = 0m;
 
@@ -383,8 +383,8 @@ namespace Algoserver.API.Services
                 return null;
             }
 
-            var candlesPerformance = TechCalculations.CalculatePriceMoveDirection(close);
-            var difference = TechCalculations.CalculateAvdCandleDifference(open, close);
+            // var candlesPerformance = TechCalculations.CalculatePriceMoveDirection(close);
+            var difference = TechCalculations.CalculateAvgCandleDifference(open, close);
             var priceDiffToHit = 0m;
 
             // check is price go needed direction

@@ -696,7 +696,7 @@ namespace Algoserver.API.Helpers
             };
         }
 
-        public static decimal CalculateAvdCandleDifference(IEnumerable<decimal> open, IEnumerable<decimal> close)
+        public static decimal CalculateAvgCandleDifference(IEnumerable<decimal> open, IEnumerable<decimal> close)
         {
             var lookback = 3;
             var opens = open.ToArray();
