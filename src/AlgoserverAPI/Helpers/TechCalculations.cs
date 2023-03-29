@@ -644,18 +644,20 @@ namespace Algoserver.API.Helpers
             {
                 if (hmaSum < 0)
                 {
-                    if (lastHMA > firstHMA) {
-                        return DirectionResponse.GetNegativeResponse();
-                    }
+                    // if (lastHMA > firstHMA) {
+                    //     return DirectionResponse.GetNegativeResponse();
+                    // }
+                    return DirectionResponse.GetNegativeResponse();
                 }
             }
             else
             {
                 if (hmaSum > 0)
                 {
-                    if (lastHMA < firstHMA) {
-                        return DirectionResponse.GetNegativeResponse();
-                    }
+                    // if (lastHMA < firstHMA) {
+                    //     return DirectionResponse.GetNegativeResponse();
+                    // }
+                    return DirectionResponse.GetNegativeResponse();
                 }
             }
 
