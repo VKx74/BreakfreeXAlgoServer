@@ -88,7 +88,7 @@ namespace Algoserver.API.Services
 
         public ScannerCacheItem GetSonarHistoryCache(string symbol, string exchange, int timeframe, long time)
         {
-            var key = $"{symbol}-{exchange}-{timeframe}-{time}".ToUpper();   
+            var key = $"{symbol}-{exchange}-{timeframe}-{time}".ToUpper();
             if (_cache.TryGetValue(cachePrefix(), key, out ScannerCacheItem cachedResponse))
             {
                 return cachedResponse;
@@ -99,7 +99,10 @@ namespace Algoserver.API.Services
 
         public void ScanMarkets()
         {
+            var _1Mins = _historyService.Get1MinDataDictionary();
+            var _5Mins = _historyService.Get5MinDataDictionary();
             var _15Mins = _historyService.Get15MinDataDictionary();
+            var _30Mins = _historyService.Get30MinDataDictionary();
             var _1Hour = _historyService.Get1HDataDictionary();
             var _4Hour = _historyService.Get4HDataDictionary();
             var _1Day = _historyService.Get1DData();
@@ -112,12 +115,57 @@ namespace Algoserver.API.Services
                     continue;
                 }
 
+                var key = _historyService.GetKey(dailyHistory);
                 var calculation_input = dailyHistory.Bars.Select(_ => _.Close).ToList();
                 var extendedTrendData = TrendDetector.CalculateByMesaBy2TrendAdjusted(calculation_input);
                 var trendData = TrendDetector.MergeTrends(extendedTrendData);
                 var dailyScanningHistory = _scanner.ToScanningHistory(dailyHistory.Bars);
 
-                if (_15Mins.TryGetValue(_historyService.GetKey(dailyHistory), out var history15Min) && trendData != Trend.Undefined && history15Min.Bars.Count() > 200)
+                if (_1Mins.TryGetValue(key, out var history1Min) && _1Hour.TryGetValue(key, out var history30Min))
+                {
+                    if (history1Min.Bars.Count >= 200 && history30Min.Bars.Count >= 200)
+                    {
+                        var calculation_input_30 = history30Min.Bars.Select(_ => _.Close).ToList();
+                        var extendedTrendData30min = TrendDetector.CalculateByMesaBy2TrendAdjusted(calculation_input_30);
+                        var trendData30min = TrendDetector.MergeTrends(extendedTrendData30min);
+
+                        var scanningResultExt = _scanner.ScanExt(_scanner.ToScanningHistory(history1Min.Bars), _scanner.ToScanningHistory(history30Min.Bars), trendData30min);
+                        if (scanningResultExt != null)
+                        {
+                            var resp = _toResponse(scanningResultExt, history1Min, TimeframeHelper.MIN1_GRANULARITY);
+                            _tryAddHistory(resp, scanningResultExt, extendedTrendData30min);
+                            res.Add(resp);
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine(">>> Not enough of data " + key);
+                    }
+                }
+
+                if (_5Mins.TryGetValue(key, out var history5Min) && _4Hour.TryGetValue(key, out var history1Hour))
+                {
+                    if (history5Min.Bars.Count >= 200 && history1Hour.Bars.Count >= 200)
+                    {
+                        var calculation_input_1h = history1Hour.Bars.Select(_ => _.Close).ToList();
+                        var extendedTrendData1h = TrendDetector.CalculateByMesaBy2TrendAdjusted(calculation_input_1h);
+                        var trendData1h = TrendDetector.MergeTrends(extendedTrendData1h);
+
+                        var scanningResultExt = _scanner.ScanExt(_scanner.ToScanningHistory(history5Min.Bars), _scanner.ToScanningHistory(history1Hour.Bars), trendData1h);
+                        if (scanningResultExt != null)
+                        {
+                            var resp = _toResponse(scanningResultExt, history5Min, TimeframeHelper.MIN5_GRANULARITY);
+                            _tryAddHistory(resp, scanningResultExt, extendedTrendData1h);
+                            res.Add(resp);
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine(">>> Not enough of data " + key);
+                    }
+                }
+
+                if (_15Mins.TryGetValue(key, out var history15Min) && trendData != Trend.Undefined && history15Min.Bars.Count() > 200)
                 {
                     var scanningResultBRC = _scanner.ScanBRC(_scanner.ToScanningHistory(history15Min.Bars), trendData);
                     if (scanningResultBRC != null)
@@ -136,7 +184,21 @@ namespace Algoserver.API.Services
                     }
                 }
 
-                if (_1Hour.TryGetValue(_historyService.GetKey(dailyHistory), out var history1H) && trendData != Trend.Undefined && history1H.Bars.Count() > 200)
+                if (_30Mins.TryGetValue(key, out var history30M) && trendData != Trend.Undefined)
+                {
+                    if (history30M.Bars.Count >= 200)
+                    {
+                        var scanningResultExt = _scanner.ScanExt(_scanner.ToScanningHistory(history30M.Bars), dailyScanningHistory, trendData);
+                        if (scanningResultExt != null)
+                        {
+                            var resp = _toResponse(scanningResultExt, history30M, TimeframeHelper.MIN30_GRANULARITY);
+                            _tryAddHistory(resp, scanningResultExt, extendedTrendData);
+                            res.Add(resp);
+                        }
+                    }
+                }
+
+                if (_1Hour.TryGetValue(key, out var history1H) && trendData != Trend.Undefined && history1H.Bars.Count() > 200)
                 {
                     var scanningResultBRC = _scanner.ScanBRC(_scanner.ToScanningHistory(history1H.Bars), trendData);
                     if (scanningResultBRC != null)
@@ -155,7 +217,7 @@ namespace Algoserver.API.Services
                     }
                 }
 
-                if (_4Hour.TryGetValue(_historyService.GetKey(dailyHistory), out var history4H) && history4H.Bars.Count() > 200)
+                if (_4Hour.TryGetValue(key, out var history4H) && history4H.Bars.Count() > 200)
                 {
                     var tradeDetermined = false;
                     if (trendData != Trend.Undefined)
@@ -288,8 +350,10 @@ namespace Algoserver.API.Services
             catch (Exception ex) { }
         }
 
-        protected TrendResponse _toTrendResponse(ExtendedTrendResult extendedTrendData) {
-            return new TrendResponse {
+        protected TrendResponse _toTrendResponse(ExtendedTrendResult extendedTrendData)
+        {
+            return new TrendResponse
+            {
                 globalFastValue = extendedTrendData.GlobalFastValue,
                 globalSlowValue = extendedTrendData.GlobalSlowValue,
                 globalTrend = extendedTrendData.GlobalTrend,

@@ -219,6 +219,27 @@ namespace Algoserver.API.Models.Algo
                 LowD = dailyPrices.Select(i => i.Low).ToList();
                 CloseD = dailyPrices.Select(i => i.Close).ToList();
                 TimeD = dailyPrices.Select(i => i.Timestamp).ToList();
+                var lastTime = TimeD.LastOrDefault();
+                var correctionCandles = priceData.Where((_) => _.Timestamp >= lastTime).ToList();
+                var openBar = priceData.FirstOrDefault();
+                var closeBar = priceData.LastOrDefault();
+                var min = correctionCandles.Select((_) => _.Low).Min();
+                var max = correctionCandles.Select((_) => _.High).Max();
+
+                if (closeBar != null)
+                {
+                    CloseD[CloseD.Count - 1] = closeBar.Close;
+                }
+
+                if (min > 0)
+                {
+                    LowD[LowD.Count - 1] = min;
+                }
+
+                if (max > 0)
+                {
+                    HighD[HighD.Count - 1] = max;
+                }
             }
 
             if (hourlyPriceData != null)
@@ -235,6 +256,7 @@ namespace Algoserver.API.Models.Algo
                 LowH = hourlyPrices.Select(i => i.Low).ToList();
                 CloseH = hourlyPrices.Select(i => i.Close).ToList();
                 TimeH = hourlyPrices.Select(i => i.Timestamp).ToList();
+                CloseH[CloseH.Count - 1] = Close[Close.Count - 1];
             }
             // var lastDailyCandle = dailyPrices.LastOrDefault();
             // var lastDailyCandleTime = lastDailyCandle != null ? lastDailyCandle.Timestamp : long.MaxValue;

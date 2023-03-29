@@ -74,19 +74,19 @@ namespace Algoserver.API.Services
             {
                 if (result != null && result != null && result.Bars != null && result.Bars.Any())
                 {
-                    // if (granularity > 60 * 15)
-                    // {
-                    //     _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(5));
-                    // }
-                    // else if (granularity > 60)
-                    // {
-                    //     _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(3));
-                    // }
-                    // else
-                    // {
-                    //     _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(1));
-                    // }
-                    _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(30));
+                    if (granularity > 60 * 15)
+                    {
+                        _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(5));
+                    }
+                    else if (granularity > 60)
+                    {
+                        _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(1));
+                    }
+                    else
+                    {
+                        _cache.Set(_cachePrefix, hash, result, TimeSpan.FromSeconds(15));
+                    }
+                    // _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(30));
                 }
             }
             catch (Exception e)
@@ -261,13 +261,13 @@ namespace Algoserver.API.Services
             return datafeed + symbol + granularity.ToString() + bars_count + exchange + repeatCount.ToString();
         }
 
-        private IEnumerable<BarMessage> mergeBars(IEnumerable<BarMessage> existingBars, IEnumerable<BarMessage> newBars)
+        private List<BarMessage> mergeBars(IEnumerable<BarMessage> existingBars, IEnumerable<BarMessage> newBars)
         {
             var firstBar = existingBars.FirstOrDefault();
 
             if (firstBar == null)
             {
-                return newBars;
+                return newBars.ToList();
             }
 
             var barsToAppend = newBars.Where(_ => _.Timestamp < firstBar.Timestamp).ToList();
@@ -291,18 +291,17 @@ namespace Algoserver.API.Services
         {
             var existing_count = data.Bars.Count();
             var endDate = this.getEndDate(data, AlgoHelper.UnixTimeNow());
-            var mult = 3;
-
-            if (data.Granularity < 86400 && string.Equals(data.Datafeed, "Twelvedata", StringComparison.InvariantCultureIgnoreCase))
-            {
-                mult = 10;
-            }
-            if (string.Equals(data.Datafeed, "binance", StringComparison.InvariantCultureIgnoreCase))
-            {
-                mult = 2;
-            }
-
+            var mult = 2;
             long startDate = endDate - ((bars_count - existing_count) * data.Granularity * mult);
+
+            if (string.Equals(data.Datafeed, "Twelvedata", StringComparison.InvariantCultureIgnoreCase))
+            {
+                var minutesInDay = 6 * 60;
+                var minutesRequested = data.Granularity * bars_count / 60m;
+                var daysRequested = Math.Floor((minutesRequested * 2) / minutesInDay);
+                startDate = endDate - ((int)daysRequested * TimeframeHelper.DAILY_GRANULARITY);
+            }
+
 
             if (startDate < 0)
             {
@@ -330,10 +329,13 @@ namespace Algoserver.API.Services
                 }
             }
 
-            var count = (endDate - startDate) / data.Granularity;
-            if (count > 5000)
+            if (string.Equals(data.Datafeed, "oanda", StringComparison.InvariantCultureIgnoreCase))
             {
-                startDate = endDate - (data.Granularity * 5000);
+                var count = (endDate - startDate) / data.Granularity;
+                if (count > 5000)
+                {
+                    startDate = endDate - (data.Granularity * 5000);
+                }
             }
 
             if (startDate < 0)

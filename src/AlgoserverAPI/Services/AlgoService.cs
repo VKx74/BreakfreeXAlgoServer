@@ -53,7 +53,18 @@ namespace Algoserver.API.Services
             var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             HistoryData dailyPriceData = null;
 
-            if (granularity == TimeframeHelper.DAILY_GRANULARITY)
+            var highTFGranularity = TimeframeHelper.DAILY_GRANULARITY;
+
+            if (granularity == TimeframeHelper.MIN1_GRANULARITY)
+            {
+                highTFGranularity = TimeframeHelper.HOURLY_GRANULARITY;
+            }
+            else if (granularity == TimeframeHelper.MIN5_GRANULARITY)
+            {
+                highTFGranularity = TimeframeHelper.HOUR4_GRANULARITY;
+            }
+
+            if (granularity == highTFGranularity)
             {
                 dailyPriceData = new HistoryData
                 {
@@ -66,7 +77,7 @@ namespace Algoserver.API.Services
             }
             else
             {
-                dailyPriceData = await _historyService.GetHistory(container.Symbol, TimeframeHelper.DAILY_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+                dailyPriceData = await _historyService.GetHistory(container.Symbol, highTFGranularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             }
 
             container.InsertHistory(currentPriceData.Bars, null, dailyPriceData.Bars, container.ReplayBack);
@@ -314,32 +325,29 @@ namespace Algoserver.API.Services
 
             ScanResponse scanRes = null;
 
-            if (granularity >= TimeframeHelper.MIN15_GRANULARITY)
+            var extendedTrendData = TrendDetector.CalculateByMesaBy2TrendAdjusted(container.CloseD);
+            var trend = TrendDetector.MergeTrends(extendedTrendData);
+
+            if (container.TimeframePeriod != "d" && container.TimeframePeriod != "w")
             {
-                var extendedTrendData = TrendDetector.CalculateByMesaBy2TrendAdjusted(container.CloseD);
-                var trend = TrendDetector.MergeTrends(extendedTrendData);
-
-                if (container.TimeframePeriod != "d" && container.TimeframePeriod != "w")
+                scanRes = _scanner.ScanExt(scanningHistory, dailyScanningHistory, trend, sl_ratio);
+                if (scanRes == null && granularity >= TimeframeHelper.MIN15_GRANULARITY)
                 {
-                    scanRes = _scanner.ScanExt(scanningHistory, dailyScanningHistory, trend, sl_ratio);
-                    if (scanRes == null)
-                    {
-                        scanRes = _scanner.ScanBRC(scanningHistory, trend, sl_ratio);
-                    }
+                    scanRes = _scanner.ScanBRC(scanningHistory, trend, sl_ratio);
                 }
+            }
 
-                if (scanRes == null)
+            if (scanRes == null)
+            {
+                if (container.TimeframePeriod == "d")
                 {
-                    if (container.TimeframePeriod == "d")
+                    scanRes = _scanner.ScanSwingOldStrategy(scanningHistory, sl_ratio);
+                }
+                if (container.TimeframePeriod == "h" && container.TimeframeInterval == 4)
+                {
+                    if (!extendedTrendData.IsOverhit)
                     {
-                        scanRes = _scanner.ScanSwingOldStrategy(scanningHistory, sl_ratio);
-                    }
-                    if (container.TimeframePeriod == "h" && container.TimeframeInterval == 4)
-                    {
-                        if (!extendedTrendData.IsOverhit)
-                        {
-                            scanRes = _scanner.ScanSwing(scanningHistory, dailyScanningHistory, extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend, sl_ratio);
-                        }
+                        scanRes = _scanner.ScanSwing(scanningHistory, dailyScanningHistory, extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend, sl_ratio);
                     }
                 }
             }
@@ -519,9 +527,10 @@ namespace Algoserver.API.Services
             var data = await _historyService.GetHistory(symbol, granularity, "Oanda", "Oanda", "Forex");
             var bars = data.Bars.ToList();
 
-            for (var i = 0; i < bars.Count; i++) 
+            for (var i = 0; i < bars.Count; i++)
             {
-                var item = new MLDataResponseItem {
+                var item = new MLDataResponseItem
+                {
                     open = bars[i].Open,
                     high = bars[i].High,
                     low = bars[i].Low,
@@ -531,11 +540,12 @@ namespace Algoserver.API.Services
 
                 res.data.Add(item);
 
-                if (i > 128) {
+                if (i > 128)
+                {
                     var high = res.data.Select(_ => _.high);
                     var low = res.data.Select(_ => _.low);
                     var levels = TechCalculations.CalculateLevel128(high, low);
-                    
+
                     item.upExt1 = levels.Plus18;
                     item.upExt2 = levels.Plus28;
                     item.downExt1 = levels.Minus18;
@@ -549,6 +559,6 @@ namespace Algoserver.API.Services
 
             return res;
         }
-        
+
     }
 }

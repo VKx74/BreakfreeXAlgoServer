@@ -6,8 +6,8 @@ namespace Algoserver.API.Models.REST
     public class BacktestRequest : CalculationRequest
     {
         public int? hma_period { get; set; } = 200;
-        public decimal? global_fast { get; set; } = 0.25m;
-        public decimal? global_slow { get; set; } = 0.05m;
+        public decimal? global_fast { get; set; } = 0.4m;
+        public decimal? global_slow { get; set; } = 0.15m;
         public decimal? local_fast { get; set; } = 1.2m;
         public decimal? local_slow { get; set; } = 0.6m;
         public decimal? mesa_diff { get; set; } = 0.1m;
@@ -29,10 +29,11 @@ namespace Algoserver.API.Models.REST
         public int cancellation_candles { get; set; } = 0;
         public bool single_position { get; set; }
         public TradeType type { get; set; }
-        public decimal global_fast { get; set; } = 0.25m;
-        public decimal global_slow { get; set; } = 0.05m;
+        public decimal global_fast { get; set; } = 0.4m;
+        public decimal global_slow { get; set; } = 0.15m;
         public decimal local_fast { get; set; } = 1.2m;
         public decimal local_slow { get; set; } = 0.6m;
+        public int rtd_tf { get; set; } = 86400;
     }
 
     public class HittestRequest : BacktestRequest

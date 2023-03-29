@@ -171,7 +171,8 @@ namespace Algoserver.API.Services
 
             var prevLow = history.Low[history.Low.Count - 2];
             var prevHigh = history.High[history.High.Count - 2];
-            var prc = trend == Trend.Up ? prevLow : prevHigh;
+            // var prc = trend == Trend.Up ? prevLow : prevHigh;
+            var prc = trend == Trend.Up ? Math.Min(prevLow, lastLow) : Math.Max(prevHigh, lastHigh);
 
             var high = history.High;
             var low = history.Low;
@@ -328,7 +329,8 @@ namespace Algoserver.API.Services
 
             var prevLow = history.Low[history.Low.Count - 2];
             var prevHigh = history.High[history.High.Count - 2];
-            var prc = trend == Trend.Up ? prevLow : prevHigh;
+            // var prc = trend == Trend.Up ? prevLow : prevHigh;
+            var prc = trend == Trend.Up ? Math.Min(prevLow, lastLow) : Math.Max(prevHigh, lastHigh);
 
             var high = history.High;
             var low = history.Low;
