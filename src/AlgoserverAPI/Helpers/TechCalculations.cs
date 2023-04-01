@@ -5,6 +5,14 @@ using Algoserver.API.Models.Algo;
 
 namespace Algoserver.API.Helpers
 {
+    public class TradeZone
+    {
+        public decimal OutsideUpper { get; set; }
+        public decimal InsideUpper { get; set; }
+        public decimal InsideLower { get; set; }
+        public decimal OutsideLower { get; set; }
+    }
+
     public class DirectionResponse
     {
         public bool Approved { get; set; }
@@ -156,6 +164,38 @@ namespace Algoserver.API.Helpers
             }
             return res.ToArray();
         }
+
+        public static decimal[] Rma(decimal[] data, int period)
+        {
+            var constant1 = 2m / (1 + period);
+            var constant2 = 1m - 2m / (1 + period);
+
+            var res = new List<decimal>();
+            for (var i = 0; i < data.Length; i++)
+            {
+                var ema = i == 0 ? data[i] : data[i]
+                    * constant1 + constant2 * res[i - 1];
+
+                res.Add(ema);
+            }
+            return res.ToArray();
+        }
+
+        public static decimal[] Ema(decimal[] data, int period)
+        {
+            var constant1 = 1m / period;
+            var res = new List<decimal>();
+            for (var i = 0; i < data.Length; i++)
+            {
+                var rma = i == 0 ? data[i] : data[i]
+                    * constant1 + (1m - constant1) * res[i - 1];
+
+                res.Add(rma);
+            }
+            return res.ToArray();
+        }
+
+
 
         public static List<decimal> Wma(List<decimal> data, int length)
         {
@@ -381,6 +421,15 @@ namespace Algoserver.API.Helpers
             }
 
             return res.ToArray();
+        }
+
+        public static TradeZone CalculateTradeZone(List<decimal> high, List<decimal> low, decimal fast = 36, decimal slow = 77, decimal fastMultiplier = 4, decimal slowMultiplier = 8)
+        {
+            var typical = new List<decimal>();
+            for (var i = 0; i < high.Count; i++)
+            {
+                typical.Add((high[i] + low[i]) / 2);
+            }
         }
 
         private static double _computeComponent(DataAggregator src, double mesaPeriodMultiplier)
