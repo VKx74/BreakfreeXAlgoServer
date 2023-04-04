@@ -84,7 +84,7 @@ namespace Algoserver.API.Services
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogError($"Error occured while sending http request to {_serverUrl}, response string: {content}");
+                Console.WriteLine($"Error occured while sending http request to {_serverUrl}, response string: {content}");
                 response.EnsureSuccessStatusCode();
             }
 
