@@ -13,7 +13,8 @@ using Newtonsoft.Json;
 
 namespace Algoserver.API.Services
 {
-    class PredictionRequest {
+    class PredictionRequest
+    {
         public decimal[,] ohlcv { get; set; }
         public decimal[,] xmode_channels { get; set; }
     }
@@ -46,12 +47,18 @@ namespace Algoserver.API.Services
         {
             _logger = logger;
             _serverUrl = configuration["LevelsPrediction"];
-            _httpClient = new HttpClient();
+
+            HttpClientHandler clientHandler = new HttpClientHandler();
+            clientHandler.ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; };
+
+            _httpClient = new HttpClient(clientHandler);
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
         public async Task<LevelsPredictionResponse> Predict(ScanningHistory historyData, List<LookBackResult> channelsData)
         {
+            Console.WriteLine($"Prediction requested");
+
             var length = 75;
             var open = historyData.Open.TakeLast(length).ToList();
             var high = historyData.High.TakeLast(length).ToList();
@@ -89,7 +96,8 @@ namespace Algoserver.API.Services
             }
 
             var deserialized = JsonConvert.DeserializeObject<LevelsPredictionResponseDTO>(content);
-            return new LevelsPredictionResponse {
+            return new LevelsPredictionResponse
+            {
                 support = deserialized.lower_1,
                 support_ext = deserialized.lower_2,
                 resistance = deserialized.upper_1,

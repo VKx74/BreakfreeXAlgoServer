@@ -456,6 +456,7 @@ namespace Algoserver.API.Services
                     result.resistance_ext_prob = prediction.resistance_ext;
                 }
             } catch (Exception ex) {
+                Console.WriteLine("Prediction error");
                 Console.WriteLine(ex.Message);
             }
 
