@@ -45,6 +45,18 @@ namespace Algoserver.API.Models.REST
         public string id { get; set; }
     }
 
+    public class CalculationResponseV3
+    {
+        public CalculationLevels levels { get; set; }
+        public StrategyModeV2 trade { get; set; }
+         public decimal support_prob { get; set; }
+        public decimal resistance_prob { get; set; }
+        public decimal support_ext_prob { get; set; }
+        public decimal resistance_ext_prob { get; set; }
+        public decimal size { get; set; }
+        public string id { get; set; }
+    }
+
     public class CalculatePositionSizeResponse
     {
         public decimal size { get; set; }

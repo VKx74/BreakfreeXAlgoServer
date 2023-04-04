@@ -66,10 +66,24 @@ namespace Algoserver.API.Helpers
                 VSCS2 = sar.Validscs2,
                 VEXTTP = sar.Validexttp,
                 VEXTTP2 = sar.Validexttp2,
-                M18 = sar.Minus18,
-                M28 = sar.Minus28,
-                P18 = sar.Plus18,
-                P28 = sar.Plus28,
+                M18 = levels.Level128.Minus18,
+                M28 = levels.Level128.Minus28,
+                P18 = levels.Level128.Plus18,
+                P28 = levels.Level128.Plus28,
+            };
+        }
+
+        public static CalculationLevels ToLevels(LookBackResult levels)
+        {
+            return new CalculationLevels
+            {
+                EE = levels.EightEight,
+                FE = levels.FourEight,
+                ZE = levels.ZeroEight,
+                M18 = levels.Minus18,
+                M28 = levels.Minus28,
+                P18 = levels.Plus18,
+                P28 = levels.Plus28,
             };
         }
     
@@ -111,6 +125,16 @@ namespace Algoserver.API.Helpers
             return new CalculationResponseV2
             {
                 levels = DataMappingHelper.ToLevels(levels, sar),
+                trade = ToStrategyModeV2(scanRes),
+                size = size
+            };
+        }
+
+        public static CalculationResponseV3 ToResponseV3(LookBackResult levels, ScanResponse scanRes, decimal size)
+        {
+            return new CalculationResponseV3
+            {
+                levels = DataMappingHelper.ToLevels(levels),
                 trade = ToStrategyModeV2(scanRes),
                 size = size
             };

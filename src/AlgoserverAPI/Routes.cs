@@ -4,6 +4,7 @@
     {
         public const string Calculate = "calculate";
         public const string CalculateV2 = "calculate_v2";
+        public const string CalculateV3 = "calculate_v3";
         public const string CalculateV2Guest = "calculate_v2_guest";
         public const string CalculatePositionSize = "calculate_pos_size";
         public const string CalculatePriceRatio = "calculate_price_ratio";

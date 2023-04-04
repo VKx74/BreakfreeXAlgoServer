@@ -41,6 +41,20 @@ namespace Algoserver.API.Controllers
             return await ToEncryptedResponse(result, CancellationToken.None);
         }
 
+        [Authorize(Policy = "free_user_restriction")]
+        [HttpPost(Routes.CalculateV3)]
+        [ProducesResponseType(typeof(Response<CalculationResponseV3>), 200)]
+        public async Task<IActionResult> CalculateV3Async([FromBody] CalculationRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
+            }
+
+            var result = await _algoService.CalculateV3Async(request);
+            return await ToEncryptedResponse(result, CancellationToken.None);
+        }
+
         [Authorize]
         [HttpPost(Routes.CalculatePositionSize)]
         [ProducesResponseType(typeof(Response<CalculatePositionSizeResponse>), 200)]

@@ -11,6 +11,7 @@ namespace Algoserver.API.Helpers
         public decimal InsideUpper { get; set; }
         public decimal InsideLower { get; set; }
         public decimal OutsideLower { get; set; }
+        public decimal Mid { get; set; }
     }
 
     public class DirectionResponse
@@ -165,34 +166,34 @@ namespace Algoserver.API.Helpers
             return res.ToArray();
         }
 
-        public static decimal[] Rma(decimal[] data, int period)
+        public static decimal[] Ema(decimal[] data, int period)
         {
             var constant1 = 2m / (1 + period);
             var constant2 = 1m - 2m / (1 + period);
 
-            var res = new List<decimal>();
+            var res = new decimal[data.Length];
             for (var i = 0; i < data.Length; i++)
             {
                 var ema = i == 0 ? data[i] : data[i]
                     * constant1 + constant2 * res[i - 1];
 
-                res.Add(ema);
+                res[i] = ema;
             }
-            return res.ToArray();
+            return res;
         }
 
-        public static decimal[] Ema(decimal[] data, int period)
+        public static decimal[] Rma(decimal[] data, int period)
         {
             var constant1 = 1m / period;
-            var res = new List<decimal>();
+            var res = new decimal[data.Length];
             for (var i = 0; i < data.Length; i++)
             {
                 var rma = i == 0 ? data[i] : data[i]
                     * constant1 + (1m - constant1) * res[i - 1];
 
-                res.Add(rma);
+                res[i] = rma;
             }
-            return res.ToArray();
+            return res;
         }
 
 
@@ -423,13 +424,78 @@ namespace Algoserver.API.Helpers
             return res.ToArray();
         }
 
-        public static TradeZone CalculateTradeZone(List<decimal> high, List<decimal> low, decimal fast = 36, decimal slow = 77, decimal fastMultiplier = 4, decimal slowMultiplier = 8)
+        public static TradeZone CalculateTradeZone(List<decimal> high, List<decimal> low, int fast = 36, int slow = 77, int fastMultiplier = 4, int slowMultiplier = 8)
         {
-            var typical = new List<decimal>();
+            var typical = new decimal[high.Count];
+            var diff = new decimal[high.Count];
             for (var i = 0; i < high.Count; i++)
             {
-                typical.Add((high[i] + low[i]) / 2);
+                typical[i] = (high[i] + low[i]) / 2;
+                diff[i] = high[i] - low[i];
             }
+
+            var smaDiff = Ema(typical, fast);
+            var smaShift1 = Rma(diff, fast);
+            var smaShift2 = Rma(diff, slow);
+
+
+            var middleVal = smaDiff.LastOrDefault();
+            var offset1 = smaShift1.LastOrDefault() * slowMultiplier;
+            var offset2 = smaShift2.LastOrDefault() * fastMultiplier;
+
+            var upperVal1 = middleVal + offset1;
+            var lowerVal1 = middleVal - offset1;
+            var upperVal2 = middleVal + offset2;
+            var lowerVal2 = middleVal - offset2;
+
+            return new TradeZone
+            {
+                OutsideUpper = upperVal1,
+                InsideUpper = upperVal2,
+                InsideLower = lowerVal2,
+                OutsideLower = lowerVal1,
+                Mid = middleVal
+            };
+        }
+
+        public static List<TradeZone> CalculateTradeZones(List<decimal> high, List<decimal> low, int fast = 36, int slow = 77, int fastMultiplier = 4, int slowMultiplier = 8)
+        {
+            var typical = new decimal[high.Count];
+            var diff = new decimal[high.Count];
+            for (var i = 0; i < high.Count; i++)
+            {
+                typical[i] = (high[i] + low[i]) / 2;
+                diff[i] = high[i] - low[i];
+            }
+
+            var smaDiff = Ema(typical, fast);
+            var smaShift1 = Rma(diff, fast);
+            var smaShift2 = Rma(diff, slow);
+
+            var result = new List<TradeZone>();
+
+            for (var i = 0; i < smaDiff.Length; i++)
+            {
+                var middleVal = smaDiff[i];
+                var offset1 = smaShift1[i] * slowMultiplier;
+                var offset2 = smaShift2[i] * fastMultiplier;
+
+                var upperVal1 = middleVal + offset1;
+                var lowerVal1 = middleVal - offset1;
+                var upperVal2 = middleVal + offset2;
+                var lowerVal2 = middleVal - offset2;
+
+                result.Add(new TradeZone
+                {
+                    OutsideUpper = upperVal1,
+                    InsideUpper = upperVal2,
+                    InsideLower = lowerVal2,
+                    OutsideLower = lowerVal1,
+                    Mid = middleVal
+                });
+            }
+
+            return result;
         }
 
         private static double _computeComponent(DataAggregator src, double mesaPeriodMultiplier)
@@ -599,6 +665,50 @@ namespace Algoserver.API.Helpers
         {
             var lookback128 = 128;
             return TechCalculations.LookBack(lookback128, uPrice, lPrice);
+            // return CalculateLevelBasedOnTradeZone(uPrice, lPrice);
+        }
+
+        public static LookBackResult CalculateLevelBasedOnTradeZone(IEnumerable<decimal> uPrice, IEnumerable<decimal> lPrice)
+        {
+            var tradeZone = CalculateTradeZone(uPrice.ToList(), lPrice.ToList());
+            var result = new LookBackResult();
+            var Increment = (tradeZone.OutsideUpper - tradeZone.OutsideLower) / 8;
+
+            result.AbsTop = tradeZone.OutsideUpper;
+            result.Increment = Increment;
+            result.EightEight = tradeZone.InsideUpper;
+            result.FourEight = tradeZone.Mid;
+            result.ZeroEight = tradeZone.InsideLower;
+            result.Minus18 = (tradeZone.InsideLower + tradeZone.OutsideLower) / 2;
+            result.Minus28 = tradeZone.OutsideLower;
+            result.Plus18 = (tradeZone.InsideUpper + tradeZone.OutsideUpper) / 2;
+            result.Plus28 = tradeZone.OutsideUpper;
+
+            return result;
+        }
+
+        public static List<LookBackResult> CalculateLevelsBasedOnTradeZone(IEnumerable<decimal> uPrice, IEnumerable<decimal> lPrice)
+        {
+            var tradeZones = CalculateTradeZones(uPrice.ToList(), lPrice.ToList());
+            var resultList = new List<LookBackResult>();
+
+            foreach (var tradeZone in tradeZones)
+            {
+                var Increment = (tradeZone.OutsideUpper - tradeZone.OutsideLower) / 8;
+                var result = new LookBackResult();
+                result.AbsTop = tradeZone.OutsideUpper;
+                result.Increment = Increment;
+                result.EightEight = tradeZone.InsideUpper;
+                result.FourEight = tradeZone.Mid;
+                result.ZeroEight = tradeZone.InsideLower;
+                result.Minus18 = (tradeZone.InsideLower + tradeZone.OutsideLower) / 2;
+                result.Minus28 = tradeZone.OutsideLower;
+                result.Plus18 = (tradeZone.InsideUpper + tradeZone.OutsideUpper) / 2;
+                result.Plus28 = tradeZone.OutsideUpper;
+                resultList.Add(result);
+            }
+
+            return resultList;
         }
 
         public static int BRCOverLevelCount(IEnumerable<decimal> cPrice, Trend trend, decimal level)

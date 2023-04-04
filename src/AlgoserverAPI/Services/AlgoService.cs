@@ -16,18 +16,20 @@ namespace Algoserver.API.Services
         private readonly ILogger<AlgoService> _logger;
         private readonly HistoryService _historyService;
         private readonly ScannerService _scanner;
+        private readonly LevelsPredictionService _levelsPrediction;
         private readonly ICacheService _cache;
         private string _cachePrefix = "MarketInfo_";
         private string _cachePrefixV2 = "MarketInfoV2_";
         private readonly PriceRatioCalculationService _priceRatioCalculationService;
 
-        public AlgoService(ILogger<AlgoService> logger, HistoryService historyService, PriceRatioCalculationService priceRatioCalculationService, ScannerService scanner, ICacheService cache)
+        public AlgoService(ILogger<AlgoService> logger, HistoryService historyService, PriceRatioCalculationService priceRatioCalculationService, ScannerService scanner, LevelsPredictionService levelsPrediction, ICacheService cache)
         {
             _logger = logger;
             _historyService = historyService;
             _scanner = scanner;
             _cache = cache;
             _priceRatioCalculationService = priceRatioCalculationService;
+            _levelsPrediction = levelsPrediction;
         }
 
         public async Task<InputDataContainer> InitAsync(CalculationRequest req)
@@ -153,6 +155,14 @@ namespace Algoserver.API.Services
             return Task.Run(() =>
             {
                 return calculateV2Async(req);
+            });
+        }
+
+        public Task<CalculationResponseV3> CalculateV3Async(CalculationRequest req)
+        {
+            return Task.Run(() =>
+            {
+                return calculateV3Async(req);
             });
         }
 
@@ -297,6 +307,7 @@ namespace Algoserver.API.Services
         {
             var container = await InitAsync(req);
             var levels = TechCalculations.CalculateLevels(container.High, container.Low);
+            var levels128 = levels.Level128;
             var sar = SupportAndResistance.Calculate(levels, container.Mintick);
             var scanningHistory = new ScanningHistory
             {
@@ -330,10 +341,10 @@ namespace Algoserver.API.Services
 
             if (container.TimeframePeriod != "d" && container.TimeframePeriod != "w")
             {
-                scanRes = _scanner.ScanExt(scanningHistory, dailyScanningHistory, trend, sl_ratio);
+                scanRes = _scanner.ScanExt(scanningHistory, dailyScanningHistory, trend, levels128, sl_ratio);
                 if (scanRes == null && granularity >= TimeframeHelper.MIN15_GRANULARITY)
                 {
-                    scanRes = _scanner.ScanBRC(scanningHistory, trend, sl_ratio);
+                    scanRes = _scanner.ScanBRC(scanningHistory, trend, levels128, sl_ratio);
                 }
             }
 
@@ -347,7 +358,7 @@ namespace Algoserver.API.Services
                 {
                     if (!extendedTrendData.IsOverhit)
                     {
-                        scanRes = _scanner.ScanSwing(scanningHistory, dailyScanningHistory, extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend, sl_ratio);
+                        scanRes = _scanner.ScanSwing(scanningHistory, dailyScanningHistory, extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend, levels128, sl_ratio);
                     }
                 }
             }
@@ -362,6 +373,92 @@ namespace Algoserver.API.Services
 
             var result = DataMappingHelper.ToResponseV2(levels, sar, scanRes, size);
             result.id = container.Id;
+            return result;
+        }
+
+        private async Task<CalculationResponseV3> calculateV3Async(CalculationRequest req)
+        {
+            var container = await InitAsync(req);
+            var levelsList = TechCalculations.CalculateLevelsBasedOnTradeZone(container.High, container.Low);
+            var levels = levelsList.LastOrDefault();
+            var scanningHistory = new ScanningHistory
+            {
+                Open = container.Open,
+                High = container.High,
+                Low = container.Low,
+                Close = container.Close,
+                Time = container.Time
+            };
+
+            var dailyScanningHistory = new ScanningHistory
+            {
+                Open = container.OpenD,
+                High = container.HighD,
+                Low = container.LowD,
+                Close = container.CloseD,
+                Time = container.TimeD
+            };
+
+            var isForex = container.Type == "forex";
+            var symbol = container.Symbol;
+            var accountSize = container.InputAccountSize * container.UsdRatio;
+            var suggestedRisk = container.InputRisk;
+            var sl_ratio = container.InputStoplossRatio;
+            var granularity = AlgoHelper.ConvertTimeframeToCranularity(container.TimeframeInterval, container.TimeframePeriod);
+
+            ScanResponse scanRes = null;
+
+            var extendedTrendData = TrendDetector.CalculateByMesaBy2TrendAdjusted(container.CloseD);
+            var trend = TrendDetector.MergeTrends(extendedTrendData);
+
+            if (container.TimeframePeriod != "d" && container.TimeframePeriod != "w")
+            {
+                scanRes = _scanner.ScanExt(scanningHistory, dailyScanningHistory, trend, levels, sl_ratio);
+                if (scanRes == null && granularity >= TimeframeHelper.MIN15_GRANULARITY)
+                {
+                    scanRes = _scanner.ScanBRC(scanningHistory, trend, levels, sl_ratio);
+                }
+            }
+
+            if (scanRes == null)
+            {
+                if (container.TimeframePeriod == "d")
+                {
+                    scanRes = _scanner.ScanSwingOldStrategy(scanningHistory, sl_ratio);
+                }
+                if (container.TimeframePeriod == "h" && container.TimeframeInterval == 4)
+                {
+                    if (!extendedTrendData.IsOverhit)
+                    {
+                        scanRes = _scanner.ScanSwing(scanningHistory, dailyScanningHistory, extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend, levels, sl_ratio);
+                    }
+                }
+            }
+
+            var size = 0m;
+
+            if (scanRes != null)
+            {
+                scanRes.risk = suggestedRisk;
+                size = AlgoHelper.CalculatePositionValue(container.Type, symbol, accountSize, suggestedRisk, scanRes.entry, scanRes.stop, container.ContractSize);
+            }
+
+            var result = DataMappingHelper.ToResponseV3(levels, scanRes, size);
+            result.id = container.Id;
+
+            try {
+                var prediction = await _levelsPrediction.Predict(scanningHistory, levelsList);
+                if (prediction != null)
+                {
+                    result.support_prob = prediction.support;
+                    result.support_ext_prob = prediction.support_ext;
+                    result.resistance_prob = prediction.resistance;
+                    result.resistance_ext_prob = prediction.resistance_ext;
+                }
+            } catch (Exception ex) {
+
+            }
+
             return result;
         }
 

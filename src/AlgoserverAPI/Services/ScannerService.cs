@@ -111,7 +111,7 @@ namespace Algoserver.API.Services
         }
 
 
-        protected ScanResponse _scanSwing(ScanningHistory history, ScanningHistory dailyHistory, Trend trendGlobal, Trend trendLocal, decimal sl_ration = 1.7m) {
+        protected ScanResponse _scanSwing(ScanningHistory history, ScanningHistory dailyHistory, Trend trendGlobal, Trend trendLocal, LookBackResult levels, decimal sl_ration = 1.7m) {
             if (history.Close == null)
             {
                 return null;
@@ -124,7 +124,7 @@ namespace Algoserver.API.Services
 
             if (trendGlobal == trendLocal)
             {
-                var swingN = ScanBRC(history, trendGlobal, sl_ration);
+                var swingN = ScanBRC(history, trendGlobal, levels, sl_ration);
                 if (swingN != null)
                 {
                     swingN.type = TradeType.SwingN;
@@ -133,7 +133,7 @@ namespace Algoserver.API.Services
             }
             else
             {
-                var swingExt = ScanExt(history, dailyHistory, trendGlobal, sl_ration);
+                var swingExt = ScanExt(history, dailyHistory, trendGlobal, levels, sl_ration);
                 if (swingExt != null)
                 {
                     swingExt.type = TradeType.SwingExt;
@@ -142,17 +142,17 @@ namespace Algoserver.API.Services
             }
         }
         
-        public ScanResponse ScanSwing(ScanningHistory history, ScanningHistory dailyHistory, Trend trendGlobal, Trend trendLocal, decimal sl_ration = 1.7m)
+        public ScanResponse ScanSwing(ScanningHistory history, ScanningHistory dailyHistory, Trend trendGlobal, Trend trendLocal, LookBackResult levels, decimal sl_ration = 1.7m)
         {
             try {
-                return this._scanSwing(history, dailyHistory, trendGlobal, trendLocal, sl_ration);
+                return this._scanSwing(history, dailyHistory, trendGlobal, trendLocal, levels, sl_ration);
             } catch(Exception ex) {
                 return null;
             }
         }
 
 
-        protected ScanResponse _scanBRC(ScanningHistory history, Trend trend, decimal sl_ration = 1.7m) 
+        protected ScanResponse _scanBRC(ScanningHistory history, Trend trend, LookBackResult levels, decimal sl_ration = 1.7m) 
         {
             if (history.Close == null)
             {
@@ -178,7 +178,6 @@ namespace Algoserver.API.Services
             var low = history.Low;
             var close = history.Close;
             var open = history.Open;
-            var levels = TechCalculations.CalculateLevel128(high, low);
 
             var topExt = levels.Plus18;
             var natural = levels.FourEight;
@@ -300,17 +299,17 @@ namespace Algoserver.API.Services
                 time = time
             };
         }
-        public ScanResponse ScanBRC(ScanningHistory history, Trend trend, decimal sl_ration = 1.7m)
+        public ScanResponse ScanBRC(ScanningHistory history, Trend trend, LookBackResult levels, decimal sl_ration = 1.7m)
         {
             try {
-                return this._scanBRC(history, trend, sl_ration);
+                return this._scanBRC(history, trend, levels, sl_ration);
             } catch(Exception ex) {
                 return null;
             }
         }
 
 
-        protected ScanResponse _scanExt(ScanningHistory history, ScanningHistory dailyHistory, Trend trend, decimal sl_ration = 1.7m)
+        protected ScanResponse _scanExt(ScanningHistory history, ScanningHistory dailyHistory, Trend trend, LookBackResult levels, decimal sl_ration = 1.7m)
         {
             if (history.Close == null)
             {
@@ -336,7 +335,6 @@ namespace Algoserver.API.Services
             var low = history.Low;
             var close = history.Close;
             var open = history.Open;
-            var levels = TechCalculations.CalculateLevel128(high, low);
 
             var topExt = levels.Plus18;
             var natural = levels.FourEight;
@@ -467,10 +465,10 @@ namespace Algoserver.API.Services
                 time = time
             };
         }
-        public ScanResponse ScanExt(ScanningHistory history, ScanningHistory dailyHistory, Trend trend, decimal sl_ration = 1.7m)
+        public ScanResponse ScanExt(ScanningHistory history, ScanningHistory dailyHistory, Trend trend, LookBackResult levels, decimal sl_ration = 1.7m)
         {
             try {
-                return this._scanExt(history, dailyHistory, trend, sl_ration);
+                return this._scanExt(history, dailyHistory, trend, levels, sl_ration);
             } catch(Exception ex) {
                 return null;
             }
