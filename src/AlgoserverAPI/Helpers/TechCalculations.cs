@@ -426,36 +426,8 @@ namespace Algoserver.API.Helpers
 
         public static TradeZone CalculateTradeZone(List<decimal> high, List<decimal> low, int fast = 36, int slow = 77, int fastMultiplier = 4, int slowMultiplier = 8)
         {
-            var typical = new decimal[high.Count];
-            var diff = new decimal[high.Count];
-            for (var i = 0; i < high.Count; i++)
-            {
-                typical[i] = (high[i] + low[i]) / 2;
-                diff[i] = high[i] - low[i];
-            }
-
-            var smaDiff = Ema(typical, fast);
-            var smaShift1 = Rma(diff, fast);
-            var smaShift2 = Rma(diff, slow);
-
-
-            var middleVal = smaDiff.LastOrDefault();
-            var offset1 = smaShift1.LastOrDefault() * slowMultiplier;
-            var offset2 = smaShift2.LastOrDefault() * fastMultiplier;
-
-            var upperVal1 = middleVal + offset1;
-            var lowerVal1 = middleVal - offset1;
-            var upperVal2 = middleVal + offset2;
-            var lowerVal2 = middleVal - offset2;
-
-            return new TradeZone
-            {
-                OutsideUpper = upperVal1,
-                InsideUpper = upperVal2,
-                InsideLower = lowerVal2,
-                OutsideLower = lowerVal1,
-                Mid = middleVal
-            };
+            var res = CalculateTradeZones(high, low, fast, slow, fastMultiplier, slowMultiplier);
+            return res.LastOrDefault();
         }
 
         public static List<TradeZone> CalculateTradeZones(List<decimal> high, List<decimal> low, int fast = 36, int slow = 77, int fastMultiplier = 4, int slowMultiplier = 8)
@@ -464,7 +436,7 @@ namespace Algoserver.API.Helpers
             var diff = new decimal[high.Count];
             for (var i = 0; i < high.Count; i++)
             {
-                typical[i] = (high[i] + low[i]) / 2;
+                typical[i] = high[i];
                 diff[i] = high[i] - low[i];
             }
 
