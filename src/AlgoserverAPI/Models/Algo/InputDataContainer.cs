@@ -186,14 +186,16 @@ namespace Algoserver.API.Models.Algo
 
         public static int MIN_BARS_COUNT = 500;
 
-        public void InsertHistory(IEnumerable<BarMessage> currentPriceData, IEnumerable<BarMessage> hourlyPriceData, IEnumerable<BarMessage> dailyPriceData, int replayBack)
+        public void InsertHistory(IEnumerable<BarMessage> currentPriceData, IEnumerable<BarMessage> hourlyPriceData, IEnumerable<BarMessage> dailyPriceData, int replayBack, int minBarsCount = 0)
         {
+            minBarsCount = Math.Max(MIN_BARS_COUNT, minBarsCount);
+
             var priceData = currentPriceData.Take(currentPriceData.Count() - replayBack);
 
             var priceDataCount = priceData.Count();
-            if (priceDataCount > MIN_BARS_COUNT)
+            if (priceDataCount > minBarsCount)
             {
-                priceData = priceData.TakeLast(MIN_BARS_COUNT);
+                priceData = priceData.TakeLast(minBarsCount);
             }
 
             Open = priceData.Select(i => i.Open).ToList();
@@ -209,9 +211,9 @@ namespace Algoserver.API.Models.Algo
             {
                 var dailyPrices = dailyPriceData.TakeWhile(i => i.Timestamp <= lastCandleTime);
                 var dailyPriceCount = dailyPrices.Count();
-                if (dailyPriceCount > MIN_BARS_COUNT)
+                if (dailyPriceCount > minBarsCount)
                 {
-                    dailyPrices = dailyPrices.TakeLast(MIN_BARS_COUNT);
+                    dailyPrices = dailyPrices.TakeLast(minBarsCount);
                 }
 
                 OpenD = dailyPrices.Select(i => i.Open).ToList();
@@ -246,9 +248,9 @@ namespace Algoserver.API.Models.Algo
             {
                 var hourlyPrices = hourlyPriceData.TakeWhile(i => i.Timestamp <= lastCandleTime);
                 var hourlyPriceCount = hourlyPrices.Count();
-                if (hourlyPriceCount > MIN_BARS_COUNT)
+                if (hourlyPriceCount > minBarsCount)
                 {
-                    hourlyPrices = hourlyPrices.TakeLast(MIN_BARS_COUNT);
+                    hourlyPrices = hourlyPrices.TakeLast(minBarsCount);
                 }
 
                 OpenH = hourlyPrices.Select(i => i.Open).ToList();

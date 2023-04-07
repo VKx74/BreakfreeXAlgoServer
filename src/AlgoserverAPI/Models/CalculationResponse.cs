@@ -47,6 +47,7 @@ namespace Algoserver.API.Models.REST
 
     public class CalculationResponseV3
     {
+        public List<SaRResponse> sar { get; set; }
         public CalculationLevels levels { get; set; }
         public StrategyModeV2 trade { get; set; }
          public decimal support_prob { get; set; }
@@ -155,6 +156,18 @@ namespace Algoserver.API.Models.REST
 
         [JsonProperty("p28")]
         public decimal P28 { get; set; }
+    }
+
+    public class SaRResponse
+    {
+        public decimal r_p28 { get; set; }
+        public decimal r_p18 { get; set; }
+        public decimal r { get; set; }
+        public decimal n { get; set; }
+        public decimal s_m28 { get; set; }
+        public decimal s_m18 { get; set; }
+        public decimal s { get; set; }
+        public long date { get; set; }
     }
 
     public class StrategyModeV2

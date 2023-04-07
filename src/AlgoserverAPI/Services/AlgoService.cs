@@ -32,7 +32,7 @@ namespace Algoserver.API.Services
             _levelsPrediction = levelsPrediction;
         }
 
-        public async Task<InputDataContainer> InitAsync(CalculationRequest req)
+        public async Task<InputDataContainer> InitAsync(CalculationRequest req, int minBarsCount = 0)
         {
             var container = InputDataContainer.MapCalculationRequestToInputDataContainer(req);
             // if (container.Datafeed != "twelvedata" && container.Datafeed != "oanda")
@@ -52,7 +52,7 @@ namespace Algoserver.API.Services
             }
 
             var granularity = AlgoHelper.ConvertTimeframeToCranularity(container.TimeframeInterval, container.TimeframePeriod);
-            var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+            var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack, minBarsCount);
             HistoryData dailyPriceData = null;
 
             var highTFGranularity = TimeframeHelper.DAILY_GRANULARITY;
@@ -79,10 +79,10 @@ namespace Algoserver.API.Services
             }
             else
             {
-                dailyPriceData = await _historyService.GetHistory(container.Symbol, highTFGranularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+                dailyPriceData = await _historyService.GetHistory(container.Symbol, highTFGranularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack, minBarsCount);
             }
 
-            container.InsertHistory(currentPriceData.Bars, null, dailyPriceData.Bars, container.ReplayBack);
+            container.InsertHistory(currentPriceData.Bars, null, dailyPriceData.Bars, container.ReplayBack, minBarsCount);
 
             return container;
         }
@@ -158,7 +158,7 @@ namespace Algoserver.API.Services
             });
         }
 
-        public Task<CalculationResponseV3> CalculateV3Async(CalculationRequest req)
+        public Task<CalculationResponseV3> CalculateV3Async(CalculationRequestV3 req)
         {
             return Task.Run(() =>
             {
@@ -376,9 +376,10 @@ namespace Algoserver.API.Services
             return result;
         }
 
-        private async Task<CalculationResponseV3> calculateV3Async(CalculationRequest req)
+        private async Task<CalculationResponseV3> calculateV3Async(CalculationRequestV3 req)
         {
-            var container = await InitAsync(req);
+            var container = await InitAsync(req, req.BarsCount.GetValueOrDefault(0));
+            var dates = container.Time;
             var levelsList = TechCalculations.CalculateLevelsBasedOnTradeZone(container.High, container.Low);
             var levels = levelsList.LastOrDefault();
             var scanningHistory = new ScanningHistory
@@ -445,6 +446,29 @@ namespace Algoserver.API.Services
 
             var result = DataMappingHelper.ToResponseV3(levels, scanRes, size);
             result.id = container.Id;
+
+            var sar = new List<SaRResponse>();
+            for (var i = 0; i < dates.Count; i++)
+            {
+                var l = levelsList[i];
+                sar.Add(new SaRResponse {
+                    date = dates[i],
+                    r_p28 = l.Plus28,
+                    r_p18 = l.Plus18,
+                    r = l.EightEight,
+                    n = l.FourEight,
+                    s = l.ZeroEight,
+                    s_m18 = l.Minus18,
+                    s_m28 = l.Minus28
+                });
+            }
+
+            if (req.BarsCount.HasValue)
+            {
+                sar = sar.TakeLast(req.BarsCount.GetValueOrDefault(5000)).ToList();
+            }
+
+            result.sar = sar;
 
             try {
                 var prediction = await _levelsPrediction.Predict(scanningHistory, levelsList);

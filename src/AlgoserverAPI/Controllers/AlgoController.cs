@@ -44,7 +44,7 @@ namespace Algoserver.API.Controllers
         [Authorize(Policy = "free_user_restriction")]
         [HttpPost(Routes.CalculateV3)]
         [ProducesResponseType(typeof(Response<CalculationResponseV3>), 200)]
-        public async Task<IActionResult> CalculateV3Async([FromBody] CalculationRequest request)
+        public async Task<IActionResult> CalculateV3Async([FromBody] CalculationRequestV3 request)
         {
             if (!ModelState.IsValid)
             {

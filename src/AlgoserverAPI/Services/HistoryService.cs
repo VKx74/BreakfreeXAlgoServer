@@ -19,7 +19,6 @@ namespace Algoserver.API.Services
     // Provide historical data from oanda or twelvedata or kaiko or binance datafeeds
     public class HistoryService
     {
-        private const int BARS_COUNT = 500;
         private const int ONE_DAY_TIME_SHIFT = 60 * 60 * 24;
         private readonly HttpClient _httpClient;
         private readonly ILogger<HistoryService> _logger;
@@ -43,15 +42,16 @@ namespace Algoserver.API.Services
             var result = await LoadHistoricalData(datafeed, symbol, granularity, count, exchange, repeatCount);
             return result;
         }
-        public async Task<HistoryData> GetHistory(string symbol, int granularity, string datafeed, string exchange, string type, int replayBack = 0)
+        public async Task<HistoryData> GetHistory(string symbol, int granularity, string datafeed, string exchange, string type, int replayBack = 0, int minBarsCount = 0)
         {
             var hash = getHash(symbol, granularity, datafeed, exchange);
+            var barsBack = Math.Max(InputDataContainer.MIN_BARS_COUNT, minBarsCount) + replayBack;
 
             try
             {
                 if (_cache.TryGetValue(_cachePrefix, hash, out HistoryData cachedResponse))
                 {
-                    if (cachedResponse.Bars != null && cachedResponse.Bars.Count() - replayBack >= InputDataContainer.MIN_BARS_COUNT)
+                    if (cachedResponse.Bars != null && cachedResponse.Bars.Count() >= barsBack)
                     {
                         return cachedResponse;
                     }
@@ -62,8 +62,6 @@ namespace Algoserver.API.Services
                 _logger.LogError("Failed to get cached response");
                 _logger.LogError(e.Message);
             }
-
-            var barsBack = BARS_COUNT + replayBack;
 
             // var exists = _contextAccessor.HttpContext.Request.Headers.TryGetValue("Authorization", out var authHeader);
             // var bearerString = authHeader.ToString();
