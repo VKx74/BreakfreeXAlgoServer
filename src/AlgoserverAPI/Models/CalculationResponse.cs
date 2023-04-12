@@ -48,12 +48,13 @@ namespace Algoserver.API.Models.REST
     public class CalculationResponseV3
     {
         public List<SaRResponse> sar { get; set; }
+        public List<SaRResponse> sar_prediction { get; set; }
         public CalculationLevels levels { get; set; }
         public StrategyModeV2 trade { get; set; }
-         public decimal support_prob { get; set; }
-        public decimal resistance_prob { get; set; }
-        public decimal support_ext_prob { get; set; }
-        public decimal resistance_ext_prob { get; set; }
+         public decimal? support_prob { get; set; }
+        public decimal? resistance_prob { get; set; }
+        public decimal? support_ext_prob { get; set; }
+        public decimal? resistance_ext_prob { get; set; }
         public decimal size { get; set; }
         public string id { get; set; }
     }

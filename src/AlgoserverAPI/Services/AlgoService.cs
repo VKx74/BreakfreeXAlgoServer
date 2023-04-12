@@ -451,7 +451,8 @@ namespace Algoserver.API.Services
             for (var i = 0; i < dates.Count; i++)
             {
                 var l = levelsList[i];
-                sar.Add(new SaRResponse {
+                sar.Add(new SaRResponse
+                {
                     date = dates[i],
                     r_p28 = l.Plus28,
                     r_p18 = l.Plus18,
@@ -470,21 +471,57 @@ namespace Algoserver.API.Services
 
             result.sar = sar;
 
-            try {
-                var prediction = await _levelsPrediction.Predict(scanningHistory, levelsList);
-                if (prediction != null)
+            try
+            {
+                // var prediction = await _levelsPrediction.Predict(scanningHistory, levelsList);
+                // if (prediction != null)
+                // {
+                //     result.support_prob = prediction.support;
+                //     result.support_ext_prob = prediction.support_ext;
+                //     result.resistance_prob = prediction.resistance;
+                //     result.resistance_ext_prob = prediction.resistance_ext;
+                // } 
+
+                var p = await _levelsPrediction.PredictLgbm(scanningHistory, levelsList);
+                var lastTime = sar.LastOrDefault().date;
+                if (p != null)
                 {
-                    result.support_prob = prediction.support;
-                    result.support_ext_prob = prediction.support_ext;
-                    result.resistance_prob = prediction.resistance;
-                    result.resistance_ext_prob = prediction.resistance_ext;
+                    result.sar_prediction = new List<SaRResponse>();
+                    result.sar_prediction.Add(toSar(p.upper_1_step_1, p.upper_2_step_1, p.lower_1_step_1, p.lower_2_step_1, lastTime + (granularity)));
+                    result.sar_prediction.Add(toSar(p.upper_1_step_2, p.upper_2_step_2, p.lower_1_step_2, p.lower_2_step_2, lastTime + (granularity * 2)));
+                    result.sar_prediction.Add(toSar(p.upper_1_step_3, p.upper_2_step_3, p.lower_1_step_3, p.lower_2_step_3, lastTime + (granularity * 3)));
+                    result.sar_prediction.Add(toSar(p.upper_1_step_4, p.upper_2_step_4, p.lower_1_step_4, p.lower_2_step_4, lastTime + (granularity * 4)));
+                    result.sar_prediction.Add(toSar(p.upper_1_step_5, p.upper_2_step_5, p.lower_1_step_5, p.lower_2_step_5, lastTime + (granularity * 5)));
+                    result.sar_prediction.Add(toSar(p.upper_1_step_6, p.upper_2_step_6, p.lower_1_step_6, p.lower_2_step_6, lastTime + (granularity * 6)));
+                    result.sar_prediction.Add(toSar(p.upper_1_step_7, p.upper_2_step_7, p.lower_1_step_7, p.lower_2_step_7, lastTime + (granularity * 7)));
+                    result.sar_prediction.Add(toSar(p.upper_1_step_8, p.upper_2_step_8, p.lower_1_step_8, p.lower_2_step_8, lastTime + (granularity * 8)));
+                    result.sar_prediction.Add(toSar(p.upper_1_step_9, p.upper_2_step_9, p.lower_1_step_9, p.lower_2_step_9, lastTime + (granularity * 9)));
+                    result.sar_prediction.Add(toSar(p.upper_1_step_10, p.upper_2_step_10, p.lower_1_step_10, p.lower_2_step_10, lastTime + (granularity * 10)));
+
                 }
-            } catch (Exception ex) {
+            }
+            catch (Exception ex)
+            {
                 Console.WriteLine("Prediction error");
                 Console.WriteLine(ex.Message);
             }
 
             return result;
+        }
+
+        private SaRResponse toSar(decimal upper_1, decimal upper_2, decimal lower_1, decimal lower_2, long date)
+        {
+            return new SaRResponse
+            {
+                r = upper_1,
+                r_p28 = upper_2,
+                r_p18 = (upper_1 + upper_2) / 2,
+                s = lower_1,
+                s_m28 = lower_2,
+                s_m18 = (lower_1 + lower_2) / 2,
+                n = (upper_1 + lower_1) / 2,
+                date = date
+            };
         }
 
         private async Task<CalculatePositionSizeResponse> calculatePositionSize(CalculatePositionSizeRequest req)

@@ -19,12 +19,71 @@ namespace Algoserver.API.Services
         public decimal[,] xmode_channels { get; set; }
     }
 
+    class PredictionLgbmOhlcData
+    {
+        public string Time { get; set; }
+        public decimal Open { get; set; }
+        public decimal High { get; set; }
+        public decimal Low { get; set; }
+        public decimal Close { get; set; }
+        public decimal Volume { get; set; }
+    }
+
+    class PredictionLgbmRequest
+    {
+        public List<PredictionLgbmOhlcData> ohlcData { get; set; }
+    }
+
     public class LevelsPredictionResponse
     {
         public decimal support { get; set; }
         public decimal resistance { get; set; }
         public decimal support_ext { get; set; }
         public decimal resistance_ext { get; set; }
+    }
+
+    public class LevelsPredictionLgbmResponse
+    {
+        public decimal upper_1_step_1 { get; set; }
+        public decimal upper_1_step_2 { get; set; }
+        public decimal upper_1_step_3 { get; set; }
+        public decimal upper_1_step_4 { get; set; }
+        public decimal upper_1_step_5 { get; set; }
+        public decimal upper_1_step_6 { get; set; }
+        public decimal upper_1_step_7 { get; set; }
+        public decimal upper_1_step_8 { get; set; }
+        public decimal upper_1_step_9 { get; set; }
+        public decimal upper_1_step_10 { get; set; }
+        public decimal lower_1_step_1 { get; set; }
+        public decimal lower_1_step_2 { get; set; }
+        public decimal lower_1_step_3 { get; set; }
+        public decimal lower_1_step_4 { get; set; }
+        public decimal lower_1_step_5 { get; set; }
+        public decimal lower_1_step_6 { get; set; }
+        public decimal lower_1_step_7 { get; set; }
+        public decimal lower_1_step_8 { get; set; }
+        public decimal lower_1_step_9 { get; set; }
+        public decimal lower_1_step_10 { get; set; }
+        public decimal upper_2_step_1 { get; set; }
+        public decimal upper_2_step_2 { get; set; }
+        public decimal upper_2_step_3 { get; set; }
+        public decimal upper_2_step_4 { get; set; }
+        public decimal upper_2_step_5 { get; set; }
+        public decimal upper_2_step_6 { get; set; }
+        public decimal upper_2_step_7 { get; set; }
+        public decimal upper_2_step_8 { get; set; }
+        public decimal upper_2_step_9 { get; set; }
+        public decimal upper_2_step_10 { get; set; }
+        public decimal lower_2_step_1 { get; set; }
+        public decimal lower_2_step_2 { get; set; }
+        public decimal lower_2_step_3 { get; set; }
+        public decimal lower_2_step_4 { get; set; }
+        public decimal lower_2_step_5 { get; set; }
+        public decimal lower_2_step_6 { get; set; }
+        public decimal lower_2_step_7 { get; set; }
+        public decimal lower_2_step_8 { get; set; }
+        public decimal lower_2_step_9 { get; set; }
+        public decimal lower_2_step_10 { get; set; }
     }
 
     class LevelsPredictionResponseDTO
@@ -41,12 +100,14 @@ namespace Algoserver.API.Services
 
         private readonly HttpClient _httpClient;
         private readonly string _serverUrl;
+        private readonly string _serverLgbmUrl;
         private readonly ILogger<LevelsPredictionService> _logger;
 
         public LevelsPredictionService(ILogger<LevelsPredictionService> logger, IConfiguration configuration)
         {
             _logger = logger;
             _serverUrl = configuration["LevelsPrediction"];
+            _serverLgbmUrl = configuration["LevelsLgbmPrediction"];
 
             HttpClientHandler clientHandler = new HttpClientHandler();
             clientHandler.ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; };
@@ -103,6 +164,48 @@ namespace Algoserver.API.Services
                 resistance = deserialized.upper_1,
                 resistance_ext = deserialized.upper_2
             };
+        }
+
+        public async Task<LevelsPredictionLgbmResponse> PredictLgbm(ScanningHistory historyData, List<LookBackResult> channelsData)
+        {
+            Console.WriteLine($"Prediction Lgbm requested");
+
+            var length = 100;
+            var open = historyData.Open.TakeLast(length).ToList();
+            var high = historyData.High.TakeLast(length).ToList();
+            var low = historyData.Low.TakeLast(length).ToList();
+            var close = historyData.Close.TakeLast(length).ToList();
+            var time = historyData.Time.TakeLast(length).ToList();
+
+            var requestData = new PredictionLgbmRequest();
+            requestData.ohlcData = new List<PredictionLgbmOhlcData>();
+
+            for (var i = 0; i < open.Count; i++)
+            {
+                requestData.ohlcData.Add(new PredictionLgbmOhlcData {
+                    Open = open[i],
+                    High = high[i],
+                    Low = low[i],
+                    Close = close[i],
+                    Volume = 0,
+                    Time = time[i].ToString(),
+                });
+            }
+
+            var json = Newtonsoft.Json.JsonConvert.SerializeObject(requestData);
+            var data = new System.Net.Http.StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync(_serverLgbmUrl, data);
+            var content = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"Error occured while sending http request to {_serverLgbmUrl}, response string: {content}");
+                response.EnsureSuccessStatusCode();
+            }
+
+            var deserialized = JsonConvert.DeserializeObject<LevelsPredictionLgbmResponse>(content);
+            return deserialized;
         }
     }
 }
