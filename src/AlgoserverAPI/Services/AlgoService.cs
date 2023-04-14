@@ -482,22 +482,25 @@ namespace Algoserver.API.Services
                 //     result.resistance_ext_prob = prediction.resistance_ext;
                 // } 
 
-                var p = await _levelsPrediction.PredictLgbm(scanningHistory, levelsList);
-                var lastTime = sar.LastOrDefault().date;
-                if (p != null)
+                if (container.Symbol.Equals("GBP_USD", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    result.sar_prediction = new List<SaRResponse>();
-                    result.sar_prediction.Add(toSar(p.upper_1_step_1, p.upper_2_step_1, p.lower_1_step_1, p.lower_2_step_1, lastTime + (granularity)));
-                    result.sar_prediction.Add(toSar(p.upper_1_step_2, p.upper_2_step_2, p.lower_1_step_2, p.lower_2_step_2, lastTime + (granularity * 2)));
-                    result.sar_prediction.Add(toSar(p.upper_1_step_3, p.upper_2_step_3, p.lower_1_step_3, p.lower_2_step_3, lastTime + (granularity * 3)));
-                    result.sar_prediction.Add(toSar(p.upper_1_step_4, p.upper_2_step_4, p.lower_1_step_4, p.lower_2_step_4, lastTime + (granularity * 4)));
-                    result.sar_prediction.Add(toSar(p.upper_1_step_5, p.upper_2_step_5, p.lower_1_step_5, p.lower_2_step_5, lastTime + (granularity * 5)));
-                    result.sar_prediction.Add(toSar(p.upper_1_step_6, p.upper_2_step_6, p.lower_1_step_6, p.lower_2_step_6, lastTime + (granularity * 6)));
-                    result.sar_prediction.Add(toSar(p.upper_1_step_7, p.upper_2_step_7, p.lower_1_step_7, p.lower_2_step_7, lastTime + (granularity * 7)));
-                    result.sar_prediction.Add(toSar(p.upper_1_step_8, p.upper_2_step_8, p.lower_1_step_8, p.lower_2_step_8, lastTime + (granularity * 8)));
-                    result.sar_prediction.Add(toSar(p.upper_1_step_9, p.upper_2_step_9, p.lower_1_step_9, p.lower_2_step_9, lastTime + (granularity * 9)));
-                    result.sar_prediction.Add(toSar(p.upper_1_step_10, p.upper_2_step_10, p.lower_1_step_10, p.lower_2_step_10, lastTime + (granularity * 10)));
+                    var p = await _levelsPrediction.PredictLgbm(scanningHistory, levelsList);
+                    var lastTime = sar.LastOrDefault().date;
+                    if (p != null)
+                    {
+                        result.sar_prediction = new List<SaRResponse>();
+                        result.sar_prediction.Add(toSar(p.upper_1_step_1, p.upper_2_step_1, p.lower_1_step_1, p.lower_2_step_1, lastTime + (granularity)));
+                        result.sar_prediction.Add(toSar(p.upper_1_step_2, p.upper_2_step_2, p.lower_1_step_2, p.lower_2_step_2, lastTime + (granularity * 2)));
+                        result.sar_prediction.Add(toSar(p.upper_1_step_3, p.upper_2_step_3, p.lower_1_step_3, p.lower_2_step_3, lastTime + (granularity * 3)));
+                        result.sar_prediction.Add(toSar(p.upper_1_step_4, p.upper_2_step_4, p.lower_1_step_4, p.lower_2_step_4, lastTime + (granularity * 4)));
+                        result.sar_prediction.Add(toSar(p.upper_1_step_5, p.upper_2_step_5, p.lower_1_step_5, p.lower_2_step_5, lastTime + (granularity * 5)));
+                        result.sar_prediction.Add(toSar(p.upper_1_step_6, p.upper_2_step_6, p.lower_1_step_6, p.lower_2_step_6, lastTime + (granularity * 6)));
+                        result.sar_prediction.Add(toSar(p.upper_1_step_7, p.upper_2_step_7, p.lower_1_step_7, p.lower_2_step_7, lastTime + (granularity * 7)));
+                        result.sar_prediction.Add(toSar(p.upper_1_step_8, p.upper_2_step_8, p.lower_1_step_8, p.lower_2_step_8, lastTime + (granularity * 8)));
+                        result.sar_prediction.Add(toSar(p.upper_1_step_9, p.upper_2_step_9, p.lower_1_step_9, p.lower_2_step_9, lastTime + (granularity * 9)));
+                        result.sar_prediction.Add(toSar(p.upper_1_step_10, p.upper_2_step_10, p.lower_1_step_10, p.lower_2_step_10, lastTime + (granularity * 10)));
 
+                    }
                 }
             }
             catch (Exception ex)
