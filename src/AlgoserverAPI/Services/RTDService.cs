@@ -80,6 +80,8 @@ namespace Algoserver.API.Services
                 slow_2 = rtd2.Select(_ => _.Slow),
                 global_trend_spread = trendsStrength.GlobalTrendSpread,
                 local_trend_spread = trendsStrength.LocalTrendSpread,
+                global_avg = trendsStrength.GlobalAvg,
+                local_avg = trendsStrength.LocalAvg,
                 id = req.Id
             };
         }

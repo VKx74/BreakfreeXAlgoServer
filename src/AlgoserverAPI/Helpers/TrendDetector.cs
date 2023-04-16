@@ -28,6 +28,8 @@ namespace Algoserver.API.Helpers
         public decimal GlobalSlowValue { get; set; }
         public decimal LocalFastValue { get; set; }
         public decimal LocalSlowValue { get; set; }
+        public decimal GlobalAvg { get; set; }
+        public decimal LocalAvg { get; set; }
     }
 
     public static class TrendDetector
@@ -123,7 +125,9 @@ namespace Algoserver.API.Helpers
                 GlobalFastValue = length > 0 ? mesa_global[length - 1].Fast : 0,
                 GlobalSlowValue = length > 0 ? mesa_global[length - 1].Slow : 0,
                 LocalFastValue = length > 0 ? mesa_local[length - 1].Fast : 0,
-                LocalSlowValue = length > 0 ? mesa_local[length - 1].Slow : 0
+                LocalSlowValue = length > 0 ? mesa_local[length - 1].Slow : 0,
+                GlobalAvg = global_avg,
+                LocalAvg = local_avg
             };
         }
 
