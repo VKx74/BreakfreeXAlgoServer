@@ -471,6 +471,26 @@ namespace Algoserver.API.Services
 
             result.sar = sar;
 
+
+            var trendDates = container.TimeD.ToList();
+            var barsBack = extendedTrendData.Slow.Count;
+            if (trendDates.Count > barsBack) {
+                trendDates = trendDates.TakeLast(barsBack).ToList();
+            }
+
+            result.rtd = new RTDCalculationResponse {
+                dates = trendDates,
+                fast = extendedTrendData.Fast,
+                slow = extendedTrendData.Slow,
+                fast_2 = extendedTrendData.Fast2,
+                slow_2 = extendedTrendData.Slow2,
+                global_trend_spread = extendedTrendData.GlobalTrendSpread,
+                local_trend_spread = extendedTrendData.LocalTrendSpread,
+                global_avg = extendedTrendData.GlobalAvg,
+                local_avg = extendedTrendData.LocalAvg,
+                id = req.Id
+            };
+
             try
             {
                 // var prediction = await _levelsPrediction.Predict(scanningHistory, levelsList);

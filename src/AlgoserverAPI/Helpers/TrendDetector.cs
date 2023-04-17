@@ -17,6 +17,12 @@ namespace Algoserver.API.Helpers
         public decimal GlobalSlowValue { get; set; }
         public decimal LocalFastValue { get; set; }
         public decimal LocalSlowValue { get; set; }
+        public decimal GlobalAvg { get; set; }
+        public decimal LocalAvg { get; set; }
+        public List<decimal> Fast { get; set; }
+        public List<decimal> Slow { get; set; }
+        public List<decimal> Fast2 { get; set; }
+        public List<decimal> Slow2 { get; set; }
     }
     
     public class TrendsStrengthResult {
@@ -79,7 +85,13 @@ namespace Algoserver.API.Helpers
                 GlobalSlowValue = trendsStrength.GlobalSlowValue,
                 LocalFastValue = trendsStrength.LocalFastValue,
                 LocalSlowValue = trendsStrength.LocalSlowValue,
-                IsOverhit = isOverhit
+                GlobalAvg = trendsStrength.GlobalAvg,
+                LocalAvg = trendsStrength.LocalAvg,
+                IsOverhit = isOverhit,
+                Fast = mesa_local.Select(_ => _.Fast).ToList(),
+                Slow = mesa_local.Select(_ => _.Slow).ToList(),
+                Fast2 = mesa_global.Select(_ => _.Fast).ToList(),
+                Slow2 = mesa_global.Select(_ => _.Slow).ToList(),
             };
         }
         
