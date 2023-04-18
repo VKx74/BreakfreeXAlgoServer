@@ -51,12 +51,14 @@ namespace Algoserver.API.Services
         public decimal resistance_ext { get; set; }
     }
 
+    [Serializable]
     public class TrendPredictionResponse
     {
         public List<decimal> mama { get; set; }
         public List<decimal> fama { get; set; }
     }
 
+    [Serializable]
     public class LevelsPredictionLgbmResponse
     {
         public decimal upper_1_step_1 { get; set; }
