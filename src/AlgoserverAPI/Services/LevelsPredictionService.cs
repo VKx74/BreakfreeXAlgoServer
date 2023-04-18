@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Algoserver.API.Helpers;
 using Algoserver.API.Models.REST;
+using Algoserver.API.Services.CacheServices;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -19,7 +20,7 @@ namespace Algoserver.API.Services
         public decimal[,] xmode_channels { get; set; }
     }
 
-    class PredictionLgbmOhlcData
+    class PredictionOhlcData
     {
         public string Time { get; set; }
         public decimal Open { get; set; }
@@ -29,9 +30,17 @@ namespace Algoserver.API.Services
         public decimal Volume { get; set; }
     }
 
+    class PredictionTrendRequest
+    {
+        public string market { get; set; }
+        public string instrument { get; set; }
+        public string timeframe { get; set; }
+        public List<PredictionOhlcData> ohlcData { get; set; }
+    }
+
     class PredictionLgbmRequest
     {
-        public List<PredictionLgbmOhlcData> ohlcData { get; set; }
+        public List<PredictionOhlcData> ohlcData { get; set; }
     }
 
     public class LevelsPredictionResponse
@@ -40,6 +49,12 @@ namespace Algoserver.API.Services
         public decimal resistance { get; set; }
         public decimal support_ext { get; set; }
         public decimal resistance_ext { get; set; }
+    }
+
+    public class TrendPredictionResponse
+    {
+        public List<decimal> mama { get; set; }
+        public List<decimal> fama { get; set; }
     }
 
     public class LevelsPredictionLgbmResponse
@@ -99,15 +114,18 @@ namespace Algoserver.API.Services
     {
 
         private readonly HttpClient _httpClient;
-        private readonly string _serverUrl;
         private readonly string _serverLgbmUrl;
+        private readonly string _serverTrendPredictionUrl;
         private readonly ILogger<LevelsPredictionService> _logger;
+        private readonly ICacheService _cache;
+        private string _cachePrefix = "Predictions_";
 
-        public LevelsPredictionService(ILogger<LevelsPredictionService> logger, IConfiguration configuration)
+        public LevelsPredictionService(ILogger<LevelsPredictionService> logger, IConfiguration configuration, ICacheService cache)
         {
             _logger = logger;
-            _serverUrl = configuration["LevelsPrediction"];
+            _cache = cache;
             _serverLgbmUrl = configuration["LevelsLgbmPrediction"];
+            _serverTrendPredictionUrl = configuration["TrendPrediction"];
 
             HttpClientHandler clientHandler = new HttpClientHandler();
             clientHandler.ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; };
@@ -115,60 +133,72 @@ namespace Algoserver.API.Services
             _httpClient = new HttpClient(clientHandler);
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
-
-        public async Task<LevelsPredictionResponse> Predict(ScanningHistory historyData, List<LookBackResult> channelsData)
+        public async Task<TrendPredictionResponse> PredictTrend(ScanningHistory historyData, string symbol, int granularity)
         {
-            Console.WriteLine($"Prediction requested");
+            Console.WriteLine($"Prediction Trend requested");
 
-            var length = 75;
+            var cachedResponse = tryGetTrendPredictionFromCache(symbol, granularity);
+
+            if (cachedResponse != null)
+            {
+                return cachedResponse;
+            }
+
+            var length = 300;
             var open = historyData.Open.TakeLast(length).ToList();
             var high = historyData.High.TakeLast(length).ToList();
             var low = historyData.Low.TakeLast(length).ToList();
             var close = historyData.Close.TakeLast(length).ToList();
-            var channels = channelsData.TakeLast(length).ToList();
+            var time = historyData.Time.TakeLast(length).ToList();
 
-            var requestData = new PredictionRequest();
-            requestData.ohlcv = new decimal[75, 4];
-            requestData.xmode_channels = new decimal[75, 4];
+            var requestData = new PredictionTrendRequest();
+            requestData.ohlcData = new List<PredictionOhlcData>();
+            requestData.instrument = symbol;
+            requestData.market = getMarketType(symbol);
+            requestData.timeframe = getTimeframe(granularity);
 
-            for (var i = 0; i < length; i++)
+            for (var i = 0; i < open.Count; i++)
             {
-                requestData.ohlcv[i, 0] = open[i];
-                requestData.ohlcv[i, 1] = high[i];
-                requestData.ohlcv[i, 2] = low[i];
-                requestData.ohlcv[i, 3] = close[i];
-
-                requestData.xmode_channels[i, 0] = channels[i].EightEight;
-                requestData.xmode_channels[i, 1] = channels[i].ZeroEight;
-                requestData.xmode_channels[i, 2] = channels[i].Plus28;
-                requestData.xmode_channels[i, 3] = channels[i].Minus28;
+                requestData.ohlcData.Add(new PredictionOhlcData
+                {
+                    Open = open[i],
+                    High = high[i],
+                    Low = low[i],
+                    Close = close[i],
+                    Volume = 0,
+                    Time = AlgoHelper.UnixTimeStampToDateTime(time[i]).ToString(),
+                });
             }
 
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(requestData);
             var data = new System.Net.Http.StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync(_serverUrl, data);
+            var response = await _httpClient.PostAsync(_serverTrendPredictionUrl, data);
             var content = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
             {
-                Console.WriteLine($"Error occured while sending http request to {_serverUrl}, response string: {content}");
+                Console.WriteLine($"Error occured while sending http request to {_serverTrendPredictionUrl}, response string: {content}");
                 response.EnsureSuccessStatusCode();
             }
 
-            var deserialized = JsonConvert.DeserializeObject<LevelsPredictionResponseDTO>(content);
-            return new LevelsPredictionResponse
-            {
-                support = deserialized.lower_1,
-                support_ext = deserialized.lower_2,
-                resistance = deserialized.upper_1,
-                resistance_ext = deserialized.upper_2
-            };
+            var deserialized = JsonConvert.DeserializeObject<TrendPredictionResponse>(content);
+
+            tryAddTrendPredictionInCache(symbol, granularity, deserialized);
+
+            return deserialized;
         }
 
-        public async Task<LevelsPredictionLgbmResponse> PredictLgbm(ScanningHistory historyData, List<LookBackResult> channelsData)
+        public async Task<LevelsPredictionLgbmResponse> PredictLgbm(ScanningHistory historyData, List<LookBackResult> channelsData, string symbol, int granularity)
         {
             Console.WriteLine($"Prediction Lgbm requested");
+
+            var cachedResponse = tryGetLevelsPredictionLgbmFromCache(symbol, granularity);
+
+            if (cachedResponse != null)
+            {
+                return cachedResponse;
+            }
 
             var length = 100;
             var open = historyData.Open.TakeLast(length).ToList();
@@ -178,11 +208,12 @@ namespace Algoserver.API.Services
             var time = historyData.Time.TakeLast(length).ToList();
 
             var requestData = new PredictionLgbmRequest();
-            requestData.ohlcData = new List<PredictionLgbmOhlcData>();
+            requestData.ohlcData = new List<PredictionOhlcData>();
 
             for (var i = 0; i < open.Count; i++)
             {
-                requestData.ohlcData.Add(new PredictionLgbmOhlcData {
+                requestData.ohlcData.Add(new PredictionOhlcData
+                {
                     Open = open[i],
                     High = high[i],
                     Low = low[i],
@@ -205,7 +236,94 @@ namespace Algoserver.API.Services
             }
 
             var deserialized = JsonConvert.DeserializeObject<LevelsPredictionLgbmResponse>(content);
+
+            tryAddLevelsPredictionLgbmInCache(symbol, granularity, deserialized);
+
             return deserialized;
+        }
+
+        private string getMarketType(string symbol)
+        {
+            // TODO: implement in future
+            return "Forex";
+        }
+
+        private string getTimeframe(int granularity)
+        {
+            if (granularity == TimeframeHelper.MIN1_GRANULARITY) return "M1";
+            if (granularity == TimeframeHelper.MIN5_GRANULARITY) return "M5";
+            if (granularity == TimeframeHelper.MIN15_GRANULARITY) return "M15";
+            if (granularity == TimeframeHelper.MIN30_GRANULARITY) return "M30";
+            if (granularity == TimeframeHelper.HOURLY_GRANULARITY) return "H1";
+            if (granularity == TimeframeHelper.HOUR4_GRANULARITY) return "H4";
+            if (granularity == TimeframeHelper.DAILY_GRANULARITY) return "D";
+            return "";
+        }
+
+        private LevelsPredictionLgbmResponse tryGetLevelsPredictionLgbmFromCache(string symbol, int granularity)
+        {
+            var hash = symbol + granularity.ToString() + "_LevelsPredictionLgbm";
+            try
+            {
+                if (_cache.TryGetValue(_cachePrefix, hash, out LevelsPredictionLgbmResponse cachedResponse))
+                {
+                    return cachedResponse;
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Failed to get cached response for LevelsPredictionLgbm");
+                _logger.LogError(e.Message);
+            }
+
+            return null;
+        }
+
+        private TrendPredictionResponse tryGetTrendPredictionFromCache(string symbol, int granularity)
+        {
+            var hash = symbol + granularity.ToString() + "_TrendPrediction";
+            try
+            {
+                if (_cache.TryGetValue(_cachePrefix, hash, out TrendPredictionResponse cachedResponse))
+                {
+                    return cachedResponse;
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Failed to get cached response for TrendPrediction");
+                _logger.LogError(e.Message);
+            }
+
+            return null;
+        }
+
+        private void tryAddLevelsPredictionLgbmInCache(string symbol, int granularity, LevelsPredictionLgbmResponse data)
+        {
+            var hash = symbol + granularity.ToString() + "_LevelsPredictionLgbm";
+            try
+            {
+                _cache.Set(_cachePrefix, hash, data, TimeSpan.FromSeconds(granularity));
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Failed to add cached response for LevelsPredictionLgbm");
+                _logger.LogError(e.Message);
+            }
+        }
+
+        private void tryAddTrendPredictionInCache(string symbol, int granularity, TrendPredictionResponse data)
+        {
+            var hash = symbol + granularity.ToString() + "_TrendPrediction";
+            try
+            {
+                _cache.Set(_cachePrefix, hash, data, TimeSpan.FromSeconds(granularity));
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Failed to add cached response for TrendPrediction");
+                _logger.LogError(e.Message);
+            }
         }
     }
 }

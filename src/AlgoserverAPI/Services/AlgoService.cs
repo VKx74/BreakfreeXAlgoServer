@@ -474,11 +474,13 @@ namespace Algoserver.API.Services
 
             var trendDates = container.TimeD.ToList();
             var barsBack = extendedTrendData.Slow.Count;
-            if (trendDates.Count > barsBack) {
+            if (trendDates.Count > barsBack)
+            {
                 trendDates = trendDates.TakeLast(barsBack).ToList();
             }
 
-            result.rtd = new RTDCalculationResponse {
+            result.rtd = new RTDCalculationResponse
+            {
                 dates = trendDates,
                 fast = extendedTrendData.Fast,
                 slow = extendedTrendData.Slow,
@@ -504,23 +506,44 @@ namespace Algoserver.API.Services
 
                 if (container.Symbol.Equals("GBP_USD", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    var p = await _levelsPrediction.PredictLgbm(scanningHistory, levelsList);
-                    var lastTime = sar.LastOrDefault().date;
-                    if (p != null)
+                    try
                     {
-                        result.sar_prediction = new List<SaRResponse>();
-                        result.sar_prediction.Add(toSar(p.upper_1_step_1, p.upper_2_step_1, p.lower_1_step_1, p.lower_2_step_1, lastTime + (granularity)));
-                        result.sar_prediction.Add(toSar(p.upper_1_step_2, p.upper_2_step_2, p.lower_1_step_2, p.lower_2_step_2, lastTime + (granularity * 2)));
-                        result.sar_prediction.Add(toSar(p.upper_1_step_3, p.upper_2_step_3, p.lower_1_step_3, p.lower_2_step_3, lastTime + (granularity * 3)));
-                        result.sar_prediction.Add(toSar(p.upper_1_step_4, p.upper_2_step_4, p.lower_1_step_4, p.lower_2_step_4, lastTime + (granularity * 4)));
-                        result.sar_prediction.Add(toSar(p.upper_1_step_5, p.upper_2_step_5, p.lower_1_step_5, p.lower_2_step_5, lastTime + (granularity * 5)));
-                        result.sar_prediction.Add(toSar(p.upper_1_step_6, p.upper_2_step_6, p.lower_1_step_6, p.lower_2_step_6, lastTime + (granularity * 6)));
-                        result.sar_prediction.Add(toSar(p.upper_1_step_7, p.upper_2_step_7, p.lower_1_step_7, p.lower_2_step_7, lastTime + (granularity * 7)));
-                        result.sar_prediction.Add(toSar(p.upper_1_step_8, p.upper_2_step_8, p.lower_1_step_8, p.lower_2_step_8, lastTime + (granularity * 8)));
-                        result.sar_prediction.Add(toSar(p.upper_1_step_9, p.upper_2_step_9, p.lower_1_step_9, p.lower_2_step_9, lastTime + (granularity * 9)));
-                        result.sar_prediction.Add(toSar(p.upper_1_step_10, p.upper_2_step_10, p.lower_1_step_10, p.lower_2_step_10, lastTime + (granularity * 10)));
+                        var lvls = await _levelsPrediction.PredictLgbm(scanningHistory, levelsList, container.Symbol, granularity);
+                        var lastTime = sar.LastOrDefault().date;
+                        if (lvls != null)
+                        {
+                            result.sar_prediction = new List<SaRResponse>();
+                            result.sar_prediction.Add(toSar(lvls.upper_1_step_1, lvls.upper_2_step_1, lvls.lower_1_step_1, lvls.lower_2_step_1, lastTime + (granularity)));
+                            result.sar_prediction.Add(toSar(lvls.upper_1_step_2, lvls.upper_2_step_2, lvls.lower_1_step_2, lvls.lower_2_step_2, lastTime + (granularity * 2)));
+                            result.sar_prediction.Add(toSar(lvls.upper_1_step_3, lvls.upper_2_step_3, lvls.lower_1_step_3, lvls.lower_2_step_3, lastTime + (granularity * 3)));
+                            result.sar_prediction.Add(toSar(lvls.upper_1_step_4, lvls.upper_2_step_4, lvls.lower_1_step_4, lvls.lower_2_step_4, lastTime + (granularity * 4)));
+                            result.sar_prediction.Add(toSar(lvls.upper_1_step_5, lvls.upper_2_step_5, lvls.lower_1_step_5, lvls.lower_2_step_5, lastTime + (granularity * 5)));
+                            result.sar_prediction.Add(toSar(lvls.upper_1_step_6, lvls.upper_2_step_6, lvls.lower_1_step_6, lvls.lower_2_step_6, lastTime + (granularity * 6)));
+                            result.sar_prediction.Add(toSar(lvls.upper_1_step_7, lvls.upper_2_step_7, lvls.lower_1_step_7, lvls.lower_2_step_7, lastTime + (granularity * 7)));
+                            result.sar_prediction.Add(toSar(lvls.upper_1_step_8, lvls.upper_2_step_8, lvls.lower_1_step_8, lvls.lower_2_step_8, lastTime + (granularity * 8)));
+                            result.sar_prediction.Add(toSar(lvls.upper_1_step_9, lvls.upper_2_step_9, lvls.lower_1_step_9, lvls.lower_2_step_9, lastTime + (granularity * 9)));
+                            result.sar_prediction.Add(toSar(lvls.upper_1_step_10, lvls.upper_2_step_10, lvls.lower_1_step_10, lvls.lower_2_step_10, lastTime + (granularity * 10)));
 
+                        }
                     }
+                    catch (Exception ex)
+                    { }
+
+                    try
+                    {
+                        if (granularity == TimeframeHelper.MIN15_GRANULARITY || granularity == TimeframeHelper.HOURLY_GRANULARITY || 
+                            granularity == TimeframeHelper.HOUR4_GRANULARITY || granularity == TimeframeHelper.DAILY_GRANULARITY)
+                        {
+                            var tr = await _levelsPrediction.PredictTrend(scanningHistory, container.Symbol, granularity);
+                            if (tr != null)
+                            {
+                                result.mema_prediction = tr.mama;
+                                result.fama_prediction = tr.fama;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    { }
                 }
             }
             catch (Exception ex)

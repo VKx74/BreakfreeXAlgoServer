@@ -28,6 +28,13 @@ namespace Algoserver.API.Helpers
             return (long)timeSpan.TotalSeconds;
         }
 
+        public static DateTime UnixTimeStampToDateTime(long unixTimeStamp)
+        {
+            DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            dateTime = dateTime.AddSeconds(unixTimeStamp).ToLocalTime();
+            return dateTime;
+        }
+
         public static decimal CalculatePositionValue(string type, string symbol, decimal accountSize, decimal suggestedRisk, decimal entry, decimal sl, decimal? contract = null)
         {
             return AlgoHelper.CalculatePositionValue(type, symbol, accountSize, suggestedRisk, Math.Abs(entry - sl), contract);

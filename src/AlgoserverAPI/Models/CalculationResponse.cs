@@ -49,6 +49,8 @@ namespace Algoserver.API.Models.REST
     {
         public List<SaRResponse> sar { get; set; }
         public List<SaRResponse> sar_prediction { get; set; }
+        public List<decimal> mema_prediction { get; set; }
+        public List<decimal> fama_prediction { get; set; }
         public CalculationLevels levels { get; set; }
         public StrategyModeV2 trade { get; set; }
         public decimal? support_prob { get; set; }
