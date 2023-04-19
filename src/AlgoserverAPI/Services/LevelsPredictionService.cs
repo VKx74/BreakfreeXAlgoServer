@@ -40,6 +40,9 @@ namespace Algoserver.API.Services
 
     class PredictionLgbmRequest
     {
+        public string market { get; set; }
+        public string instrument { get; set; }
+        public string timeframe { get; set; }
         public List<PredictionOhlcData> ohlcData { get; set; }
     }
 
@@ -71,6 +74,26 @@ namespace Algoserver.API.Services
         public decimal upper_1_step_8 { get; set; }
         public decimal upper_1_step_9 { get; set; }
         public decimal upper_1_step_10 { get; set; }
+        public decimal upper_1_step_11 { get; set; }
+        public decimal upper_1_step_12 { get; set; }
+        public decimal upper_1_step_13 { get; set; }
+        public decimal upper_1_step_14 { get; set; }
+        public decimal upper_1_step_15 { get; set; }
+        public decimal upper_1_step_16 { get; set; }
+        public decimal upper_1_step_17 { get; set; }
+        public decimal upper_1_step_18 { get; set; }
+        public decimal upper_1_step_19 { get; set; }
+        public decimal upper_1_step_20 { get; set; }
+        public decimal upper_1_step_21 { get; set; }
+        public decimal upper_1_step_22 { get; set; }
+        public decimal upper_1_step_23 { get; set; }
+        public decimal upper_1_step_24 { get; set; }
+        public decimal upper_1_step_25 { get; set; }
+        public decimal upper_1_step_26 { get; set; }
+        public decimal upper_1_step_27 { get; set; }
+        public decimal upper_1_step_28 { get; set; }
+        public decimal upper_1_step_29 { get; set; }
+        public decimal upper_1_step_30 { get; set; }
         public decimal lower_1_step_1 { get; set; }
         public decimal lower_1_step_2 { get; set; }
         public decimal lower_1_step_3 { get; set; }
@@ -81,6 +104,26 @@ namespace Algoserver.API.Services
         public decimal lower_1_step_8 { get; set; }
         public decimal lower_1_step_9 { get; set; }
         public decimal lower_1_step_10 { get; set; }
+        public decimal lower_1_step_11 { get; set; }
+        public decimal lower_1_step_12 { get; set; }
+        public decimal lower_1_step_13 { get; set; }
+        public decimal lower_1_step_14 { get; set; }
+        public decimal lower_1_step_15 { get; set; }
+        public decimal lower_1_step_16 { get; set; }
+        public decimal lower_1_step_17 { get; set; }
+        public decimal lower_1_step_18 { get; set; }
+        public decimal lower_1_step_19 { get; set; }
+        public decimal lower_1_step_20 { get; set; }
+        public decimal lower_1_step_21 { get; set; }
+        public decimal lower_1_step_22 { get; set; }
+        public decimal lower_1_step_23 { get; set; }
+        public decimal lower_1_step_24 { get; set; }
+        public decimal lower_1_step_25 { get; set; }
+        public decimal lower_1_step_26 { get; set; }
+        public decimal lower_1_step_27 { get; set; }
+        public decimal lower_1_step_28 { get; set; }
+        public decimal lower_1_step_29 { get; set; }
+        public decimal lower_1_step_30 { get; set; }
         public decimal upper_2_step_1 { get; set; }
         public decimal upper_2_step_2 { get; set; }
         public decimal upper_2_step_3 { get; set; }
@@ -91,6 +134,26 @@ namespace Algoserver.API.Services
         public decimal upper_2_step_8 { get; set; }
         public decimal upper_2_step_9 { get; set; }
         public decimal upper_2_step_10 { get; set; }
+        public decimal upper_2_step_11 { get; set; }
+        public decimal upper_2_step_12 { get; set; }
+        public decimal upper_2_step_13 { get; set; }
+        public decimal upper_2_step_14 { get; set; }
+        public decimal upper_2_step_15 { get; set; }
+        public decimal upper_2_step_16 { get; set; }
+        public decimal upper_2_step_17 { get; set; }
+        public decimal upper_2_step_18 { get; set; }
+        public decimal upper_2_step_19 { get; set; }
+        public decimal upper_2_step_20 { get; set; }
+        public decimal upper_2_step_21 { get; set; }
+        public decimal upper_2_step_22 { get; set; }
+        public decimal upper_2_step_23 { get; set; }
+        public decimal upper_2_step_24 { get; set; }
+        public decimal upper_2_step_25 { get; set; }
+        public decimal upper_2_step_26 { get; set; }
+        public decimal upper_2_step_27 { get; set; }
+        public decimal upper_2_step_28 { get; set; }
+        public decimal upper_2_step_29 { get; set; }
+        public decimal upper_2_step_30 { get; set; }
         public decimal lower_2_step_1 { get; set; }
         public decimal lower_2_step_2 { get; set; }
         public decimal lower_2_step_3 { get; set; }
@@ -101,6 +164,26 @@ namespace Algoserver.API.Services
         public decimal lower_2_step_8 { get; set; }
         public decimal lower_2_step_9 { get; set; }
         public decimal lower_2_step_10 { get; set; }
+        public decimal lower_2_step_11 { get; set; }
+        public decimal lower_2_step_12 { get; set; }
+        public decimal lower_2_step_13 { get; set; }
+        public decimal lower_2_step_14 { get; set; }
+        public decimal lower_2_step_15 { get; set; }
+        public decimal lower_2_step_16 { get; set; }
+        public decimal lower_2_step_17 { get; set; }
+        public decimal lower_2_step_18 { get; set; }
+        public decimal lower_2_step_19 { get; set; }
+        public decimal lower_2_step_20 { get; set; }
+        public decimal lower_2_step_21 { get; set; }
+        public decimal lower_2_step_22 { get; set; }
+        public decimal lower_2_step_23 { get; set; }
+        public decimal lower_2_step_24 { get; set; }
+        public decimal lower_2_step_25 { get; set; }
+        public decimal lower_2_step_26 { get; set; }
+        public decimal lower_2_step_27 { get; set; }
+        public decimal lower_2_step_28 { get; set; }
+        public decimal lower_2_step_29 { get; set; }
+        public decimal lower_2_step_30 { get; set; }
     }
 
     class LevelsPredictionResponseDTO
@@ -191,7 +274,7 @@ namespace Algoserver.API.Services
             return deserialized;
         }
 
-        public async Task<LevelsPredictionLgbmResponse> PredictLgbm(ScanningHistory historyData, List<LookBackResult> channelsData, string symbol, int granularity)
+        public async Task<LevelsPredictionLgbmResponse> PredictLgbm(ScanningHistory historyData, string symbol, int granularity)
         {
             Console.WriteLine($"Prediction Lgbm requested");
 
@@ -202,7 +285,7 @@ namespace Algoserver.API.Services
                 return cachedResponse;
             }
 
-            var length = 100;
+             var length = 100;
             var open = historyData.Open.TakeLast(length).ToList();
             var high = historyData.High.TakeLast(length).ToList();
             var low = historyData.Low.TakeLast(length).ToList();
@@ -211,6 +294,9 @@ namespace Algoserver.API.Services
 
             var requestData = new PredictionLgbmRequest();
             requestData.ohlcData = new List<PredictionOhlcData>();
+            requestData.instrument = symbol;
+            requestData.market = getMarketType(symbol);
+            requestData.timeframe = getTimeframe(granularity);
 
             for (var i = 0; i < open.Count; i++)
             {
@@ -221,7 +307,7 @@ namespace Algoserver.API.Services
                     Low = low[i],
                     Close = close[i],
                     Volume = 0,
-                    Time = time[i].ToString(),
+                    Time = AlgoHelper.UnixTimeStampToDateTime(time[i]).ToString(),
                 });
             }
 
