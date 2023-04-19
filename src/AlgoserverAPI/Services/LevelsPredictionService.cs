@@ -391,7 +391,7 @@ namespace Algoserver.API.Services
             var hash = symbol + granularity.ToString() + "_LevelsPredictionLgbm";
             try
             {
-                _cache.Set(_cachePrefix, hash, data, TimeSpan.FromSeconds(granularity));
+                _cache.Set(_cachePrefix, hash, data, TimeSpan.FromSeconds(Math.Min(granularity, 60 * 15)));
             }
             catch (Exception e)
             {
@@ -405,7 +405,7 @@ namespace Algoserver.API.Services
             var hash = symbol + granularity.ToString() + "_TrendPrediction";
             try
             {
-                _cache.Set(_cachePrefix, hash, data, TimeSpan.FromSeconds(granularity));
+                _cache.Set(_cachePrefix, hash, data, TimeSpan.FromSeconds(Math.Min(granularity, 60 * 15)));
             }
             catch (Exception e)
             {
