@@ -342,10 +342,10 @@ namespace Algoserver.API.Services
             if (container.TimeframePeriod != "d" && container.TimeframePeriod != "w")
             {
                 scanRes = _scanner.ScanExt(scanningHistory, dailyScanningHistory, trend, levels128, sl_ratio);
-                if (scanRes == null && granularity >= TimeframeHelper.MIN15_GRANULARITY)
-                {
-                    scanRes = _scanner.ScanBRC(scanningHistory, trend, levels128, sl_ratio);
-                }
+                // if (scanRes == null && granularity >= TimeframeHelper.MIN15_GRANULARITY)
+                // {
+                //     scanRes = _scanner.ScanBRC(scanningHistory, trend, levels128, sl_ratio);
+                // }
             }
 
             if (scanRes == null)
@@ -415,10 +415,10 @@ namespace Algoserver.API.Services
             if (container.TimeframePeriod != "d" && container.TimeframePeriod != "w")
             {
                 scanRes = _scanner.ScanExt(scanningHistory, dailyScanningHistory, trend, levels, sl_ratio);
-                if (scanRes == null && granularity >= TimeframeHelper.MIN15_GRANULARITY)
-                {
-                    scanRes = _scanner.ScanBRC(scanningHistory, trend, levels, sl_ratio);
-                }
+                // if (scanRes == null && granularity >= TimeframeHelper.MIN15_GRANULARITY)
+                // {
+                //     scanRes = _scanner.ScanBRC(scanningHistory, trend, levels, sl_ratio);
+                // }
             }
 
             if (scanRes == null)

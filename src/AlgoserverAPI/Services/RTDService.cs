@@ -39,11 +39,11 @@ namespace Algoserver.API.Services
             var granularity = AlgoHelper.ConvertTimeframeToCranularity(req.Timeframe.Interval, req.Timeframe.Periodicity);
             var highTFGranularity = TimeframeHelper.DAILY_GRANULARITY;
 
-            if (granularity == TimeframeHelper.MIN1_GRANULARITY)
+            if (granularity <= TimeframeHelper.MIN1_GRANULARITY)
             {
                 highTFGranularity = TimeframeHelper.HOURLY_GRANULARITY;
             }
-            else if (granularity == TimeframeHelper.MIN5_GRANULARITY)
+            else if (granularity <= TimeframeHelper.MIN5_GRANULARITY)
             {
                 highTFGranularity = TimeframeHelper.HOUR4_GRANULARITY;
             }
