@@ -191,6 +191,7 @@ namespace Algoserver.API.Services
             };
 
             var requestCount = 0;
+            repeatCount = (int)(bars_count / 3000) + repeatCount;
 
             do
             {
