@@ -504,7 +504,11 @@ namespace Algoserver.API.Services
                 //     result.resistance_ext_prob = prediction.resistance_ext;
                 // } 
 
-                if (container.Symbol.Equals("GBP_USD", StringComparison.InvariantCultureIgnoreCase))
+                var predict = req.Predict.GetValueOrDefault(false);
+                var isAllowedPredictionInstruments = container.Symbol.Equals("GBP_USD", StringComparison.InvariantCultureIgnoreCase);
+                result.prediction_exists = predict;
+                
+                if (predict && isAllowedPredictionInstruments)
                 {
                     try
                     {

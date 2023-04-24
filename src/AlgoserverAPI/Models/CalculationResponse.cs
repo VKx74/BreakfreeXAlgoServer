@@ -60,6 +60,7 @@ namespace Algoserver.API.Models.REST
         public decimal size { get; set; }
         public string id { get; set; }
         public RTDCalculationResponse rtd { get; set; }
+        public bool prediction_exists { get; set; }
     }
 
     public class CalculatePositionSizeResponse

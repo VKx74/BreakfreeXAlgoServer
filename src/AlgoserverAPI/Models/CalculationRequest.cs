@@ -102,6 +102,9 @@ namespace Algoserver.API.Models.REST
     {
         [JsonProperty("barsCount")]
         public int? BarsCount { get; set; }
+
+        [JsonProperty("predict")]
+        public bool? Predict { get; set; }
     }
 
     public class Timeframe

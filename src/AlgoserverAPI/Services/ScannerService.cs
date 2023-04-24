@@ -385,6 +385,10 @@ namespace Algoserver.API.Services
 
             // var candlesPerformance = TechCalculations.CalculatePriceMoveDirection(close);
             var difference = TechCalculations.CalculateAvgCandleDifference(open, close);
+            if (difference <= 0.00000001m) {
+                difference = 0.00000001m;
+            }
+
             var priceDiffToHit = 0m;
 
             // check is price go needed direction
