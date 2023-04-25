@@ -239,8 +239,13 @@ namespace Algoserver.API.Services
             var requestData = new PredictionTrendRequest();
             requestData.ohlcData = new List<PredictionOhlcData>();
             requestData.instrument = symbol;
-            requestData.market = getMarketType(symbol);
+            requestData.market = getMarketTypeRestr(symbol);
             requestData.timeframe = getTimeframe(granularity);
+
+            if (string.IsNullOrEmpty(requestData.market))
+            {
+                return null;
+            }
 
             for (var i = 0; i < open.Count; i++)
             {
@@ -285,7 +290,7 @@ namespace Algoserver.API.Services
                 return cachedResponse;
             }
 
-             var length = 100;
+            var length = 100;
             var open = historyData.Open.TakeLast(length).ToList();
             var high = historyData.High.TakeLast(length).ToList();
             var low = historyData.Low.TakeLast(length).ToList();
@@ -297,6 +302,11 @@ namespace Algoserver.API.Services
             requestData.instrument = symbol;
             requestData.market = getMarketType(symbol);
             requestData.timeframe = getTimeframe(granularity);
+
+            if (string.IsNullOrEmpty(requestData.market))
+            {
+                return null;
+            }
 
             for (var i = 0; i < open.Count; i++)
             {
@@ -332,8 +342,24 @@ namespace Algoserver.API.Services
 
         private string getMarketType(string symbol)
         {
-            // TODO: implement in future
-            return "Forex";
+            var forex = "Forex";
+            var commodities = "Commodities";
+            var indices = "Indices";
+            if (symbol.Equals("GBP_USD", StringComparison.InvariantCultureIgnoreCase)) return forex;
+            if (symbol.Equals("XAU_USD", StringComparison.InvariantCultureIgnoreCase)) return commodities;
+            if (symbol.Equals("EUR_USD", StringComparison.InvariantCultureIgnoreCase)) return forex;
+            if (symbol.Equals("USD_JPY", StringComparison.InvariantCultureIgnoreCase)) return forex;
+            if (symbol.Equals("SPX500_USD", StringComparison.InvariantCultureIgnoreCase)) return indices;
+            return String.Empty;
+        }
+
+        private string getMarketTypeRestr(string symbol)
+        {
+            var forex = "Forex";
+            var commodities = "Commodities";
+            var indices = "Indices";
+            if (symbol.Equals("GBP_USD", StringComparison.InvariantCultureIgnoreCase)) return forex;
+            return String.Empty;
         }
 
         private string getTimeframe(int granularity)
