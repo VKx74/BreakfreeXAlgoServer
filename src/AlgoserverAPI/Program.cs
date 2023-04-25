@@ -23,7 +23,8 @@ namespace Algoserver.API
             BuildConfiguration(args);
 
             return WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>();
+                .UseStartup<Startup>()
+                .UseKestrel(o => { o.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(30); });
         }
 
         private static void BuildConfiguration(string[] args)
