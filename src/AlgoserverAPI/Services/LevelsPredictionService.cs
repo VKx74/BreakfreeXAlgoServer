@@ -239,7 +239,7 @@ namespace Algoserver.API.Services
             var requestData = new PredictionTrendRequest();
             requestData.ohlcData = new List<PredictionOhlcData>();
             requestData.instrument = symbol;
-            requestData.market = getMarketTypeRestr(symbol);
+            requestData.market = getMarketType(symbol);
             requestData.timeframe = getTimeframe(granularity);
 
             if (string.IsNullOrEmpty(requestData.market))
@@ -345,11 +345,34 @@ namespace Algoserver.API.Services
             var forex = "Forex";
             var commodities = "Commodities";
             var indices = "Indices";
-            if (symbol.Equals("GBP_USD", StringComparison.InvariantCultureIgnoreCase)) return forex;
-            if (symbol.Equals("XAU_USD", StringComparison.InvariantCultureIgnoreCase)) return commodities;
-            if (symbol.Equals("EUR_USD", StringComparison.InvariantCultureIgnoreCase)) return forex;
-            if (symbol.Equals("USD_JPY", StringComparison.InvariantCultureIgnoreCase)) return forex;
+            
             if (symbol.Equals("SPX500_USD", StringComparison.InvariantCultureIgnoreCase)) return indices;
+            if (symbol.Equals("NAS100_USD", StringComparison.InvariantCultureIgnoreCase)) return indices;
+            if (symbol.Equals("JP225_USD", StringComparison.InvariantCultureIgnoreCase)) return indices;
+            if (symbol.Equals("DE30_EUR", StringComparison.InvariantCultureIgnoreCase)) return indices;
+
+
+            if (symbol.Equals("USD_JPY", StringComparison.InvariantCultureIgnoreCase)) return forex;
+            if (symbol.Equals("USD_CHF", StringComparison.InvariantCultureIgnoreCase)) return forex;
+            if (symbol.Equals("USD_CAD", StringComparison.InvariantCultureIgnoreCase)) return forex;
+            if (symbol.Equals("NZD_USD", StringComparison.InvariantCultureIgnoreCase)) return forex;
+            if (symbol.Equals("GBP_USD", StringComparison.InvariantCultureIgnoreCase)) return forex;
+            if (symbol.Equals("GBP_JPY", StringComparison.InvariantCultureIgnoreCase)) return forex;
+            if (symbol.Equals("EUR_USD", StringComparison.InvariantCultureIgnoreCase)) return forex;
+            if (symbol.Equals("EUR_JPY", StringComparison.InvariantCultureIgnoreCase)) return forex;
+            if (symbol.Equals("EUR_GBP", StringComparison.InvariantCultureIgnoreCase)) return forex;
+            if (symbol.Equals("EUR_CHF", StringComparison.InvariantCultureIgnoreCase)) return forex;
+            if (symbol.Equals("EUR_CAD", StringComparison.InvariantCultureIgnoreCase)) return forex;
+            if (symbol.Equals("EUR_AUD", StringComparison.InvariantCultureIgnoreCase)) return forex;
+            if (symbol.Equals("AUD_USD", StringComparison.InvariantCultureIgnoreCase)) return forex;
+
+            if (symbol.Equals("XAU_USD", StringComparison.InvariantCultureIgnoreCase)) return commodities;
+            if (symbol.Equals("XAU_EUR", StringComparison.InvariantCultureIgnoreCase)) return commodities;
+            if (symbol.Equals("XAG_USD", StringComparison.InvariantCultureIgnoreCase)) return commodities;
+            if (symbol.Equals("XAG_EUR", StringComparison.InvariantCultureIgnoreCase)) return commodities;
+            if (symbol.Equals("WTICO_USD", StringComparison.InvariantCultureIgnoreCase)) return commodities;
+            if (symbol.Equals("NATGAS_USD", StringComparison.InvariantCultureIgnoreCase)) return commodities;
+            if (symbol.Equals("BCO_USD", StringComparison.InvariantCultureIgnoreCase)) return commodities;
             return String.Empty;
         }
 
