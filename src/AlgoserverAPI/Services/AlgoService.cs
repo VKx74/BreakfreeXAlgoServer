@@ -51,7 +51,7 @@ namespace Algoserver.API.Services
                 container.setUsdRatio(1);
             }
 
-            var granularity = AlgoHelper.ConvertTimeframeToCranularity(container.TimeframeInterval, container.TimeframePeriod);
+            var granularity = AlgoHelper.ConvertTimeframeToGranularity(container.TimeframeInterval, container.TimeframePeriod);
             var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack, minBarsCount);
             HistoryData dailyPriceData = null;
 
@@ -332,7 +332,7 @@ namespace Algoserver.API.Services
             var accountSize = container.InputAccountSize * container.UsdRatio;
             var suggestedRisk = container.InputRisk;
             var sl_ratio = container.InputStoplossRatio;
-            var granularity = AlgoHelper.ConvertTimeframeToCranularity(container.TimeframeInterval, container.TimeframePeriod);
+            var granularity = AlgoHelper.ConvertTimeframeToGranularity(container.TimeframeInterval, container.TimeframePeriod);
 
             ScanResponse scanRes = null;
 
@@ -405,7 +405,7 @@ namespace Algoserver.API.Services
             var accountSize = container.InputAccountSize * container.UsdRatio;
             var suggestedRisk = container.InputRisk;
             var sl_ratio = container.InputStoplossRatio;
-            var granularity = AlgoHelper.ConvertTimeframeToCranularity(container.TimeframeInterval, container.TimeframePeriod);
+            var granularity = AlgoHelper.ConvertTimeframeToGranularity(container.TimeframeInterval, container.TimeframePeriod);
 
             ScanResponse scanRes = null;
 
@@ -505,8 +505,14 @@ namespace Algoserver.API.Services
                 // } 
 
                 var predict = req.Predict.GetValueOrDefault(false);
+                var additionalLevels = req.AdditionalLevels.GetValueOrDefault(false);
                 result.prediction_exists = predict;
-                
+
+                if (additionalLevels)
+                {
+                    result.sar_additional = await CalculateTradeZoneLevels(container);
+                }
+
                 if (predict)
                 {
                     try
@@ -580,6 +586,95 @@ namespace Algoserver.API.Services
             }
 
             return result;
+        }
+
+        private async Task<Dictionary<int, List<SaRResponse>>> CalculateTradeZoneLevels(InputDataContainer container)
+        {
+            var levelsResult = new Dictionary<int, List<SaRResponse>>();
+
+            var granularity = AlgoHelper.ConvertTimeframeToGranularity(container.TimeframeInterval, container.TimeframePeriod);
+            var granularity_list = new List<int>();
+            if (granularity == TimeframeHelper.MIN1_GRANULARITY)
+            {
+                granularity_list.Add(TimeframeHelper.MIN5_GRANULARITY);
+                granularity_list.Add(TimeframeHelper.MIN15_GRANULARITY);
+                granularity_list.Add(TimeframeHelper.HOURLY_GRANULARITY);
+            }
+            else if (granularity == TimeframeHelper.MIN5_GRANULARITY)
+            {
+                granularity_list.Add(TimeframeHelper.MIN15_GRANULARITY);
+                granularity_list.Add(TimeframeHelper.HOURLY_GRANULARITY);
+                granularity_list.Add(TimeframeHelper.HOUR4_GRANULARITY);
+            }
+            else if (granularity == TimeframeHelper.MIN15_GRANULARITY || granularity == TimeframeHelper.MIN30_GRANULARITY)
+            {
+                granularity_list.Add(TimeframeHelper.HOURLY_GRANULARITY);
+                granularity_list.Add(TimeframeHelper.HOUR4_GRANULARITY);
+                granularity_list.Add(TimeframeHelper.DAILY_GRANULARITY);
+            }
+            else if (granularity == TimeframeHelper.HOURLY_GRANULARITY)
+            {
+                granularity_list.Add(TimeframeHelper.HOUR4_GRANULARITY);
+                granularity_list.Add(TimeframeHelper.DAILY_GRANULARITY);
+            }
+            else if (granularity == TimeframeHelper.HOUR4_GRANULARITY)
+            {
+                granularity_list.Add(TimeframeHelper.DAILY_GRANULARITY);
+            }
+            else
+            {
+                return levelsResult;
+            }
+
+            var tasksToWait = new List<Task<HistoryData>>();
+
+            foreach (var g in granularity_list)
+            {
+                try
+                {
+                    var task = _historyService.GetHistory(container.Symbol, g, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+                    tasksToWait.Add(task);
+                }
+                catch (Exception ex)
+                {
+
+                }
+            }
+            try
+            {
+                var historicalDataArray = await Task.WhenAll<HistoryData>(tasksToWait);
+
+                foreach (var historicalData in historicalDataArray)
+                {
+                    var high = historicalData.Bars.Select(_ => _.High);
+                    var low = historicalData.Bars.Select(_ => _.Low);
+                    var dates = historicalData.Bars.Select(_ => _.Timestamp).ToList();
+                    var levelsList = TechCalculations.CalculateLevelsBasedOnTradeZone(high, low);
+                    var sar = new List<SaRResponse>();
+                    for (var i = 0; i < levelsList.Count; i++)
+                    {
+                        var l = levelsList[i];
+                        sar.Add(new SaRResponse
+                        {
+                            date = dates[i],
+                            r_p28 = l.Plus28,
+                            r_p18 = l.Plus18,
+                            r = l.EightEight,
+                            n = l.FourEight,
+                            s = l.ZeroEight,
+                            s_m18 = l.Minus18,
+                            s_m28 = l.Minus28
+                        });
+                    }
+                    levelsResult.Add((int)(historicalData.Granularity), sar.TakeLast(5).ToList());
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            return levelsResult;
         }
 
         private SaRResponse toSar(decimal upper_1, decimal upper_2, decimal lower_1, decimal lower_2, long date)

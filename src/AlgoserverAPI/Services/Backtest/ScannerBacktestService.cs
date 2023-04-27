@@ -35,7 +35,7 @@ namespace Algoserver.API.Services
             var container = InputDataContainer.MapCalculationRequestToInputDataContainer(req);
             container.setUsdRatio(1);
 
-            var granularity = AlgoHelper.ConvertTimeframeToCranularity(container.TimeframeInterval, container.TimeframePeriod);
+            var granularity = AlgoHelper.ConvertTimeframeToGranularity(container.TimeframeInterval, container.TimeframePeriod);
             var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             HistoryData dailyPriceData = null;
 

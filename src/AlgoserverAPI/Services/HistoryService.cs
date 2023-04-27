@@ -209,9 +209,9 @@ namespace Algoserver.API.Services
                     return result;
                 }
 
-                if (requestCount > 0)
+                if (requestCount >= 0)
                 {
-                    Console.WriteLine($"History request count {requestCount} - {symbol} - {granularity} - {bars_count}");
+                    Console.WriteLine($"History request count {requestCount} - {symbol} - {granularity} - {bars_count} -> existing {afterCount}");
                 }
 
                 if (requestCount++ > repeatCount)
@@ -295,10 +295,13 @@ namespace Algoserver.API.Services
 
             if (string.Equals(data.Datafeed, "Twelvedata", StringComparison.InvariantCultureIgnoreCase))
             {
-                var minutesInDay = 6 * 60;
-                var minutesRequested = data.Granularity * bars_count / 60m;
-                var daysRequested = Math.Floor((minutesRequested * 2) / minutesInDay);
-                startDate = endDate - ((int)daysRequested * TimeframeHelper.DAILY_GRANULARITY);
+                if (data.Granularity < TimeframeHelper.DAILY_GRANULARITY)
+                {
+                    var minutesInDay = 6 * 60;
+                    var minutesRequested = data.Granularity * bars_count / 60m;
+                    var daysRequested = Math.Floor((minutesRequested * 2) / minutesInDay);
+                    startDate = endDate - ((long)daysRequested * TimeframeHelper.DAILY_GRANULARITY);
+                }
             }
 
 
@@ -337,9 +340,10 @@ namespace Algoserver.API.Services
                 }
             }
 
-            if (startDate < 0)
+            // May 13 2014
+            if (startDate < 1400000000)
             {
-                startDate = 0;
+                startDate = 1400000000;
             }
 
             return startDate;

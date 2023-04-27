@@ -105,6 +105,9 @@ namespace Algoserver.API.Models.REST
 
         [JsonProperty("predict")]
         public bool? Predict { get; set; }
+
+        [JsonProperty("additional_levels")]
+        public bool? AdditionalLevels { get; set; }
     }
 
     public class Timeframe

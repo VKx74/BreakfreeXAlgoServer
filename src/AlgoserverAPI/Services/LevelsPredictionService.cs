@@ -204,6 +204,8 @@ namespace Algoserver.API.Services
         private readonly ILogger<LevelsPredictionService> _logger;
         private readonly ICacheService _cache;
         private string _cachePrefix = "Predictions_";
+        private readonly Dictionary<string, Task<TrendPredictionResponse>> _predictTrendCache = new Dictionary<string, Task<TrendPredictionResponse>>();
+        private readonly Dictionary<string, Task<LevelsPredictionLgbmResponse>> _predictLgbmCache = new Dictionary<string, Task<LevelsPredictionLgbmResponse>>();
 
         public LevelsPredictionService(ILogger<LevelsPredictionService> logger, IConfiguration configuration, ICacheService cache)
         {
@@ -221,13 +223,46 @@ namespace Algoserver.API.Services
         public async Task<TrendPredictionResponse> PredictTrend(ScanningHistory historyData, string symbol, int granularity)
         {
             Console.WriteLine($"Prediction Trend requested");
+            var hash = $"{symbol}_${granularity}";
+            TrendPredictionResponse returnResult = null;
+            try
+            {
+                Task<TrendPredictionResponse> res;
+                lock (_predictTrendCache)
+                {
+                    if (!_predictTrendCache.TryGetValue(hash, out res))
+                    {
+                        res = predictTrend(historyData, symbol, granularity);
+                        _predictTrendCache.TryAdd(hash, res);
+                    }
+                }
+                returnResult = await res;
+            }
+            catch (Exception ex)
+            {
+            }
+            finally
+            {
+                lock (_predictTrendCache)
+                {
+                    _predictTrendCache.Remove(hash);
+                }
+            }
 
+            return returnResult;
+        }
+
+        private async Task<TrendPredictionResponse> predictTrend(ScanningHistory historyData, string symbol, int granularity)
+        {
             var cachedResponse = tryGetTrendPredictionFromCache(symbol, granularity);
 
             if (cachedResponse != null)
             {
+                Console.WriteLine($"Prediction Trend get from cache");
                 return cachedResponse;
             }
+
+            Console.WriteLine($"Prediction Trend calculation request send");
 
             var length = 300;
             var open = historyData.Open.TakeLast(length).ToList();
@@ -282,13 +317,46 @@ namespace Algoserver.API.Services
         public async Task<LevelsPredictionLgbmResponse> PredictLgbm(ScanningHistory historyData, string symbol, int granularity)
         {
             Console.WriteLine($"Prediction Lgbm requested");
+            var hash = $"{symbol}_${granularity}";
+            LevelsPredictionLgbmResponse returnResult = null;
+            try
+            {
+                Task<LevelsPredictionLgbmResponse> res;
+                lock (_predictLgbmCache)
+                {
+                    if (!_predictLgbmCache.TryGetValue(hash, out res))
+                    {
+                        res = predictLgbm(historyData, symbol, granularity);
+                        _predictLgbmCache.TryAdd(hash, res);
+                    }
+                }
+                returnResult = await res;
+            }
+            catch (Exception ex)
+            {
+            }
+            finally
+            {
+                lock (_predictLgbmCache)
+                {
+                    _predictLgbmCache.Remove(hash);
+                }
+            }
 
+            return returnResult;
+        }
+
+        private  async Task<LevelsPredictionLgbmResponse> predictLgbm(ScanningHistory historyData, string symbol, int granularity)
+        {
             var cachedResponse = tryGetLevelsPredictionLgbmFromCache(symbol, granularity);
 
             if (cachedResponse != null)
             {
+                Console.WriteLine($"Prediction Lgbm get from cache");
                 return cachedResponse;
             }
+
+            Console.WriteLine($"Prediction Lgbm calculation request send");
 
             var length = 100;
             var open = historyData.Open.TakeLast(length).ToList();
@@ -345,43 +413,23 @@ namespace Algoserver.API.Services
             var forex = "Forex";
             var commodities = "Commodities";
             var indices = "Indices";
-            
-            if (symbol.Equals("SPX500_USD", StringComparison.InvariantCultureIgnoreCase)) return indices;
-            if (symbol.Equals("NAS100_USD", StringComparison.InvariantCultureIgnoreCase)) return indices;
-            if (symbol.Equals("JP225_USD", StringComparison.InvariantCultureIgnoreCase)) return indices;
-            if (symbol.Equals("DE30_EUR", StringComparison.InvariantCultureIgnoreCase)) return indices;
+            var forexList = new List<string> { "EUR_USD", "AUD_USD", "GBP_USD", "USD_JPY", "USD_CAD", "USD_CHF", "NZD_USD", "EUR_JPY", "EUR_GBP", "EUR_CHF", "EUR_AUD", "EUR_CAD", "GBP_JPY", "GBP_CHF", "GBP_AUD", "GBP_CAD", "AUD_JPY", "AUD_CHF", "AUD_CAD", "CAD_JPY", "CAD_CHF", "CHF_JPY", "NZD_JPY", "NZD_CHF", "NZD_CAD" };
+            var commoditiesList = new List<string> { "XAU_USD", "BCO_USD", "NATGAS_USD", "WTICO_USD", "XAU_EUR", "XAG_USD", "XAG_EUR" };
+            var indicesList = new List<string> { "SPX500_USD", "DE30_EUR", "JP225_USD", "NAS100_USD", "UK100_GBP", "US2000_USD", "US30_USD" };
 
+            if (forexList.Any(_ => _.Equals(symbol, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return forex;
+            }
+            if (commoditiesList.Any(_ => _.Equals(symbol, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return commodities;
+            }
+            if (indicesList.Any(_ => _.Equals(symbol, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return indices;
+            }
 
-            if (symbol.Equals("USD_JPY", StringComparison.InvariantCultureIgnoreCase)) return forex;
-            if (symbol.Equals("USD_CHF", StringComparison.InvariantCultureIgnoreCase)) return forex;
-            if (symbol.Equals("USD_CAD", StringComparison.InvariantCultureIgnoreCase)) return forex;
-            if (symbol.Equals("NZD_USD", StringComparison.InvariantCultureIgnoreCase)) return forex;
-            if (symbol.Equals("GBP_USD", StringComparison.InvariantCultureIgnoreCase)) return forex;
-            if (symbol.Equals("GBP_JPY", StringComparison.InvariantCultureIgnoreCase)) return forex;
-            if (symbol.Equals("EUR_USD", StringComparison.InvariantCultureIgnoreCase)) return forex;
-            if (symbol.Equals("EUR_JPY", StringComparison.InvariantCultureIgnoreCase)) return forex;
-            if (symbol.Equals("EUR_GBP", StringComparison.InvariantCultureIgnoreCase)) return forex;
-            if (symbol.Equals("EUR_CHF", StringComparison.InvariantCultureIgnoreCase)) return forex;
-            if (symbol.Equals("EUR_CAD", StringComparison.InvariantCultureIgnoreCase)) return forex;
-            if (symbol.Equals("EUR_AUD", StringComparison.InvariantCultureIgnoreCase)) return forex;
-            if (symbol.Equals("AUD_USD", StringComparison.InvariantCultureIgnoreCase)) return forex;
-
-            if (symbol.Equals("XAU_USD", StringComparison.InvariantCultureIgnoreCase)) return commodities;
-            if (symbol.Equals("XAU_EUR", StringComparison.InvariantCultureIgnoreCase)) return commodities;
-            if (symbol.Equals("XAG_USD", StringComparison.InvariantCultureIgnoreCase)) return commodities;
-            if (symbol.Equals("XAG_EUR", StringComparison.InvariantCultureIgnoreCase)) return commodities;
-            if (symbol.Equals("WTICO_USD", StringComparison.InvariantCultureIgnoreCase)) return commodities;
-            if (symbol.Equals("NATGAS_USD", StringComparison.InvariantCultureIgnoreCase)) return commodities;
-            if (symbol.Equals("BCO_USD", StringComparison.InvariantCultureIgnoreCase)) return commodities;
-            return String.Empty;
-        }
-
-        private string getMarketTypeRestr(string symbol)
-        {
-            var forex = "Forex";
-            var commodities = "Commodities";
-            var indices = "Indices";
-            if (symbol.Equals("GBP_USD", StringComparison.InvariantCultureIgnoreCase)) return forex;
             return String.Empty;
         }
 

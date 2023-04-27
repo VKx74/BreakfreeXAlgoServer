@@ -9,7 +9,7 @@ namespace Algoserver.API.Helpers
 {
     public class AlgoHelper
     {
-        public static int ConvertTimeframeToCranularity(int interval, string period)
+        public static int ConvertTimeframeToGranularity(int interval, string period)
         {
             switch (period)
             {

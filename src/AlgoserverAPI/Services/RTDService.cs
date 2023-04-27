@@ -36,7 +36,7 @@ namespace Algoserver.API.Services
             var Type = req.Instrument.Type.ToLowerInvariant();
             var Symbol = req.Instrument.Id;
 
-            var granularity = AlgoHelper.ConvertTimeframeToCranularity(req.Timeframe.Interval, req.Timeframe.Periodicity);
+            var granularity = AlgoHelper.ConvertTimeframeToGranularity(req.Timeframe.Interval, req.Timeframe.Periodicity);
             var highTFGranularity = TimeframeHelper.DAILY_GRANULARITY;
 
             if (granularity <= TimeframeHelper.MIN1_GRANULARITY)
