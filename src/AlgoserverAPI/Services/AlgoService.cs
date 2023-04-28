@@ -666,7 +666,7 @@ namespace Algoserver.API.Services
                             s_m28 = l.Minus28
                         });
                     }
-                    levelsResult.Add((int)(historicalData.Granularity), sar.TakeLast(5).ToList());
+                    levelsResult.Add((int)(historicalData.Granularity), sar.TakeLast(150).ToList());
                 }
             }
             catch (Exception ex)
