@@ -254,25 +254,25 @@ namespace Algoserver.API.Services
                         }
                     }
 
-                    if (!tradeDetermined && !extendedTrendData.IsOverhit)
-                    {
-                        var swingScannerResult = _scanner.ScanSwing(history, dailyScanningHistory, extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend, levels);
-                        if (swingScannerResult != null)
-                        {
-                            var resp = _toResponse(swingScannerResult, history4H, TimeframeHelper.HOUR4_GRANULARITY);
-                            _tryAddHistory(resp, swingScannerResult, extendedTrendData);
-                            res.Add(resp);
-                        }
-                    }
+                    // if (!tradeDetermined && !extendedTrendData.IsOverhit)
+                    // {
+                    //     var swingScannerResult = _scanner.ScanSwing(history, dailyScanningHistory, extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend, levels);
+                    //     if (swingScannerResult != null)
+                    //     {
+                    //         var resp = _toResponse(swingScannerResult, history4H, TimeframeHelper.HOUR4_GRANULARITY);
+                    //         _tryAddHistory(resp, swingScannerResult, extendedTrendData);
+                    //         res.Add(resp);
+                    //     }
+                    // }
                 }
 
-                var swingDailyScannerResult = _scanner.ScanSwingOldStrategy(dailyScanningHistory);
-                if (swingDailyScannerResult != null)
-                {
-                    var resp = _toResponse(swingDailyScannerResult, dailyHistory, TimeframeHelper.DAILY_GRANULARITY);
-                    _tryAddHistory(resp, swingDailyScannerResult, extendedTrendData);
-                    res.Add(resp);
-                }
+                // var swingDailyScannerResult = _scanner.ScanSwingOldStrategy(dailyScanningHistory);
+                // if (swingDailyScannerResult != null)
+                // {
+                //     var resp = _toResponse(swingDailyScannerResult, dailyHistory, TimeframeHelper.DAILY_GRANULARITY);
+                //     _tryAddHistory(resp, swingDailyScannerResult, extendedTrendData);
+                //     res.Add(resp);
+                // }
             }
 
             try

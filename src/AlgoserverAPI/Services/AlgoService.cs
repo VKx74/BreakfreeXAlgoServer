@@ -348,20 +348,20 @@ namespace Algoserver.API.Services
                 // }
             }
 
-            if (scanRes == null)
-            {
-                if (container.TimeframePeriod == "d")
-                {
-                    scanRes = _scanner.ScanSwingOldStrategy(scanningHistory, sl_ratio);
-                }
-                if (container.TimeframePeriod == "h" && container.TimeframeInterval == 4)
-                {
-                    if (!extendedTrendData.IsOverhit)
-                    {
-                        scanRes = _scanner.ScanSwing(scanningHistory, dailyScanningHistory, extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend, levels128, sl_ratio);
-                    }
-                }
-            }
+            // if (scanRes == null)
+            // {
+            //     if (container.TimeframePeriod == "d")
+            //     {
+            //         scanRes = _scanner.ScanSwingOldStrategy(scanningHistory, sl_ratio);
+            //     }
+            //     if (container.TimeframePeriod == "h" && container.TimeframeInterval == 4)
+            //     {
+            //         if (!extendedTrendData.IsOverhit)
+            //         {
+            //             scanRes = _scanner.ScanSwing(scanningHistory, dailyScanningHistory, extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend, levels128, sl_ratio);
+            //         }
+            //     }
+            // }
 
             var size = 0m;
 
