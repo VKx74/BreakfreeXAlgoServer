@@ -341,9 +341,9 @@ namespace Algoserver.API.Services
             }
 
             // May 13 2014
-            if (startDate < 1400000000)
+            if (startDate < 0)
             {
-                startDate = 1400000000;
+                startDate = 0;
             }
 
             return startDate;
