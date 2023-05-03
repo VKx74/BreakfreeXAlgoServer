@@ -17,6 +17,12 @@ namespace Algoserver.API.Helpers
         public decimal GlobalSlowValue { get; set; }
         public decimal LocalFastValue { get; set; }
         public decimal LocalSlowValue { get; set; }
+        public decimal GlobalAvg { get; set; }
+        public decimal LocalAvg { get; set; }
+        public List<decimal> Fast { get; set; }
+        public List<decimal> Slow { get; set; }
+        public List<decimal> Fast2 { get; set; }
+        public List<decimal> Slow2 { get; set; }
     }
     
     public class TrendsStrengthResult {
@@ -28,6 +34,8 @@ namespace Algoserver.API.Helpers
         public decimal GlobalSlowValue { get; set; }
         public decimal LocalFastValue { get; set; }
         public decimal LocalSlowValue { get; set; }
+        public decimal GlobalAvg { get; set; }
+        public decimal LocalAvg { get; set; }
     }
 
     public static class TrendDetector
@@ -40,7 +48,7 @@ namespace Algoserver.API.Helpers
             return data.LastOrDefault() > last ? Trend.Up : Trend.Down;
         }
 
-        public static ExtendedTrendResult CalculateByMesaBy2TrendAdjusted(List<decimal> data, decimal global_fast = 0.25m, decimal global_slow = 0.05m, decimal local_fast = 1.2m, decimal local_slow = 0.6m)
+        public static ExtendedTrendResult CalculateByMesaBy2TrendAdjusted(List<decimal> data, decimal global_fast = 0.4m, decimal global_slow = 0.15m, decimal local_fast = 1.2m, decimal local_slow = 0.6m)
         {
             var mesa_global = TechCalculations.MESA(data, (double)global_fast, (double)global_slow);
             var mesa_local = TechCalculations.MESA(data, (double)local_fast, (double)local_slow);
@@ -77,7 +85,13 @@ namespace Algoserver.API.Helpers
                 GlobalSlowValue = trendsStrength.GlobalSlowValue,
                 LocalFastValue = trendsStrength.LocalFastValue,
                 LocalSlowValue = trendsStrength.LocalSlowValue,
-                IsOverhit = isOverhit
+                GlobalAvg = trendsStrength.GlobalAvg,
+                LocalAvg = trendsStrength.LocalAvg,
+                IsOverhit = isOverhit,
+                Fast = mesa_local.Select(_ => _.Fast).ToList(),
+                Slow = mesa_local.Select(_ => _.Slow).ToList(),
+                Fast2 = mesa_global.Select(_ => _.Fast).ToList(),
+                Slow2 = mesa_global.Select(_ => _.Slow).ToList(),
             };
         }
         
@@ -123,11 +137,13 @@ namespace Algoserver.API.Helpers
                 GlobalFastValue = length > 0 ? mesa_global[length - 1].Fast : 0,
                 GlobalSlowValue = length > 0 ? mesa_global[length - 1].Slow : 0,
                 LocalFastValue = length > 0 ? mesa_local[length - 1].Fast : 0,
-                LocalSlowValue = length > 0 ? mesa_local[length - 1].Slow : 0
+                LocalSlowValue = length > 0 ? mesa_local[length - 1].Slow : 0,
+                GlobalAvg = global_avg,
+                LocalAvg = local_avg
             };
         }
 
-        public static Trend CalculateByMesa(List<decimal> data, decimal diff = 0.1m, decimal global_fast = 0.25m, decimal global_slow = 0.05m, decimal local_fast = 1.2m, decimal local_slow = 0.6m)
+        public static Trend CalculateByMesa(List<decimal> data, decimal diff = 0.1m, decimal global_fast = 0.4m, decimal global_slow = 0.15m, decimal local_fast = 1.2m, decimal local_slow = 0.6m)
         {
             var mesa_global = TechCalculations.MESA(data, (double)global_fast, (double)global_slow);
             var mesa_local = TechCalculations.MESA(data, (double)local_fast, (double)local_slow);
@@ -173,7 +189,7 @@ namespace Algoserver.API.Helpers
         }
 
         public static Trend MergeTrends(ExtendedTrendResult trends)
-        {
+        {  
             if (trends.GlobalTrend == Trend.Up && trends.LocalTrend == Trend.Up)
             {
                 return Trend.Up;

@@ -77,6 +77,8 @@ namespace Algoserver.API.Helpers
 
     public static class TradeEntry
     {
+
+        // Legacy
         public static TradeEntryResult Calculate(TradeEntryCalculationData calculationData)
         {
             var container = calculationData.container;

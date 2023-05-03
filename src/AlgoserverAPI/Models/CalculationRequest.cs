@@ -98,6 +98,18 @@ namespace Algoserver.API.Models.REST
         public int? ReplayBack { get; set; }
     }
 
+    public class CalculationRequestV3 : CalculationRequest
+    {
+        [JsonProperty("barsCount")]
+        public int? BarsCount { get; set; }
+
+        [JsonProperty("predict")]
+        public bool? Predict { get; set; }
+
+        [JsonProperty("additional_levels")]
+        public bool? AdditionalLevels { get; set; }
+    }
+
     public class Timeframe
     {
         [JsonProperty("periodicity")]

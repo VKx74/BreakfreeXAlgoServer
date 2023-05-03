@@ -35,11 +35,11 @@ namespace Algoserver.API.Services
             var container = InputDataContainer.MapCalculationRequestToInputDataContainer(req);
             container.setUsdRatio(1);
 
-            var granularity = AlgoHelper.ConvertTimeframeToCranularity(container.TimeframeInterval, container.TimeframePeriod);
+            var granularity = AlgoHelper.ConvertTimeframeToGranularity(container.TimeframeInterval, container.TimeframePeriod);
             var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             HistoryData dailyPriceData = null;
 
-            if (granularity == TimeframeHelper.DAILY_GRANULARITY)
+            if (granularity == req.rtd_tf)
             {
                 dailyPriceData = new HistoryData
                 {
@@ -52,7 +52,7 @@ namespace Algoserver.API.Services
             }
             else
             {
-                dailyPriceData = await _historyService.GetHistory(container.Symbol, TimeframeHelper.DAILY_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+                dailyPriceData = await _historyService.GetHistory(container.Symbol, req.rtd_tf, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             }
 
             var replayBack = container.ReplayBack;
@@ -95,21 +95,23 @@ namespace Algoserver.API.Services
 
                 ScanResponse signal = null;
 
+                var levels = TechCalculations.CalculateLevels(container.High, container.Low);
+
                 if (req.type == TradeType.SwingN)
                 {
                     signal = _scanner.ScanSwingOldStrategy(scanningHistory, sl_ratio);
                 }
                 else if (req.type == TradeType.SwingExt)
                 {
-                    signal = _scanner.ScanSwing(scanningHistory, dailyScanningHistory, extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend, sl_ratio);
+                    signal = _scanner.ScanSwing(scanningHistory, dailyScanningHistory, extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend, levels.Level128, sl_ratio);
                 }
                 else if (req.type == TradeType.EXT)
                 {
-                    signal = _scanner.ScanExt(scanningHistory, dailyScanningHistory, trend, sl_ratio);
+                    signal = _scanner.ScanExt(scanningHistory, dailyScanningHistory, trend, levels.Level128, sl_ratio);
                 }
                 else if (req.type == TradeType.BRC)
                 {
-                    signal = _scanner.ScanBRC(scanningHistory, trend, sl_ratio);
+                    signal = _scanner.ScanBRC(scanningHistory, trend, levels.Level128, sl_ratio);
                 }
 
                 if (ScanResponse.IsEquals(lastSignal, signal))
@@ -131,7 +133,6 @@ namespace Algoserver.API.Services
                 }
 
                 var size = 1m;
-                var levels = TechCalculations.CalculateLevels(container.High, container.Low);
                 var sar = SupportAndResistance.Calculate(levels, container.Mintick);
                 var result = DataMappingHelper.ToResponseV2(levels, sar, signal, size);
                 response.signals.Add(new ScannerBacktestSignal

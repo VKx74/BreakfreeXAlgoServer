@@ -43,7 +43,7 @@ namespace Algoserver.API.Services
             // no need USD rate for this test
             container.setUsdRatio(1);
 
-            var granularity = AlgoHelper.ConvertTimeframeToCranularity(container.TimeframeInterval, container.TimeframePeriod);
+            var granularity = AlgoHelper.ConvertTimeframeToGranularity(container.TimeframeInterval, container.TimeframePeriod);
             var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             HistoryData dailyPriceData = null;
 
@@ -165,7 +165,7 @@ namespace Algoserver.API.Services
             // no need USD rate for this test
             container.setUsdRatio(1);
 
-            var granularity = AlgoHelper.ConvertTimeframeToCranularity(container.TimeframeInterval, container.TimeframePeriod);
+            var granularity = AlgoHelper.ConvertTimeframeToGranularity(container.TimeframeInterval, container.TimeframePeriod);
             var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             HistoryData dailyPriceData = null;
 
@@ -319,7 +319,7 @@ namespace Algoserver.API.Services
             // no need USD rate for this test
             container.setUsdRatio(1);
 
-            var granularity = AlgoHelper.ConvertTimeframeToCranularity(container.TimeframeInterval, container.TimeframePeriod);
+            var granularity = AlgoHelper.ConvertTimeframeToGranularity(container.TimeframeInterval, container.TimeframePeriod);
             var currentPriceData = await _historyService.GetHistory(container.Symbol, granularity, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
             HistoryData dailyPriceData = null;
 

@@ -7,7 +7,8 @@ using Algoserver.API.Models.REST;
 
 namespace Algoserver.API.Services
 {
-    public class HistoryRequest {
+    public class HistoryRequest
+    {
         public string Symbol { get; set; }
         public string Datafeed { get; set; }
         public string Exchange { get; set; }
@@ -19,7 +20,10 @@ namespace Algoserver.API.Services
     {
         protected readonly HistoryService _historyService;
         protected readonly InstrumentService _instrumentService;
+        protected readonly List<HistoryData> _1MinHistory = new List<HistoryData>();
+        protected readonly List<HistoryData> _5MinHistory = new List<HistoryData>();
         protected readonly List<HistoryData> _15MinHistory = new List<HistoryData>();
+        protected readonly List<HistoryData> _30MinHistory = new List<HistoryData>();
         protected readonly List<HistoryData> _1hHistory = new List<HistoryData>();
         protected readonly List<HistoryData> _4hHistory = new List<HistoryData>();
         protected readonly List<HistoryData> _dailyHistory = new List<HistoryData>();
@@ -30,46 +34,52 @@ namespace Algoserver.API.Services
             _instrumentService = instrumentService;
         }
 
-        public async Task<string> Refresh() {
+        public async Task<string> Refresh()
+        {
             var instruments = this._getInstruments();
             var stopWatch = new Stopwatch();
-            var tasks15min = new List<HistoryRequest>();
+            var tasks1min = new List<HistoryRequest>();
             foreach (var instrument in instruments)
             {
                 var Exchange = instrument.Exchange;
                 var Datafeed = instrument.Datafeed;
                 var Symbol = instrument.Symbol;
-                tasks15min.Add(new HistoryRequest {
+                tasks1min.Add(new HistoryRequest
+                {
                     Symbol = Symbol,
                     Datafeed = Datafeed,
                     Exchange = Exchange,
                     Count = 300,
-                    Granularity = TimeframeHelper.MIN15_GRANULARITY
+                    Granularity = TimeframeHelper.MIN1_GRANULARITY
                 });
             }
 
             stopWatch.Start();
-            var min15history = await this._loadPack(tasks15min);
+            var min1history = await this._loadPack(tasks1min);
             stopWatch.Stop();
-            TimeSpan ts15 = stopWatch.Elapsed;
+            TimeSpan ts1 = stopWatch.Elapsed;
 
-            lock (_15MinHistory) {
-                _15MinHistory.Clear();
-                _15MinHistory.AddRange(min15history);
+            lock (_1MinHistory)
+            {
+                _1MinHistory.Clear();
+                _1MinHistory.AddRange(min1history);
             }
 
             _updateHigherTimeframes();
 
-            string elapsedTime15 = String.Format(" * 15 min {0:00}:{1:00} - data loaded " +  min15history.Count , ts15.Minutes, ts15.Seconds);
-            Console.WriteLine(">>> " + elapsedTime15);
-            return elapsedTime15;
+            string elapsedTime1 = String.Format(" * 1 min {0:00}:{1:00} - data loaded " + min1history.Count, ts1.Minutes, ts1.Seconds);
+            Console.WriteLine(">>> " + elapsedTime1);
+            return elapsedTime1;
         }
 
         public async Task<string> RefreshAll()
         {
             var instruments = this._getInstruments();
             var stopWatch = new Stopwatch();
+            var tasks1min = new List<HistoryRequest>();
+            var tasks5min = new List<HistoryRequest>();
             var tasks15min = new List<HistoryRequest>();
+            var tasks30min = new List<HistoryRequest>();
             var tasks1h = new List<HistoryRequest>();
             var tasks4h = new List<HistoryRequest>();
             var tasks1d = new List<HistoryRequest>();
@@ -79,28 +89,54 @@ namespace Algoserver.API.Services
                 var Exchange = instrument.Exchange;
                 var Datafeed = instrument.Datafeed;
                 var Symbol = instrument.Symbol;
-                tasks15min.Add(new HistoryRequest {
+                tasks1min.Add(new HistoryRequest
+                {
                     Symbol = Symbol,
                     Datafeed = Datafeed,
                     Exchange = Exchange,
-                    Count = 300,
+                    Count = 1000,
+                    Granularity = TimeframeHelper.MIN1_GRANULARITY
+                });
+                // tasks5min.Add(new HistoryRequest {
+                //     Symbol = Symbol,
+                //     Datafeed = Datafeed,
+                //     Exchange = Exchange,
+                //     Count = 300,
+                //     Granularity = TimeframeHelper.MIN5_GRANULARITY
+                // });
+                tasks15min.Add(new HistoryRequest
+                {
+                    Symbol = Symbol,
+                    Datafeed = Datafeed,
+                    Exchange = Exchange,
+                    Count = 400,
                     Granularity = TimeframeHelper.MIN15_GRANULARITY
                 });
-                tasks1h.Add(new HistoryRequest {
+                // tasks30min.Add(new HistoryRequest {
+                //     Symbol = Symbol,
+                //     Datafeed = Datafeed,
+                //     Exchange = Exchange,
+                //     Count = 300,
+                //     Granularity = TimeframeHelper.MIN30_GRANULARITY
+                // });
+                tasks1h.Add(new HistoryRequest
+                {
                     Symbol = Symbol,
                     Datafeed = Datafeed,
                     Exchange = Exchange,
-                    Count = 300,
+                    Count = 200,
                     Granularity = TimeframeHelper.HOURLY_GRANULARITY
                 });
-                tasks4h.Add(new HistoryRequest {
+                tasks4h.Add(new HistoryRequest
+                {
                     Symbol = Symbol,
                     Datafeed = Datafeed,
                     Exchange = Exchange,
-                    Count = 300,
+                    Count = 200,
                     Granularity = TimeframeHelper.HOUR4_GRANULARITY
                 });
-                tasks1d.Add(new HistoryRequest {
+                tasks1d.Add(new HistoryRequest
+                {
                     Symbol = Symbol,
                     Datafeed = Datafeed,
                     Exchange = Exchange,
@@ -108,12 +144,44 @@ namespace Algoserver.API.Services
                     Granularity = TimeframeHelper.DAILY_GRANULARITY
                 });
             }
-            
+
+            stopWatch.Start();
+            var min1history = await this._loadPack(tasks1min);
+            stopWatch.Stop();
+            TimeSpan ts1 = stopWatch.Elapsed;
+
+            var min5history = new List<HistoryData>();
+            foreach (var history in min1history)
+            {
+                var combinedData = CombineHistory(history.Bars, 5);
+                min5history.Add(new HistoryData
+                {
+                    Datafeed = history.Datafeed,
+                    Exchange = history.Exchange,
+                    Granularity = history.Granularity,
+                    Symbol = history.Symbol,
+                    Bars = combinedData
+                });
+            }
+
             stopWatch.Start();
             var min15history = await this._loadPack(tasks15min);
             stopWatch.Stop();
             TimeSpan ts15 = stopWatch.Elapsed;
 
+            var min30history = new List<HistoryData>();
+            foreach (var history in min15history)
+            {
+                var combinedData = CombineHistory(history.Bars, 30);
+                min30history.Add(new HistoryData
+                {
+                    Datafeed = history.Datafeed,
+                    Exchange = history.Exchange,
+                    Granularity = history.Granularity,
+                    Symbol = history.Symbol,
+                    Bars = combinedData
+                });
+            }
             stopWatch.Reset();
             stopWatch.Start();
             var hourlyhistory = await this._loadPack(tasks1h);
@@ -125,111 +193,207 @@ namespace Algoserver.API.Services
             var hour4history = await this._loadPack(tasks4h);
             stopWatch.Stop();
             TimeSpan ts4h = stopWatch.Elapsed;
-            
+
             stopWatch.Reset();
             stopWatch.Start();
             var dailyhistory = await this._loadPack(tasks1d);
             stopWatch.Stop();
             TimeSpan ts1d = stopWatch.Elapsed;
 
-            lock (_15MinHistory) {
+            lock (_1MinHistory)
+            {
+                _1MinHistory.Clear();
+                _1MinHistory.AddRange(min1history);
+            }
+
+            lock (_5MinHistory)
+            {
+                _5MinHistory.Clear();
+                _5MinHistory.AddRange(min5history);
+            }
+
+            lock (_15MinHistory)
+            {
                 _15MinHistory.Clear();
                 _15MinHistory.AddRange(min15history);
             }
 
-            lock (_1hHistory) {
+            lock (_30MinHistory)
+            {
+                _30MinHistory.Clear();
+                _30MinHistory.AddRange(min30history);
+            }
+
+            lock (_1hHistory)
+            {
                 _1hHistory.Clear();
                 _1hHistory.AddRange(hourlyhistory);
             }
 
-            lock (_4hHistory) {
+            lock (_4hHistory)
+            {
                 _4hHistory.Clear();
                 _4hHistory.AddRange(hour4history);
             }
-            
-            lock (_dailyHistory) {
+
+            lock (_dailyHistory)
+            {
                 _dailyHistory.Clear();
                 _dailyHistory.AddRange(dailyhistory);
             }
 
             // string elapsedTime = String.Format("Total {0:00}:{1:00}", ts.Minutes, ts.Seconds);
-            string elapsedTime15 = String.Format(" * 15 min {0:00}:{1:00} - data loaded " +  min15history.Count , ts15.Minutes, ts15.Seconds);
-            string elapsedTime1h = String.Format(" * 1 h {0:00}:{1:00} - data loaded " +  hourlyhistory.Count , ts1h.Minutes, ts1h.Seconds);
-            string elapsedTime4h = String.Format(" * 4 h {0:00}:{1:00} - data loaded " +  hour4history.Count , ts4h.Minutes, ts4h.Seconds);
-            string elapsedTime1d = String.Format(" * 1 d {0:00}:{1:00} - data loaded " +  dailyhistory.Count , ts1d.Minutes, ts1d.Seconds);
-            Console.WriteLine(">>> " + elapsedTime15 + " - " + elapsedTime1h  + " - " + elapsedTime4h  + " - " + elapsedTime1d);
-            return elapsedTime15 + " - " + elapsedTime1h  + " - " + elapsedTime4h  + " - " + elapsedTime1d;
-            
+            string elapsedTime1 = String.Format(" * 1 min {0:00}:{1:00} - data loaded " + min1history.Count, ts1.Minutes, ts1.Seconds);
+            string elapsedTime15 = String.Format(" * 15 min {0:00}:{1:00} - data loaded " + min15history.Count, ts15.Minutes, ts15.Seconds);
+            string elapsedTime1h = String.Format(" * 1 h {0:00}:{1:00} - data loaded " + hourlyhistory.Count, ts1h.Minutes, ts1h.Seconds);
+            string elapsedTime4h = String.Format(" * 4 h {0:00}:{1:00} - data loaded " + hour4history.Count, ts4h.Minutes, ts4h.Seconds);
+            string elapsedTime1d = String.Format(" * 1 d {0:00}:{1:00} - data loaded " + dailyhistory.Count, ts1d.Minutes, ts1d.Seconds);
+            Console.WriteLine(">>> " + elapsedTime1 + " - " + elapsedTime15 + " - " + elapsedTime1h + " - " + elapsedTime4h + " - " + elapsedTime1d);
+            return elapsedTime1 + " - " + elapsedTime15 + " - " + elapsedTime1h + " - " + elapsedTime4h + " - " + elapsedTime1d;
+
         }
 
-        public List<HistoryData> Get15MinData() {
-            lock(_15MinHistory) {
+        public List<HistoryData> Get1MinData()
+        {
+            lock (_1MinHistory)
+            {
+                return _1MinHistory.ToList();
+            }
+        }
+
+        public List<HistoryData> Get5MinData()
+        {
+            lock (_5MinHistory)
+            {
+                return _5MinHistory.ToList();
+            }
+        }
+
+        public List<HistoryData> Get15MinData()
+        {
+            lock (_15MinHistory)
+            {
                 return _15MinHistory.ToList();
             }
-        }   
-        
-        public List<HistoryData> Get1HData() {
-            lock(_1hHistory) {
+        }
+
+        public List<HistoryData> Get30MinData()
+        {
+            lock (_30MinHistory)
+            {
+                return _30MinHistory.ToList();
+            }
+        }
+
+        public List<HistoryData> Get1HData()
+        {
+            lock (_1hHistory)
+            {
                 return _1hHistory.ToList();
             }
-        } 
-        
-        public List<HistoryData> Get4HData() {
-            lock(_4hHistory) {
+        }
+
+        public List<HistoryData> Get4HData()
+        {
+            lock (_4hHistory)
+            {
                 return _4hHistory.ToList();
             }
-        }  
-        
-        public Dictionary<string, HistoryData> Get15MinDataDictionary() {
-            lock(_15MinHistory) {
+        }
+
+        public Dictionary<string, HistoryData> Get1MinDataDictionary()
+        {
+            lock (_1MinHistory)
+            {
+                return _1MinHistory.ToDictionary(_ => GetKey(_));
+            }
+        }
+
+        public Dictionary<string, HistoryData> Get5MinDataDictionary()
+        {
+            lock (_5MinHistory)
+            {
+                return _5MinHistory.ToDictionary(_ => GetKey(_));
+            }
+        }
+
+        public Dictionary<string, HistoryData> Get15MinDataDictionary()
+        {
+            lock (_15MinHistory)
+            {
                 return _15MinHistory.ToDictionary(_ => GetKey(_));
             }
-        }   
-        
-        public Dictionary<string, HistoryData> Get1HDataDictionary() {
-            lock(_1hHistory) {
+        }
+
+        public Dictionary<string, HistoryData> Get30MinDataDictionary()
+        {
+            lock (_30MinHistory)
+            {
+                return _30MinHistory.ToDictionary(_ => GetKey(_));
+            }
+        }
+
+        public Dictionary<string, HistoryData> Get1HDataDictionary()
+        {
+            lock (_1hHistory)
+            {
                 return _1hHistory.ToDictionary(_ => GetKey(_));
             }
-        } 
-        
-        public Dictionary<string, HistoryData> Get4HDataDictionary() {
-            lock(_4hHistory) {
+        }
+
+        public Dictionary<string, HistoryData> Get4HDataDictionary()
+        {
+            lock (_4hHistory)
+            {
                 return _4hHistory.ToDictionary(_ => GetKey(_));
             }
         }
-        public Dictionary<string, HistoryData> Get1DDataDictionary() {
-            lock(_dailyHistory) {
+        public Dictionary<string, HistoryData> Get1DDataDictionary()
+        {
+            lock (_dailyHistory)
+            {
                 return _dailyHistory.ToDictionary(_ => GetKey(_));
             }
         }
 
-        public List<HistoryData> Get1DData() {
-            lock(_dailyHistory) {
+        public List<HistoryData> Get1DData()
+        {
+            lock (_dailyHistory)
+            {
                 return _dailyHistory.ToList();
             }
         }
 
-        protected async Task<List<HistoryData>> _loadPack(List<HistoryRequest> tasks) {
+        protected async Task<List<HistoryData>> _loadPack(List<HistoryRequest> tasks)
+        {
             var result = new List<HistoryData>();
-            var count = 1;
+            var count = 2;
 
-            while(tasks.Count > 0) {
+            while (tasks.Count > 0)
+            {
                 var tasksToProcess = tasks.Take(Math.Min(count, tasks.Count));
-                
+
                 var tasksToWait = new List<Task<HistoryData>>();
-                foreach (var t in tasksToProcess) {
-                    try {
+                foreach (var t in tasksToProcess)
+                {
+                    try
+                    {
                         var task = _historyService.GetHistoryWithCount(t.Symbol, t.Granularity, t.Datafeed, t.Exchange, t.Count);
                         tasksToWait.Add(task);
-                    } catch(Exception ex) {
+                    }
+                    catch (Exception ex)
+                    {
 
                     }
                 }
-                try {
+                try
+                {
                     var res = await Task.WhenAll<HistoryData>(tasksToWait);
                     result.AddRange(res);
-                } catch(Exception ex) {
-                    
+                }
+                catch (Exception ex)
+                {
+
                 }
                 tasks.RemoveRange(0, Math.Min(count, tasks.Count));
             }
@@ -237,23 +401,48 @@ namespace Algoserver.API.Services
             return result;
         }
 
-        protected void _updateHigherTimeframes() {
-            var _15Mins = Get15MinData();
+        protected void _updateHigherTimeframes()
+        {
+            var _1Mins = Get1MinData();
+            var _5Mins = Get5MinDataDictionary();
+            var _15Mins = Get15MinDataDictionary();
+            var _30Mins = Get30MinDataDictionary();
             var _1Hour = Get1HDataDictionary();
             var _4Hour = Get4HDataDictionary();
             var _1Day = Get1DDataDictionary();
 
-            foreach (var history15Min in _15Mins) {
-                if (_1Hour.TryGetValue(GetKey(history15Min), out var history1H)) {
-                    _updateLastBar(history15Min, history1H);
+            foreach (var history1Min in _1Mins)
+            {
+                var key = GetKey(history1Min);
+
+                if (_5Mins.TryGetValue(key, out var history5Min))
+                {
+                    _updateLastBar(history1Min, history5Min, TimeframeHelper.MIN5_GRANULARITY);
                 }
 
-                if (_4Hour.TryGetValue(GetKey(history15Min), out var history4H)) {
-                    _updateLastBar(history15Min, history4H);
+                if (_15Mins.TryGetValue(key, out var history15Min))
+                {
+                    _updateLastBar(history1Min, history15Min, TimeframeHelper.MIN15_GRANULARITY);
                 }
 
-                if (_1Day.TryGetValue(GetKey(history15Min), out var history1D)) {
-                    _updateLastBar(history15Min, history1D);
+                if (_30Mins.TryGetValue(key, out var history30Min))
+                {
+                    _updateLastBar(history1Min, history30Min, TimeframeHelper.MIN30_GRANULARITY);
+                }
+
+                if (_1Hour.TryGetValue(key, out var history1H))
+                {
+                    _updateLastBar(history1Min, history1H, TimeframeHelper.HOURLY_GRANULARITY);
+                }
+
+                if (_4Hour.TryGetValue(key, out var history4H))
+                {
+                    _updateLastBar(history1Min, history4H, TimeframeHelper.HOUR4_GRANULARITY);
+                }
+
+                if (_1Day.TryGetValue(key, out var history1D))
+                {
+                    _updateLastBar(history1Min, history1D, TimeframeHelper.DAILY_GRANULARITY);
                 }
             }
         }
@@ -265,32 +454,95 @@ namespace Algoserver.API.Services
             return data.Symbol + data.Exchange;
         }
 
-        protected void _updateLastBar(HistoryData hLow, HistoryData hHigh) {
-            var length = hLow.Bars.Count();
-            if (length < 2)  {
+        protected void _updateLastBar(HistoryData hLow, HistoryData hHigh, int granularity)
+        {
+            var lastHBar = hHigh.Bars.LastOrDefault();
+            if (lastHBar == null)
+            {
                 return;
             }
-
-            var lastL = hLow.Bars.LastOrDefault();
-            var preL = hLow.Bars.ElementAt(length - 1);
-            var lastH = hHigh.Bars.LastOrDefault();
-
-            if (lastH == null || lastL == null) {
-                return;
+            var bars = hLow.Bars.Where((_) => _.Timestamp > lastHBar.Timestamp);
+            var count = bars.Count();
+            foreach (var bar in bars)
+            {
+                if (bar.Timestamp >= lastHBar.Timestamp + granularity)
+                {
+                    hHigh.Bars.Add(new BarMessage
+                    {
+                        Open = bar.Open,
+                        High = bar.High,
+                        Low = bar.Low,
+                        Close = bar.Close,
+                        Timestamp = bar.Timestamp,
+                        Volume = bar.Volume
+                    });
+                    lastHBar = hHigh.Bars.LastOrDefault();
+                }
+                else
+                {
+                    lastHBar.High = Math.Max(lastHBar.High, bar.High);
+                    lastHBar.Low = Math.Min(lastHBar.Low, bar.Low);
+                    lastHBar.Close = bar.Close;
+                }
             }
+            // var length = hLow.Bars.Count();
+            // if (length < 2)
+            // {
+            //     return;
+            // }
 
-            lastH.Close = lastL.Close;
-            lastH.High = Math.Max(lastL.High, lastH.High);
-            lastH.Low = Math.Min(lastL.Low, lastH.Low);
+            // var lastL = hLow.Bars.LastOrDefault();
+            // var preL = hLow.Bars.ElementAt(length - 1);
+            // var lastH = hHigh.Bars.LastOrDefault();
 
-            if (lastH.Timestamp < preL.Timestamp) {
-                lastH.High = Math.Max(preL.High, lastH.High);
-                lastH.Low = Math.Min(preL.Low, lastH.Low);
-            }
+            // if (lastH == null || lastL == null)
+            // {
+            //     return;
+            // }
+
+            // lastH.Close = lastL.Close;
+            // lastH.High = Math.Max(lastL.High, lastH.High);
+            // lastH.Low = Math.Min(lastL.Low, lastH.Low);
+
+            // if (lastH.Timestamp < preL.Timestamp)
+            // {
+            //     lastH.High = Math.Max(preL.High, lastH.High);
+            //     lastH.Low = Math.Min(preL.Low, lastH.Low);
+            // }
         }
 
-        protected bool _isSameInstrument(HistoryData h1, HistoryData h2) {
+        protected bool _isSameInstrument(HistoryData h1, HistoryData h2)
+        {
             return String.Equals(h1.Exchange, h2.Exchange) || String.Equals(h1.Symbol, h2.Symbol);
+        }
+
+        protected List<BarMessage> CombineHistory(IEnumerable<BarMessage> bars, int mins)
+        {
+            var res = new List<BarMessage>();
+            foreach (var bar in bars)
+            {
+                if (bar.Timestamp % (mins * 60) == 0 || !res.Any())
+                {
+                    res.Add(new BarMessage
+                    {
+                        Open = bar.Open,
+                        High = bar.High,
+                        Low = bar.Low,
+                        Close = bar.Close,
+                        Volume = bar.Volume,
+                        Timestamp = bar.Timestamp
+                    });
+                }
+                else
+                {
+                    var last = res.LastOrDefault();
+                    last.Close = bar.Close;
+                    last.Low = Math.Min(bar.Low, last.Low);
+                    last.High = Math.Max(bar.High, last.High);
+                    last.Volume += bar.Volume;
+                }
+            }
+            return res;
         }
 
         protected abstract List<IInstrument> _getInstruments();

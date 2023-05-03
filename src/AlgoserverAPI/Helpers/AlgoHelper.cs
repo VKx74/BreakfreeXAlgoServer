@@ -9,7 +9,7 @@ namespace Algoserver.API.Helpers
 {
     public class AlgoHelper
     {
-        public static int ConvertTimeframeToCranularity(int interval, string period)
+        public static int ConvertTimeframeToGranularity(int interval, string period)
         {
             switch (period)
             {
@@ -26,6 +26,13 @@ namespace Algoserver.API.Helpers
         {
             var timeSpan = (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0));
             return (long)timeSpan.TotalSeconds;
+        }
+
+        public static DateTime UnixTimeStampToDateTime(long unixTimeStamp)
+        {
+            DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            dateTime = dateTime.AddSeconds(unixTimeStamp).ToLocalTime();
+            return dateTime;
         }
 
         public static decimal CalculatePositionValue(string type, string symbol, decimal accountSize, decimal suggestedRisk, decimal entry, decimal sl, decimal? contract = null)

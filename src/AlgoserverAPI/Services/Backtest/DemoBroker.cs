@@ -21,6 +21,14 @@ namespace Algoserver.API.Services
             }
         }
 
+        public decimal currentPrice
+        {
+            get
+            {
+                return _price;
+            }
+        }
+
         public void UpdatePrice(decimal price, long timestamp)
         {
             _price = price;

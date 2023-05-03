@@ -46,7 +46,7 @@ namespace Algoserver.API.Services
                 return null;
             }
 
-            var difference = TechCalculations.CalculateAvdCandleDifference(open, close);
+            var difference = TechCalculations.CalculateAvgCandleDifference(open, close);
             var candlesPerformance = TechCalculations.CalculatePriceMoveDirection(close);
             var priceDiffToHit = 0m;
             var lastClose = history.Close.LastOrDefault();
@@ -100,6 +100,7 @@ namespace Algoserver.API.Services
                 time = time
             };
         }
+     
         public ScanResponse ScanSwingOldStrategy(ScanningHistory history, decimal sl_ration = 1.7m)
         {
             try {
@@ -110,7 +111,7 @@ namespace Algoserver.API.Services
         }
 
 
-        protected ScanResponse _scanSwing(ScanningHistory history, ScanningHistory dailyHistory, Trend trendGlobal, Trend trendLocal, decimal sl_ration = 1.7m) {
+        protected ScanResponse _scanSwing(ScanningHistory history, ScanningHistory dailyHistory, Trend trendGlobal, Trend trendLocal, LookBackResult levels, decimal sl_ration = 1.7m) {
             if (history.Close == null)
             {
                 return null;
@@ -123,7 +124,7 @@ namespace Algoserver.API.Services
 
             if (trendGlobal == trendLocal)
             {
-                var swingN = ScanBRC(history, trendGlobal, sl_ration);
+                var swingN = ScanBRC(history, trendGlobal, levels, sl_ration);
                 if (swingN != null)
                 {
                     swingN.type = TradeType.SwingN;
@@ -132,7 +133,7 @@ namespace Algoserver.API.Services
             }
             else
             {
-                var swingExt = ScanExt(history, dailyHistory, trendGlobal, sl_ration);
+                var swingExt = ScanExt(history, dailyHistory, trendGlobal, levels, sl_ration);
                 if (swingExt != null)
                 {
                     swingExt.type = TradeType.SwingExt;
@@ -140,17 +141,18 @@ namespace Algoserver.API.Services
                 return swingExt;
             }
         }
-        public ScanResponse ScanSwing(ScanningHistory history, ScanningHistory dailyHistory, Trend trendGlobal, Trend trendLocal, decimal sl_ration = 1.7m)
+        
+        public ScanResponse ScanSwing(ScanningHistory history, ScanningHistory dailyHistory, Trend trendGlobal, Trend trendLocal, LookBackResult levels, decimal sl_ration = 1.7m)
         {
             try {
-                return this._scanSwing(history, dailyHistory, trendGlobal, trendLocal, sl_ration);
+                return this._scanSwing(history, dailyHistory, trendGlobal, trendLocal, levels, sl_ration);
             } catch(Exception ex) {
                 return null;
             }
         }
 
 
-        protected ScanResponse _scanBRC(ScanningHistory history, Trend trend, decimal sl_ration = 1.7m) 
+        protected ScanResponse _scanBRC(ScanningHistory history, Trend trend, LookBackResult levels, decimal sl_ration = 1.7m) 
         {
             if (history.Close == null)
             {
@@ -169,13 +171,13 @@ namespace Algoserver.API.Services
 
             var prevLow = history.Low[history.Low.Count - 2];
             var prevHigh = history.High[history.High.Count - 2];
-            var prc = trend == Trend.Up ? prevLow : prevHigh;
+            // var prc = trend == Trend.Up ? prevLow : prevHigh;
+            var prc = trend == Trend.Up ? Math.Min(prevLow, lastLow) : Math.Max(prevHigh, lastHigh);
 
             var high = history.High;
             var low = history.Low;
             var close = history.Close;
             var open = history.Open;
-            var levels = TechCalculations.CalculateLevel128(high, low);
 
             var topExt = levels.Plus18;
             var natural = levels.FourEight;
@@ -229,26 +231,26 @@ namespace Algoserver.API.Services
                 return null;
             }
 
-            var difference = TechCalculations.CalculateAvdCandleDifference(open, close);
+            var difference = TechCalculations.CalculateAvgCandleDifference(open, close);
             var candlesPerformance = TechCalculations.CalculatePriceMoveDirection(close);
             var priceDiffToHit = 0m;
 
             // check is price go needed direction
             if (trend == Trend.Up)
             {
-                if (candlesPerformance > 0)
-                {
-                    return null;
-                }
+                // if (candlesPerformance > 0)
+                // {
+                //     return null;
+                // }
 
                 priceDiffToHit = lastClose - natural;
             }
             if (trend == Trend.Down)
             {
-                if (candlesPerformance < 0)
-                {
-                    return null;
-                }
+                // if (candlesPerformance < 0)
+                // {
+                //     return null;
+                // }
 
                 priceDiffToHit = natural - lastClose;
             }
@@ -297,17 +299,17 @@ namespace Algoserver.API.Services
                 time = time
             };
         }
-        public ScanResponse ScanBRC(ScanningHistory history, Trend trend, decimal sl_ration = 1.7m)
+        public ScanResponse ScanBRC(ScanningHistory history, Trend trend, LookBackResult levels, decimal sl_ration = 1.7m)
         {
             try {
-                return this._scanBRC(history, trend, sl_ration);
+                return this._scanBRC(history, trend, levels, sl_ration);
             } catch(Exception ex) {
                 return null;
             }
         }
 
 
-        protected ScanResponse _scanExt(ScanningHistory history, ScanningHistory dailyHistory, Trend trend, decimal sl_ration = 1.7m)
+        protected ScanResponse _scanExt(ScanningHistory history, ScanningHistory dailyHistory, Trend trend, LookBackResult levels, decimal sl_ration = 1.7m)
         {
             if (history.Close == null)
             {
@@ -326,32 +328,32 @@ namespace Algoserver.API.Services
 
             var prevLow = history.Low[history.Low.Count - 2];
             var prevHigh = history.High[history.High.Count - 2];
-            var prc = trend == Trend.Up ? prevLow : prevHigh;
+            // var prc = trend == Trend.Up ? prevLow : prevHigh;
+            var prc = trend == Trend.Up ? Math.Min(prevLow, lastLow) : Math.Max(prevHigh, lastHigh);
 
             var high = history.High;
             var low = history.Low;
             var close = history.Close;
             var open = history.Open;
-            var levels = TechCalculations.CalculateLevel128(high, low);
 
             var topExt = levels.Plus18;
             var natural = levels.FourEight;
             var bottomExt = levels.Minus18;
             var support = levels.ZeroEight;
             var resistance = levels.EightEight;
-            var shift = (decimal)(Math.Abs((double)(levels.Plus28 - levels.Plus18)) * 0.3);
+            var shift = (decimal)(Math.Abs((double)(levels.Plus28 - levels.Plus18)) * 0.5);
             var take_profit = 0m;
             var take_profit2 = 0m;
             var avgEntry = 0m;
             var stop = 0m;
 
             // check is price above/below natural level
-            if (trend == Trend.Up && prc > (natural + bottomExt) / 2)
+            if (trend == Trend.Up && prc > (natural + support) / 2)
             {
                 return null;
             }
 
-            if (trend == Trend.Down && prc < (natural + topExt) / 2)
+            if (trend == Trend.Down && prc < (natural + resistance) / 2)
             {
                 return null;
             }
@@ -381,27 +383,31 @@ namespace Algoserver.API.Services
                 return null;
             }
 
-            var candlesPerformance = TechCalculations.CalculatePriceMoveDirection(close);
-            var difference = TechCalculations.CalculateAvdCandleDifference(open, close);
+            // var candlesPerformance = TechCalculations.CalculatePriceMoveDirection(close);
+            var difference = TechCalculations.CalculateAvgCandleDifference(open, close);
+            if (difference <= 0.00000001m) {
+                difference = 0.00000001m;
+            }
+
             var priceDiffToHit = 0m;
 
             // check is price go needed direction
             if (trend == Trend.Up)
             {
-                if (candlesPerformance > 0)
-                {
-                    return null;
-                }
+                // if (candlesPerformance > 0)
+                // {
+                //     return null;
+                // }
 
                 priceDiffToHit = lastClose - bottomExt;
             }
 
             if (trend == Trend.Down)
             {
-                if (candlesPerformance < 0)
-                {
-                    return null;
-                }
+                // if (candlesPerformance < 0)
+                // {
+                //     return null;
+                // }
                 priceDiffToHit = topExt - lastClose;
             }
 
@@ -463,10 +469,10 @@ namespace Algoserver.API.Services
                 time = time
             };
         }
-        public ScanResponse ScanExt(ScanningHistory history, ScanningHistory dailyHistory, Trend trend, decimal sl_ration = 1.7m)
+        public ScanResponse ScanExt(ScanningHistory history, ScanningHistory dailyHistory, Trend trend, LookBackResult levels, decimal sl_ration = 1.7m)
         {
             try {
-                return this._scanExt(history, dailyHistory, trend, sl_ration);
+                return this._scanExt(history, dailyHistory, trend, levels, sl_ration);
             } catch(Exception ex) {
                 return null;
             }

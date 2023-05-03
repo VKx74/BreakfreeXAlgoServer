@@ -19,7 +19,6 @@ namespace Algoserver.API.Services
     // Provide historical data from oanda or twelvedata or kaiko or binance datafeeds
     public class HistoryService
     {
-        private const int BARS_COUNT = 500;
         private const int ONE_DAY_TIME_SHIFT = 60 * 60 * 24;
         private readonly HttpClient _httpClient;
         private readonly ILogger<HistoryService> _logger;
@@ -43,15 +42,16 @@ namespace Algoserver.API.Services
             var result = await LoadHistoricalData(datafeed, symbol, granularity, count, exchange, repeatCount);
             return result;
         }
-        public async Task<HistoryData> GetHistory(string symbol, int granularity, string datafeed, string exchange, string type, int replayBack = 0)
+        public async Task<HistoryData> GetHistory(string symbol, int granularity, string datafeed, string exchange, string type, int replayBack = 0, int minBarsCount = 0)
         {
             var hash = getHash(symbol, granularity, datafeed, exchange);
+            var barsBack = Math.Max(InputDataContainer.MIN_BARS_COUNT, minBarsCount) + replayBack;
 
             try
             {
                 if (_cache.TryGetValue(_cachePrefix, hash, out HistoryData cachedResponse))
                 {
-                    if (cachedResponse.Bars != null && cachedResponse.Bars.Count() - replayBack >= InputDataContainer.MIN_BARS_COUNT)
+                    if (cachedResponse.Bars != null && cachedResponse.Bars.Count() >= barsBack)
                     {
                         return cachedResponse;
                     }
@@ -62,8 +62,6 @@ namespace Algoserver.API.Services
                 _logger.LogError("Failed to get cached response");
                 _logger.LogError(e.Message);
             }
-
-            var barsBack = BARS_COUNT + replayBack;
 
             // var exists = _contextAccessor.HttpContext.Request.Headers.TryGetValue("Authorization", out var authHeader);
             // var bearerString = authHeader.ToString();
@@ -80,12 +78,13 @@ namespace Algoserver.API.Services
                     }
                     else if (granularity > 60)
                     {
-                        _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(3));
+                        _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(1));
                     }
                     else
                     {
-                        _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(1));
+                        _cache.Set(_cachePrefix, hash, result, TimeSpan.FromSeconds(15));
                     }
+                    // _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(30));
                 }
             }
             catch (Exception e)
@@ -192,6 +191,7 @@ namespace Algoserver.API.Services
             };
 
             var requestCount = 0;
+            repeatCount = (int)(bars_count / 3000) + repeatCount;
 
             do
             {
@@ -209,9 +209,9 @@ namespace Algoserver.API.Services
                     return result;
                 }
 
-                if (requestCount > 0)
+                if (requestCount >= 0)
                 {
-                    Console.WriteLine($"History request count {requestCount} - {symbol} - {granularity} - {bars_count}");
+                    Console.WriteLine($"History request count {requestCount} - {symbol} - {granularity} - {bars_count} -> existing {afterCount}");
                 }
 
                 if (requestCount++ > repeatCount)
@@ -260,13 +260,13 @@ namespace Algoserver.API.Services
             return datafeed + symbol + granularity.ToString() + bars_count + exchange + repeatCount.ToString();
         }
 
-        private IEnumerable<BarMessage> mergeBars(IEnumerable<BarMessage> existingBars, IEnumerable<BarMessage> newBars)
+        private List<BarMessage> mergeBars(IEnumerable<BarMessage> existingBars, IEnumerable<BarMessage> newBars)
         {
             var firstBar = existingBars.FirstOrDefault();
 
             if (firstBar == null)
             {
-                return newBars;
+                return newBars.ToList();
             }
 
             var barsToAppend = newBars.Where(_ => _.Timestamp < firstBar.Timestamp).ToList();
@@ -290,18 +290,20 @@ namespace Algoserver.API.Services
         {
             var existing_count = data.Bars.Count();
             var endDate = this.getEndDate(data, AlgoHelper.UnixTimeNow());
-            var mult = 3;
-
-            if (data.Granularity < 86400 && string.Equals(data.Datafeed, "Twelvedata", StringComparison.InvariantCultureIgnoreCase))
-            {
-                mult = 10;
-            }
-            if (string.Equals(data.Datafeed, "binance", StringComparison.InvariantCultureIgnoreCase))
-            {
-                mult = 2;
-            }
-
+            var mult = 2;
             long startDate = endDate - ((bars_count - existing_count) * data.Granularity * mult);
+
+            if (string.Equals(data.Datafeed, "Twelvedata", StringComparison.InvariantCultureIgnoreCase))
+            {
+                if (data.Granularity < TimeframeHelper.DAILY_GRANULARITY)
+                {
+                    var minutesInDay = 6 * 60;
+                    var minutesRequested = data.Granularity * bars_count / 60m;
+                    var daysRequested = Math.Floor((minutesRequested * 2) / minutesInDay);
+                    startDate = endDate - ((long)daysRequested * TimeframeHelper.DAILY_GRANULARITY);
+                }
+            }
+
 
             if (startDate < 0)
             {
@@ -329,12 +331,16 @@ namespace Algoserver.API.Services
                 }
             }
 
-            var count = (endDate - startDate) / data.Granularity;
-            if (count > 5000)
+            if (string.Equals(data.Datafeed, "oanda", StringComparison.InvariantCultureIgnoreCase))
             {
-                startDate = endDate - (data.Granularity * 5000);
+                var count = (endDate - startDate) / data.Granularity;
+                if (count > 5000)
+                {
+                    startDate = endDate - (data.Granularity * 5000);
+                }
             }
 
+            // May 13 2014
             if (startDate < 0)
             {
                 startDate = 0;

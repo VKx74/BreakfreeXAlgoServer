@@ -15,7 +15,7 @@ namespace Algoserver.API.Models.REST
         public string Exchange { get; set; }
         public string Datafeed { get; set; }
         public long Granularity { get; set; }
-        public IEnumerable<BarMessage> Bars { get; set; }
+        public List<BarMessage> Bars { get; set; }
     } 
     
     public class OandaInstrumentsResponse

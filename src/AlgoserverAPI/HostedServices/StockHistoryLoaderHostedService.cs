@@ -9,7 +9,8 @@ namespace Algoserver.API.HostedServices
 {
     public class StockHistoryLoaderHostedService : BackgroundService
     {
-        private int _preHour = -1;
+        private int _prevHour = -1;
+        private int _prevMin = -1;
         private readonly ILogger<StockHistoryLoaderHostedService> _logger;
         private readonly ScannerHistoryService _scannerHistory;
         private readonly ScannerCacheService _scannerCache;
@@ -25,21 +26,39 @@ namespace Algoserver.API.HostedServices
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                try {
+                try
+                {
                     var currentHour = DateTime.UtcNow.Hour;
-                    if (currentHour != _preHour) {
+                    var currentMinute = DateTime.UtcNow.Minute;
+                    var scanRequired = false;
+                    if (currentHour != _prevHour)
+                    {
                         var result = await _scannerHistory.RefreshAll();
                         _scannerCache.RefreshAllMarketsTime = result;
-                    } else {
+                        scanRequired = true;
+                    }
+                    else if (currentMinute != _prevMin)
+                    {
                         var result = await _scannerHistory.Refresh();
                         _scannerCache.RefreshMarketsTime = result;
+                        scanRequired = true;
                     }
-                    _preHour = currentHour;
-                    _scannerCache.ScanMarkets();
-                } catch(Exception ex) {
+
+                    _prevHour = currentHour;
+                    _prevMin = currentMinute;
+
+                    if (scanRequired)
+                    {
+                        Console.WriteLine(">>> Stock ScanMarkets start");
+                        _scannerCache.ScanMarkets();
+                        Console.WriteLine(">>> Stock ScanMarkets ends");
+                    }
+                }
+                catch (Exception ex)
+                {
                 }
 
-                await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken).ConfigureAwait(false);
+                await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken).ConfigureAwait(false);
             }
         }
     }

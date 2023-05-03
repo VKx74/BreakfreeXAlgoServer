@@ -5,6 +5,15 @@ using Algoserver.API.Models.Algo;
 
 namespace Algoserver.API.Helpers
 {
+    public class TradeZone
+    {
+        public decimal OutsideUpper { get; set; }
+        public decimal InsideUpper { get; set; }
+        public decimal InsideLower { get; set; }
+        public decimal OutsideLower { get; set; }
+        public decimal Mid { get; set; }
+    }
+
     public class DirectionResponse
     {
         public bool Approved { get; set; }
@@ -156,6 +165,38 @@ namespace Algoserver.API.Helpers
             }
             return res.ToArray();
         }
+
+        public static decimal[] Ema(decimal[] data, int period)
+        {
+            var constant1 = 2m / (1 + period);
+            var constant2 = 1m - 2m / (1 + period);
+
+            var res = new decimal[data.Length];
+            for (var i = 0; i < data.Length; i++)
+            {
+                var ema = i == 0 ? data[i] : data[i]
+                    * constant1 + constant2 * res[i - 1];
+
+                res[i] = ema;
+            }
+            return res;
+        }
+
+        public static decimal[] Rma(decimal[] data, int period)
+        {
+            var constant1 = 1m / period;
+            var res = new decimal[data.Length];
+            for (var i = 0; i < data.Length; i++)
+            {
+                var rma = i == 0 ? data[i] : data[i]
+                    * constant1 + (1m - constant1) * res[i - 1];
+
+                res[i] = rma;
+            }
+            return res;
+        }
+
+
 
         public static List<decimal> Wma(List<decimal> data, int length)
         {
@@ -383,6 +424,52 @@ namespace Algoserver.API.Helpers
             return res.ToArray();
         }
 
+        public static TradeZone CalculateTradeZone(List<decimal> high, List<decimal> low, int fast = 36, int slow = 77, int fastMultiplier = 4, int slowMultiplier = 8)
+        {
+            var res = CalculateTradeZones(high, low, fast, slow, fastMultiplier, slowMultiplier);
+            return res.LastOrDefault();
+        }
+
+        public static List<TradeZone> CalculateTradeZones(List<decimal> high, List<decimal> low, int fast = 36, int slow = 77, int fastMultiplier = 4, int slowMultiplier = 8)
+        {
+            var typical = new decimal[high.Count];
+            var diff = new decimal[high.Count];
+            for (var i = 0; i < high.Count; i++)
+            {
+                typical[i] = high[i];
+                diff[i] = high[i] - low[i];
+            }
+
+            var smaDiff = Ema(typical, fast);
+            var smaShift1 = Rma(diff, fast);
+            var smaShift2 = Rma(diff, slow);
+
+            var result = new List<TradeZone>();
+
+            for (var i = 0; i < smaDiff.Length; i++)
+            {
+                var middleVal = smaDiff[i];
+                var offset1 = smaShift1[i] * slowMultiplier;
+                var offset2 = smaShift2[i] * fastMultiplier;
+
+                var upperVal1 = middleVal + offset1;
+                var lowerVal1 = middleVal - offset1;
+                var upperVal2 = middleVal + offset2;
+                var lowerVal2 = middleVal - offset2;
+
+                result.Add(new TradeZone
+                {
+                    OutsideUpper = upperVal1,
+                    InsideUpper = upperVal2,
+                    InsideLower = lowerVal2,
+                    OutsideLower = lowerVal1,
+                    Mid = middleVal
+                });
+            }
+
+            return result;
+        }
+
         private static double _computeComponent(DataAggregator src, double mesaPeriodMultiplier)
         {
             var hilbertTransform = 0.0962 * src.get(0) + 0.5769 * src.get(2) - 0.5769 * src.get(4) - 0.0962 * src.get(6);
@@ -550,6 +637,50 @@ namespace Algoserver.API.Helpers
         {
             var lookback128 = 128;
             return TechCalculations.LookBack(lookback128, uPrice, lPrice);
+            // return CalculateLevelBasedOnTradeZone(uPrice, lPrice);
+        }
+
+        public static LookBackResult CalculateLevelBasedOnTradeZone(IEnumerable<decimal> uPrice, IEnumerable<decimal> lPrice)
+        {
+            var tradeZone = CalculateTradeZone(uPrice.ToList(), lPrice.ToList());
+            var result = new LookBackResult();
+            var Increment = (tradeZone.OutsideUpper - tradeZone.OutsideLower) / 8;
+
+            result.AbsTop = tradeZone.OutsideUpper;
+            result.Increment = Increment;
+            result.EightEight = tradeZone.InsideUpper;
+            result.FourEight = tradeZone.Mid;
+            result.ZeroEight = tradeZone.InsideLower;
+            result.Minus18 = (tradeZone.InsideLower + tradeZone.OutsideLower) / 2;
+            result.Minus28 = tradeZone.OutsideLower;
+            result.Plus18 = (tradeZone.InsideUpper + tradeZone.OutsideUpper) / 2;
+            result.Plus28 = tradeZone.OutsideUpper;
+
+            return result;
+        }
+
+        public static List<LookBackResult> CalculateLevelsBasedOnTradeZone(IEnumerable<decimal> uPrice, IEnumerable<decimal> lPrice)
+        {
+            var tradeZones = CalculateTradeZones(uPrice.ToList(), lPrice.ToList());
+            var resultList = new List<LookBackResult>();
+
+            foreach (var tradeZone in tradeZones)
+            {
+                var Increment = (tradeZone.OutsideUpper - tradeZone.OutsideLower) / 8;
+                var result = new LookBackResult();
+                result.AbsTop = tradeZone.OutsideUpper;
+                result.Increment = Increment;
+                result.EightEight = tradeZone.InsideUpper;
+                result.FourEight = tradeZone.Mid;
+                result.ZeroEight = tradeZone.InsideLower;
+                result.Minus18 = (tradeZone.InsideLower + tradeZone.OutsideLower) / 2;
+                result.Minus28 = tradeZone.OutsideLower;
+                result.Plus18 = (tradeZone.InsideUpper + tradeZone.OutsideUpper) / 2;
+                result.Plus28 = tradeZone.OutsideUpper;
+                resultList.Add(result);
+            }
+
+            return resultList;
         }
 
         public static int BRCOverLevelCount(IEnumerable<decimal> cPrice, Trend trend, decimal level)
@@ -627,8 +758,11 @@ namespace Algoserver.API.Helpers
             var lookback = 5;
             var lastClose = cPrice.TakeLast(lookback).ToArray();
             var lastHma = hmaData.TakeLast(lookback).ToArray();
+            var hmaToVerify = hmaData.TakeLast(lookback * 2).ToArray();
             var hmaSum = 0m;
             var prevHMA = lastHma.FirstOrDefault();
+            var firstHMA = hmaToVerify.FirstOrDefault();
+            var lastHMA = hmaToVerify.LastOrDefault();
             for (var i = 1; i < lookback; i++)
             {
                 hmaSum += prevHMA - lastHma[i];
@@ -641,6 +775,9 @@ namespace Algoserver.API.Helpers
             {
                 if (hmaSum < 0)
                 {
+                    // if (lastHMA > firstHMA) {
+                    //     return DirectionResponse.GetNegativeResponse();
+                    // }
                     return DirectionResponse.GetNegativeResponse();
                 }
             }
@@ -648,6 +785,9 @@ namespace Algoserver.API.Helpers
             {
                 if (hmaSum > 0)
                 {
+                    // if (lastHMA < firstHMA) {
+                    //     return DirectionResponse.GetNegativeResponse();
+                    // }
                     return DirectionResponse.GetNegativeResponse();
                 }
             }
@@ -689,7 +829,7 @@ namespace Algoserver.API.Helpers
             };
         }
 
-        public static decimal CalculateAvdCandleDifference(IEnumerable<decimal> open, IEnumerable<decimal> close)
+        public static decimal CalculateAvgCandleDifference(IEnumerable<decimal> open, IEnumerable<decimal> close)
         {
             var lookback = 3;
             var opens = open.ToArray();

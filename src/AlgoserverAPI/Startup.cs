@@ -103,6 +103,7 @@ namespace Algoserver.API
             services.AddSingleton<ScannerResultService>();
             services.AddSingleton<RTDService>();
             services.AddSingleton<StatisticsService>();
+            services.AddSingleton<LevelsPredictionService>();
 
             if (scanInstruments) {
                 services.AddHostedService<StockHistoryLoaderHostedService>();

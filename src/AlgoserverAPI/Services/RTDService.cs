@@ -36,7 +36,19 @@ namespace Algoserver.API.Services
             var Type = req.Instrument.Type.ToLowerInvariant();
             var Symbol = req.Instrument.Id;
 
-            var dailyPriceData = await _historyService.GetHistory(Symbol, TimeframeHelper.DAILY_GRANULARITY, Datafeed, Exchange, Type, req.BarsCount);
+            var granularity = AlgoHelper.ConvertTimeframeToGranularity(req.Timeframe.Interval, req.Timeframe.Periodicity);
+            var highTFGranularity = TimeframeHelper.DAILY_GRANULARITY;
+
+            if (granularity <= TimeframeHelper.MIN1_GRANULARITY)
+            {
+                highTFGranularity = TimeframeHelper.HOURLY_GRANULARITY;
+            }
+            else if (granularity <= TimeframeHelper.MIN5_GRANULARITY)
+            {
+                highTFGranularity = TimeframeHelper.HOUR4_GRANULARITY;
+            }
+
+            var dailyPriceData = await _historyService.GetHistory(Symbol, highTFGranularity, Datafeed, Exchange, Type, req.BarsCount);
 
             if (dailyPriceData == null)
                 return null;
@@ -68,6 +80,8 @@ namespace Algoserver.API.Services
                 slow_2 = rtd2.Select(_ => _.Slow),
                 global_trend_spread = trendsStrength.GlobalTrendSpread,
                 local_trend_spread = trendsStrength.LocalTrendSpread,
+                global_avg = trendsStrength.GlobalAvg,
+                local_avg = trendsStrength.LocalAvg,
                 id = req.Id
             };
         }

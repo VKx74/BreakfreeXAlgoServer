@@ -70,7 +70,7 @@ namespace Algoserver.API.Services
                     }
                     placedOrders.RemoveAll(_ => index - _.Index > canceleationCandles);
                 }
-                
+
                 ScannerBacktestSignal signal;
 
                 if (!signals.TryPeek(out signal))
@@ -131,6 +131,44 @@ namespace Algoserver.API.Services
                     sl_price = signal.data.trade.stop,
                     tp_price = signal.data.trade.take_profit_l
                 };
+
+                var currentPrice = _demoBroker.currentPrice;
+                if (side == OrderSide.Buy)
+                {
+                    if (currentPrice <= placeOrderRequest1.price)
+                    {
+                        placeOrderRequest1.type = OrderType.Market;
+                        placeOrderRequest1.price = currentPrice;
+                    }
+                    if (currentPrice <= placeOrderRequest2.price)
+                    {
+                        placeOrderRequest2.type = OrderType.Market;
+                        placeOrderRequest2.price = currentPrice;
+                    }
+                    if (currentPrice <= placeOrderRequest3.price)
+                    {
+                        placeOrderRequest3.type = OrderType.Market;
+                        placeOrderRequest3.price = currentPrice;
+                    }
+                }
+                else
+                {
+                    if (currentPrice >= placeOrderRequest1.price)
+                    {
+                        placeOrderRequest1.type = OrderType.Market;
+                        placeOrderRequest1.price = currentPrice;
+                    }
+                    if (currentPrice >= placeOrderRequest2.price)
+                    {
+                        placeOrderRequest2.type = OrderType.Market;
+                        placeOrderRequest2.price = currentPrice;
+                    }
+                    if (currentPrice >= placeOrderRequest3.price)
+                    {
+                        placeOrderRequest3.type = OrderType.Market;
+                        placeOrderRequest3.price = currentPrice;
+                    }
+                }
 
                 try
                 {
