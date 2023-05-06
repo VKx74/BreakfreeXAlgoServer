@@ -236,6 +236,17 @@ namespace Algoserver.API.Services
         {
             var instrument = request.Instrument;
             var timeframe = request.Granularity.GetValueOrDefault(TimeframeHelper.DAILY_GRANULARITY);
+
+            var highTFGranularity = TimeframeHelper.DAILY_GRANULARITY;
+            if (timeframe <= TimeframeHelper.MIN1_GRANULARITY)
+            {
+                highTFGranularity = TimeframeHelper.HOURLY_GRANULARITY;
+            }
+            else if (timeframe <= TimeframeHelper.MIN5_GRANULARITY)
+            {
+                highTFGranularity = TimeframeHelper.HOUR4_GRANULARITY;
+            }
+            
             var cachedResponse = tryGetCalculateMarketInfoV2FromCache(instrument, timeframe);
 
             if (cachedResponse != null)
@@ -243,15 +254,15 @@ namespace Algoserver.API.Services
                 return cachedResponse;
             }
 
-            var dataDaily = await _historyService.GetHistory(instrument.Id, TimeframeHelper.DAILY_GRANULARITY, instrument.Datafeed, instrument.Exchange, instrument.Type);
-            var highDaily = dataDaily.Bars.Select(_ => _.High);
-            var lowDaily = dataDaily.Bars.Select(_ => _.Low);
-            var closeDaily = dataDaily.Bars.Select(_ => _.Close).ToList();
+            var highTFGranularityDaily = await _historyService.GetHistory(instrument.Id, highTFGranularity, instrument.Datafeed, instrument.Exchange, instrument.Type);
+            var highDaily = highTFGranularityDaily.Bars.Select(_ => _.High);
+            var lowDaily = highTFGranularityDaily.Bars.Select(_ => _.Low);
+            var closeDaily = highTFGranularityDaily.Bars.Select(_ => _.Close).ToList();
 
             var levelsDaily = TechCalculations.CalculateLevel128(highDaily, lowDaily);
             var exactTFLevels = levelsDaily;
 
-            if (timeframe != TimeframeHelper.DAILY_GRANULARITY)
+            if (timeframe != highTFGranularity)
             {
                 var dataTF = await _historyService.GetHistory(instrument.Id, timeframe, instrument.Datafeed, instrument.Exchange, instrument.Type);
                 var highFT = dataTF.Bars.Select(_ => _.High);

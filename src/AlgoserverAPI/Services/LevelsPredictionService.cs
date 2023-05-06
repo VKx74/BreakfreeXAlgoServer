@@ -271,10 +271,11 @@ namespace Algoserver.API.Services
             var close = historyData.Close.TakeLast(length).ToList();
             var time = historyData.Time.TakeLast(length).ToList();
 
+            var normalizedInstrument = getNormalizedInstrument(symbol);
             var requestData = new PredictionTrendRequest();
             requestData.ohlcData = new List<PredictionOhlcData>();
             requestData.instrument = symbol;
-            requestData.market = getMarketType(symbol);
+            requestData.market = getMarketType(normalizedInstrument);
             requestData.timeframe = getTimeframe(granularity);
 
             if (string.IsNullOrEmpty(requestData.market))
@@ -408,14 +409,26 @@ namespace Algoserver.API.Services
             return deserialized;
         }
 
+        private string getNormalizedInstrument(string symbol)
+        {
+            var btcusd = new List<string> { "BTCUSDT", "BTCUSD", "BTC/USD" };
+            if (btcusd.Any(_ => _.Equals(symbol, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return "BTC_USD";
+            }
+            return symbol;
+        }
+
         private string getMarketType(string symbol)
         {
             var forex = "Forex";
             var commodities = "Commodities";
             var indices = "Indices";
+            var cryptocurrency = "Cryptocurrency";
             var forexList = new List<string> { "EUR_USD", "AUD_USD", "GBP_USD", "USD_JPY", "USD_CAD", "USD_CHF", "NZD_USD", "EUR_JPY", "EUR_GBP", "EUR_CHF", "EUR_AUD", "EUR_CAD", "GBP_JPY", "GBP_CHF", "GBP_AUD", "GBP_CAD", "AUD_JPY", "AUD_CHF", "AUD_CAD", "CAD_JPY", "CAD_CHF", "CHF_JPY", "NZD_JPY", "NZD_CHF", "NZD_CAD" };
             var commoditiesList = new List<string> { "XAU_USD", "BCO_USD", "NATGAS_USD", "WTICO_USD", "XAU_EUR", "XAG_USD", "XAG_EUR" };
             var indicesList = new List<string> { "SPX500_USD", "DE30_EUR", "JP225_USD", "NAS100_USD", "UK100_GBP", "US2000_USD", "US30_USD" };
+            var cryptoList = new List<string> { "BTC_USD" };
 
             if (forexList.Any(_ => _.Equals(symbol, StringComparison.InvariantCultureIgnoreCase)))
             {
@@ -428,6 +441,10 @@ namespace Algoserver.API.Services
             if (indicesList.Any(_ => _.Equals(symbol, StringComparison.InvariantCultureIgnoreCase)))
             {
                 return indices;
+            }
+            if (cryptoList.Any(_ => _.Equals(symbol, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return cryptocurrency;
             }
 
             return String.Empty;
@@ -488,7 +505,7 @@ namespace Algoserver.API.Services
             var hash = symbol + granularity.ToString() + "_LevelsPredictionLgbm";
             try
             {
-                _cache.Set(_cachePrefix, hash, data, TimeSpan.FromSeconds(Math.Min(granularity, 60 * 15)));
+                _cache.Set(_cachePrefix, hash, data, TimeSpan.FromSeconds(Math.Min(granularity, 60 * 60)));
             }
             catch (Exception e)
             {
@@ -502,7 +519,7 @@ namespace Algoserver.API.Services
             var hash = symbol + granularity.ToString() + "_TrendPrediction";
             try
             {
-                _cache.Set(_cachePrefix, hash, data, TimeSpan.FromSeconds(Math.Min(granularity, 60 * 15)));
+                _cache.Set(_cachePrefix, hash, data, TimeSpan.FromSeconds(Math.Min(granularity, 60 * 60)));
             }
             catch (Exception e)
             {
