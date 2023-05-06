@@ -272,9 +272,9 @@ namespace Algoserver.API.Services
             var time = historyData.Time.TakeLast(length).ToList();
 
             var normalizedInstrument = getNormalizedInstrument(symbol);
-            var requestData = new PredictionTrendRequest();
+            var requestData = new PredictionTrendRequest(); 
             requestData.ohlcData = new List<PredictionOhlcData>();
-            requestData.instrument = symbol;
+            requestData.instrument = normalizedInstrument;
             requestData.market = getMarketType(normalizedInstrument);
             requestData.timeframe = getTimeframe(granularity);
 
