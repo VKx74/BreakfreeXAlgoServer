@@ -272,7 +272,7 @@ namespace Algoserver.API.Services
             var time = historyData.Time.TakeLast(length).ToList();
 
             var normalizedInstrument = getNormalizedInstrument(symbol);
-            var requestData = new PredictionTrendRequest(); 
+            var requestData = new PredictionTrendRequest();
             requestData.ohlcData = new List<PredictionOhlcData>();
             requestData.instrument = normalizedInstrument;
             requestData.market = getMarketType(normalizedInstrument);
@@ -347,7 +347,7 @@ namespace Algoserver.API.Services
             return returnResult;
         }
 
-        private  async Task<LevelsPredictionLgbmResponse> predictLgbm(ScanningHistory historyData, string symbol, int granularity)
+        private async Task<LevelsPredictionLgbmResponse> predictLgbm(ScanningHistory historyData, string symbol, int granularity)
         {
             var cachedResponse = tryGetLevelsPredictionLgbmFromCache(symbol, granularity);
 
@@ -366,10 +366,11 @@ namespace Algoserver.API.Services
             var close = historyData.Close.TakeLast(length).ToList();
             var time = historyData.Time.TakeLast(length).ToList();
 
+            var normalizedInstrument = getNormalizedInstrument(symbol);
             var requestData = new PredictionLgbmRequest();
             requestData.ohlcData = new List<PredictionOhlcData>();
-            requestData.instrument = symbol;
-            requestData.market = getMarketType(symbol);
+            requestData.instrument = normalizedInstrument;
+            requestData.market = getMarketType(normalizedInstrument);
             requestData.timeframe = getTimeframe(granularity);
 
             if (string.IsNullOrEmpty(requestData.market))
