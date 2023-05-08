@@ -443,10 +443,10 @@ namespace Algoserver.API.Services
             {
                 return indices;
             }
-            if (cryptoList.Any(_ => _.Equals(symbol, StringComparison.InvariantCultureIgnoreCase)))
-            {
-                return cryptocurrency;
-            }
+            // if (cryptoList.Any(_ => _.Equals(symbol, StringComparison.InvariantCultureIgnoreCase)))
+            // {
+            //     return cryptocurrency;
+            // }
 
             return String.Empty;
         }
