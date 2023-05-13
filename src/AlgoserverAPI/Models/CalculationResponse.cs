@@ -49,6 +49,7 @@ namespace Algoserver.API.Models.REST
     {
         public List<SaRResponse> sar { get; set; }
         public Dictionary<int, List<SaRResponse>> sar_additional { get; set; }
+        public Dictionary<int, RTDCalculationResponse> rtd_additional { get; set; }
         public List<SaRResponse> sar_prediction { get; set; }
         public List<decimal> mema_prediction { get; set; }
         public List<decimal> fama_prediction { get; set; }

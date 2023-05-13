@@ -246,7 +246,7 @@ namespace Algoserver.API.Services
             {
                 highTFGranularity = TimeframeHelper.HOUR4_GRANULARITY;
             }
-            
+
             var cachedResponse = tryGetCalculateMarketInfoV2FromCache(instrument, timeframe);
 
             if (cachedResponse != null)
@@ -418,34 +418,9 @@ namespace Algoserver.API.Services
             var sl_ratio = container.InputStoplossRatio;
             var granularity = AlgoHelper.ConvertTimeframeToGranularity(container.TimeframeInterval, container.TimeframePeriod);
 
-            ScanResponse scanRes = null;
-
             var extendedTrendData = TrendDetector.CalculateByMesaBy2TrendAdjusted(container.CloseD);
             var trend = TrendDetector.MergeTrends(extendedTrendData);
-
-            if (container.TimeframePeriod != "d" && container.TimeframePeriod != "w")
-            {
-                scanRes = _scanner.ScanExt(scanningHistory, dailyScanningHistory, trend, levels, sl_ratio);
-                // if (scanRes == null && granularity >= TimeframeHelper.MIN15_GRANULARITY)
-                // {
-                //     scanRes = _scanner.ScanBRC(scanningHistory, trend, levels, sl_ratio);
-                // }
-            }
-
-            if (scanRes == null)
-            {
-                if (container.TimeframePeriod == "d")
-                {
-                    scanRes = _scanner.ScanSwingOldStrategy(scanningHistory, sl_ratio);
-                }
-                if (container.TimeframePeriod == "h" && container.TimeframeInterval == 4)
-                {
-                    if (!extendedTrendData.IsOverhit)
-                    {
-                        scanRes = _scanner.ScanSwing(scanningHistory, dailyScanningHistory, extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend, levels, sl_ratio);
-                    }
-                }
-            }
+            var scanRes = _scanner.ScanExt(scanningHistory, dailyScanningHistory, trend, levels, sl_ratio);
 
             var size = 0m;
 
@@ -522,6 +497,7 @@ namespace Algoserver.API.Services
                 if (additionalLevels)
                 {
                     result.sar_additional = await CalculateTradeZoneLevels(container);
+                    result.rtd_additional = await CalculateTradeZoneRTD(container);
                 }
 
                 if (predict)
@@ -678,6 +654,72 @@ namespace Algoserver.API.Services
                         });
                     }
                     levelsResult.Add((int)(historicalData.Granularity), sar.TakeLast(150).ToList());
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            return levelsResult;
+        }
+
+        private async Task<Dictionary<int, RTDCalculationResponse>> CalculateTradeZoneRTD(InputDataContainer container)
+        {
+            var levelsResult = new Dictionary<int, RTDCalculationResponse>();
+
+            var granularity = AlgoHelper.ConvertTimeframeToGranularity(container.TimeframeInterval, container.TimeframePeriod);
+            var granularity_list = new List<int>();
+            if (granularity == TimeframeHelper.MIN1_GRANULARITY)
+            {
+                granularity_list.Add(TimeframeHelper.HOUR4_GRANULARITY);
+                granularity_list.Add(TimeframeHelper.DAILY_GRANULARITY);
+            }
+            else if (granularity == TimeframeHelper.MIN5_GRANULARITY)
+            {
+                granularity_list.Add(TimeframeHelper.DAILY_GRANULARITY);
+            }
+            else
+            {
+                return levelsResult;
+            }
+
+            var tasksToWait = new List<Task<HistoryData>>();
+
+            foreach (var g in granularity_list)
+            {
+                try
+                {
+                    var task = _historyService.GetHistory(container.Symbol, g, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+                    tasksToWait.Add(task);
+                }
+                catch (Exception ex)
+                {
+
+                }
+            }
+            try
+            {
+                var historicalDataArray = await Task.WhenAll<HistoryData>(tasksToWait);
+
+                foreach (var historicalData in historicalDataArray)
+                {
+                    var close = historicalData.Bars.Select(_ => _.Close).ToList();
+                    var dates = historicalData.Bars.Select(_ => _.Timestamp).ToList();
+                    var extendedTrendData = TrendDetector.CalculateByMesaBy2TrendAdjusted(close);
+                    levelsResult.Add((int)(historicalData.Granularity),
+                      new RTDCalculationResponse
+                      {
+                          dates = dates.TakeLast(50).ToList(),
+                          fast = extendedTrendData.Fast.TakeLast(50).ToList(),
+                          slow = extendedTrendData.Slow.TakeLast(50).ToList(),
+                          fast_2 = extendedTrendData.Fast2.TakeLast(50).ToList(),
+                          slow_2 = extendedTrendData.Slow2.TakeLast(50).ToList(),
+                          global_trend_spread = extendedTrendData.GlobalTrendSpread,
+                          local_trend_spread = extendedTrendData.LocalTrendSpread,
+                          global_avg = extendedTrendData.GlobalAvg,
+                          local_avg = extendedTrendData.LocalAvg
+                      });
                 }
             }
             catch (Exception ex)
