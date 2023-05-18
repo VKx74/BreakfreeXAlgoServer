@@ -25,7 +25,7 @@ deploy-latest:
     - feature/binance-feed
   script:
   - CONTAINER_IMAGE=$(echo "$CI_REGISTRY/$CI_PROJECT_PATH" | tr '[A-Z]' '[a-z]')
-  - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+  - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
   - docker pull $CONTAINER_IMAGE:latest || true
   - docker build --cache-from $CONTAINER_IMAGE:latest -t $IMAGE_NAME .
   - docker tag $IMAGE_NAME $CONTAINER_IMAGE:latest
@@ -61,7 +61,7 @@ deploy-release:
     - master
   script:
   - CONTAINER_IMAGE=$(echo "$CI_REGISTRY/$CI_PROJECT_PATH" | tr '[A-Z]' '[a-z]')
-  - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+  - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
   - docker pull $CONTAINER_IMAGE:stable || true
   - docker build --cache-from $CONTAINER_IMAGE:stable -t $IMAGE_NAME .
   - docker tag $IMAGE_NAME $CONTAINER_IMAGE:stable
