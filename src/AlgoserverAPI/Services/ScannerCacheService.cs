@@ -115,11 +115,11 @@ namespace Algoserver.API.Services
                 }
                 // "granularity": ['1min', '5min', '15min', '60min', '240min', '1440min'],
                 // "limits": [(0.0325, 0.0325), (0.0085, 0.0085), (0.0032, 0.0032), (0.0012, 0.0012), (0.0007, 0.0007), (0.00039, 0.00039)],
-                var mesa1min = TechCalculations.MESA(calculation_input, 0.0325, 0.0325);
-                var mesa5min = TechCalculations.MESA(calculation_input, 0.0085, 0.0085);
-                var mesa15min = TechCalculations.MESA(calculation_input, 0.0032, 0.0032);
-                var mesa1h = TechCalculations.MESA(calculation_input, 0.0012, 0.0012);
-                var mesa4h = TechCalculations.MESA(calculation_input, 0.0007, 0.0007);
+                var mesa1min = TechCalculations.MESA(calculation_input.TakeLast(14000).ToList(), 0.0325, 0.0325);
+                var mesa5min = TechCalculations.MESA(calculation_input.TakeLast(18000).ToList(), 0.0085, 0.0085);
+                var mesa15min = TechCalculations.MESA(calculation_input.TakeLast(24000).ToList(), 0.0032, 0.0032);
+                var mesa1h = TechCalculations.MESA(calculation_input.TakeLast(32000).ToList(), 0.0012, 0.0012);
+                var mesa4h = TechCalculations.MESA(calculation_input.TakeLast(44000).ToList(), 0.0007, 0.0007);
                 var mesa1d = TechCalculations.MESA(calculation_input, 0.00039, 0.00039);
 
                 SetMinuteMesaCache(mesa1min, minHistory.Datafeed + "_" + minHistory.Symbol + "_60");
