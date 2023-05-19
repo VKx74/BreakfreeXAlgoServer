@@ -27,7 +27,7 @@ namespace Algoserver.API.Services
                 }
             }
 
-            // return instruments.Take(3).ToList();
+            return instruments.Take(20).ToList();
             return instruments;
         }
     }

@@ -111,6 +111,11 @@ namespace Algoserver.API.Services
             {
                 try
                 {
+                    if (minHistory.Bars == null || minHistory == null) 
+                    {
+                        continue;
+                    }
+                    
                     var calculation_input = minHistory.Bars.Select(_ => _.Close);
                     if (calculation_input.Count() < 44000)
                     {
@@ -134,6 +139,7 @@ namespace Algoserver.API.Services
                     count++;
                 }
                 catch (Exception ex) { 
+                    Console.WriteLine(">>> " + minHistory.Symbol);
                     Console.WriteLine(ex);
                 }
             }

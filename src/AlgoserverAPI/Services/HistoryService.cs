@@ -209,7 +209,7 @@ namespace Algoserver.API.Services
                     return result;
                 }
 
-                if (requestCount >= 0)
+                if (requestCount > 0)
                 {
                     Console.WriteLine($"History request count {requestCount} - {symbol} - {granularity} - {bars_count} -> existing {afterCount}");
                 }
