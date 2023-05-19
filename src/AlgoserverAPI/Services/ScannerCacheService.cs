@@ -105,34 +105,42 @@ namespace Algoserver.API.Services
             var stopWatch = new Stopwatch();
             stopWatch.Start();
             var _1Mins = _historyService.Get1MinLongData();
+            var count = 0;
 
             foreach (var minHistory in _1Mins)
             {
-                var calculation_input = minHistory.Bars.Select(_ => _.Close).ToList();
-                if (calculation_input.Count < 40000)
+                try
                 {
-                    continue;
-                }
-                // "granularity": ['1min', '5min', '15min', '60min', '240min', '1440min'],
-                // "limits": [(0.0325, 0.0325), (0.0085, 0.0085), (0.0032, 0.0032), (0.0012, 0.0012), (0.0007, 0.0007), (0.00039, 0.00039)],
-                var mesa1min = TechCalculations.MESA(calculation_input.TakeLast(14000).ToList(), 0.0325, 0.0325);
-                var mesa5min = TechCalculations.MESA(calculation_input.TakeLast(18000).ToList(), 0.0085, 0.0085);
-                var mesa15min = TechCalculations.MESA(calculation_input.TakeLast(24000).ToList(), 0.0032, 0.0032);
-                var mesa1h = TechCalculations.MESA(calculation_input.TakeLast(32000).ToList(), 0.0012, 0.0012);
-                var mesa4h = TechCalculations.MESA(calculation_input.TakeLast(44000).ToList(), 0.0007, 0.0007);
-                var mesa1d = TechCalculations.MESA(calculation_input, 0.00039, 0.00039);
+                    var calculation_input = minHistory.Bars.Select(_ => _.Close);
+                    if (calculation_input.Count() < 44000)
+                    {
+                        continue;
+                    }
+                    // "granularity": ['1min', '5min', '15min', '60min', '240min', '1440min'],
+                    // "limits": [(0.0325, 0.0325), (0.0085, 0.0085), (0.0032, 0.0032), (0.0012, 0.0012), (0.0007, 0.0007), (0.00039, 0.00039)],
+                    var mesa1min = TechCalculations.MESA(calculation_input.TakeLast(14000).ToList(), 0.0325, 0.0325);
+                    var mesa5min = TechCalculations.MESA(calculation_input.TakeLast(18000).ToList(), 0.0085, 0.0085);
+                    var mesa15min = TechCalculations.MESA(calculation_input.TakeLast(24000).ToList(), 0.0032, 0.0032);
+                    var mesa1h = TechCalculations.MESA(calculation_input.TakeLast(32000).ToList(), 0.0012, 0.0012);
+                    var mesa4h = TechCalculations.MESA(calculation_input.TakeLast(44000).ToList(), 0.0007, 0.0007);
+                    var mesa1d = TechCalculations.MESA(calculation_input.ToList(), 0.00039, 0.00039);
 
-                SetMinuteMesaCache(mesa1min, minHistory.Datafeed + "_" + minHistory.Symbol + "_60");
-                SetMinuteMesaCache(mesa5min, minHistory.Datafeed + "_" + minHistory.Symbol + "_300");
-                SetMinuteMesaCache(mesa15min, minHistory.Datafeed + "_" + minHistory.Symbol + "_900");
-                SetMinuteMesaCache(mesa1h, minHistory.Datafeed + "_" + minHistory.Symbol + "_3600");
-                SetMinuteMesaCache(mesa4h, minHistory.Datafeed + "_" + minHistory.Symbol + "_14400");
-                SetMinuteMesaCache(mesa1d, minHistory.Datafeed + "_" + minHistory.Symbol + "_86400");
+                    SetMinuteMesaCache(mesa1min, minHistory.Datafeed + "_" + minHistory.Symbol + "_60");
+                    SetMinuteMesaCache(mesa5min, minHistory.Datafeed + "_" + minHistory.Symbol + "_300");
+                    SetMinuteMesaCache(mesa15min, minHistory.Datafeed + "_" + minHistory.Symbol + "_900");
+                    SetMinuteMesaCache(mesa1h, minHistory.Datafeed + "_" + minHistory.Symbol + "_3600");
+                    SetMinuteMesaCache(mesa4h, minHistory.Datafeed + "_" + minHistory.Symbol + "_14400");
+                    SetMinuteMesaCache(mesa1d, minHistory.Datafeed + "_" + minHistory.Symbol + "_86400");
+                    count++;
+                }
+                catch (Exception ex) { 
+                    Console.WriteLine(ex);
+                }
             }
 
             stopWatch.Stop();
             TimeSpan ts1 = stopWatch.Elapsed;
-            string elapsedTime1 = String.Format(" * 1 min MESA calculation {0:00}:{1:00} - instruments count " + _1Mins.Count, ts1.Minutes, ts1.Seconds);
+            string elapsedTime1 = String.Format(" * 1 min MESA calculation {0:00}:{1:00} - instruments count " + count, ts1.Minutes, ts1.Seconds);
             Console.WriteLine(">>> " + elapsedTime1);
         }
 

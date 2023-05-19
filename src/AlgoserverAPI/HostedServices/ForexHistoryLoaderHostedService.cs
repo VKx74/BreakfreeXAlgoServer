@@ -67,6 +67,7 @@ namespace Algoserver.API.HostedServices
                 }
                 catch (Exception ex)
                 {
+                    Console.WriteLine(ex);
                 }
 
                 await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken).ConfigureAwait(false);
