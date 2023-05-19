@@ -112,24 +112,24 @@ namespace Algoserver.API.Services
             {
                 try
                 {
-                    if (minHistory.Bars == null || minHistory == null) 
+                    if (minHistory.Bars == null || minHistory == null)
                     {
                         continue;
                     }
 
-                    var calculation_input = minHistory.Bars.Select(_ => _.Close).ToList();
-                    if (calculation_input.Count < 44000)
+                    var calculation_input = minHistory.Bars.Select(_ => _.Close);
+                    if (calculation_input.Count() < 45000)
                     {
                         continue;
                     }
                     // "granularity": ['1min', '5min', '15min', '60min', '240min', '1440min'],
                     // "limits": [(0.0325, 0.0325), (0.0085, 0.0085), (0.0032, 0.0032), (0.0012, 0.0012), (0.0007, 0.0007), (0.00039, 0.00039)],
-                    var mesa1min = TechCalculations.MESA(calculation_input, 0.0325, 0.0325);
-                    var mesa5min = TechCalculations.MESA(calculation_input, 0.0085, 0.0085);
-                    var mesa15min = TechCalculations.MESA(calculation_input, 0.0032, 0.0032);
-                    var mesa1h = TechCalculations.MESA(calculation_input, 0.0012, 0.0012);
-                    var mesa4h = TechCalculations.MESA(calculation_input, 0.0007, 0.0007);
-                    var mesa1d = TechCalculations.MESA(calculation_input, 0.00039, 0.00039);
+                    var mesa1min = TechCalculations.MESA(calculation_input.TakeLast(15000).ToList(), 0.0325, 0.0325);
+                    var mesa5min = TechCalculations.MESA(calculation_input.TakeLast(20000).ToList(), 0.0085, 0.0085);
+                    var mesa15min = TechCalculations.MESA(calculation_input.TakeLast(25000).ToList(), 0.0032, 0.0032);
+                    var mesa1h = TechCalculations.MESA(calculation_input.TakeLast(35000).ToList(), 0.0012, 0.0012);
+                    var mesa4h = TechCalculations.MESA(calculation_input.TakeLast(45000).ToList(), 0.0007, 0.0007);
+                    var mesa1d = TechCalculations.MESA(calculation_input.ToList(), 0.00039, 0.00039);
 
                     var task1 = SetMinuteMesaCache(mesa1min, minHistory.Datafeed + "_" + minHistory.Symbol + "_60");
                     var task2 = SetMinuteMesaCache(mesa5min, minHistory.Datafeed + "_" + minHistory.Symbol + "_300");
@@ -140,7 +140,8 @@ namespace Algoserver.API.Services
                     await Task.WhenAll(task1, task2, task3, task4, task5, task6);
                     count++;
                 }
-                catch (Exception ex) { 
+                catch (Exception ex)
+                {
                     Console.WriteLine(">>> " + minHistory.Symbol);
                     Console.WriteLine(ex);
                 }
@@ -156,7 +157,7 @@ namespace Algoserver.API.Services
         {
             try
             {
-                await _cache.SetAsync(_mesaCachePrefix, key.ToLower(), mesa.TakeLast(5000).ToList(), TimeSpan.FromDays(1));
+                await _cache.SetAsync(_mesaCachePrefix, key.ToLower(), mesa.TakeLast(86400).ToList(), TimeSpan.FromDays(1));
             }
             catch (Exception ex) { }
         }
