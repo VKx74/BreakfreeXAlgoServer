@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Algoserver.API.Exceptions;
 using Microsoft.Extensions.Caching.Distributed;
 
@@ -37,6 +38,23 @@ namespace Algoserver.API.Services.CacheServices {
             try
             {
                 _cache.Set(prefix + key, value.ToByteArray(), new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = expiration
+                });
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during update of cache: {ex.Message}");
+            }
+
+            return false;
+        }
+
+        public async Task<bool> SetAsync(string prefix, string key, object value, TimeSpan expiration) {
+            try
+            {
+                await _cache.SetAsync(prefix + key, value.ToByteArray(), new DistributedCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = expiration
                 });

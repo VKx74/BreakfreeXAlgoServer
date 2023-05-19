@@ -61,6 +61,7 @@ namespace Algoserver.API.HostedServices
                     {
                         Console.WriteLine(">>> Stock ScanMarkets start");
                         _scannerCache.ScanMarkets();
+                        // await _scannerCache.CalculateMinuteMesa();
                         Console.WriteLine(">>> Stock ScanMarkets ends");
                     }
                 }

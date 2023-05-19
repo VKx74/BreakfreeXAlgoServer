@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using Algoserver.API.Helpers;
 using Algoserver.API.Models.Algo;
 using Algoserver.API.Models.REST;
@@ -100,7 +101,7 @@ namespace Algoserver.API.Services
             return null;
         }
 
-        public void CalculateMinuteMesa()
+        public async Task CalculateMinuteMesa()
         {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
@@ -130,12 +131,12 @@ namespace Algoserver.API.Services
                     var mesa4h = TechCalculations.MESA(calculation_input, 0.0007, 0.0007);
                     var mesa1d = TechCalculations.MESA(calculation_input, 0.00039, 0.00039);
 
-                    // SetMinuteMesaCache(mesa1min, minHistory.Datafeed + "_" + minHistory.Symbol + "_60");
-                    // SetMinuteMesaCache(mesa5min, minHistory.Datafeed + "_" + minHistory.Symbol + "_300");
-                    // SetMinuteMesaCache(mesa15min, minHistory.Datafeed + "_" + minHistory.Symbol + "_900");
-                    // SetMinuteMesaCache(mesa1h, minHistory.Datafeed + "_" + minHistory.Symbol + "_3600");
-                    // SetMinuteMesaCache(mesa4h, minHistory.Datafeed + "_" + minHistory.Symbol + "_14400");
-                    // SetMinuteMesaCache(mesa1d, minHistory.Datafeed + "_" + minHistory.Symbol + "_86400");
+                    await SetMinuteMesaCache(mesa1min, minHistory.Datafeed + "_" + minHistory.Symbol + "_60");
+                    await SetMinuteMesaCache(mesa5min, minHistory.Datafeed + "_" + minHistory.Symbol + "_300");
+                    await SetMinuteMesaCache(mesa15min, minHistory.Datafeed + "_" + minHistory.Symbol + "_900");
+                    await SetMinuteMesaCache(mesa1h, minHistory.Datafeed + "_" + minHistory.Symbol + "_3600");
+                    await SetMinuteMesaCache(mesa4h, minHistory.Datafeed + "_" + minHistory.Symbol + "_14400");
+                    await SetMinuteMesaCache(mesa1d, minHistory.Datafeed + "_" + minHistory.Symbol + "_86400");
                     count++;
                 }
                 catch (Exception ex) { 
@@ -150,11 +151,11 @@ namespace Algoserver.API.Services
             Console.WriteLine(">>> " + elapsedTime1);
         }
 
-        private void SetMinuteMesaCache(MESAData[] mesa, string key)
+        private async Task SetMinuteMesaCache(MESAData[] mesa, string key)
         {
             try
             {
-                _cache.Set(_mesaCachePrefix, key.ToLower(), mesa.TakeLast(10000).ToList(), TimeSpan.FromDays(1));
+                await _cache.SetAsync(_mesaCachePrefix, key.ToLower(), mesa.TakeLast(10000).ToList(), TimeSpan.FromDays(1));
             }
             catch (Exception ex) { }
         }
