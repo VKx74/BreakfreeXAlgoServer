@@ -131,12 +131,13 @@ namespace Algoserver.API.Services
                     var mesa4h = TechCalculations.MESA(calculation_input, 0.0007, 0.0007);
                     var mesa1d = TechCalculations.MESA(calculation_input, 0.00039, 0.00039);
 
-                    await SetMinuteMesaCache(mesa1min, minHistory.Datafeed + "_" + minHistory.Symbol + "_60");
-                    await SetMinuteMesaCache(mesa5min, minHistory.Datafeed + "_" + minHistory.Symbol + "_300");
-                    await SetMinuteMesaCache(mesa15min, minHistory.Datafeed + "_" + minHistory.Symbol + "_900");
-                    await SetMinuteMesaCache(mesa1h, minHistory.Datafeed + "_" + minHistory.Symbol + "_3600");
-                    await SetMinuteMesaCache(mesa4h, minHistory.Datafeed + "_" + minHistory.Symbol + "_14400");
-                    await SetMinuteMesaCache(mesa1d, minHistory.Datafeed + "_" + minHistory.Symbol + "_86400");
+                    var task1 = SetMinuteMesaCache(mesa1min, minHistory.Datafeed + "_" + minHistory.Symbol + "_60");
+                    var task2 = SetMinuteMesaCache(mesa5min, minHistory.Datafeed + "_" + minHistory.Symbol + "_300");
+                    var task3 = SetMinuteMesaCache(mesa15min, minHistory.Datafeed + "_" + minHistory.Symbol + "_900");
+                    var task4 = SetMinuteMesaCache(mesa1h, minHistory.Datafeed + "_" + minHistory.Symbol + "_3600");
+                    var task5 = SetMinuteMesaCache(mesa4h, minHistory.Datafeed + "_" + minHistory.Symbol + "_14400");
+                    var task6 = SetMinuteMesaCache(mesa1d, minHistory.Datafeed + "_" + minHistory.Symbol + "_86400");
+                    await Task.WhenAll(task1, task2, task3, task4, task5, task6);
                     count++;
                 }
                 catch (Exception ex) { 
