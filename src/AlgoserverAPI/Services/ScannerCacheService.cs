@@ -157,7 +157,7 @@ namespace Algoserver.API.Services
         {
             try
             {
-                await _cache.SetAsync(_mesaCachePrefix, key.ToLower(), mesa.TakeLast(86400).ToList(), TimeSpan.FromDays(1));
+                await _cache.SetAsync(_mesaCachePrefix, key.ToLower(), mesa.TakeLast(8640).ToList(), TimeSpan.FromDays(1));
             }
             catch (Exception ex) { }
         }
