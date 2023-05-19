@@ -129,13 +129,15 @@ namespace Algoserver.API.Services
                     var mesa1h = TechCalculations.MESA(calculation_input, 0.0012, 0.0012);
                     var mesa4h = TechCalculations.MESA(calculation_input, 0.0007, 0.0007);
                     var mesa1d = TechCalculations.MESA(calculation_input, 0.00039, 0.00039);
+                    var res = new Dictionary<int, List<MESAData>>();
+                    res.Add(60, mesa1min.TakeLast(10000).ToList());
+                    res.Add(300, mesa5min.TakeLast(10000).ToList());
+                    res.Add(900, mesa15min.TakeLast(10000).ToList());
+                    res.Add(3600, mesa1h.TakeLast(10000).ToList());
+                    res.Add(14400, mesa4h.TakeLast(10000).ToList());
+                    res.Add(86400, mesa1d.TakeLast(10000).ToList());
 
-                    SetMinuteMesaCache(mesa1min, minHistory.Datafeed + "_" + minHistory.Symbol + "_60");
-                    SetMinuteMesaCache(mesa5min, minHistory.Datafeed + "_" + minHistory.Symbol + "_300");
-                    SetMinuteMesaCache(mesa15min, minHistory.Datafeed + "_" + minHistory.Symbol + "_900");
-                    SetMinuteMesaCache(mesa1h, minHistory.Datafeed + "_" + minHistory.Symbol + "_3600");
-                    SetMinuteMesaCache(mesa4h, minHistory.Datafeed + "_" + minHistory.Symbol + "_14400");
-                    SetMinuteMesaCache(mesa1d, minHistory.Datafeed + "_" + minHistory.Symbol + "_86400");
+                    SetMinuteMesaCache(res, minHistory.Datafeed + "_" + minHistory.Symbol);
                     count++;
                 }
                 catch (Exception ex) { 
@@ -150,11 +152,11 @@ namespace Algoserver.API.Services
             Console.WriteLine(">>> " + elapsedTime1);
         }
 
-        private void SetMinuteMesaCache(MESAData[] mesa, string key)
+        private void SetMinuteMesaCache(Dictionary<int, List<MESAData>> mesa, string key)
         {
             try
             {
-                _cache.Set(_mesaCachePrefix, key.ToLower(), mesa.TakeLast(10000).ToList(), TimeSpan.FromDays(1));
+                _cache.Set(_mesaCachePrefix, key.ToLower(), mesa, TimeSpan.FromDays(1));
             }
             catch (Exception ex) { }
         }

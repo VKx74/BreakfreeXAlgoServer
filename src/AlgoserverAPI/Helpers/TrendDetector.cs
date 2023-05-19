@@ -59,24 +59,24 @@ namespace Algoserver.API.Helpers
             var trendsStrength = TrendDetector.MeasureTrendsStrength(mesa_global, mesa_local);
             var isOverhit = false;
 
-            if (mesa_global_value.Fast > mesa_global_value.Slow)
+            if (mesa_global_value.F > mesa_global_value.S)
             {
-                if (mesa_global_value.Slow > mesa_local_value.Slow && mesa_global_value.Slow > mesa_local_value.Fast)
+                if (mesa_global_value.S > mesa_local_value.S && mesa_global_value.S > mesa_local_value.F)
                 {
                     isOverhit = true;
                 }
             }
-            else if (mesa_global_value.Fast < mesa_global_value.Slow)
+            else if (mesa_global_value.F < mesa_global_value.S)
             {
-                if (mesa_global_value.Slow < mesa_local_value.Slow && mesa_global_value.Slow < mesa_local_value.Fast)
+                if (mesa_global_value.S < mesa_local_value.S && mesa_global_value.S < mesa_local_value.F)
                 {
                     isOverhit = true;
                 }
             }
 
             return new ExtendedTrendResult {
-                GlobalTrend = mesa_global_value.Fast > mesa_global_value.Slow ? Trend.Up : Trend.Down,
-                LocalTrend = mesa_local_value.Fast > mesa_local_value.Slow ? Trend.Up : Trend.Down,
+                GlobalTrend = mesa_global_value.F > mesa_global_value.S ? Trend.Up : Trend.Down,
+                LocalTrend = mesa_local_value.F > mesa_local_value.S ? Trend.Up : Trend.Down,
                 LocalTrendSpread = trendsStrength.LocalTrendSpread,
                 GlobalTrendSpread = trendsStrength.GlobalTrendSpread,
                 LocalTrendSpreadValue = trendsStrength.LocalTrendSpreadValue,
@@ -88,10 +88,10 @@ namespace Algoserver.API.Helpers
                 GlobalAvg = trendsStrength.GlobalAvg,
                 LocalAvg = trendsStrength.LocalAvg,
                 IsOverhit = isOverhit,
-                Fast = mesa_local.Select(_ => _.Fast).ToList(),
-                Slow = mesa_local.Select(_ => _.Slow).ToList(),
-                Fast2 = mesa_global.Select(_ => _.Fast).ToList(),
-                Slow2 = mesa_global.Select(_ => _.Slow).ToList(),
+                Fast = mesa_local.Select(_ => _.F).ToList(),
+                Slow = mesa_local.Select(_ => _.S).ToList(),
+                Fast2 = mesa_global.Select(_ => _.F).ToList(),
+                Slow2 = mesa_global.Select(_ => _.S).ToList(),
             };
         }
         
@@ -111,13 +111,13 @@ namespace Algoserver.API.Helpers
 
             for (var i = 1; i < count_global; i++) {
                 var global = mesa_global[length - i];
-                var globalSpread = Math.Abs(global.Fast - global.Slow);
+                var globalSpread = Math.Abs(global.F - global.S);
                 global_spreads.Add(globalSpread);
             }
 
             for (var i = 1; i < count_local; i++) {
                 var local = mesa_local[length - i];
-                var localSpread = Math.Abs(local.Fast - local.Slow);
+                var localSpread = Math.Abs(local.F - local.S);
                 local_spreads.Add(localSpread);
             }
 
@@ -134,10 +134,10 @@ namespace Algoserver.API.Helpers
                 GlobalTrendSpread = globalTrendDiff,
                 LocalTrendSpreadValue = local_current,
                 GlobalTrendSpreadValue = global_current,
-                GlobalFastValue = length > 0 ? mesa_global[length - 1].Fast : 0,
-                GlobalSlowValue = length > 0 ? mesa_global[length - 1].Slow : 0,
-                LocalFastValue = length > 0 ? mesa_local[length - 1].Fast : 0,
-                LocalSlowValue = length > 0 ? mesa_local[length - 1].Slow : 0,
+                GlobalFastValue = length > 0 ? mesa_global[length - 1].F : 0,
+                GlobalSlowValue = length > 0 ? mesa_global[length - 1].S : 0,
+                LocalFastValue = length > 0 ? mesa_local[length - 1].F : 0,
+                LocalSlowValue = length > 0 ? mesa_local[length - 1].S : 0,
                 GlobalAvg = global_avg,
                 LocalAvg = local_avg
             };
@@ -151,34 +151,34 @@ namespace Algoserver.API.Helpers
             var mesa_global_value = mesa_global.LastOrDefault();
             var mesa_local_value = mesa_local.LastOrDefault();
 
-            if (mesa_global_value.Fast == Decimal.Zero || mesa_global_value.Slow == Decimal.Zero)
+            if (mesa_global_value.F == Decimal.Zero || mesa_global_value.S == Decimal.Zero)
             {
                 return Trend.Undefined;
             }
 
-            if (mesa_local_value.Fast == Decimal.Zero || mesa_local_value.Slow == Decimal.Zero)
+            if (mesa_local_value.F == Decimal.Zero || mesa_local_value.S == Decimal.Zero)
             {
                 return Trend.Undefined;
             }
 
             var lastPrice = data.LastOrDefault();
-            var currentDiff = Math.Abs(mesa_global_value.Fast - mesa_global_value.Slow) / lastPrice * 100;
+            var currentDiff = Math.Abs(mesa_global_value.F - mesa_global_value.S) / lastPrice * 100;
             if (currentDiff < diff)
             {
                 return Trend.Undefined;
             }
 
-            if (mesa_global_value.Fast > mesa_global_value.Slow)
+            if (mesa_global_value.F > mesa_global_value.S)
             {
-                if (mesa_global_value.Slow > mesa_local_value.Slow && mesa_global_value.Slow > mesa_local_value.Fast)
+                if (mesa_global_value.S > mesa_local_value.S && mesa_global_value.S > mesa_local_value.F)
                 {
                     return Trend.Undefined;
                 }
                 return Trend.Up;
             }
-            else if (mesa_global_value.Fast < mesa_global_value.Slow)
+            else if (mesa_global_value.F < mesa_global_value.S)
             {
-                if (mesa_global_value.Slow < mesa_local_value.Slow && mesa_global_value.Slow < mesa_local_value.Fast)
+                if (mesa_global_value.S < mesa_local_value.S && mesa_global_value.S < mesa_local_value.F)
                 {
                     return Trend.Undefined;
                 }
