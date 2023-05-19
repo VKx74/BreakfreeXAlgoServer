@@ -201,5 +201,32 @@ namespace Algoserver.API.Controllers
             var result = await _algoService.CalculateMarketInfoAsync(request);
             return await ToEncryptedResponse(result, HttpContext.RequestAborted);
         }
+        
+        [HttpGet(Routes.TrendsGlobal)]
+        [ProducesResponseType(typeof(MesaResponse), 200)]
+        public async Task<IActionResult> GetMesaGlobalAsync([FromQuery] string symbol, [FromQuery] string datafeed, [FromQuery] int granularity = -1)
+        {
+            if (!ModelState.IsValid)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
+            }
+
+            var result = await _algoService.GetMesaAsync(symbol, datafeed, granularity);
+            return Json(result);
+        }
+
+        [Authorize]
+        [HttpGet(Routes.Trends)]
+        [ProducesResponseType(typeof(Response<MesaResponse>), 200)]
+        public async Task<IActionResult> GetMesaAsync([FromQuery] string symbol, [FromQuery] string datafeed, [FromQuery] int granularity = -1)
+        {
+            if (!ModelState.IsValid)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
+            }
+
+            var result = await _algoService.GetMesaAsync(symbol, datafeed, granularity);
+            return await ToEncryptedResponse(result, HttpContext.RequestAborted);
+        }
     }
 }

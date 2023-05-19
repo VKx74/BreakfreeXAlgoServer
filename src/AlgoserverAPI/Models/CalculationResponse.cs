@@ -271,4 +271,26 @@ namespace Algoserver.API.Models.REST
         public List<MLDataResponseItem> data { get; set; }
     }
 
+    public class BarResponse
+    {
+        public decimal o { get; set; }
+        public decimal h { get; set; }
+        public decimal l { get; set; }
+        public decimal c { get; set; }
+        public decimal v { get; set; }
+        public long t { get; set; }
+    }
+
+    public class MesaLevelResponse
+    {
+        public decimal f { get; set; }
+        public decimal s { get; set; }
+    }
+
+    public class MesaResponse
+    {
+        public List<BarResponse> bars { get; set; }
+        public Dictionary<int, List<MesaLevelResponse>> mesa { get; set; }
+    }
+
 }

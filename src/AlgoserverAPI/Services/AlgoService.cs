@@ -6,6 +6,7 @@ using Algoserver.API.Helpers;
 using Algoserver.API.Models.Algo;
 using Algoserver.API.Models.REST;
 using Algoserver.API.Services.CacheServices;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace Algoserver.API.Services
@@ -163,6 +164,14 @@ namespace Algoserver.API.Services
             return Task.Run(() =>
             {
                 return calculateV3Async(req);
+            });
+        }
+
+        public Task<MesaResponse> GetMesaAsync(string symbol, string datafeed, int granularity)
+        {
+            return Task.Run(() =>
+            {
+                return getMesaAsync(symbol, datafeed, granularity);
             });
         }
 
@@ -940,5 +949,66 @@ namespace Algoserver.API.Services
             return res;
         }
 
+        public MesaResponse getMesaAsync(string symbol, string datafeed, int granularity)
+        {
+            var granularityList = new List<int>();
+            if (granularity > 0)
+            {
+                granularityList.Add(granularity);
+            }
+            else
+            {
+                granularityList.Add(60);
+                granularityList.Add(300);
+                granularityList.Add(900);
+                granularityList.Add(3600);
+                granularityList.Add(14400);
+                granularityList.Add(86400);
+            }
+
+            var hisotryCachePrefix = "HistoryCache_";
+            var mesaCachePrefix = "MesaCache_";
+            var mesa = new Dictionary<int, List<MesaLevelResponse>>();
+            foreach (var g in granularityList)
+            {
+                var hash = datafeed + "_" + symbol + "_" + g.ToString();
+                try
+                {
+                    if (_cache.TryGetValue<List<MESAData>>(mesaCachePrefix, hash.ToLower(), out var data))
+                    {
+                        mesa.Add(g, data.Select((_) => new MesaLevelResponse
+                        {
+                            f = _.Fast,
+                            s = _.Slow
+                        }).ToList());
+                    }
+                }
+                catch (Exception ex) { }
+            }
+
+            var bars = new List<BarResponse>();
+            try
+            {
+                var hash = datafeed + "_" + symbol + "_60";
+                if (_cache.TryGetValue<List<BarMessage>>(hisotryCachePrefix, hash.ToLower(), out var data))
+                {
+                    bars.AddRange(data.Select((_) => new BarResponse
+                    {
+                        o = _.Open,
+                        h = _.High,
+                        l = _.Low,
+                        c = _.Close,
+                        v = _.Volume,
+                        t = _.Timestamp
+                    }));
+                }
+            }
+            catch (Exception ex) { }
+
+            return new MesaResponse {
+                bars = bars,
+                mesa = mesa
+            };
+        }
     }
 }

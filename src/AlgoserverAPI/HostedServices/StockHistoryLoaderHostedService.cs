@@ -9,6 +9,7 @@ namespace Algoserver.API.HostedServices
 {
     public class StockHistoryLoaderHostedService : BackgroundService
     {
+        private int _prevDay = -1;
         private int _prevHour = -1;
         private int _prevMin = -1;
         private readonly ILogger<StockHistoryLoaderHostedService> _logger;
@@ -28,9 +29,17 @@ namespace Algoserver.API.HostedServices
             {
                 try
                 {
+                    var currentDay = DateTime.UtcNow.Day;
                     var currentHour = DateTime.UtcNow.Hour;
                     var currentMinute = DateTime.UtcNow.Minute;
                     var scanRequired = false;
+
+                    // if (currentDay != _prevDay)
+                    // {
+                    //     var result = await _scannerHistory.Refresh1MinLongHistory();
+                    //     _scannerCache.RefreshLongMinuteHistoryTime = result;
+                    // }
+
                     if (currentHour != _prevHour)
                     {
                         var result = await _scannerHistory.RefreshAll();
@@ -44,6 +53,7 @@ namespace Algoserver.API.HostedServices
                         scanRequired = true;
                     }
 
+                    _prevDay = currentDay;
                     _prevHour = currentHour;
                     _prevMin = currentMinute;
 

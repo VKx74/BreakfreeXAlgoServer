@@ -23,6 +23,8 @@
         public const string RefreshInstruments = "refresh_instruments";
         public const string ScannerResults = "scanner_results";
         public const string ScannerHistoryResults = "scanner_history_results";
+        public const string TrendsGlobal = "trends-global";
+        public const string Trends = "trends";
         public const string Version = "version";
     }
 }

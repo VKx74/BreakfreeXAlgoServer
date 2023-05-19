@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using Algoserver.API.Helpers;
 using Algoserver.API.Models.REST;
+using Algoserver.API.Services.CacheServices;
 
 namespace Algoserver.API.Services
 {
     public class ScannerStockHistoryService : ScannerHistoryService
     {
-        public ScannerStockHistoryService(HistoryService historyService, InstrumentService instrumentService): base(historyService, instrumentService)
+        public ScannerStockHistoryService(HistoryService historyService, InstrumentService instrumentService, ICacheService cache): base(historyService, instrumentService, cache)
         {
         }
 
@@ -25,7 +26,8 @@ namespace Algoserver.API.Services
                     }
                 }
             }
-            
+
+            // return instruments.Take(3).ToList();
             return instruments;
         }
     }

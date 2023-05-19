@@ -61,6 +61,7 @@ namespace Algoserver.API.Helpers
         }
     }
 
+    [Serializable]
     public class MESAData
     {
         public decimal Fast { get; set; }
