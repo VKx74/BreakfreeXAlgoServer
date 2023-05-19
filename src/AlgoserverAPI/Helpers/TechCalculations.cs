@@ -64,8 +64,8 @@ namespace Algoserver.API.Helpers
     [Serializable]
     public class MESAData
     {
-        public decimal F { get; set; }
-        public decimal S { get; set; }
+        public decimal Fast { get; set; }
+        public decimal Slow { get; set; }
     }
 
     public class LookBackResult
@@ -413,8 +413,8 @@ namespace Algoserver.API.Helpers
                 // prevOscillatorPoint = _getOscillatorPoint(data, i, prevOscillatorPoint);
                 res.Add(new MESAData
                 {
-                    F = (decimal)(memaValue),
-                    S = (decimal)(famaValue)
+                    Fast = (decimal)(memaValue),
+                    Slow = (decimal)(famaValue)
                 });
 
                 prevMema = memaValue;

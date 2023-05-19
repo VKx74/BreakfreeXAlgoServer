@@ -951,29 +951,40 @@ namespace Algoserver.API.Services
 
         public MesaResponse getMesaAsync(string symbol, string datafeed, int granularity)
         {
+            var granularityList = new List<int>();
+            if (granularity > 0)
+            {
+                granularityList.Add(granularity);
+            }
+            else
+            {
+                granularityList.Add(60);
+                granularityList.Add(300);
+                granularityList.Add(900);
+                granularityList.Add(3600);
+                granularityList.Add(14400);
+                granularityList.Add(86400);
+            }
+
             var hisotryCachePrefix = "HistoryCache_";
             var mesaCachePrefix = "MesaCache_";
             var mesa = new Dictionary<int, List<MesaLevelResponse>>();
-            try
+            foreach (var g in granularityList)
             {
-                var hash = datafeed + "_" + symbol;
-                if (_cache.TryGetValue<Dictionary<int, List<MESAData>>>(mesaCachePrefix, hash.ToLower(), out var data))
+                var hash = datafeed + "_" + symbol + "_" + g.ToString();
+                try
                 {
-                    foreach (var mesaKeyPair in data)
+                    if (_cache.TryGetValue<List<MESAData>>(mesaCachePrefix, hash.ToLower(), out var data))
                     {
-                        if (granularity > 0 && granularity != mesaKeyPair.Key)
+                        mesa.Add(g, data.Select((_) => new MesaLevelResponse
                         {
-                            continue;
-                        }
-                        mesa.Add(mesaKeyPair.Key, mesaKeyPair.Value.Select((_) => new MesaLevelResponse
-                        {
-                            f = _.F,
-                            s = _.S
+                            f = _.Fast,
+                            s = _.Slow
                         }).ToList());
                     }
                 }
+                catch (Exception ex) { }
             }
-            catch (Exception ex) { }
 
             var bars = new List<BarResponse>();
             try
@@ -994,8 +1005,7 @@ namespace Algoserver.API.Services
             }
             catch (Exception ex) { }
 
-            return new MesaResponse
-            {
+            return new MesaResponse {
                 bars = bars,
                 mesa = mesa
             };
