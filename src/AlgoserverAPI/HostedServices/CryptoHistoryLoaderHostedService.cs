@@ -34,11 +34,11 @@ namespace Algoserver.API.HostedServices
                     var currentMinute = DateTime.UtcNow.Minute;
                     var scanRequired = false;
 
-                    // if (currentDay != _prevDay)
-                    // {
-                    //     var result = await _scannerHistory.Refresh1MinLongHistory();
-                    //     _scannerCache.RefreshLongMinuteHistoryTime = result;
-                    // }
+                    if (currentDay != _prevDay)
+                    {
+                        var result = await _scannerHistory.Refresh1MinLongHistory();
+                        _scannerCache.RefreshLongMinuteHistoryTime = result;
+                    }
 
                     if (currentHour != _prevHour)
                     {
@@ -61,7 +61,7 @@ namespace Algoserver.API.HostedServices
                     {
                         Console.WriteLine(">>> Crypto ScanMarkets start");
                         _scannerCache.ScanMarkets();
-                        // await _scannerCache.CalculateMinuteMesa();
+                        await _scannerCache.CalculateMinuteMesa();
                         Console.WriteLine(">>> Crypto ScanMarkets ends");
                     }
                 }

@@ -293,4 +293,11 @@ namespace Algoserver.API.Models.REST
         public Dictionary<int, List<MesaLevelResponse>> mesa { get; set; }
     }
 
+    public class MesaSummaryResponse
+    {
+        public string symbol { get; set; }
+        public string datafeed { get; set; }
+        public Dictionary<int, MesaLevelResponse> strength { get; set; }
+    }
+
 }

@@ -27,7 +27,39 @@ namespace Algoserver.API.Services
                     }
                 }
             } 
-            // return instruments.Take(20).ToList();
+            // return instruments.Take(5).ToList();
+            return instruments;
+        }  
+        
+        protected override List<IInstrument> _getInstrumentsForLongHistory() 
+        {
+            var instruments = new List<IInstrument>();
+            var forexInstruments = _instrumentService.GetOandaInstruments();
+            var allowedForex = InstrumentsHelper.ForexInstrumentList;
+
+            foreach (var instrument in forexInstruments) {
+                if (allowedForex.Any(_ => String.Equals(_.Replace("_", "").Replace("/", ""), instrument.Symbol.Replace("_", "").Replace("/", ""), StringComparison.InvariantCultureIgnoreCase))) {
+                    if (!instruments.Any(_ => String.Equals(_.Symbol, instrument.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, instrument.Exchange, StringComparison.InvariantCultureIgnoreCase))) {
+                        instruments.Add(instrument);
+                    }
+                }
+            } 
+            instruments.Add(new OandaInstruments {
+                Datafeed = "Oanda",
+                Exchange = "Oanda",
+                Symbol = "BTC_USD",
+                Type = "Crypto",
+                PricePrecision = 0.00000001m
+            });
+            instruments.Add(new OandaInstruments {
+                Datafeed = "Oanda",
+                Exchange = "Oanda",
+                Symbol = "ETH_USD",
+                Type = "Crypto",
+                PricePrecision = 0.00000001m
+            });
+
+            // return instruments.Take(5).ToList();
             return instruments;
         }
     }

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Algoserver.API.Models.REST;
 
 namespace Algoserver.API.Services
@@ -27,6 +29,30 @@ namespace Algoserver.API.Services
             {
                 items = res1
             };
+        }
+
+        public List<MesaSummaryResponse> GetMesaSummary()
+        {
+            var res1 = _forex.GetMesaSummary();
+            var res2 = _stock.GetMesaSummary();
+            var res3 = _crypto.GetMesaSummary();
+            res1.AddRange(res2);
+            res1.AddRange(res3);
+
+            var result = new List<MesaSummaryResponse>();
+            foreach (var r in res1) 
+            {
+                result.Add(new MesaSummaryResponse {
+                    datafeed = r.Datafeed,
+                    symbol = r.Symbol,
+                    strength = r.Strength.ToDictionary((_) => _.Key, (_) => new MesaLevelResponse {
+                        f = _.Value.Fast,
+                        s = _.Value.Slow
+                    })
+                });
+            }
+
+            return result;
         }
 
         public ScannerHistoryResponse GetHistoryData()

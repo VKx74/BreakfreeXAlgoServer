@@ -85,7 +85,7 @@ namespace Algoserver.API.Services
 
         public async Task<string> Refresh1MinLongHistory()
         {
-            var instruments = this._getInstruments();
+            var instruments = this._getInstrumentsForLongHistory();
             var stopWatch = new Stopwatch();
             var tasks1min = new List<HistoryRequest>();
             foreach (var instrument in instruments)
@@ -661,5 +661,6 @@ namespace Algoserver.API.Services
         }
 
         protected abstract List<IInstrument> _getInstruments();
+        protected abstract List<IInstrument> _getInstrumentsForLongHistory();
     }
 }

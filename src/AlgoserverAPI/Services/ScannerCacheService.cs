@@ -79,6 +79,16 @@ namespace Algoserver.API.Services
 
             return new List<ScannerResponseItem>();
         }
+        
+        public List<MESADataSummary> GetMesaSummary()
+        {
+            if (_cache.TryGetValue(cachePrefix(), "mesa_data_summary", out List<MESADataSummary> cachedResponse))
+            {
+                return cachedResponse.ToList();
+            }
+
+            return new List<MESADataSummary>();
+        }
 
         public List<ScannerResponseHistoryItem> GetHistoryData()
         {
@@ -107,6 +117,7 @@ namespace Algoserver.API.Services
             stopWatch.Start();
             var _1Mins = _historyService.Get1MinLongData();
             var count = 0;
+            var summary = new List<MESADataSummary>();
 
             foreach (var minHistory in _1Mins)
             {
@@ -139,12 +150,37 @@ namespace Algoserver.API.Services
                     var task6 = SetMinuteMesaCache(mesa1d, minHistory.Datafeed + "_" + minHistory.Symbol + "_86400");
                     await Task.WhenAll(task1, task2, task3, task4, task5, task6);
                     count++;
+
+                    var tfSummary = new Dictionary<int, MESAData>();
+                    tfSummary.Add(60, mesa1min.LastOrDefault());
+                    tfSummary.Add(300, mesa5min.LastOrDefault());
+                    tfSummary.Add(900, mesa15min.LastOrDefault());
+                    tfSummary.Add(3600, mesa1h.LastOrDefault());
+                    tfSummary.Add(14400, mesa4h.LastOrDefault());
+                    tfSummary.Add(86400, mesa1d.LastOrDefault());
+
+                    summary.Add(new MESADataSummary
+                    {
+                        Symbol = minHistory.Symbol,
+                        Datafeed = minHistory.Datafeed,
+                        Strength = tfSummary
+                    });
+
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine(">>> " + minHistory.Symbol);
                     Console.WriteLine(ex);
                 }
+            }
+
+            try
+            {
+                await SetMesaSummaryCache(summary);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
             }
 
             stopWatch.Stop();
@@ -158,6 +194,15 @@ namespace Algoserver.API.Services
             try
             {
                 await _cache.SetAsync(_mesaCachePrefix, key.ToLower(), mesa.TakeLast(8640).ToList(), TimeSpan.FromDays(1));
+            }
+            catch (Exception ex) { }
+        }
+
+        private async Task SetMesaSummaryCache(List<MESADataSummary> mesa)
+        {
+            try
+            {
+                await _cache.SetAsync(cachePrefix(), "mesa_data_summary", mesa, TimeSpan.FromDays(1));
             }
             catch (Exception ex) { }
         }

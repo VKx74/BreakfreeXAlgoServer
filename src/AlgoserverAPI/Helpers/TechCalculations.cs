@@ -5,6 +5,15 @@ using Algoserver.API.Models.Algo;
 
 namespace Algoserver.API.Helpers
 {
+
+    [Serializable]
+    public class MESADataSummary
+    {
+        public string Symbol { get; set; }
+        public string Datafeed { get; set; }
+        public Dictionary<int, MESAData> Strength { get; set; }
+    }
+    
     public class TradeZone
     {
         public decimal OutsideUpper { get; set; }
