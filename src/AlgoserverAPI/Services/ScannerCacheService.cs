@@ -197,12 +197,12 @@ namespace Algoserver.API.Services
                         Strength = tfSummary,
                         AvgStrength = tfAvgSummary,
                         LastPrice = calculation_input.LastOrDefault(),
-                        Price60 = calculation_input.ElementAt(length - 60),
-                        Price300 = calculation_input.ElementAt(length - 300),
-                        Price900 = calculation_input.ElementAt(length - 900),
-                        Price3600 = calculation_input.ElementAt(length - 3600),
-                        Price14400 = calculation_input.ElementAt(length - 14400),
-                        Price86400 = calculation_input.ElementAt(length - 86400),
+                        Price60 = calculation_input.ElementAt(length - 1),
+                        Price300 = calculation_input.ElementAt(length - 5),
+                        Price900 = calculation_input.ElementAt(length - 15),
+                        Price3600 = calculation_input.ElementAt(length - 60),
+                        Price14400 = calculation_input.ElementAt(length - 240),
+                        Price86400 = calculation_input.ElementAt(length - 1440),
                     });
 
                 }
