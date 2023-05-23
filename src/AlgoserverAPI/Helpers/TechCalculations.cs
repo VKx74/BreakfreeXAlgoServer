@@ -12,6 +12,7 @@ namespace Algoserver.API.Helpers
         public string Symbol { get; set; }
         public string Datafeed { get; set; }
         public Dictionary<int, MESAData> Strength { get; set; }
+        public Dictionary<int, decimal> AvgStrength { get; set; }
     }
     
     public class TradeZone

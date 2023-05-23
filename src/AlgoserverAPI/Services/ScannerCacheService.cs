@@ -20,6 +20,17 @@ namespace Algoserver.API.Services
         {
             return "ForexScanner_";
         }
+
+        protected override bool scanSymbol(string symbol)
+        {
+            if (String.Equals(symbol, "BTC_USD", StringComparison.InvariantCultureIgnoreCase)) {
+                return false;
+            }
+            if (String.Equals(symbol, "ETH_USD", StringComparison.InvariantCultureIgnoreCase)) {
+                return false;
+            }
+            return true;
+        }
     }
 
     public class ScannerStockCacheService : ScannerCacheService
@@ -31,6 +42,11 @@ namespace Algoserver.API.Services
         {
             return "StockScanner_";
         }
+
+        protected override bool scanSymbol(string symbol)
+        {
+            return true;
+        }
     }
 
     public class ScannerCryptoCacheService : ScannerCacheService
@@ -41,6 +57,11 @@ namespace Algoserver.API.Services
         protected override string cachePrefix()
         {
             return "CryptoScanner_";
+        }
+
+        protected override bool scanSymbol(string symbol)
+        {
+            return true;
         }
     }
 
@@ -159,11 +180,20 @@ namespace Algoserver.API.Services
                     tfSummary.Add(14400, mesa4h.LastOrDefault());
                     tfSummary.Add(86400, mesa1d.LastOrDefault());
 
+                    var tfAvgSummary = new Dictionary<int, decimal>();
+                    tfAvgSummary.Add(60, mesa1min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1min.Length);
+                    tfAvgSummary.Add(300, mesa5min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa5min.Length);
+                    tfAvgSummary.Add(900, mesa15min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa15min.Length);
+                    tfAvgSummary.Add(3600, mesa1h.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1h.Length);
+                    tfAvgSummary.Add(14400, mesa4h.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa4h.Length);
+                    tfAvgSummary.Add(86400, mesa1d.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1d.Length);
+
                     summary.Add(new MESADataSummary
                     {
                         Symbol = minHistory.Symbol,
                         Datafeed = minHistory.Datafeed,
-                        Strength = tfSummary
+                        Strength = tfSummary,
+                        AvgStrength = tfAvgSummary
                     });
 
                 }
@@ -222,6 +252,10 @@ namespace Algoserver.API.Services
             {
                 if (dailyHistory == null || dailyHistory.Bars.Count() < 200)
                 {
+                    continue;
+                }
+
+                if (!scanSymbol(dailyHistory.Symbol)) {
                     continue;
                 }
 
@@ -491,5 +525,7 @@ namespace Algoserver.API.Services
         }
 
         protected abstract string cachePrefix();
+
+        protected abstract bool scanSymbol(string symbol);
     }
 }

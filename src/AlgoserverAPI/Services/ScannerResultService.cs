@@ -48,7 +48,8 @@ namespace Algoserver.API.Services
                     strength = r.Strength.ToDictionary((_) => _.Key, (_) => new MesaLevelResponse {
                         f = _.Value.Fast,
                         s = _.Value.Slow
-                    })
+                    }),
+                    avg_strength = r.AvgStrength
                 });
             }
 
