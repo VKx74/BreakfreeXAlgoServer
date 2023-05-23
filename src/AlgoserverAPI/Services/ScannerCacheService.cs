@@ -144,7 +144,7 @@ namespace Algoserver.API.Services
             {
                 try
                 {
-                    if (minHistory.Bars == null || minHistory == null)
+                    if (minHistory == null || minHistory.Bars == null)
                     {
                         continue;
                     }
