@@ -299,6 +299,13 @@ namespace Algoserver.API.Models.REST
         public string datafeed { get; set; }
         public Dictionary<int, MesaLevelResponse> strength { get; set; }
         public Dictionary<int, decimal> avg_strength { get; set; }
+        public decimal last_price { get; set; }
+        public decimal price60 { get; set; }
+        public decimal price300 { get; set; }
+        public decimal price900 { get; set; }
+        public decimal price3600 { get; set; }
+        public decimal price14400 { get; set; }
+        public decimal price86400 { get; set; }
     }
 
 }

@@ -188,12 +188,21 @@ namespace Algoserver.API.Services
                     tfAvgSummary.Add(14400, mesa4h.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa4h.Length);
                     tfAvgSummary.Add(86400, mesa1d.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1d.Length);
 
+                    var length = calculation_input.Count();
+
                     summary.Add(new MESADataSummary
                     {
                         Symbol = minHistory.Symbol,
                         Datafeed = minHistory.Datafeed,
                         Strength = tfSummary,
-                        AvgStrength = tfAvgSummary
+                        AvgStrength = tfAvgSummary,
+                        LastPrice = calculation_input.LastOrDefault(),
+                        Price60 = calculation_input.ElementAt(length - 60),
+                        Price300 = calculation_input.ElementAt(length - 300),
+                        Price900 = calculation_input.ElementAt(length - 900),
+                        Price3600 = calculation_input.ElementAt(length - 3600),
+                        Price14400 = calculation_input.ElementAt(length - 14400),
+                        Price86400 = calculation_input.ElementAt(length - 86400),
                     });
 
                 }

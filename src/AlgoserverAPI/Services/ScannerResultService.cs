@@ -49,7 +49,14 @@ namespace Algoserver.API.Services
                         f = _.Value.Fast,
                         s = _.Value.Slow
                     }),
-                    avg_strength = r.AvgStrength
+                    avg_strength = r.AvgStrength,
+                    last_price = r.LastPrice,
+                    price60 = r.Price60,
+                    price300 = r.Price300,
+                    price900 = r.Price900,
+                    price3600 = r.Price3600,
+                    price14400 = r.Price14400,
+                    price86400 = r.Price86400,
                 });
             }
 
