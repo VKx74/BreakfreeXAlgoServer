@@ -653,7 +653,7 @@ namespace Algoserver.API.Services
             var hash = history1MinLongData.Datafeed + "_" + history1MinLongData.Symbol + "_" + history1MinLongData.Granularity.ToString();
             try
             {
-                _cache.Set(_cachePrefix, hash.ToLower(), history1MinLongData.Bars.TakeLast(8640).ToList(), TimeSpan.FromHours(1));
+                _cache.Set(_cachePrefix, hash.ToLower(), history1MinLongData.Bars.TakeLast(7200).ToList(), TimeSpan.FromDays(2));
             }
             catch (Exception e)
             {

@@ -23,10 +23,12 @@ namespace Algoserver.API.Services
 
         protected override bool scanSymbol(string symbol)
         {
-            if (String.Equals(symbol, "BTC_USD", StringComparison.InvariantCultureIgnoreCase)) {
+            if (String.Equals(symbol, "BTC_USD", StringComparison.InvariantCultureIgnoreCase))
+            {
                 return false;
             }
-            if (String.Equals(symbol, "ETH_USD", StringComparison.InvariantCultureIgnoreCase)) {
+            if (String.Equals(symbol, "ETH_USD", StringComparison.InvariantCultureIgnoreCase))
+            {
                 return false;
             }
             return true;
@@ -100,7 +102,7 @@ namespace Algoserver.API.Services
 
             return new List<ScannerResponseItem>();
         }
-        
+
         public List<MESADataSummary> GetMesaSummary()
         {
             if (_cache.TryGetValue(cachePrefix(), "mesa_data_summary", out List<MESADataSummary> cachedResponse))
@@ -134,6 +136,14 @@ namespace Algoserver.API.Services
 
         public async Task CalculateMinuteMesa()
         {
+            await Task.Run(async () =>
+                       {
+                           await CalculateMinuteMesaAsync();
+                       });
+        }
+
+        private async Task CalculateMinuteMesaAsync()
+        {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
             var _1Mins = _historyService.Get1MinLongData();
@@ -156,11 +166,11 @@ namespace Algoserver.API.Services
                     }
                     // "granularity": ['1min', '5min', '15min', '60min', '240min', '1440min'],
                     // "limits": [(0.0325, 0.0325), (0.0085, 0.0085), (0.0032, 0.0032), (0.0012, 0.0012), (0.0007, 0.0007), (0.00039, 0.00039)],
-                    var mesa1min = TechCalculations.MESA(calculation_input.TakeLast(15000).ToList(), 0.0325, 0.0325);
-                    var mesa5min = TechCalculations.MESA(calculation_input.TakeLast(20000).ToList(), 0.0085, 0.0085);
-                    var mesa15min = TechCalculations.MESA(calculation_input.TakeLast(25000).ToList(), 0.0032, 0.0032);
-                    var mesa1h = TechCalculations.MESA(calculation_input.TakeLast(35000).ToList(), 0.0012, 0.0012);
-                    var mesa4h = TechCalculations.MESA(calculation_input.TakeLast(45000).ToList(), 0.0007, 0.0007);
+                    var mesa1min = TechCalculations.MESA(calculation_input.TakeLast(12000).ToList(), 0.0325, 0.0325);
+                    var mesa5min = TechCalculations.MESA(calculation_input.TakeLast(16000).ToList(), 0.0085, 0.0085);
+                    var mesa15min = TechCalculations.MESA(calculation_input.TakeLast(24000).ToList(), 0.0032, 0.0032);
+                    var mesa1h = TechCalculations.MESA(calculation_input.TakeLast(32000).ToList(), 0.0012, 0.0012);
+                    var mesa4h = TechCalculations.MESA(calculation_input.TakeLast(44000).ToList(), 0.0007, 0.0007);
                     var mesa1d = TechCalculations.MESA(calculation_input.ToList(), 0.00039, 0.00039);
 
                     var task1 = SetMinuteMesaCache(mesa1min, minHistory.Datafeed + "_" + minHistory.Symbol + "_60");
@@ -232,7 +242,7 @@ namespace Algoserver.API.Services
         {
             try
             {
-                await _cache.SetAsync(_mesaCachePrefix, key.ToLower(), mesa.TakeLast(8640).ToList(), TimeSpan.FromDays(1));
+                await _cache.SetAsync(_mesaCachePrefix, key.ToLower(), mesa.TakeLast(7200).ToList(), TimeSpan.FromDays(2));
             }
             catch (Exception ex) { }
         }
@@ -264,7 +274,8 @@ namespace Algoserver.API.Services
                     continue;
                 }
 
-                if (!scanSymbol(dailyHistory.Symbol)) {
+                if (!scanSymbol(dailyHistory.Symbol))
+                {
                     continue;
                 }
 
