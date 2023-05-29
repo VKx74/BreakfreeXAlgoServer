@@ -505,8 +505,8 @@ namespace Algoserver.API.Services
 
                 if (additionalLevels)
                 {
-                    result.sar_additional = await CalculateTradeZoneLevels(container);
-                    result.rtd_additional = await CalculateTradeZoneRTD(container);
+                    result.sar_additional = await CalculateTradeZoneLevels(container, req);
+                    result.rtd_additional = await CalculateTradeZoneRTD(container, req);
                 }
 
                 if (predict)
@@ -584,7 +584,7 @@ namespace Algoserver.API.Services
             return result;
         }
 
-        private async Task<Dictionary<int, List<SaRResponse>>> CalculateTradeZoneLevels(InputDataContainer container)
+        private async Task<Dictionary<int, List<SaRResponse>>> CalculateTradeZoneLevels(InputDataContainer container, CalculationRequestV3 req)
         {
             var levelsResult = new Dictionary<int, List<SaRResponse>>();
 
@@ -628,7 +628,7 @@ namespace Algoserver.API.Services
             {
                 try
                 {
-                    var task = _historyService.GetHistory(container.Symbol, g, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+                    var task = _historyService.GetHistory(container.Symbol, g, container.Datafeed, container.Exchange, container.Type, container.ReplayBack, req.BarsCount.GetValueOrDefault(0));
                     tasksToWait.Add(task);
                 }
                 catch (Exception ex)
@@ -662,7 +662,11 @@ namespace Algoserver.API.Services
                             s_m28 = l.Minus28
                         });
                     }
-                    levelsResult.Add((int)(historicalData.Granularity), sar.TakeLast(150).ToList());
+
+                    var granularityDiff = historicalData.Granularity / granularity;
+                    var count = (int)(req.BarsCount.GetValueOrDefault(sar.Count) / granularityDiff) + 1;
+
+                    levelsResult.Add((int)(historicalData.Granularity), sar.TakeLast(count).ToList());
                 }
             }
             catch (Exception ex)
@@ -673,7 +677,7 @@ namespace Algoserver.API.Services
             return levelsResult;
         }
 
-        private async Task<Dictionary<int, RTDCalculationResponse>> CalculateTradeZoneRTD(InputDataContainer container)
+        private async Task<Dictionary<int, RTDCalculationResponse>> CalculateTradeZoneRTD(InputDataContainer container, CalculationRequestV3 req)
         {
             var levelsResult = new Dictionary<int, RTDCalculationResponse>();
 
@@ -699,7 +703,7 @@ namespace Algoserver.API.Services
             {
                 try
                 {
-                    var task = _historyService.GetHistory(container.Symbol, g, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+                    var task = _historyService.GetHistory(container.Symbol, g, container.Datafeed, container.Exchange, container.Type, container.ReplayBack, req.BarsCount.GetValueOrDefault(0));
                     tasksToWait.Add(task);
                 }
                 catch (Exception ex)
@@ -716,14 +720,16 @@ namespace Algoserver.API.Services
                     var close = historicalData.Bars.Select(_ => _.Close).ToList();
                     var dates = historicalData.Bars.Select(_ => _.Timestamp).ToList();
                     var extendedTrendData = TrendDetector.CalculateByMesaBy2TrendAdjusted(close);
+                    var granularityDiff = historicalData.Granularity / granularity;
+                    var count = (int)(req.BarsCount.GetValueOrDefault(dates.Count) / granularityDiff) + 1;
                     levelsResult.Add((int)(historicalData.Granularity),
                       new RTDCalculationResponse
                       {
-                          dates = dates.TakeLast(50).ToList(),
-                          fast = extendedTrendData.Fast.TakeLast(50).ToList(),
-                          slow = extendedTrendData.Slow.TakeLast(50).ToList(),
-                          fast_2 = extendedTrendData.Fast2.TakeLast(50).ToList(),
-                          slow_2 = extendedTrendData.Slow2.TakeLast(50).ToList(),
+                          dates = dates.TakeLast(count).ToList(),
+                          fast = extendedTrendData.Fast.TakeLast(count).ToList(),
+                          slow = extendedTrendData.Slow.TakeLast(count).ToList(),
+                          fast_2 = extendedTrendData.Fast2.TakeLast(count).ToList(),
+                          slow_2 = extendedTrendData.Slow2.TakeLast(count).ToList(),
                           global_trend_spread = extendedTrendData.GlobalTrendSpread,
                           local_trend_spread = extendedTrendData.LocalTrendSpread,
                           global_avg = extendedTrendData.GlobalAvg,
