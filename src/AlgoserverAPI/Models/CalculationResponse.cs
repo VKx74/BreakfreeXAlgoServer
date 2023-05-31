@@ -45,11 +45,24 @@ namespace Algoserver.API.Models.REST
         public string id { get; set; }
     }
 
+    public class MesaTrendV3Response 
+    {
+        public decimal f { get; set; }
+        public decimal s { get; set; }
+        public long t { get; set; }
+    }
+
+    public class LevelsV3Response 
+    {
+        
+        public List<SaRResponse> sar { get; set; }
+        public List<MesaTrendV3Response> mesa { get; set; }
+        public decimal mesa_avg { get; set; }
+    }
+
     public class CalculationResponseV3
     {
-        public List<SaRResponse> sar { get; set; }
-        public Dictionary<int, List<SaRResponse>> sar_additional { get; set; }
-        public Dictionary<int, RTDCalculationResponse> rtd_additional { get; set; }
+        public Dictionary<int, LevelsV3Response> sar { get; set; }
         public List<SaRResponse> sar_prediction { get; set; }
         public List<decimal> mema_prediction { get; set; }
         public List<decimal> fama_prediction { get; set; }
@@ -61,7 +74,6 @@ namespace Algoserver.API.Models.REST
         public decimal? resistance_ext_prob { get; set; }
         public decimal size { get; set; }
         public string id { get; set; }
-        public RTDCalculationResponse rtd { get; set; }
         public bool prediction_exists { get; set; }
     }
 

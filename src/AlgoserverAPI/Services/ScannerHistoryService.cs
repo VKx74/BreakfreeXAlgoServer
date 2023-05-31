@@ -19,6 +19,7 @@ namespace Algoserver.API.Services
 
     public abstract class ScannerHistoryService
     {
+        private static int longMinHistoryCount = 7200;
         private string _cachePrefix = "HistoryCache_";
         private readonly ICacheService _cache;
         protected readonly HistoryService _historyService;
@@ -653,7 +654,7 @@ namespace Algoserver.API.Services
             var hash = history1MinLongData.Datafeed + "_" + history1MinLongData.Symbol + "_" + history1MinLongData.Granularity.ToString();
             try
             {
-                _cache.Set(_cachePrefix, hash.ToLower(), history1MinLongData.Bars.TakeLast(7200).ToList(), TimeSpan.FromDays(2));
+                _cache.Set(_cachePrefix, hash.ToLower(), history1MinLongData.Bars.TakeLast(longMinHistoryCount).ToList(), TimeSpan.FromDays(2));
             }
             catch (Exception e)
             {
