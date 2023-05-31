@@ -31,22 +31,22 @@ namespace Algoserver.API.Services
                 }
             }
 
-            instruments.Add(new OandaInstruments
-            {
-                Datafeed = "Oanda",
-                Exchange = "Oanda",
-                Symbol = "BTC_USD",
-                Type = "Crypto",
-                PricePrecision = 0.00000001m
-            });
-            instruments.Add(new OandaInstruments
-            {
-                Datafeed = "Oanda",
-                Exchange = "Oanda",
-                Symbol = "ETH_USD",
-                Type = "Crypto",
-                PricePrecision = 0.00000001m
-            });
+            // instruments.Add(new OandaInstruments
+            // {
+            //     Datafeed = "Oanda",
+            //     Exchange = "Oanda",
+            //     Symbol = "BTC_USD",
+            //     Type = "Crypto",
+            //     PricePrecision = 0.00000001m
+            // });
+            // instruments.Add(new OandaInstruments
+            // {
+            //     Datafeed = "Oanda",
+            //     Exchange = "Oanda",
+            //     Symbol = "ETH_USD",
+            //     Type = "Crypto",
+            //     PricePrecision = 0.00000001m
+            // });
 
             // return instruments.Take(5).ToList();
             return instruments;
@@ -73,22 +73,22 @@ namespace Algoserver.API.Services
                 }
             }
 
-            instruments.Add(new OandaInstruments
-            {
-                Datafeed = "Oanda",
-                Exchange = "Oanda",
-                Symbol = "BTC_USD",
-                Type = "Crypto",
-                PricePrecision = 0.00000001m
-            });
-            instruments.Add(new OandaInstruments
-            {
-                Datafeed = "Oanda",
-                Exchange = "Oanda",
-                Symbol = "ETH_USD",
-                Type = "Crypto",
-                PricePrecision = 0.00000001m
-            });
+            // instruments.Add(new OandaInstruments
+            // {
+            //     Datafeed = "Oanda",
+            //     Exchange = "Oanda",
+            //     Symbol = "BTC_USD",
+            //     Type = "Crypto",
+            //     PricePrecision = 0.00000001m
+            // });
+            // instruments.Add(new OandaInstruments
+            // {
+            //     Datafeed = "Oanda",
+            //     Exchange = "Oanda",
+            //     Symbol = "ETH_USD",
+            //     Type = "Crypto",
+            //     PricePrecision = 0.00000001m
+            // });
 
             // return instruments.Take(5).ToList();
             return instruments;
