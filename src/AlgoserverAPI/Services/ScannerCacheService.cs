@@ -192,12 +192,13 @@ namespace Algoserver.API.Services
                     tfSummary.Add(86400, mesa1d.LastOrDefault());
 
                     var tfAvgSummary = new Dictionary<int, decimal>();
-                    tfAvgSummary.Add(60, mesa1min.TakeLast(longMinHistoryCount).Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / longMinHistoryCount);
-                    tfAvgSummary.Add(300, mesa5min.TakeLast(longMinHistoryCount).Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / longMinHistoryCount);
-                    tfAvgSummary.Add(900, mesa15min.TakeLast(longMinHistoryCount).Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / longMinHistoryCount);
-                    tfAvgSummary.Add(3600, mesa1h.TakeLast(longMinHistoryCount).Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / longMinHistoryCount);
-                    tfAvgSummary.Add(14400, mesa4h.TakeLast(longMinHistoryCount).Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / longMinHistoryCount);
-                    tfAvgSummary.Add(86400, mesa1d.TakeLast(longMinHistoryCount).Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / longMinHistoryCount);
+                    tfAvgSummary.Add(60, mesa1min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1min.Length);
+                    tfAvgSummary.Add(300, mesa5min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa5min.Length);
+                    tfAvgSummary.Add(900, mesa15min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa15min.Length);
+                    tfAvgSummary.Add(3600, mesa1h.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1h.Length);
+                    tfAvgSummary.Add(14400, mesa4h.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa4h.Length);
+                    tfAvgSummary.Add(86400, mesa1d.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1d.Length);
+
 
                     var length = calculation_input.Count();
 

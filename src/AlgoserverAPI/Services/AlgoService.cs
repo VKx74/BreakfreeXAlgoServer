@@ -18,12 +18,13 @@ namespace Algoserver.API.Services
         private readonly HistoryService _historyService;
         private readonly ScannerService _scanner;
         private readonly LevelsPredictionService _levelsPrediction;
+        private readonly ScannerResultService _scannerResultService;
         private readonly ICacheService _cache;
         private string _cachePrefix = "MarketInfo_";
         private string _cachePrefixV2 = "MarketInfoV2_";
         private readonly PriceRatioCalculationService _priceRatioCalculationService;
 
-        public AlgoService(ILogger<AlgoService> logger, HistoryService historyService, PriceRatioCalculationService priceRatioCalculationService, ScannerService scanner, LevelsPredictionService levelsPrediction, ICacheService cache)
+        public AlgoService(ILogger<AlgoService> logger, HistoryService historyService, PriceRatioCalculationService priceRatioCalculationService, ScannerService scanner, LevelsPredictionService levelsPrediction, ScannerResultService scannerResultService, ICacheService cache)
         {
             _logger = logger;
             _historyService = historyService;
@@ -31,6 +32,7 @@ namespace Algoserver.API.Services
             _cache = cache;
             _priceRatioCalculationService = priceRatioCalculationService;
             _levelsPrediction = levelsPrediction;
+            _scannerResultService = scannerResultService;
         }
 
         public async Task<InputDataContainer> InitAsync(CalculationRequest req, int minBarsCount = 0)
@@ -531,6 +533,7 @@ namespace Algoserver.API.Services
 
             var sar_additional = await CalculateTradeZoneLevels(container, req);
             var mesa_additional = await GetMesaAsync(req.Instrument.Id, req.Instrument.Datafeed, 0);
+            var mesa_summary = _scannerResultService.GetMesaSummary();
             var granularity = AlgoHelper.ConvertTimeframeToGranularity(container.TimeframeInterval, container.TimeframePeriod);
 
             if ((granularity == TimeframeHelper.MIN1_GRANULARITY || granularity == TimeframeHelper.MIN5_GRANULARITY) &&
@@ -549,7 +552,23 @@ namespace Algoserver.API.Services
                     levelsV3.mesa = new List<MesaTrendV3Response>();
                     var mesa_additional_values = mesa_additional.mesa[mesaRequiredTf];
                     var mesa_bars = mesa_additional.bars;
-                    levelsV3.mesa_avg = mesa_additional_values.Select((_) => Math.Abs(_.f - _.s)).Sum() / mesa_additional_values.Count;
+
+                    foreach (var summary in mesa_summary)
+                    {
+                        if (string.Equals(req.Instrument.Id, summary.symbol, StringComparison.InvariantCultureIgnoreCase) && string.Equals(req.Instrument.Datafeed, summary.datafeed, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            if (summary.avg_strength.TryGetValue(mesaRequiredTf, out var str))
+                            {
+                                levelsV3.mesa_avg = str;
+                            }
+                            break;
+                        }
+                    }
+
+                    if (levelsV3.mesa_avg <= 0)
+                    {
+                        levelsV3.mesa_avg = mesa_additional_values.Select((_) => Math.Abs(_.f - _.s)).Sum() / mesa_additional_values.Count;
+                    }
 
                     for (var i = 0; i < mesa_bars.Count; i++)
                     {
