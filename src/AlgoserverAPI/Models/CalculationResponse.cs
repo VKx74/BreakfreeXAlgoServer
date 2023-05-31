@@ -45,10 +45,24 @@ namespace Algoserver.API.Models.REST
         public string id { get; set; }
     }
 
+    public class MesaTrendV3Response 
+    {
+        public decimal f { get; set; }
+        public decimal s { get; set; }
+        public long t { get; set; }
+    }
+
+    public class LevelsV3Response 
+    {
+        
+        public List<SaRResponse> sar { get; set; }
+        public List<MesaTrendV3Response> mesa { get; set; }
+        public decimal mesa_avg { get; set; }
+    }
+
     public class CalculationResponseV3
     {
-        public List<SaRResponse> sar { get; set; }
-        public Dictionary<int, List<SaRResponse>> sar_additional { get; set; }
+        public Dictionary<int, LevelsV3Response> sar { get; set; }
         public List<SaRResponse> sar_prediction { get; set; }
         public List<decimal> mema_prediction { get; set; }
         public List<decimal> fama_prediction { get; set; }
@@ -60,7 +74,6 @@ namespace Algoserver.API.Models.REST
         public decimal? resistance_ext_prob { get; set; }
         public decimal size { get; set; }
         public string id { get; set; }
-        public RTDCalculationResponse rtd { get; set; }
         public bool prediction_exists { get; set; }
     }
 
@@ -268,6 +281,43 @@ namespace Algoserver.API.Models.REST
     public class MLDataResponse
     {
         public List<MLDataResponseItem> data { get; set; }
+    }
+
+    public class BarResponse
+    {
+        public decimal o { get; set; }
+        public decimal h { get; set; }
+        public decimal l { get; set; }
+        public decimal c { get; set; }
+        public decimal v { get; set; }
+        public long t { get; set; }
+    }
+
+    public class MesaLevelResponse
+    {
+        public decimal f { get; set; }
+        public decimal s { get; set; }
+    }
+
+    public class MesaResponse
+    {
+        public List<BarResponse> bars { get; set; }
+        public Dictionary<int, List<MesaLevelResponse>> mesa { get; set; }
+    }
+
+    public class MesaSummaryResponse
+    {
+        public string symbol { get; set; }
+        public string datafeed { get; set; }
+        public Dictionary<int, MesaLevelResponse> strength { get; set; }
+        public Dictionary<int, decimal> avg_strength { get; set; }
+        public decimal last_price { get; set; }
+        public decimal price60 { get; set; }
+        public decimal price300 { get; set; }
+        public decimal price900 { get; set; }
+        public decimal price3600 { get; set; }
+        public decimal price14400 { get; set; }
+        public decimal price86400 { get; set; }
     }
 
 }

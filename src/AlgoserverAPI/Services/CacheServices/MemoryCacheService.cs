@@ -41,5 +41,11 @@ namespace Algoserver.API.Services.CacheServices {
             }
             return false;
         }
+
+        public async Task<bool> SetAsync(string prefix, string key, object value, TimeSpan expiration)
+        {
+            var res = Set(prefix, key, value, expiration);
+            return res;
+        }
     }
 }

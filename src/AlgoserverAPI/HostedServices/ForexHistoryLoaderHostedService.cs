@@ -9,6 +9,7 @@ namespace Algoserver.API.HostedServices
 {
     public class ForexHistoryLoaderHostedService : BackgroundService
     {
+        private int _prevDay = -1;
         private int _prevHour = -1;
         private int _prevMin = -1;
         private readonly ILogger<ForexHistoryLoaderHostedService> _logger;
@@ -28,9 +29,17 @@ namespace Algoserver.API.HostedServices
             {
                 try
                 {
+                    var currentDay = DateTime.UtcNow.Day;
                     var currentHour = DateTime.UtcNow.Hour;
                     var currentMinute = DateTime.UtcNow.Minute;
                     var scanRequired = false;
+
+                    if (currentDay != _prevDay)
+                    {
+                        var result = await _scannerHistory.Refresh1MinLongHistory();
+                        _scannerCache.RefreshLongMinuteHistoryTime = result;
+                    }  
+                    
                     if (currentHour != _prevHour)
                     {
                         var result = await _scannerHistory.RefreshAll();
@@ -44,6 +53,7 @@ namespace Algoserver.API.HostedServices
                         scanRequired = true;
                     }
 
+                    _prevDay = currentDay;
                     _prevHour = currentHour;
                     _prevMin = currentMinute;
 
@@ -51,11 +61,13 @@ namespace Algoserver.API.HostedServices
                     {
                         Console.WriteLine(">>> Forex ScanMarkets start");
                         _scannerCache.ScanMarkets();
+                        await _scannerCache.CalculateMinuteMesa();
                         Console.WriteLine(">>> Forex ScanMarkets ends");
                     }
                 }
                 catch (Exception ex)
                 {
+                    Console.WriteLine(ex);
                 }
 
                 await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken).ConfigureAwait(false);

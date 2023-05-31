@@ -209,7 +209,7 @@ namespace Algoserver.API.Services
                     return result;
                 }
 
-                if (requestCount >= 0)
+                if (requestCount > 0)
                 {
                     Console.WriteLine($"History request count {requestCount} - {symbol} - {granularity} - {bars_count} -> existing {afterCount}");
                 }
@@ -311,7 +311,8 @@ namespace Algoserver.API.Services
             }
             else
             {
-                int day = new DateTime(startDate).Day;
+                var dateTime = AlgoHelper.UnixTimeStampToDateTime(startDate);
+                var day = dateTime.DayOfWeek;
 
                 // load more minute data
                 if (data.Granularity < 3600)
@@ -319,12 +320,12 @@ namespace Algoserver.API.Services
                     startDate = startDate - ONE_DAY_TIME_SHIFT;
                 }
 
-                if (day == 0)
+                if (day == DayOfWeek.Sunday)
                 {
                     // Sunday
                     startDate = startDate - (ONE_DAY_TIME_SHIFT * 2);
                 }
-                else if (day == 6)
+                else if (day == DayOfWeek.Saturday)
                 {
                     // Saturday
                     startDate = startDate - ONE_DAY_TIME_SHIFT;

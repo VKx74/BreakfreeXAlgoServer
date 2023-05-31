@@ -6,6 +6,7 @@ using Algoserver.API.Helpers;
 using Algoserver.API.Models.Algo;
 using Algoserver.API.Models.REST;
 using Algoserver.API.Services.CacheServices;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace Algoserver.API.Services
@@ -17,12 +18,13 @@ namespace Algoserver.API.Services
         private readonly HistoryService _historyService;
         private readonly ScannerService _scanner;
         private readonly LevelsPredictionService _levelsPrediction;
+        private readonly ScannerResultService _scannerResultService;
         private readonly ICacheService _cache;
         private string _cachePrefix = "MarketInfo_";
         private string _cachePrefixV2 = "MarketInfoV2_";
         private readonly PriceRatioCalculationService _priceRatioCalculationService;
 
-        public AlgoService(ILogger<AlgoService> logger, HistoryService historyService, PriceRatioCalculationService priceRatioCalculationService, ScannerService scanner, LevelsPredictionService levelsPrediction, ICacheService cache)
+        public AlgoService(ILogger<AlgoService> logger, HistoryService historyService, PriceRatioCalculationService priceRatioCalculationService, ScannerService scanner, LevelsPredictionService levelsPrediction, ScannerResultService scannerResultService, ICacheService cache)
         {
             _logger = logger;
             _historyService = historyService;
@@ -30,6 +32,7 @@ namespace Algoserver.API.Services
             _cache = cache;
             _priceRatioCalculationService = priceRatioCalculationService;
             _levelsPrediction = levelsPrediction;
+            _scannerResultService = scannerResultService;
         }
 
         public async Task<InputDataContainer> InitAsync(CalculationRequest req, int minBarsCount = 0)
@@ -166,6 +169,14 @@ namespace Algoserver.API.Services
             });
         }
 
+        public Task<MesaResponse> GetMesaAsync(string symbol, string datafeed, int granularity)
+        {
+            return Task.Run(() =>
+            {
+                return getMesaAsync(symbol, datafeed, granularity);
+            });
+        }
+
         private async Task<decimal?> calculateCVarAsync(Instrument instrument)
         {
             var cvar = tryGetCVarFromCache(instrument);
@@ -246,7 +257,7 @@ namespace Algoserver.API.Services
             {
                 highTFGranularity = TimeframeHelper.HOUR4_GRANULARITY;
             }
-            
+
             var cachedResponse = tryGetCalculateMarketInfoV2FromCache(instrument, timeframe);
 
             if (cachedResponse != null)
@@ -418,34 +429,9 @@ namespace Algoserver.API.Services
             var sl_ratio = container.InputStoplossRatio;
             var granularity = AlgoHelper.ConvertTimeframeToGranularity(container.TimeframeInterval, container.TimeframePeriod);
 
-            ScanResponse scanRes = null;
-
             var extendedTrendData = TrendDetector.CalculateByMesaBy2TrendAdjusted(container.CloseD);
             var trend = TrendDetector.MergeTrends(extendedTrendData);
-
-            if (container.TimeframePeriod != "d" && container.TimeframePeriod != "w")
-            {
-                scanRes = _scanner.ScanExt(scanningHistory, dailyScanningHistory, trend, levels, sl_ratio);
-                // if (scanRes == null && granularity >= TimeframeHelper.MIN15_GRANULARITY)
-                // {
-                //     scanRes = _scanner.ScanBRC(scanningHistory, trend, levels, sl_ratio);
-                // }
-            }
-
-            if (scanRes == null)
-            {
-                if (container.TimeframePeriod == "d")
-                {
-                    scanRes = _scanner.ScanSwingOldStrategy(scanningHistory, sl_ratio);
-                }
-                if (container.TimeframePeriod == "h" && container.TimeframeInterval == 4)
-                {
-                    if (!extendedTrendData.IsOverhit)
-                    {
-                        scanRes = _scanner.ScanSwing(scanningHistory, dailyScanningHistory, extendedTrendData.GlobalTrend, extendedTrendData.LocalTrend, levels, sl_ratio);
-                    }
-                }
-            }
+            var scanRes = _scanner.ScanExt(scanningHistory, dailyScanningHistory, trend, levels, sl_ratio);
 
             var size = 0m;
 
@@ -458,71 +444,13 @@ namespace Algoserver.API.Services
             var result = DataMappingHelper.ToResponseV3(levels, scanRes, size);
             result.id = container.Id;
 
-            var sar = new List<SaRResponse>();
-            for (var i = 0; i < dates.Count; i++)
-            {
-                var l = levelsList[i];
-                sar.Add(new SaRResponse
-                {
-                    date = dates[i],
-                    r_p28 = l.Plus28,
-                    r_p18 = l.Plus18,
-                    r = l.EightEight,
-                    n = l.FourEight,
-                    s = l.ZeroEight,
-                    s_m18 = l.Minus18,
-                    s_m28 = l.Minus28
-                });
-            }
-
-            if (req.BarsCount.HasValue)
-            {
-                sar = sar.TakeLast(req.BarsCount.GetValueOrDefault(5000)).ToList();
-            }
-
-            result.sar = sar;
-
-
-            var trendDates = container.TimeD.ToList();
-            var barsBack = extendedTrendData.Slow.Count;
-            if (trendDates.Count > barsBack)
-            {
-                trendDates = trendDates.TakeLast(barsBack).ToList();
-            }
-
-            result.rtd = new RTDCalculationResponse
-            {
-                dates = trendDates,
-                fast = extendedTrendData.Fast,
-                slow = extendedTrendData.Slow,
-                fast_2 = extendedTrendData.Fast2,
-                slow_2 = extendedTrendData.Slow2,
-                global_trend_spread = extendedTrendData.GlobalTrendSpread,
-                local_trend_spread = extendedTrendData.LocalTrendSpread,
-                global_avg = extendedTrendData.GlobalAvg,
-                local_avg = extendedTrendData.LocalAvg,
-                id = req.Id
-            };
-
             try
             {
-                // var prediction = await _levelsPrediction.Predict(scanningHistory, levelsList);
-                // if (prediction != null)
-                // {
-                //     result.support_prob = prediction.support;
-                //     result.support_ext_prob = prediction.support_ext;
-                //     result.resistance_prob = prediction.resistance;
-                //     result.resistance_ext_prob = prediction.resistance_ext;
-                // } 
-
                 var predict = req.Predict.GetValueOrDefault(false);
                 var additionalLevels = req.AdditionalLevels.GetValueOrDefault(false);
                 result.prediction_exists = predict;
 
-                if (additionalLevels)
-                {
-                    result.sar_additional = await CalculateTradeZoneLevels(container);
-                }
+                result.sar = await CalculateV3Levels(container, req);
 
                 if (predict)
                 {
@@ -532,7 +460,7 @@ namespace Algoserver.API.Services
                             granularity == TimeframeHelper.HOUR4_GRANULARITY || granularity == TimeframeHelper.DAILY_GRANULARITY)
                         {
                             var lvls = await _levelsPrediction.PredictLgbm(scanningHistory, container.Symbol, granularity);
-                            var lastTime = sar.LastOrDefault().date;
+                            var lastTime = container.Time.LastOrDefault();
                             if (lvls != null)
                             {
                                 result.sar_prediction = new List<SaRResponse>();
@@ -599,12 +527,136 @@ namespace Algoserver.API.Services
             return result;
         }
 
-        private async Task<Dictionary<int, List<SaRResponse>>> CalculateTradeZoneLevels(InputDataContainer container)
+        private async Task<Dictionary<int, LevelsV3Response>> CalculateV3Levels(InputDataContainer container, CalculationRequestV3 req)
+        {
+            var result = new Dictionary<int, LevelsV3Response>();
+
+            var sar_additional = await CalculateTradeZoneLevels(container, req);
+            var mesa_additional = await GetMesaAsync(req.Instrument.Id, req.Instrument.Datafeed, 0);
+            var mesa_summary = _scannerResultService.GetMesaSummary();
+            var granularity = AlgoHelper.ConvertTimeframeToGranularity(container.TimeframeInterval, container.TimeframePeriod);
+
+            if ((granularity == TimeframeHelper.MIN1_GRANULARITY || granularity == TimeframeHelper.MIN5_GRANULARITY) &&
+                mesa_additional != null && mesa_additional.mesa != null && mesa_additional.bars != null && mesa_additional.mesa.Any() && mesa_additional.bars.Any())
+            {
+                foreach (var item in sar_additional)
+                {
+                    var mesaRequiredTf = GetOneStepHigherTF(item.Key);
+                    if (!mesa_additional.mesa.ContainsKey(mesaRequiredTf))
+                    {
+                        continue;
+                    }
+
+                    var levelsV3 = new LevelsV3Response();
+                    levelsV3.sar = item.Value;
+                    levelsV3.mesa = new List<MesaTrendV3Response>();
+                    var mesa_additional_values = mesa_additional.mesa[mesaRequiredTf];
+                    var mesa_bars = mesa_additional.bars;
+
+                    foreach (var summary in mesa_summary)
+                    {
+                        if (string.Equals(req.Instrument.Id, summary.symbol, StringComparison.InvariantCultureIgnoreCase) && string.Equals(req.Instrument.Datafeed, summary.datafeed, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            if (summary.avg_strength.TryGetValue(mesaRequiredTf, out var str))
+                            {
+                                levelsV3.mesa_avg = str;
+                            }
+                            break;
+                        }
+                    }
+
+                    if (levelsV3.mesa_avg <= 0)
+                    {
+                        levelsV3.mesa_avg = mesa_additional_values.Select((_) => Math.Abs(_.f - _.s)).Sum() / mesa_additional_values.Count;
+                    }
+
+                    for (var i = 0; i < mesa_bars.Count; i++)
+                    {
+                        if (mesa_bars[i].t >= item.Value.First().date && mesa_bars[i].t % granularity == 0)
+                        {
+                            levelsV3.mesa.Add(new MesaTrendV3Response
+                            {
+                                f = mesa_additional_values[i].f,
+                                s = mesa_additional_values[i].s,
+                                t = mesa_bars[i].t
+                            });
+                        }
+                    }
+
+                    result.Add(item.Key, levelsV3);
+                }
+            }
+            else
+            {
+                var rtd_additional = await CalculateTradeZoneRTD(container, req);
+                foreach (var item in sar_additional)
+                {
+                    RTDCalculationResponse rtd = null;
+
+                    if (item.Key >= TimeframeHelper.MIN15_GRANULARITY)
+                    {
+                        rtd = rtd_additional.GetValueOrDefault(TimeframeHelper.DAILY_GRANULARITY, null);
+                    }
+                    else if (item.Key >= TimeframeHelper.MIN5_GRANULARITY)
+                    {
+                        rtd = rtd_additional.GetValueOrDefault(TimeframeHelper.HOUR4_GRANULARITY, null);
+                    }
+                    else if (item.Key >= TimeframeHelper.MIN1_GRANULARITY)
+                    {
+                        rtd = rtd_additional.GetValueOrDefault(TimeframeHelper.HOURLY_GRANULARITY, null);
+                    }
+
+                    if (rtd == null)
+                    {
+                        continue;
+                    }
+
+                    var levelsV3 = new LevelsV3Response();
+                    levelsV3.sar = item.Value;
+                    levelsV3.mesa = new List<MesaTrendV3Response>();
+                    levelsV3.mesa_avg = rtd.global_avg;
+
+                    var dates = rtd.dates.ToList();
+                    var fast = rtd.fast_2.ToList();
+                    var slow = rtd.slow_2.ToList();
+
+                    for (var i = 0; i < dates.Count; i++)
+                    {
+                        levelsV3.mesa.Add(new MesaTrendV3Response
+                        {
+                            f = fast[i],
+                            s = slow[i],
+                            t = dates[i]
+                        });
+                    }
+                    result.Add(item.Key, levelsV3);
+                }
+            }
+
+            return result;
+        }
+
+        private int GetOneStepHigherTF(int tf)
+        {
+            switch (tf)
+            {
+                case TimeframeHelper.MIN1_GRANULARITY: return TimeframeHelper.MIN5_GRANULARITY;
+                case TimeframeHelper.MIN5_GRANULARITY: return TimeframeHelper.MIN15_GRANULARITY;
+                case TimeframeHelper.MIN15_GRANULARITY: return TimeframeHelper.HOURLY_GRANULARITY;
+                case TimeframeHelper.HOURLY_GRANULARITY: return TimeframeHelper.HOUR4_GRANULARITY;
+                case TimeframeHelper.HOUR4_GRANULARITY: return TimeframeHelper.DAILY_GRANULARITY;
+            }
+            return 0;
+        }
+
+        private async Task<Dictionary<int, List<SaRResponse>>> CalculateTradeZoneLevels(InputDataContainer container, CalculationRequestV3 req)
         {
             var levelsResult = new Dictionary<int, List<SaRResponse>>();
 
             var granularity = AlgoHelper.ConvertTimeframeToGranularity(container.TimeframeInterval, container.TimeframePeriod);
             var granularity_list = new List<int>();
+            granularity_list.Add(granularity);
+
             if (granularity == TimeframeHelper.MIN1_GRANULARITY)
             {
                 granularity_list.Add(TimeframeHelper.MIN5_GRANULARITY);
@@ -632,10 +684,6 @@ namespace Algoserver.API.Services
             {
                 granularity_list.Add(TimeframeHelper.DAILY_GRANULARITY);
             }
-            else
-            {
-                return levelsResult;
-            }
 
             var tasksToWait = new List<Task<HistoryData>>();
 
@@ -643,7 +691,7 @@ namespace Algoserver.API.Services
             {
                 try
                 {
-                    var task = _historyService.GetHistory(container.Symbol, g, container.Datafeed, container.Exchange, container.Type, container.ReplayBack);
+                    var task = _historyService.GetHistory(container.Symbol, g, container.Datafeed, container.Exchange, container.Type, container.ReplayBack, req.BarsCount.GetValueOrDefault(0));
                     tasksToWait.Add(task);
                 }
                 catch (Exception ex)
@@ -677,7 +725,81 @@ namespace Algoserver.API.Services
                             s_m28 = l.Minus28
                         });
                     }
-                    levelsResult.Add((int)(historicalData.Granularity), sar.TakeLast(150).ToList());
+
+                    var granularityDiff = historicalData.Granularity / granularity;
+                    var count = (int)(req.BarsCount.GetValueOrDefault(sar.Count) / granularityDiff) + 1;
+
+                    levelsResult.Add((int)(historicalData.Granularity), sar.TakeLast(count).ToList());
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            return levelsResult;
+        }
+
+        private async Task<Dictionary<int, RTDCalculationResponse>> CalculateTradeZoneRTD(InputDataContainer container, CalculationRequestV3 req)
+        {
+            var levelsResult = new Dictionary<int, RTDCalculationResponse>();
+
+            var granularity = AlgoHelper.ConvertTimeframeToGranularity(container.TimeframeInterval, container.TimeframePeriod);
+            var granularity_list = new List<int>();
+            if (granularity == TimeframeHelper.MIN1_GRANULARITY)
+            {
+                granularity_list.Add(TimeframeHelper.HOURLY_GRANULARITY);
+                granularity_list.Add(TimeframeHelper.HOUR4_GRANULARITY);
+                granularity_list.Add(TimeframeHelper.DAILY_GRANULARITY);
+            }
+            else if (granularity == TimeframeHelper.MIN5_GRANULARITY)
+            {
+                granularity_list.Add(TimeframeHelper.HOUR4_GRANULARITY);
+                granularity_list.Add(TimeframeHelper.DAILY_GRANULARITY);
+            }
+            else
+            {
+                granularity_list.Add(TimeframeHelper.DAILY_GRANULARITY);
+            }
+
+            var tasksToWait = new List<Task<HistoryData>>();
+
+            foreach (var g in granularity_list)
+            {
+                try
+                {
+                    var task = _historyService.GetHistory(container.Symbol, g, container.Datafeed, container.Exchange, container.Type, container.ReplayBack, req.BarsCount.GetValueOrDefault(0));
+                    tasksToWait.Add(task);
+                }
+                catch (Exception ex)
+                {
+
+                }
+            }
+            try
+            {
+                var historicalDataArray = await Task.WhenAll<HistoryData>(tasksToWait);
+
+                foreach (var historicalData in historicalDataArray)
+                {
+                    var close = historicalData.Bars.Select(_ => _.Close).ToList();
+                    var dates = historicalData.Bars.Select(_ => _.Timestamp).ToList();
+                    var extendedTrendData = TrendDetector.CalculateByMesaBy2TrendAdjusted(close);
+                    var granularityDiff = historicalData.Granularity / granularity;
+                    var count = (int)(req.BarsCount.GetValueOrDefault(dates.Count) / granularityDiff) + 1;
+                    levelsResult.Add((int)(historicalData.Granularity),
+                      new RTDCalculationResponse
+                      {
+                          dates = dates.TakeLast(count).ToList(),
+                          fast = extendedTrendData.Fast.TakeLast(count).ToList(),
+                          slow = extendedTrendData.Slow.TakeLast(count).ToList(),
+                          fast_2 = extendedTrendData.Fast2.TakeLast(count).ToList(),
+                          slow_2 = extendedTrendData.Slow2.TakeLast(count).ToList(),
+                          global_trend_spread = extendedTrendData.GlobalTrendSpread,
+                          local_trend_spread = extendedTrendData.LocalTrendSpread,
+                          global_avg = extendedTrendData.GlobalAvg,
+                          local_avg = extendedTrendData.LocalAvg
+                      });
                 }
             }
             catch (Exception ex)
@@ -898,5 +1020,67 @@ namespace Algoserver.API.Services
             return res;
         }
 
+        public MesaResponse getMesaAsync(string symbol, string datafeed, int granularity)
+        {
+            var granularityList = new List<int>();
+            if (granularity > 0)
+            {
+                granularityList.Add(granularity);
+            }
+            else
+            {
+                granularityList.Add(60);
+                granularityList.Add(300);
+                granularityList.Add(900);
+                granularityList.Add(3600);
+                granularityList.Add(14400);
+                granularityList.Add(86400);
+            }
+
+            var hisotryCachePrefix = "HistoryCache_";
+            var mesaCachePrefix = "MesaCache_";
+            var mesa = new Dictionary<int, List<MesaLevelResponse>>();
+            foreach (var g in granularityList)
+            {
+                var hash = datafeed + "_" + symbol + "_" + g.ToString();
+                try
+                {
+                    if (_cache.TryGetValue<List<MESAData>>(mesaCachePrefix, hash.ToLower(), out var data))
+                    {
+                        mesa.Add(g, data.Select((_) => new MesaLevelResponse
+                        {
+                            f = _.Fast,
+                            s = _.Slow
+                        }).ToList());
+                    }
+                }
+                catch (Exception ex) { }
+            }
+
+            var bars = new List<BarResponse>();
+            try
+            {
+                var hash = datafeed + "_" + symbol + "_60";
+                if (_cache.TryGetValue<List<BarMessage>>(hisotryCachePrefix, hash.ToLower(), out var data))
+                {
+                    bars.AddRange(data.Select((_) => new BarResponse
+                    {
+                        o = _.Open,
+                        h = _.High,
+                        l = _.Low,
+                        c = _.Close,
+                        v = _.Volume,
+                        t = _.Timestamp
+                    }));
+                }
+            }
+            catch (Exception ex) { }
+
+            return new MesaResponse
+            {
+                bars = bars,
+                mesa = mesa
+            };
+        }
     }
 }

@@ -96,7 +96,7 @@ namespace Algoserver.API.Controllers
             var result = await _algoService.CalculateMarketInfoV2Async(request);
             return await ToEncryptedResponse(result, HttpContext.RequestAborted);
         }
-        
+
         [Authorize]
         [HttpPost(Routes.CalculateCVar)]
         [ProducesResponseType(typeof(Response<CVarInfoResponse>), 200)]
@@ -108,10 +108,11 @@ namespace Algoserver.API.Controllers
             }
 
             var result = await _algoService.CalculateCVarAsync(Instrument);
-            var res = new CVarInfoResponse {
+            var res = new CVarInfoResponse
+            {
                 cvar = result
             };
-            
+
             return await ToEncryptedResponse(res, HttpContext.RequestAborted);
         }
 
@@ -200,6 +201,51 @@ namespace Algoserver.API.Controllers
 
             var result = await _algoService.CalculateMarketInfoAsync(request);
             return await ToEncryptedResponse(result, HttpContext.RequestAborted);
+        }
+
+        // [HttpGet(Routes.TrendsGlobal)]
+        // [ProducesResponseType(typeof(MesaResponse), 200)]
+        // public async Task<IActionResult> GetMesaGlobalAsync([FromQuery] string symbol, [FromQuery] string datafeed, [FromQuery] int granularity = -1)
+        // {
+        //     if (!ModelState.IsValid)
+        //     {
+        //         return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
+        //     }
+
+        //     var result = await _algoService.GetMesaAsync(symbol, datafeed, granularity);
+        //     return Json(result);
+        // }
+
+        [Authorize]
+        [HttpGet(Routes.Trends)]
+        [ProducesResponseType(typeof(Response<MesaResponse>), 200)]
+        public async Task<IActionResult> GetMesaAsync([FromQuery] string symbol, [FromQuery] string datafeed, [FromQuery] int granularity = -1)
+        {
+            if (!ModelState.IsValid)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
+            }
+
+            var result = await _algoService.GetMesaAsync(symbol, datafeed, granularity);
+            return await ToEncryptedResponse(result, HttpContext.RequestAborted);
+        }
+
+        // [HttpGet(Routes.TrendsGlobalSummary)]
+        // [ProducesResponseType(typeof(List<MesaSummaryResponse>), 200)]
+        // public async Task<IActionResult> GetMesaSummaryGlobalAsync()
+        // {
+
+        //     var res = _scannerResultService.GetMesaSummary();
+        //     return Json(res);
+        // }
+
+        [Authorize]
+        [HttpGet(Routes.TrendsSummary)]
+        [ProducesResponseType(typeof(Response<List<MesaSummaryResponse>>), 200)]
+        public async Task<IActionResult> GetMesaSummaryAsync()
+        {
+            var res = _scannerResultService.GetMesaSummary();
+            return await ToEncryptedResponse(res, HttpContext.RequestAborted);
         }
     }
 }

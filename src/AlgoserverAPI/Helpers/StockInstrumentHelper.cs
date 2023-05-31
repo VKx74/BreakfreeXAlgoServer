@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Algoserver.API.Helpers
 {
-    public static class InstrumentTypes 
+    public static class InstrumentTypes
     {
         public static string Bonds = "Bonds";
         public static string Commodities = "Commodities";
@@ -258,7 +258,7 @@ namespace Algoserver.API.Helpers
             get
             {
                 return new List<string> {
-                    "AUD_SGD", "EUR_DKK", "EUR_HKD", "EUR_NOK", "EUR_PLN", "EUR_SEK", "EUR_SGD", "EUR_TRY", "EUR_ZAR", "SGD_JPY", "USD_CNH", "NZD_SGD", 
+                    "AUD_SGD", "EUR_DKK", "EUR_HKD", "EUR_NOK", "EUR_PLN", "EUR_SEK", "EUR_SGD", "EUR_TRY", "EUR_ZAR", "SGD_JPY", "USD_CNH", "NZD_SGD",
                     "GBP_SGD", "USD_CZK", "USD_DKK", "USD_HKD", "USD_MXN", "USD_NOK", "USD_PLN", "USD_RUB", "USD_SEK", "USD_THB", "USD_TRY", "USD_ZAR"
                 };
             }
@@ -370,6 +370,16 @@ namespace Algoserver.API.Helpers
             }
         }
 
+        public static List<string> ForexInstrumentListShort
+        {
+            get
+            {
+                return new List<string> {
+                   "GBP_USD", "EUR_USD", "USD_JPY", "AUD_USD", "USD_CAD", "USD_CHF','NZD_USD", "EUR_GBP", "EUR_JPY", "EUR_CHF", "EUR_AUD", "EUR_CAD", "EUR_NZD", "GBP_JPY", "GBP_CHF", "GBP_AUD", "GBP_CAD", "GBP_NZD", "AUD_JPY", "AUD_CHF", "AUD_CAD", "AUD_NZD", "CAD_JPY", "CAD_CHF", "NZD_JPY", "NZD_CHF", "CHF_JPY", "XAU_USD", "XAG_USD", "SPX500_USD", "NAS100_USD", "US30_USD", "BCO_USD", "WTICO_USD"
+                };
+            }
+        }
+
         public static decimal GetContractSize(string symbol)
         {
             foreach (var i in InstrumentsHelper.ForexIndices)
@@ -407,35 +417,35 @@ namespace Algoserver.API.Helpers
             return InstrumentsHelper.ForexContractSize;
         }
 
-        public static string NormalizeInstrument(string symbol) 
+        public static string NormalizeInstrument(string symbol)
         {
             return symbol.Replace("_", "").Replace("/", "").ToLower();
         }
 
-        public static string GetInstrumentType(string symbol) 
+        public static string GetInstrumentType(string symbol)
         {
             var normalizedInstrument = NormalizeInstrument(symbol);
 
             if (StockInstrumentList.Any(_ => String.Equals(NormalizeInstrument(_.Symbol), normalizedInstrument, StringComparison.InvariantCultureIgnoreCase)))
             {
                 return InstrumentTypes.Equities;
-            } 
-            
+            }
+
             if (CryptoInstrumentList.Any(_ => String.Equals(NormalizeInstrument(_.Symbol), normalizedInstrument, StringComparison.InvariantCultureIgnoreCase)))
             {
                 return InstrumentTypes.Crypto;
             }
-            
+
             if (ForexMetals.Any(_ => String.Equals(NormalizeInstrument(_), normalizedInstrument, StringComparison.InvariantCultureIgnoreCase)))
             {
                 return InstrumentTypes.Metals;
             }
-            
+
             if (ForexIndices.Any(_ => String.Equals(NormalizeInstrument(_), normalizedInstrument, StringComparison.InvariantCultureIgnoreCase)))
             {
                 return InstrumentTypes.Indices;
             }
-            
+
             if (ForexBounds.Any(_ => String.Equals(NormalizeInstrument(_), normalizedInstrument, StringComparison.InvariantCultureIgnoreCase)))
             {
                 return InstrumentTypes.Bonds;

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Algoserver.API.Models.REST;
+using Algoserver.API.Services.CacheServices;
 
 namespace Algoserver.API.Services
 {
@@ -18,8 +19,12 @@ namespace Algoserver.API.Services
 
     public abstract class ScannerHistoryService
     {
+        private static int longMinHistoryCount = 7200;
+        private string _cachePrefix = "HistoryCache_";
+        private readonly ICacheService _cache;
         protected readonly HistoryService _historyService;
         protected readonly InstrumentService _instrumentService;
+        protected readonly List<HistoryData> _1MinLongHistory = new List<HistoryData>();
         protected readonly List<HistoryData> _1MinHistory = new List<HistoryData>();
         protected readonly List<HistoryData> _5MinHistory = new List<HistoryData>();
         protected readonly List<HistoryData> _15MinHistory = new List<HistoryData>();
@@ -28,10 +33,11 @@ namespace Algoserver.API.Services
         protected readonly List<HistoryData> _4hHistory = new List<HistoryData>();
         protected readonly List<HistoryData> _dailyHistory = new List<HistoryData>();
 
-        public ScannerHistoryService(HistoryService historyService, InstrumentService instrumentService)
+        public ScannerHistoryService(HistoryService historyService, InstrumentService instrumentService, ICacheService cache)
         {
             _historyService = historyService;
             _instrumentService = instrumentService;
+            _cache = cache;
         }
 
         public async Task<string> Refresh()
@@ -55,7 +61,7 @@ namespace Algoserver.API.Services
             }
 
             stopWatch.Start();
-            var min1history = await this._loadPack(tasks1min);
+            var min1history = await this._loadPack(tasks1min, 10);
             stopWatch.Stop();
             TimeSpan ts1 = stopWatch.Elapsed;
 
@@ -67,7 +73,49 @@ namespace Algoserver.API.Services
 
             _updateHigherTimeframes();
 
+            try
+            {
+                _updateMinuteLongHistory();
+            }
+            catch (Exception ex) { }
+
             string elapsedTime1 = String.Format(" * 1 min {0:00}:{1:00} - data loaded " + min1history.Count, ts1.Minutes, ts1.Seconds);
+            Console.WriteLine(">>> " + elapsedTime1);
+            return elapsedTime1;
+        }
+
+        public async Task<string> Refresh1MinLongHistory()
+        {
+            var instruments = this._getInstrumentsForLongHistory();
+            var stopWatch = new Stopwatch();
+            var tasks1min = new List<HistoryRequest>();
+            foreach (var instrument in instruments)
+            {
+                var Exchange = instrument.Exchange;
+                var Datafeed = instrument.Datafeed;
+                var Symbol = instrument.Symbol;
+                tasks1min.Add(new HistoryRequest
+                {
+                    Symbol = Symbol,
+                    Datafeed = Datafeed,
+                    Exchange = Exchange,
+                    Count = 50000,
+                    Granularity = TimeframeHelper.MIN1_GRANULARITY
+                });
+            }
+
+            stopWatch.Start();
+            var min1history = await this._loadPack(tasks1min, 1);
+            stopWatch.Stop();
+            TimeSpan ts1 = stopWatch.Elapsed;
+
+            lock (_1MinLongHistory)
+            {
+                _1MinLongHistory.Clear();
+                _1MinLongHistory.AddRange(min1history);
+            }
+
+            string elapsedTime1 = String.Format(" * 1 min long history {0:00}:{1:00} - data loaded " + min1history.Count, ts1.Minutes, ts1.Seconds);
             Console.WriteLine(">>> " + elapsedTime1);
             return elapsedTime1;
         }
@@ -146,7 +194,7 @@ namespace Algoserver.API.Services
             }
 
             stopWatch.Start();
-            var min1history = await this._loadPack(tasks1min);
+            var min1history = await this._loadPack(tasks1min, 2);
             stopWatch.Stop();
             TimeSpan ts1 = stopWatch.Elapsed;
 
@@ -242,6 +290,12 @@ namespace Algoserver.API.Services
                 _dailyHistory.AddRange(dailyhistory);
             }
 
+            try
+            {
+                _updateMinuteLongHistory();
+            }
+            catch (Exception ex) { }
+
             // string elapsedTime = String.Format("Total {0:00}:{1:00}", ts.Minutes, ts.Seconds);
             string elapsedTime1 = String.Format(" * 1 min {0:00}:{1:00} - data loaded " + min1history.Count, ts1.Minutes, ts1.Seconds);
             string elapsedTime15 = String.Format(" * 15 min {0:00}:{1:00} - data loaded " + min15history.Count, ts15.Minutes, ts15.Seconds);
@@ -258,6 +312,14 @@ namespace Algoserver.API.Services
             lock (_1MinHistory)
             {
                 return _1MinHistory.ToList();
+            }
+        }
+
+        public List<HistoryData> Get1MinLongData()
+        {
+            lock (_1MinLongHistory)
+            {
+                return _1MinLongHistory.ToList();
             }
         }
 
@@ -306,6 +368,14 @@ namespace Algoserver.API.Services
             lock (_1MinHistory)
             {
                 return _1MinHistory.ToDictionary(_ => GetKey(_));
+            }
+        }
+
+        public Dictionary<string, HistoryData> Get1MinLongDataDictionary()
+        {
+            lock (_1MinLongHistory)
+            {
+                return _1MinLongHistory.ToDictionary(_ => GetKey(_));
             }
         }
 
@@ -364,10 +434,10 @@ namespace Algoserver.API.Services
             }
         }
 
-        protected async Task<List<HistoryData>> _loadPack(List<HistoryRequest> tasks)
+        protected async Task<List<HistoryData>> _loadPack(List<HistoryRequest> tasks, int defaultPackCount = 4)
         {
             var result = new List<HistoryData>();
-            var count = 2;
+            var count = defaultPackCount;
 
             while (tasks.Count > 0)
             {
@@ -399,6 +469,40 @@ namespace Algoserver.API.Services
             }
 
             return result;
+        }
+
+        protected void _updateMinuteLongHistory()
+        {
+            var _1Mins = Get1MinData();
+            var _1MinLongHistory = Get1MinLongDataDictionary();
+            foreach (var history1Min in _1Mins)
+            {
+                var key = GetKey(history1Min);
+                if (_1MinLongHistory.TryGetValue(key, out var history1MinLongData))
+                {
+                    if (history1MinLongData == null)
+                    {
+                        continue;
+                    }
+
+                    var firstBar = history1Min.Bars.FirstOrDefault();
+                    if (firstBar == null)
+                    {
+                        continue;
+                    }
+
+                    var indexOfStart = history1MinLongData.Bars.FindIndex((_) => _.Timestamp >= firstBar.Timestamp);
+                    if (indexOfStart < 0)
+                    {
+                        continue;
+                    }
+
+                    history1MinLongData.Bars.RemoveRange(indexOfStart, history1MinLongData.Bars.Count - indexOfStart);
+                    history1MinLongData.Bars.AddRange(history1Min.Bars);
+
+                    tryAddHistoryInCache(history1MinLongData);
+                }
+            }
         }
 
         protected void _updateHigherTimeframes()
@@ -545,6 +649,19 @@ namespace Algoserver.API.Services
             return res;
         }
 
+        protected void tryAddHistoryInCache(HistoryData history1MinLongData)
+        {
+            var hash = history1MinLongData.Datafeed + "_" + history1MinLongData.Symbol + "_" + history1MinLongData.Granularity.ToString();
+            try
+            {
+                _cache.Set(_cachePrefix, hash.ToLower(), history1MinLongData.Bars.TakeLast(longMinHistoryCount).ToList(), TimeSpan.FromDays(2));
+            }
+            catch (Exception e)
+            {
+            }
+        }
+
         protected abstract List<IInstrument> _getInstruments();
+        protected abstract List<IInstrument> _getInstrumentsForLongHistory();
     }
 }

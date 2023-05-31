@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using Algoserver.API.Helpers;
 using Algoserver.API.Models.Algo;
 using Algoserver.API.Models.REST;
@@ -18,6 +20,19 @@ namespace Algoserver.API.Services
         {
             return "ForexScanner_";
         }
+
+        protected override bool scanSymbol(string symbol)
+        {
+            if (String.Equals(symbol, "BTC_USD", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return false;
+            }
+            if (String.Equals(symbol, "ETH_USD", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return false;
+            }
+            return true;
+        }
     }
 
     public class ScannerStockCacheService : ScannerCacheService
@@ -28,6 +43,11 @@ namespace Algoserver.API.Services
         protected override string cachePrefix()
         {
             return "StockScanner_";
+        }
+
+        protected override bool scanSymbol(string symbol)
+        {
+            return true;
         }
     }
 
@@ -40,10 +60,17 @@ namespace Algoserver.API.Services
         {
             return "CryptoScanner_";
         }
+
+        protected override bool scanSymbol(string symbol)
+        {
+            return true;
+        }
     }
 
     public abstract class ScannerCacheService
     {
+        private static int longMinHistoryCount = 7200;
+        protected string _mesaCachePrefix = "MesaCache_";
         protected readonly ICacheService _cache;
         protected readonly ScannerHistoryService _historyService;
         protected readonly ScannerService _scanner;
@@ -57,6 +84,7 @@ namespace Algoserver.API.Services
         protected int data_count_4_h { get; set; }
         protected int data_count_1_d { get; set; }
         public string RefreshAllMarketsTime { get; set; }
+        public string RefreshLongMinuteHistoryTime { get; set; }
         public string RefreshMarketsTime { get; set; }
 
         public ScannerCacheService(ScannerHistoryService historyService, ScannerService scanner, ICacheService cache)
@@ -74,6 +102,16 @@ namespace Algoserver.API.Services
             }
 
             return new List<ScannerResponseItem>();
+        }
+
+        public List<MESADataSummary> GetMesaSummary()
+        {
+            if (_cache.TryGetValue(cachePrefix(), "mesa_data_summary", out List<MESADataSummary> cachedResponse))
+            {
+                return cachedResponse.ToList();
+            }
+
+            return new List<MESADataSummary>();
         }
 
         public List<ScannerResponseHistoryItem> GetHistoryData()
@@ -97,6 +135,129 @@ namespace Algoserver.API.Services
             return null;
         }
 
+        public async Task CalculateMinuteMesa()
+        {
+            await Task.Run(async () =>
+                       {
+                           await CalculateMinuteMesaAsync();
+                       });
+        }
+
+        private async Task CalculateMinuteMesaAsync()
+        {
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
+            var _1Mins = _historyService.Get1MinLongData();
+            var count = 0;
+            var summary = new List<MESADataSummary>();
+
+            foreach (var minHistory in _1Mins)
+            {
+                try
+                {
+                    if (minHistory == null || minHistory.Bars == null)
+                    {
+                        continue;
+                    }
+
+                    var calculation_input = minHistory.Bars.Select(_ => _.Close);
+                    if (calculation_input.Count() < 45000)
+                    {
+                        continue;
+                    }
+                    // "granularity": ['1min', '5min', '15min', '60min', '240min', '1440min'],
+                    // "limits": [(0.0325, 0.0325), (0.0085, 0.0085), (0.0032, 0.0032), (0.0012, 0.0012), (0.0007, 0.0007), (0.00039, 0.00039)],
+                    var mesa1min = TechCalculations.MESA(calculation_input.TakeLast(12000).ToList(), 0.0325, 0.0325);
+                    var mesa5min = TechCalculations.MESA(calculation_input.TakeLast(16000).ToList(), 0.0085, 0.0085);
+                    var mesa15min = TechCalculations.MESA(calculation_input.TakeLast(24000).ToList(), 0.0032, 0.0032);
+                    var mesa1h = TechCalculations.MESA(calculation_input.TakeLast(32000).ToList(), 0.0012, 0.0012);
+                    var mesa4h = TechCalculations.MESA(calculation_input.TakeLast(44000).ToList(), 0.0007, 0.0007);
+                    var mesa1d = TechCalculations.MESA(calculation_input.ToList(), 0.00039, 0.00039);
+
+                    var task1 = SetMinuteMesaCache(mesa1min, minHistory.Datafeed + "_" + minHistory.Symbol + "_60");
+                    var task2 = SetMinuteMesaCache(mesa5min, minHistory.Datafeed + "_" + minHistory.Symbol + "_300");
+                    var task3 = SetMinuteMesaCache(mesa15min, minHistory.Datafeed + "_" + minHistory.Symbol + "_900");
+                    var task4 = SetMinuteMesaCache(mesa1h, minHistory.Datafeed + "_" + minHistory.Symbol + "_3600");
+                    var task5 = SetMinuteMesaCache(mesa4h, minHistory.Datafeed + "_" + minHistory.Symbol + "_14400");
+                    var task6 = SetMinuteMesaCache(mesa1d, minHistory.Datafeed + "_" + minHistory.Symbol + "_86400");
+                    await Task.WhenAll(task1, task2, task3, task4, task5, task6);
+                    count++;
+
+                    var tfSummary = new Dictionary<int, MESAData>();
+                    tfSummary.Add(60, mesa1min.LastOrDefault());
+                    tfSummary.Add(300, mesa5min.LastOrDefault());
+                    tfSummary.Add(900, mesa15min.LastOrDefault());
+                    tfSummary.Add(3600, mesa1h.LastOrDefault());
+                    tfSummary.Add(14400, mesa4h.LastOrDefault());
+                    tfSummary.Add(86400, mesa1d.LastOrDefault());
+
+                    var tfAvgSummary = new Dictionary<int, decimal>();
+                    tfAvgSummary.Add(60, mesa1min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1min.Length);
+                    tfAvgSummary.Add(300, mesa5min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa5min.Length);
+                    tfAvgSummary.Add(900, mesa15min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa15min.Length);
+                    tfAvgSummary.Add(3600, mesa1h.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1h.Length);
+                    tfAvgSummary.Add(14400, mesa4h.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa4h.Length);
+                    tfAvgSummary.Add(86400, mesa1d.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1d.Length);
+
+
+                    var length = calculation_input.Count();
+
+                    summary.Add(new MESADataSummary
+                    {
+                        Symbol = minHistory.Symbol,
+                        Datafeed = minHistory.Datafeed,
+                        Strength = tfSummary,
+                        AvgStrength = tfAvgSummary,
+                        LastPrice = calculation_input.LastOrDefault(),
+                        Price60 = calculation_input.ElementAt(length - 1),
+                        Price300 = calculation_input.ElementAt(length - 5),
+                        Price900 = calculation_input.ElementAt(length - 15),
+                        Price3600 = calculation_input.ElementAt(length - 60),
+                        Price14400 = calculation_input.ElementAt(length - 240),
+                        Price86400 = calculation_input.ElementAt(length - 1440),
+                    });
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(">>> " + minHistory.Symbol);
+                    Console.WriteLine(ex);
+                }
+            }
+
+            try
+            {
+                await SetMesaSummaryCache(summary);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+
+            stopWatch.Stop();
+            TimeSpan ts1 = stopWatch.Elapsed;
+            string elapsedTime1 = String.Format(" * 1 min MESA calculation {0:00}:{1:00} - instruments count " + count, ts1.Minutes, ts1.Seconds);
+            Console.WriteLine(">>> " + elapsedTime1);
+        }
+
+        private async Task SetMinuteMesaCache(MESAData[] mesa, string key)
+        {
+            try
+            {
+                await _cache.SetAsync(_mesaCachePrefix, key.ToLower(), mesa.TakeLast(longMinHistoryCount).ToList(), TimeSpan.FromDays(2));
+            }
+            catch (Exception ex) { }
+        }
+
+        private async Task SetMesaSummaryCache(List<MESADataSummary> mesa)
+        {
+            try
+            {
+                await _cache.SetAsync(cachePrefix(), "mesa_data_summary", mesa, TimeSpan.FromDays(1));
+            }
+            catch (Exception ex) { }
+        }
+
         public void ScanMarkets()
         {
             var _1Mins = _historyService.Get1MinDataDictionary();
@@ -111,6 +272,11 @@ namespace Algoserver.API.Services
             foreach (var dailyHistory in _1Day)
             {
                 if (dailyHistory == null || dailyHistory.Bars.Count() < 200)
+                {
+                    continue;
+                }
+
+                if (!scanSymbol(dailyHistory.Symbol))
                 {
                     continue;
                 }
@@ -381,5 +547,7 @@ namespace Algoserver.API.Services
         }
 
         protected abstract string cachePrefix();
+
+        protected abstract bool scanSymbol(string symbol);
     }
 }
