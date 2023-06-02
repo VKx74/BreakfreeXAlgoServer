@@ -114,6 +114,17 @@ namespace Algoserver.API.Services
             return new List<MESADataSummary>();
         }
 
+        public async Task<List<MESADataSummary>> GetMesaSummaryAsync()
+        {
+            var cachedResponse = await _cache.TryGetValueAsync<List<MESADataSummary>>(cachePrefix(), "mesa_data_summary");
+            if (cachedResponse != null)
+            {
+                return cachedResponse.ToList();
+            }
+
+            return new List<MESADataSummary>();
+        }
+
         public List<ScannerResponseHistoryItem> GetHistoryData()
         {
             if (_cache.TryGetValue(cachePrefix(), _scannerHistoryCacheKey, out List<ScannerResponseHistoryItem> cachedResponse))

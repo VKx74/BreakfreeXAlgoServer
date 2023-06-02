@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Algoserver.API.Models.REST;
 
 namespace Algoserver.API.Services
@@ -36,6 +37,38 @@ namespace Algoserver.API.Services
             var res1 = _forex.GetMesaSummary();
             var res2 = _stock.GetMesaSummary();
             var res3 = _crypto.GetMesaSummary();
+            res1.AddRange(res2);
+            res1.AddRange(res3);
+
+            var result = new List<MesaSummaryResponse>();
+            foreach (var r in res1) 
+            {
+                result.Add(new MesaSummaryResponse {
+                    datafeed = r.Datafeed,
+                    symbol = r.Symbol,
+                    strength = r.Strength.ToDictionary((_) => _.Key, (_) => new MesaLevelResponse {
+                        f = _.Value.Fast,
+                        s = _.Value.Slow
+                    }),
+                    avg_strength = r.AvgStrength,
+                    last_price = r.LastPrice,
+                    price60 = r.Price60,
+                    price300 = r.Price300,
+                    price900 = r.Price900,
+                    price3600 = r.Price3600,
+                    price14400 = r.Price14400,
+                    price86400 = r.Price86400,
+                });
+            }
+
+            return result;
+        }
+
+        public async Task<List<MesaSummaryResponse>> GetMesaSummaryAsync()
+        {
+            var res1 = await _forex.GetMesaSummaryAsync();
+            var res2 = await _stock.GetMesaSummaryAsync();
+            var res3 = await _crypto.GetMesaSummaryAsync();
             res1.AddRange(res2);
             res1.AddRange(res3);
 

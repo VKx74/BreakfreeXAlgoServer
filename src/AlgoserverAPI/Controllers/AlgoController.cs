@@ -226,7 +226,11 @@ namespace Algoserver.API.Controllers
                 return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
             }
 
-            var result = await _algoService.GetMesaAsync(symbol, datafeed, granularity);
+            var granularityList = new List<int>();
+            if (granularity > 0) {
+                granularityList.Add(granularity);
+            }
+            var result = await _algoService.GetMesaAsync(symbol, datafeed, granularityList);
             return await ToEncryptedResponse(result, HttpContext.RequestAborted);
         }
 
@@ -244,7 +248,7 @@ namespace Algoserver.API.Controllers
         [ProducesResponseType(typeof(Response<List<MesaSummaryResponse>>), 200)]
         public async Task<IActionResult> GetMesaSummaryAsync()
         {
-            var res = _scannerResultService.GetMesaSummary();
+            var res = await _scannerResultService.GetMesaSummaryAsync();
             return await ToEncryptedResponse(res, HttpContext.RequestAborted);
         }
     }
