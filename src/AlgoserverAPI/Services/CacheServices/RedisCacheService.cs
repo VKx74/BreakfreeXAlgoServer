@@ -34,6 +34,24 @@ namespace Algoserver.API.Services.CacheServices {
             return false;
         }
 
+        public async Task<T> TryGetValueAsync<T>(string prefix, string key) {
+            try
+            {
+                var cachedResult = await _cache.GetAsync(prefix + key);
+
+                if (cachedResult != null)
+                {
+                    return cachedResult.ToObject<T>();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during update of cache: {ex.Message}");
+            }
+
+            return default(T);
+        }
+
         public bool Set(string prefix, string key, object value, TimeSpan expiration) {
             try
             {

@@ -248,7 +248,7 @@ namespace Algoserver.API.Controllers
         [ProducesResponseType(typeof(Response<List<MesaSummaryResponse>>), 200)]
         public async Task<IActionResult> GetMesaSummaryAsync()
         {
-            var res = _scannerResultService.GetMesaSummary();
+            var res = await _scannerResultService.GetMesaSummaryAsync();
             return await ToEncryptedResponse(res, HttpContext.RequestAborted);
         }
     }
