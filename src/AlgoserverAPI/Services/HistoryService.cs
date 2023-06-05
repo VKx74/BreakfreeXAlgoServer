@@ -76,13 +76,17 @@ namespace Algoserver.API.Services
                     {
                         _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(5));
                     }
+                    else if (granularity > 60 * 5)
+                    {
+                        _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(3));
+                    } 
                     else if (granularity > 60)
                     {
                         _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(1));
                     }
                     else
                     {
-                        _cache.Set(_cachePrefix, hash, result, TimeSpan.FromSeconds(15));
+                        _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(30));
                     }
                     // _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(30));
                 }
