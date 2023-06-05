@@ -86,7 +86,7 @@ namespace Algoserver.API.Services
                     }
                     else
                     {
-                        _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(30));
+                        _cache.Set(_cachePrefix, hash, result, TimeSpan.FromSeconds(30));
                     }
                     // _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(30));
                 }
