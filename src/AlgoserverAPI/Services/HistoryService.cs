@@ -49,7 +49,8 @@ namespace Algoserver.API.Services
 
             try
             {
-                if (_cache.TryGetValue(_cachePrefix, hash, out HistoryData cachedResponse))
+                var cachedResponse = await _cache.TryGetValueAsync<HistoryData>(_cachePrefix, hash);
+                if (cachedResponse != null)
                 {
                     if (cachedResponse.Bars != null && cachedResponse.Bars.Count() >= barsBack)
                     {
