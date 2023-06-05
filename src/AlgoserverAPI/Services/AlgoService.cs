@@ -762,9 +762,13 @@ namespace Algoserver.API.Services
 
                 foreach (var historicalData in historicalDataArray)
                 {
-                    var high = historicalData.Bars.Select(_ => _.High);
-                    var low = historicalData.Bars.Select(_ => _.Low);
-                    var dates = historicalData.Bars.Select(_ => _.Timestamp).ToList();
+                    var granularityDiff = historicalData.Granularity / granularity;
+                    var historyCount = (int)(req.BarsCount.GetValueOrDefault(historicalData.Bars.Count) / granularityDiff) + 150;
+
+                    var cutBars = historicalData.Bars.TakeLast(historyCount);
+                    var high = cutBars.Select(_ => _.High);
+                    var low = cutBars.Select(_ => _.Low);
+                    var dates = cutBars.Select(_ => _.Timestamp).ToList();
                     var levelsList = TechCalculations.CalculateLevelsBasedOnTradeZone(high, low);
                     var sar = new List<SaRResponse>();
                     for (var i = 0; i < levelsList.Count; i++)
@@ -783,9 +787,7 @@ namespace Algoserver.API.Services
                         });
                     }
 
-                    var granularityDiff = historicalData.Granularity / granularity;
                     var count = (int)(req.BarsCount.GetValueOrDefault(sar.Count) / granularityDiff) + 1;
-
                     levelsResult.Add((int)(historicalData.Granularity), sar.TakeLast(count).ToList());
                 }
             }
