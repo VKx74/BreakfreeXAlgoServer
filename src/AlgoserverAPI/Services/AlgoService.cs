@@ -753,12 +753,12 @@ namespace Algoserver.API.Services
                 foreach (var historicalData in historicalDataArray)
                 {
                     var granularityDiff = historicalData.Granularity / granularity;
-                    var historyCount = (int)(req.BarsCount.GetValueOrDefault(historicalData.Bars.Count) / granularityDiff) + 150;
+                    // var historyCount = (int)(req.BarsCount.GetValueOrDefault(historicalData.Bars.Count) / granularityDiff) + 500;
 
-                    var cutBars = historicalData.Bars.TakeLast(historyCount);
-                    var high = cutBars.Select(_ => _.High);
-                    var low = cutBars.Select(_ => _.Low);
-                    var dates = cutBars.Select(_ => _.Timestamp).ToList();
+                    // var cutBars = historicalData.Bars.TakeLast(historyCount);
+                    var high = historicalData.Bars.Select(_ => _.High);
+                    var low = historicalData.Bars.Select(_ => _.Low);
+                    var dates = historicalData.Bars.Select(_ => _.Timestamp).ToList();
                     var levelsList = TechCalculations.CalculateLevelsBasedOnTradeZone(high, low);
                     var sar = new List<SaRResponse>();
                     for (var i = 0; i < levelsList.Count; i++)
