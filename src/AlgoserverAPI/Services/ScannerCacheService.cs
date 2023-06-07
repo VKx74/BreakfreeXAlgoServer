@@ -159,6 +159,7 @@ namespace Algoserver.API.Services
             var stopWatch = new Stopwatch();
             stopWatch.Start();
             var _1Mins = _historyService.Get1MinLongData();
+            var _1Hour = _historyService.Get1HDataDictionary();
             var count = 0;
             var summary = new List<MESADataSummary>();
 
@@ -176,40 +177,130 @@ namespace Algoserver.API.Services
                     {
                         continue;
                     }
+
+                    HistoryData hourlyHistory;
+                    if (!_1Hour.TryGetValue(minHistory.Symbol + minHistory.Exchange, out hourlyHistory))
+                    {
+                        continue;
+                    }
+
+                    if (hourlyHistory == null)
+                    {
+                        continue;
+                    }
+
+                    var hourly_calculation_input = hourlyHistory.Bars.Select(_ => _.Close);
+
                     // "granularity": ['1min', '5min', '15min', '60min', '240min', '1440min'],
                     // "limits": [(0.0325, 0.0325), (0.0085, 0.0085), (0.0032, 0.0032), (0.0012, 0.0012), (0.0007, 0.0007), (0.00039, 0.00039)],
-                    var mesa1min = TechCalculations.MESA(calculation_input.TakeLast(12000).ToList(), 0.0325, 0.0325);
-                    var mesa5min = TechCalculations.MESA(calculation_input.TakeLast(16000).ToList(), 0.0085, 0.0085);
-                    var mesa15min = TechCalculations.MESA(calculation_input.TakeLast(24000).ToList(), 0.0032, 0.0032);
-                    var mesa1h = TechCalculations.MESA(calculation_input.TakeLast(32000).ToList(), 0.0012, 0.0012);
-                    var mesa4h = TechCalculations.MESA(calculation_input.TakeLast(44000).ToList(), 0.0007, 0.0007);
-                    var mesa1d = TechCalculations.MESA(calculation_input.ToList(), 0.00039, 0.00039);
+                    var mesa1driver = TechCalculations.MESA(calculation_input.TakeLast(12000).ToList(), 0.0325, 0.0325);
+                    var mesa1min = TechCalculations.MESA(calculation_input.TakeLast(16000).ToList(), 0.0085, 0.0085);
+                    var mesa5min = TechCalculations.MESA(calculation_input.TakeLast(24000).ToList(), 0.0032, 0.0032);
+                    var mesa15min = TechCalculations.MESA(calculation_input.TakeLast(32000).ToList(), 0.0012, 0.0012);
+                    var mesa1h = TechCalculations.MESA(calculation_input.TakeLast(44000).ToList(), 0.0007, 0.0007);
+                    var mesa4h = TechCalculations.MESA(calculation_input.ToList(), 0.00039, 0.00039);
+                    var mesa1d = TechCalculations.MESA(hourly_calculation_input.ToList(), 0.0085, 0.0085);
 
-                    var task1 = SetMinuteMesaCache(mesa1min, minHistory.Datafeed + "_" + minHistory.Symbol + "_60");
-                    var task2 = SetMinuteMesaCache(mesa5min, minHistory.Datafeed + "_" + minHistory.Symbol + "_300");
-                    var task3 = SetMinuteMesaCache(mesa15min, minHistory.Datafeed + "_" + minHistory.Symbol + "_900");
-                    var task4 = SetMinuteMesaCache(mesa1h, minHistory.Datafeed + "_" + minHistory.Symbol + "_3600");
-                    var task5 = SetMinuteMesaCache(mesa4h, minHistory.Datafeed + "_" + minHistory.Symbol + "_14400");
-                    var task6 = SetMinuteMesaCache(mesa1d, minHistory.Datafeed + "_" + minHistory.Symbol + "_86400");
-                    await Task.WhenAll(task1, task2, task3, task4, task5, task6);
+                    var mesa1driverCut = mesa1driver.TakeLast(longMinHistoryCount).ToList();
+                    var mesa1minCut = mesa1min.TakeLast(longMinHistoryCount).ToList();
+                    var mesa5minCut = mesa5min.TakeLast(longMinHistoryCount).ToList();
+                    var mesa15minCut = mesa15min.TakeLast(longMinHistoryCount).ToList();
+                    var mesa1hCut = mesa1h.TakeLast(longMinHistoryCount).ToList();
+                    var mesa4hCut = mesa4h.TakeLast(longMinHistoryCount).ToList();
+                    var mesa1driverDataPoints = new List<MESADataPoint>();
+                    var mesa1minDataPoints = new List<MESADataPoint>();
+                    var mesa5minDataPoints = new List<MESADataPoint>();
+                    var mesa15minDataPoints = new List<MESADataPoint>();
+                    var mesa1hDataPoints = new List<MESADataPoint>();
+                    var mesa4hDataPoints = new List<MESADataPoint>();
+
+                    var minuteTimesCut = minHistory.Bars.TakeLast(longMinHistoryCount).Select(_ => _.Timestamp).ToList();
+                    for (var i = 0; i < minuteTimesCut.Count; i++)
+                    {
+                        if (minuteTimesCut[i] % (60 * 5) != 0 && i != minuteTimesCut.Count - 1) {
+                            continue;
+                        }
+
+                        mesa1driverDataPoints.Add(new MESADataPoint
+                        {
+                            f = mesa1driverCut[i].Fast,
+                            s = mesa1driverCut[i].Slow,
+                            t = minuteTimesCut[i]
+                        });
+                        mesa1minDataPoints.Add(new MESADataPoint
+                        {
+                            f = mesa1minCut[i].Fast,
+                            s = mesa1minCut[i].Slow,
+                            t = minuteTimesCut[i]
+                        });
+                        mesa5minDataPoints.Add(new MESADataPoint
+                        {
+                            f = mesa5minCut[i].Fast,
+                            s = mesa5minCut[i].Slow,
+                            t = minuteTimesCut[i]
+                        });
+                        mesa15minDataPoints.Add(new MESADataPoint
+                        {
+                            f = mesa15minCut[i].Fast,
+                            s = mesa15minCut[i].Slow,
+                            t = minuteTimesCut[i]
+                        });
+                        mesa1hDataPoints.Add(new MESADataPoint
+                        {
+                            f = mesa1hCut[i].Fast,
+                            s = mesa1hCut[i].Slow,
+                            t = minuteTimesCut[i]
+                        });
+                        mesa4hDataPoints.Add(new MESADataPoint
+                        {
+                            f = mesa4hCut[i].Fast,
+                            s = mesa4hCut[i].Slow,
+                            t = minuteTimesCut[i]
+                        });
+                    }
+
+                    var hourTfCount = 250;
+                    var hourTimesCut = hourlyHistory.Bars.TakeLast(hourTfCount).Select(_ => _.Timestamp).ToList();
+                    var mesa1dCut = mesa1d.TakeLast(hourTfCount).ToList();
+                    var mesa1dDataPoints = new List<MESADataPoint>();
+
+                    for (var i = 0; i < hourTimesCut.Count; i++)
+                    {
+                        mesa1dDataPoints.Add(new MESADataPoint
+                        {
+                            f = mesa1dCut[i].Fast,
+                            s = mesa1dCut[i].Slow,
+                            t = hourTimesCut[i]
+                        });
+                    }
+
+                    var task1 = SetMinuteMesaCache(mesa1driverDataPoints, minHistory.Datafeed + "_" + minHistory.Symbol + "_1");
+                    var task2 = SetMinuteMesaCache(mesa1minDataPoints, minHistory.Datafeed + "_" + minHistory.Symbol + "_60");
+                    var task3 = SetMinuteMesaCache(mesa5minDataPoints, minHistory.Datafeed + "_" + minHistory.Symbol + "_300");
+                    var task4 = SetMinuteMesaCache(mesa15minDataPoints, minHistory.Datafeed + "_" + minHistory.Symbol + "_900");
+                    var task5 = SetMinuteMesaCache(mesa1hDataPoints, minHistory.Datafeed + "_" + minHistory.Symbol + "_3600");
+                    var task6 = SetMinuteMesaCache(mesa4hDataPoints, minHistory.Datafeed + "_" + minHistory.Symbol + "_14400");
+                    var task7 = SetMinuteMesaCache(mesa1dDataPoints, minHistory.Datafeed + "_" + minHistory.Symbol + "_86400");
+                    await Task.WhenAll(task1, task2, task3, task4, task5, task6, task7);
                     count++;
 
-                    var tfSummary = new Dictionary<int, MESAData>();
-                    tfSummary.Add(60, mesa1min.LastOrDefault());
-                    tfSummary.Add(300, mesa5min.LastOrDefault());
-                    tfSummary.Add(900, mesa15min.LastOrDefault());
-                    tfSummary.Add(3600, mesa1h.LastOrDefault());
-                    tfSummary.Add(14400, mesa4h.LastOrDefault());
-                    tfSummary.Add(86400, mesa1d.LastOrDefault());
+                    var tfSummary = new Dictionary<int, MESADataPoint>();
+                    tfSummary.Add(1, mesa1driverDataPoints.LastOrDefault());
+                    tfSummary.Add(60, mesa1minDataPoints.LastOrDefault());
+                    tfSummary.Add(300, mesa5minDataPoints.LastOrDefault());
+                    tfSummary.Add(900, mesa15minDataPoints.LastOrDefault());
+                    tfSummary.Add(3600, mesa1hDataPoints.LastOrDefault());
+                    tfSummary.Add(14400, mesa4hDataPoints.LastOrDefault());
+                    tfSummary.Add(86400, mesa1dDataPoints.LastOrDefault());
 
                     var tfAvgSummary = new Dictionary<int, decimal>();
+                    tfAvgSummary.Add(1, mesa1driver.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1driver.Length);
                     tfAvgSummary.Add(60, mesa1min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1min.Length);
                     tfAvgSummary.Add(300, mesa5min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa5min.Length);
                     tfAvgSummary.Add(900, mesa15min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa15min.Length);
                     tfAvgSummary.Add(3600, mesa1h.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1h.Length);
                     tfAvgSummary.Add(14400, mesa4h.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa4h.Length);
                     tfAvgSummary.Add(86400, mesa1d.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1d.Length);
-
 
                     var length = calculation_input.Count();
 
@@ -251,11 +342,11 @@ namespace Algoserver.API.Services
             Console.WriteLine(">>> " + elapsedTime1);
         }
 
-        private async Task SetMinuteMesaCache(MESAData[] mesa, string key)
+        private async Task SetMinuteMesaCache(List<MESADataPoint> mesa, string key)
         {
             try
             {
-                await _cache.SetAsync(_mesaCachePrefix, key.ToLower(), mesa.TakeLast(longMinHistoryCount).ToList(), TimeSpan.FromDays(2));
+                await _cache.SetAsync(_mesaCachePrefix, key.ToLower(), mesa, TimeSpan.FromDays(2));
             }
             catch (Exception ex) { }
         }

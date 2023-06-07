@@ -297,6 +297,7 @@ namespace Algoserver.API.Models.REST
     {
         public decimal f { get; set; }
         public decimal s { get; set; }
+        public long t { get; set; }
     }
 
     public class MesaResponse

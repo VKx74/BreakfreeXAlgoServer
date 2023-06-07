@@ -541,7 +541,7 @@ namespace Algoserver.API.Services
                 var mesaGranularity = new List<int>();
                 foreach (var item in sar_additional)
                 {
-                    var mesaRequiredTf = GetOneStepHigherTF(item.Key);
+                    var mesaRequiredTf = GetTrendIndexGranularity(item.Key);
                     mesaGranularity.Add(mesaRequiredTf);
                 }
                 mesa_additional = await getMesaAsync(req.Instrument.Id, req.Instrument.Datafeed, mesaGranularity);
@@ -597,16 +597,9 @@ namespace Algoserver.API.Services
 
                 }
 
-                var mesa_bars = mesa_additional.bars;
-                var mesa_bars_start_index = mesa_bars.FindIndex((_) => _.t >= startDate);
-                if (mesa_bars_start_index < 0)
-                {
-                    mesa_bars_start_index = 0;
-                }
-
                 foreach (var item in sar_additional)
                 {
-                    var mesaRequiredTf = GetOneStepHigherTF(item.Key);
+                    var mesaRequiredTf = GetTrendIndexGranularity(item.Key);
                     if (!mesa_additional.mesa.ContainsKey(mesaRequiredTf))
                     {
                         continue;
@@ -627,15 +620,16 @@ namespace Algoserver.API.Services
                         levelsV3.mesa_avg = mesa_additional_values.Select((_) => Math.Abs(_.f - _.s)).Sum() / mesa_additional_values.Count;
                     }
 
-                    for (var i = mesa_bars_start_index; i < mesa_bars.Count; i++)
+                    for (var i = 0; i < mesa_additional_values.Count; i++)
                     {
-                        if (mesa_bars[i].t >= item.Value.First().date && mesa_bars[i].t % granularity == 0)
+                        var currentTime = mesa_additional_values[i].t;
+                        if (currentTime >= item.Value.First().date && currentTime % granularity == 0)
                         {
                             levelsV3.mesa.Add(new MesaTrendV3Response
                             {
                                 f = mesa_additional_values[i].f,
                                 s = mesa_additional_values[i].s,
-                                t = mesa_bars[i].t
+                                t = mesa_additional_values[i].t
                             });
                         }
                     }
@@ -693,17 +687,13 @@ namespace Algoserver.API.Services
             return result;
         }
 
-        private int GetOneStepHigherTF(int tf)
+        private int GetTrendIndexGranularity(int tf)
         {
-            switch (tf)
-            {
-                case TimeframeHelper.MIN1_GRANULARITY: return TimeframeHelper.MIN5_GRANULARITY;
-                case TimeframeHelper.MIN5_GRANULARITY: return TimeframeHelper.MIN15_GRANULARITY;
-                case TimeframeHelper.MIN15_GRANULARITY: return TimeframeHelper.HOURLY_GRANULARITY;
-                case TimeframeHelper.HOURLY_GRANULARITY: return TimeframeHelper.HOUR4_GRANULARITY;
-                case TimeframeHelper.HOUR4_GRANULARITY: return TimeframeHelper.DAILY_GRANULARITY;
-            }
-            return 0;
+            // if (TimeframeHelper.MIN1_GRANULARITY == tf)
+            // {
+            //      return TimeframeHelper.DRIVER_GRANULARITY; 
+            // }
+            return tf;
         }
 
         private async Task<Dictionary<int, List<SaRResponse>>> CalculateTradeZoneLevels(InputDataContainer container, CalculationRequestV3 req)
@@ -1088,6 +1078,7 @@ namespace Algoserver.API.Services
             }
             else
             {
+                granularityList.Add(1);
                 granularityList.Add(60);
                 granularityList.Add(300);
                 granularityList.Add(900);
@@ -1099,13 +1090,13 @@ namespace Algoserver.API.Services
             var hisotryCachePrefix = "HistoryCache_";
             var mesaCachePrefix = "MesaCache_";
             var mesa = new Dictionary<int, List<MesaLevelResponse>>();
-            var tasksToWait = new List<Task<List<MESAData>>>();
+            var tasksToWait = new List<Task<List<MESADataPoint>>>();
             foreach (var g in granularityList)
             {
                 var hash = datafeed + "_" + symbol + "_" + g.ToString();
                 try
                 {
-                    var taskToWait = _cache.TryGetValueAsync<List<MESAData>>(mesaCachePrefix, hash.ToLower());
+                    var taskToWait = _cache.TryGetValueAsync<List<MESADataPoint>>(mesaCachePrefix, hash.ToLower());
                     tasksToWait.Add(taskToWait);
                 }
                 catch (Exception ex) { }
@@ -1119,8 +1110,9 @@ namespace Algoserver.API.Services
                 {
                     mesa.Add(granularityList[i], data.Select((_) => new MesaLevelResponse
                     {
-                        f = _.Fast,
-                        s = _.Slow
+                        f = _.f,
+                        s = _.s,
+                        t = _.t
                     }).ToList());
                 }
             }

@@ -27,7 +27,7 @@ namespace Algoserver.API.Services
                 }
             }
 
-            // return instruments.Take(5).ToList();
+            // return instruments.Take(2).ToList();
             return instruments;
         }  
         protected override List<IInstrument> _getInstrumentsForLongHistory() 

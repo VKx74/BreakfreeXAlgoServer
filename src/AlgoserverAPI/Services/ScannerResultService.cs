@@ -47,8 +47,9 @@ namespace Algoserver.API.Services
                     datafeed = r.Datafeed,
                     symbol = r.Symbol,
                     strength = r.Strength.ToDictionary((_) => _.Key, (_) => new MesaLevelResponse {
-                        f = _.Value.Fast,
-                        s = _.Value.Slow
+                        f = _.Value.f,
+                        s = _.Value.s,
+                        t = _.Value.t
                     }),
                     avg_strength = r.AvgStrength,
                     last_price = r.LastPrice,
@@ -79,8 +80,9 @@ namespace Algoserver.API.Services
                     datafeed = r.Datafeed,
                     symbol = r.Symbol,
                     strength = r.Strength.ToDictionary((_) => _.Key, (_) => new MesaLevelResponse {
-                        f = _.Value.Fast,
-                        s = _.Value.Slow
+                        f = _.Value.f,
+                        s = _.Value.s,
+                        t = _.Value.t
                     }),
                     avg_strength = r.AvgStrength,
                     last_price = r.LastPrice,

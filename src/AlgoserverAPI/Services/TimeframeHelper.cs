@@ -1,6 +1,7 @@
 namespace Algoserver.API.Services
 {
     public static class TimeframeHelper {
+        public const int DRIVER_GRANULARITY = 1;
         public const int MIN1_GRANULARITY = 60;
         public const int MIN5_GRANULARITY = 300;
         public const int MIN15_GRANULARITY = 900;

@@ -7,11 +7,19 @@ namespace Algoserver.API.Helpers
 {
 
     [Serializable]
+    public class MESADataPoint
+    {
+        public decimal f { get; set; }
+        public decimal s { get; set; }
+        public long t { get; set; }
+    }
+    
+    [Serializable]
     public class MESADataSummary
     {
         public string Symbol { get; set; }
         public string Datafeed { get; set; }
-        public Dictionary<int, MESAData> Strength { get; set; }
+        public Dictionary<int, MESADataPoint> Strength { get; set; }
         public Dictionary<int, decimal> AvgStrength { get; set; }
         public decimal LastPrice { get; set; }
         public decimal Price60 { get; set; }
