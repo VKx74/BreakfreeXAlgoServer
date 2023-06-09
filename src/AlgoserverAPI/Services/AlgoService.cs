@@ -454,6 +454,26 @@ namespace Algoserver.API.Services
 
                 result.sar = await CalculateV3Levels(container, req);
 
+                if ((granularity == TimeframeHelper.MIN1_GRANULARITY || granularity == TimeframeHelper.MIN5_GRANULARITY) && result.sar.TryGetValue(TimeframeHelper.HOURLY_GRANULARITY, out var hourlySar) && result.sar.TryGetValue(granularity, out var mainSar))
+                {
+                    var lastHourlyMesa = hourlySar.mesa.LastOrDefault();
+                    var lastHourlySar = hourlySar.sar.LastOrDefault();
+                    var lastMainSar = mainSar.sar.LastOrDefault();
+                    if (lastHourlyMesa != null && lastHourlySar != null && lastMainSar != null)
+                    {
+                        if (lastHourlyMesa.f > lastHourlyMesa.s)
+                        {
+                            result.sl_price = lastHourlySar.s_m18;
+                            result.tp_price = (lastMainSar.n * 2 + lastMainSar.s) / 3;
+                        }
+                        else
+                        {
+                            result.sl_price = lastHourlySar.r_p18;
+                            result.tp_price = (lastMainSar.n * 2 + lastMainSar.r) / 3;
+                        }
+                    }
+                }
+
                 if (predict)
                 {
                     try

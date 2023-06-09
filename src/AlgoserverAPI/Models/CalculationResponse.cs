@@ -68,6 +68,8 @@ namespace Algoserver.API.Models.REST
         public List<decimal> fama_prediction { get; set; }
         public CalculationLevels levels { get; set; }
         public StrategyModeV2 trade { get; set; }
+        public decimal? sl_price { get; set; }
+        public decimal? tp_price { get; set; }
         public decimal? support_prob { get; set; }
         public decimal? resistance_prob { get; set; }
         public decimal? support_ext_prob { get; set; }
