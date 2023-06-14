@@ -77,6 +77,7 @@ namespace Algoserver.API
                 options.ConfigurationOptions.Ssl = redisSettings.UseSSL;
                 options.ConfigurationOptions.Password = redisSettings.Password;
                 options.ConfigurationOptions.DefaultDatabase = redisSettings.DefaultDatabase;
+                options.ConfigurationOptions.ConnectRetry = redisSettings.ConnectRetry;
                 options.ConfigurationOptions.EndPoints.Add(redisSettings.Host, redisSettings.Port);
             });
 

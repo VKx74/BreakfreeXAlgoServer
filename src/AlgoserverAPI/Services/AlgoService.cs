@@ -464,12 +464,12 @@ namespace Algoserver.API.Services
                         if (lastHourlyMesa.f > lastHourlyMesa.s)
                         {
                             result.sl_price = lastHourlySar.s_m18;
-                            result.tp_price = (lastMainSar.n * 2 + lastMainSar.s) / 3;
+                            // result.tp_price = (lastMainSar.n * 2 + lastMainSar.s) / 3;
                         }
                         else
                         {
                             result.sl_price = lastHourlySar.r_p18;
-                            result.tp_price = (lastMainSar.n * 2 + lastMainSar.r) / 3;
+                            // result.tp_price = (lastMainSar.n * 2 + lastMainSar.r) / 3;
                         }
                     }
                 }
