@@ -212,7 +212,13 @@ namespace Algoserver.API.Controllers
                 return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
             }
 
-            var result = await _algoService.GetMesaAsync(symbol, datafeed, granularity);
+            var granularityList = new List<int>();
+            if (granularity > 0)
+            {
+                granularityList.Add(granularity);
+            }
+
+            var result = await _algoService.GetMesaAsync(symbol, datafeed, granularityList);
             return Json(result);
         }
 
@@ -227,7 +233,8 @@ namespace Algoserver.API.Controllers
             }
 
             var granularityList = new List<int>();
-            if (granularity > 0) {
+            if (granularity > 0)
+            {
                 granularityList.Add(granularity);
             }
             var result = await _algoService.GetMesaAsync(symbol, datafeed, granularityList);
