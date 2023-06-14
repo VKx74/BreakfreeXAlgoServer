@@ -19,7 +19,7 @@ namespace Algoserver.API.Services
 
     public abstract class ScannerHistoryService
     {
-        private static int longMinHistoryCount = 7200;
+        private static int longMinHistoryCount = 21600;
         private string _cachePrefix = "HistoryCache_";
         private readonly ICacheService _cache;
         protected readonly HistoryService _historyService;

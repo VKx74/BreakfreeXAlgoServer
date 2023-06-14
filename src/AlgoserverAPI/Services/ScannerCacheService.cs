@@ -69,7 +69,7 @@ namespace Algoserver.API.Services
 
     public abstract class ScannerCacheService
     {
-        private static int longMinHistoryCount = 7200;
+        private static int longMinHistoryCount = 21600;
         protected string _mesaCachePrefix = "MesaCache_";
         protected readonly ICacheService _cache;
         protected readonly ScannerHistoryService _historyService;
@@ -193,10 +193,10 @@ namespace Algoserver.API.Services
 
                     // "granularity": ['1min', '5min', '15min', '60min', '240min', '1440min'],
                     // "limits": [(0.0325, 0.0325), (0.0085, 0.0085), (0.0032, 0.0032), (0.0012, 0.0012), (0.0007, 0.0007), (0.00039, 0.00039)],
-                    var mesa1driver = TechCalculations.MESA(calculation_input.TakeLast(12000).ToList(), 0.0325, 0.0325);
-                    var mesa1min = TechCalculations.MESA(calculation_input.TakeLast(16000).ToList(), 0.0085, 0.0085);
-                    var mesa5min = TechCalculations.MESA(calculation_input.TakeLast(24000).ToList(), 0.0032, 0.0032);
-                    var mesa15min = TechCalculations.MESA(calculation_input.TakeLast(32000).ToList(), 0.0012, 0.0012);
+                    var mesa1driver = TechCalculations.MESA(calculation_input.TakeLast(28000).ToList(), 0.0325, 0.0325);
+                    var mesa1min = TechCalculations.MESA(calculation_input.TakeLast(32000).ToList(), 0.0085, 0.0085);
+                    var mesa5min = TechCalculations.MESA(calculation_input.TakeLast(36000).ToList(), 0.0032, 0.0032);
+                    var mesa15min = TechCalculations.MESA(calculation_input.TakeLast(40000).ToList(), 0.0012, 0.0012);
                     var mesa1h = TechCalculations.MESA(calculation_input.TakeLast(44000).ToList(), 0.0007, 0.0007);
                     var mesa4h = TechCalculations.MESA(calculation_input.ToList(), 0.00039, 0.00039);
                     var mesa1d = TechCalculations.MESA(hourly_calculation_input.ToList(), 0.0085, 0.0085);
@@ -259,7 +259,7 @@ namespace Algoserver.API.Services
                         });
                     }
 
-                    var hourTfCount = 250;
+                    var hourTfCount = 360;
                     var hourTimesCut = hourlyHistory.Bars.TakeLast(hourTfCount).Select(_ => _.Timestamp).ToList();
                     var mesa1dCut = mesa1d.TakeLast(hourTfCount).ToList();
                     var mesa1dDataPoints = new List<MESADataPoint>();

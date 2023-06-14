@@ -454,7 +454,7 @@ namespace Algoserver.API.Services
 
                 result.sar = await CalculateV3Levels(container, req);
 
-                if ((granularity == TimeframeHelper.MIN1_GRANULARITY || granularity == TimeframeHelper.MIN5_GRANULARITY) && result.sar.TryGetValue(TimeframeHelper.HOURLY_GRANULARITY, out var hourlySar) && result.sar.TryGetValue(granularity, out var mainSar))
+                if ((granularity <= TimeframeHelper.HOURLY_GRANULARITY) && result.sar.TryGetValue(TimeframeHelper.HOURLY_GRANULARITY, out var hourlySar) && result.sar.TryGetValue(granularity, out var mainSar))
                 {
                     var lastHourlyMesa = hourlySar.mesa.LastOrDefault();
                     var lastHourlySar = hourlySar.sar.LastOrDefault();
@@ -554,18 +554,14 @@ namespace Algoserver.API.Services
             var result = new Dictionary<int, LevelsV3Response>();
             var granularity = AlgoHelper.ConvertTimeframeToGranularity(container.TimeframeInterval, container.TimeframePeriod);
             var sar_additional = await CalculateTradeZoneLevels(container, req);
-            MesaResponse mesa_additional = null;
 
-            if (granularity == TimeframeHelper.MIN1_GRANULARITY || granularity == TimeframeHelper.MIN5_GRANULARITY)
+            var mesaGranularity = new List<int>();
+            foreach (var item in sar_additional)
             {
-                var mesaGranularity = new List<int>();
-                foreach (var item in sar_additional)
-                {
-                    var mesaRequiredTf = GetTrendIndexGranularity(item.Key);
-                    mesaGranularity.Add(mesaRequiredTf);
-                }
-                mesa_additional = await getMesaAsync(req.Instrument.Id, req.Instrument.Datafeed, mesaGranularity);
+                var mesaRequiredTf = GetTrendIndexGranularity(item.Key);
+                mesaGranularity.Add(mesaRequiredTf);
             }
+            var mesa_additional = await getMesaAsync(req.Instrument.Id, req.Instrument.Datafeed, mesaGranularity);
 
             if (mesa_additional != null && mesa_additional.mesa != null && mesa_additional.bars != null && mesa_additional.mesa.Any() && mesa_additional.bars.Any())
             {
