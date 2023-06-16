@@ -105,11 +105,13 @@ namespace Algoserver.API
             services.AddSingleton<RTDService>();
             services.AddSingleton<StatisticsService>();
             services.AddSingleton<LevelsPredictionService>();
+            services.AddSingleton<EconomicCalendarService>();
 
             if (scanInstruments) {
                 services.AddHostedService<StockHistoryLoaderHostedService>();
                 services.AddHostedService<ForexHistoryLoaderHostedService>();
                 services.AddHostedService<CryptoHistoryLoaderHostedService>();
+                services.AddHostedService<EconomicCalendarLoaderHostedService>();
             }
 
             services.AddCors(options =>
