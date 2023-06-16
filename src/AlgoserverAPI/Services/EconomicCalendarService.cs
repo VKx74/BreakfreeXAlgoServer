@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Algoserver.API.Models.EconomicCalendar;
 using Algoserver.API.Services.CacheServices;
-using HtmlAgilityPack;
 using Newtonsoft.Json;
 
 namespace Algoserver.API.Services
