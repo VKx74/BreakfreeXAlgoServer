@@ -9,7 +9,7 @@ namespace Algoserver.API.HostedServices
 {
     public class EconomicCalendarLoaderHostedService : BackgroundService
     {
-        private int _prevDay = -1;
+        private int _prevHour = -1;
         private readonly ILogger<EconomicCalendarLoaderHostedService> _logger;
         private readonly EconomicCalendarService _economicCalendarService;
         private Timer _timer;
@@ -25,21 +25,21 @@ namespace Algoserver.API.HostedServices
             {
                 try
                 {
-                    var currentDay = DateTime.UtcNow.Day;
+                    var currentHour = DateTime.UtcNow.Hour;
 
-                    if (currentDay != _prevDay)
+                    if (currentHour != _prevHour)
                     {
                         await _economicCalendarService.LoadEconomicEvents();
                     } 
 
-                    _prevDay = currentDay;
+                    _prevHour = currentHour;
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex);
                 }
 
-                await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken).ConfigureAwait(false);
+                await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken).ConfigureAwait(false);
             }
         }
     }
