@@ -24,8 +24,8 @@ namespace Algoserver.API.Models.EconomicCalendar
     public class EconomicEvent
     {
         public Event Event { get; set; }
-        public DateTime DateUtc { get; set; }
-        public DateTime? ForPeriod { get; set; }
+        public String DateUtc { get; set; }
+        public String ForPeriod { get; set; }
         public int Volatility { get; set; }
         public double? Actual { get; set; }
         public double? Consensus { get; set; }
