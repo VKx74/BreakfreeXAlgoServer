@@ -274,13 +274,29 @@ namespace Algoserver.API.Services
                         });
                     }
 
-                    var task1 = SetMinuteMesaCache(mesa1driverDataPoints, minHistory.Datafeed + "_" + minHistory.Symbol + "_1");
-                    var task2 = SetMinuteMesaCache(mesa1minDataPoints, minHistory.Datafeed + "_" + minHistory.Symbol + "_60");
-                    var task3 = SetMinuteMesaCache(mesa5minDataPoints, minHistory.Datafeed + "_" + minHistory.Symbol + "_300");
-                    var task4 = SetMinuteMesaCache(mesa15minDataPoints, minHistory.Datafeed + "_" + minHistory.Symbol + "_900");
-                    var task5 = SetMinuteMesaCache(mesa1hDataPoints, minHistory.Datafeed + "_" + minHistory.Symbol + "_3600");
-                    var task6 = SetMinuteMesaCache(mesa4hDataPoints, minHistory.Datafeed + "_" + minHistory.Symbol + "_14400");
-                    var task7 = SetMinuteMesaCache(mesa1dDataPoints, minHistory.Datafeed + "_" + minHistory.Symbol + "_86400");
+
+                    var symbol = minHistory.Symbol;
+                    var datafeed = minHistory.Datafeed;
+
+                    // if (symbol == "BTC_USD" && datafeed == "Oanda") {
+                    //     datafeed = "Binance";
+                    //     symbol = "BTCUSDT";
+                    // }
+
+                    // if (symbol == "ETH_USD" && datafeed == "Oanda") {
+                    //     datafeed = "Binance";
+                    //     symbol = "ETHUSDT";
+                    // }
+
+                    var key = datafeed + "_" + symbol;
+
+                    var task1 = SetMinuteMesaCache(mesa1driverDataPoints, key + "_1");
+                    var task2 = SetMinuteMesaCache(mesa1minDataPoints, key + "_60");
+                    var task3 = SetMinuteMesaCache(mesa5minDataPoints, key + "_300");
+                    var task4 = SetMinuteMesaCache(mesa15minDataPoints, key + "_900");
+                    var task5 = SetMinuteMesaCache(mesa1hDataPoints, key + "_3600");
+                    var task6 = SetMinuteMesaCache(mesa4hDataPoints, key + "_14400");
+                    var task7 = SetMinuteMesaCache(mesa1dDataPoints, key + "_86400");
                     await Task.WhenAll(task1, task2, task3, task4, task5, task6, task7);
                     count++;
 
@@ -306,8 +322,8 @@ namespace Algoserver.API.Services
 
                     summary.Add(new MESADataSummary
                     {
-                        Symbol = minHistory.Symbol,
-                        Datafeed = minHistory.Datafeed,
+                        Symbol = symbol,
+                        Datafeed = datafeed,
                         Strength = tfSummary,
                         AvgStrength = tfAvgSummary,
                         LastPrice = calculation_input.LastOrDefault(),
