@@ -53,7 +53,7 @@ namespace Algoserver.API.Controllers
 
             var result = await _algoService.CalculateV3Async(request);
             return await ToEncryptedResponse(result, CancellationToken.None);
-        }
+        }  
 
         [Authorize]
         [HttpPost(Routes.CalculatePositionSize)]
@@ -203,25 +203,6 @@ namespace Algoserver.API.Controllers
             return await ToEncryptedResponse(result, HttpContext.RequestAborted);
         }
 
-        [HttpGet(Routes.TrendsGlobal)]
-        [ProducesResponseType(typeof(MesaResponse), 200)]
-        public async Task<IActionResult> GetMesaGlobalAsync([FromQuery] string symbol, [FromQuery] string datafeed, [FromQuery] int granularity = -1)
-        {
-            if (!ModelState.IsValid)
-            {
-                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
-            }
-
-            var granularityList = new List<int>();
-            if (granularity > 0)
-            {
-                granularityList.Add(granularity);
-            }
-
-            var result = await _algoService.GetMesaAsync(symbol, datafeed, granularityList);
-            return Json(result);
-        }
-
         [Authorize]
         [HttpGet(Routes.Trends)]
         [ProducesResponseType(typeof(Response<MesaResponse>), 200)]
@@ -241,15 +222,6 @@ namespace Algoserver.API.Controllers
             return await ToEncryptedResponse(result, HttpContext.RequestAborted);
         }
 
-        [HttpGet(Routes.TrendsGlobalSummary)]
-        [ProducesResponseType(typeof(List<MesaSummaryResponse>), 200)]
-        public async Task<IActionResult> GetMesaSummaryGlobalAsync()
-        {
-
-            var res = _scannerResultService.GetMesaSummary();
-            return Json(res);
-        }
-
         [Authorize]
         [HttpGet(Routes.TrendsSummary)]
         [ProducesResponseType(typeof(Response<List<MesaSummaryResponse>>), 200)]
@@ -257,6 +229,47 @@ namespace Algoserver.API.Controllers
         {
             var res = await _scannerResultService.GetMesaSummaryAsync();
             return await ToEncryptedResponse(res, HttpContext.RequestAborted);
+        }
+
+        [HttpPost(Routes.NeuralAlgoGlobal)]
+        [ProducesResponseType(typeof(Response<CalculationResponseV3>), 200)]
+        public async Task<IActionResult> CalculateNeuralAlgoGlobalAsync([FromBody] CalculationRequestV3 request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
+            }
+
+            var result = await _algoService.CalculateV3Async(request);
+            return Json(result);
+        }
+        
+        [HttpGet(Routes.TrendsGlobal)]
+        [ProducesResponseType(typeof(MesaResponse), 200)]
+        public async Task<IActionResult> GetMesaGlobalAsync([FromQuery] string symbol, [FromQuery] string datafeed, [FromQuery] int granularity = -1)
+        {
+            if (!ModelState.IsValid)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
+            }
+
+            var granularityList = new List<int>();
+            if (granularity > 0)
+            {
+                granularityList.Add(granularity);
+            }
+
+            var result = await _algoService.GetMesaAsync(symbol, datafeed, granularityList);
+            return Json(result);
+        }
+
+        [HttpGet(Routes.TrendsGlobalSummary)]
+        [ProducesResponseType(typeof(List<MesaSummaryResponse>), 200)]
+        public async Task<IActionResult> GetMesaSummaryGlobalAsync()
+        {
+
+            var res = _scannerResultService.GetMesaSummary();
+            return Json(res);
         }
     }
 }
