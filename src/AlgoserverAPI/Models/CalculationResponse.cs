@@ -304,7 +304,7 @@ namespace Algoserver.API.Models.REST
 
     public class MesaResponse
     {
-        public List<BarResponse> bars { get; set; }
+        // public List<BarResponse> bars { get; set; }
         public Dictionary<int, List<MesaLevelResponse>> mesa { get; set; }
     }
 

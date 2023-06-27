@@ -289,15 +289,24 @@ namespace Algoserver.API.Services
                     // }
 
                     var key = datafeed + "_" + symbol;
+                    var mesaDataPointsMap = new Dictionary<int, List<MESADataPoint>>();
+                    mesaDataPointsMap.Add(1, mesa1driverDataPoints);
+                    mesaDataPointsMap.Add(60, mesa1minDataPoints);
+                    mesaDataPointsMap.Add(300, mesa5minDataPoints);
+                    mesaDataPointsMap.Add(900, mesa15minDataPoints);
+                    mesaDataPointsMap.Add(3600, mesa1hDataPoints);
+                    mesaDataPointsMap.Add(14400, mesa4hDataPoints);
+                    mesaDataPointsMap.Add(86400, mesa1dDataPoints);
+                    await SetMinuteMesaCache(mesaDataPointsMap, key);
 
-                    var task1 = SetMinuteMesaCache(mesa1driverDataPoints, key + "_1");
-                    var task2 = SetMinuteMesaCache(mesa1minDataPoints, key + "_60");
-                    var task3 = SetMinuteMesaCache(mesa5minDataPoints, key + "_300");
-                    var task4 = SetMinuteMesaCache(mesa15minDataPoints, key + "_900");
-                    var task5 = SetMinuteMesaCache(mesa1hDataPoints, key + "_3600");
-                    var task6 = SetMinuteMesaCache(mesa4hDataPoints, key + "_14400");
-                    var task7 = SetMinuteMesaCache(mesa1dDataPoints, key + "_86400");
-                    await Task.WhenAll(task1, task2, task3, task4, task5, task6, task7);
+                    // var task1 = SetMinuteMesaCache(mesa1driverDataPoints, key + "_1");
+                    // var task2 = SetMinuteMesaCache(mesa1minDataPoints, key + "_60");
+                    // var task3 = SetMinuteMesaCache(mesa5minDataPoints, key + "_300");
+                    // var task4 = SetMinuteMesaCache(mesa15minDataPoints, key + "_900");
+                    // var task5 = SetMinuteMesaCache(mesa1hDataPoints, key + "_3600");
+                    // var task6 = SetMinuteMesaCache(mesa4hDataPoints, key + "_14400");
+                    // var task7 = SetMinuteMesaCache(mesa1dDataPoints, key + "_86400");
+                    // await Task.WhenAll(task1, task2, task3, task4, task5, task6, task7);
                     count++;
 
                     var tfSummary = new Dictionary<int, MESADataPoint>();
@@ -358,11 +367,11 @@ namespace Algoserver.API.Services
             Console.WriteLine(">>> " + elapsedTime1);
         }
 
-        private async Task SetMinuteMesaCache(List<MESADataPoint> mesa, string key)
+        private async Task SetMinuteMesaCache(Dictionary<int, List<MESADataPoint>> mesa, string key)
         {
             try
             {
-                await _cache.SetAsync(_mesaCachePrefix, key.ToLower(), mesa, TimeSpan.FromDays(2));
+                await _cache.SetAsync(_mesaCachePrefix, key.ToLower(), mesa, TimeSpan.FromDays(1));
             }
             catch (Exception ex) { }
         }

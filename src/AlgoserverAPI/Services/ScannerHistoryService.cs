@@ -516,7 +516,7 @@ namespace Algoserver.API.Services
                     history1MinLongData.Bars.RemoveRange(indexOfStart, history1MinLongData.Bars.Count - indexOfStart);
                     history1MinLongData.Bars.AddRange(history1Min.Bars);
 
-                    tryAddHistoryInCache(history1MinLongData);
+                    // tryAddHistoryInCache(history1MinLongData);
                 }
             }
         }

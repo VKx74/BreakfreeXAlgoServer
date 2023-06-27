@@ -563,7 +563,7 @@ namespace Algoserver.API.Services
             }
             var mesa_additional = await getMesaAsync(req.Instrument.Id, req.Instrument.Datafeed, mesaGranularity);
 
-            if (mesa_additional != null && mesa_additional.mesa != null && mesa_additional.bars != null && mesa_additional.mesa.Any() && mesa_additional.bars.Any())
+            if (mesa_additional != null && mesa_additional.mesa != null && mesa_additional.mesa.Any())
             {
                 List<MesaSummaryResponse> mesa_summary = new List<MesaSummaryResponse>();
                 lock (_mesaSummaryCache)
@@ -1103,28 +1103,21 @@ namespace Algoserver.API.Services
                 granularityList.Add(86400);
             }
 
-            var hisotryCachePrefix = "HistoryCache_";
             var mesaCachePrefix = "MesaCache_";
             var mesa = new Dictionary<int, List<MesaLevelResponse>>();
-            var tasksToWait = new List<Task<List<MESADataPoint>>>();
-            foreach (var g in granularityList)
-            {
-                var hash = datafeed + "_" + symbol + "_" + g.ToString();
-                try
-                {
-                    var taskToWait = _cache.TryGetValueAsync<List<MESADataPoint>>(mesaCachePrefix, hash.ToLower());
-                    tasksToWait.Add(taskToWait);
-                }
-                catch (Exception ex) { }
-            }
 
-            var tasksResults = await Task.WhenAll(tasksToWait);
-            for (var i = 0; i < tasksResults.Length; i++)
+            try
             {
-                var data = tasksResults[i];
-                if (data != null)
+                var hash = datafeed + "_" + symbol;
+                var mesaDataPointsMap = await _cache.TryGetValueAsync<Dictionary<int, List<MESADataPoint>>>(mesaCachePrefix, hash.ToLower());
+                foreach (var i in mesaDataPointsMap)
                 {
-                    mesa.Add(granularityList[i], data.Select((_) => new MesaLevelResponse
+                    if (!granularityList.Contains(i.Key))
+                    {
+                        continue;
+                    }
+
+                    mesa.Add(i.Key, i.Value.Select((_) => new MesaLevelResponse
                     {
                         f = _.f,
                         s = _.s,
@@ -1132,31 +1125,10 @@ namespace Algoserver.API.Services
                     }).ToList());
                 }
             }
-
-
-            var bars = new List<BarResponse>();
-            try
-            {
-                var hash = datafeed + "_" + symbol + "_60";
-                var data = await _cache.TryGetValueAsync<List<BarMessage>>(hisotryCachePrefix, hash.ToLower());
-                if (data != null)
-                {
-                    bars.AddRange(data.Select((_) => new BarResponse
-                    {
-                        o = _.Open,
-                        h = _.High,
-                        l = _.Low,
-                        c = _.Close,
-                        v = _.Volume,
-                        t = _.Timestamp
-                    }));
-                }
-            }
             catch (Exception ex) { }
 
             return new MesaResponse
             {
-                bars = bars,
                 mesa = mesa
             };
         }
