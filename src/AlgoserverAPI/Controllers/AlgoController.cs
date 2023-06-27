@@ -231,6 +231,7 @@ namespace Algoserver.API.Controllers
             return await ToEncryptedResponse(res, HttpContext.RequestAborted);
         }
 
+        [Authorize]
         [HttpPost(Routes.NeuralAlgoGlobal)]
         [ProducesResponseType(typeof(Response<CalculationResponseV3>), 200)]
         public async Task<IActionResult> CalculateNeuralAlgoGlobalAsync([FromBody] CalculationRequestV3 request)
@@ -244,6 +245,7 @@ namespace Algoserver.API.Controllers
             return Json(result);
         }
         
+        [Authorize]
         [HttpGet(Routes.TrendsGlobal)]
         [ProducesResponseType(typeof(MesaResponse), 200)]
         public async Task<IActionResult> GetMesaGlobalAsync([FromQuery] string symbol, [FromQuery] string datafeed, [FromQuery] int granularity = -1)
@@ -263,6 +265,7 @@ namespace Algoserver.API.Controllers
             return Json(result);
         }
 
+        [Authorize]
         [HttpGet(Routes.TrendsGlobalSummary)]
         [ProducesResponseType(typeof(List<MesaSummaryResponse>), 200)]
         public async Task<IActionResult> GetMesaSummaryGlobalAsync()
