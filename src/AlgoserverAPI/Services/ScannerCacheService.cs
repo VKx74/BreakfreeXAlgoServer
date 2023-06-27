@@ -223,38 +223,38 @@ namespace Algoserver.API.Services
 
                         mesa1driverDataPoints.Add(new MESADataPoint
                         {
-                            f = mesa1driverCut[i].Fast,
-                            s = mesa1driverCut[i].Slow,
+                            f = (float)mesa1driverCut[i].Fast,
+                            s = (float)mesa1driverCut[i].Slow,
                             t = minuteTimesCut[i]
                         });
                         mesa1minDataPoints.Add(new MESADataPoint
                         {
-                            f = mesa1minCut[i].Fast,
-                            s = mesa1minCut[i].Slow,
+                            f = (float)mesa1minCut[i].Fast,
+                            s = (float)mesa1minCut[i].Slow,
                             t = minuteTimesCut[i]
                         });
                         mesa5minDataPoints.Add(new MESADataPoint
                         {
-                            f = mesa5minCut[i].Fast,
-                            s = mesa5minCut[i].Slow,
+                            f = (float)mesa5minCut[i].Fast,
+                            s = (float)mesa5minCut[i].Slow,
                             t = minuteTimesCut[i]
                         });
                         mesa15minDataPoints.Add(new MESADataPoint
                         {
-                            f = mesa15minCut[i].Fast,
-                            s = mesa15minCut[i].Slow,
+                            f = (float)mesa15minCut[i].Fast,
+                            s = (float)mesa15minCut[i].Slow,
                             t = minuteTimesCut[i]
                         });
                         mesa1hDataPoints.Add(new MESADataPoint
                         {
-                            f = mesa1hCut[i].Fast,
-                            s = mesa1hCut[i].Slow,
+                            f = (float)mesa1hCut[i].Fast,
+                            s = (float)mesa1hCut[i].Slow,
                             t = minuteTimesCut[i]
                         });
                         mesa4hDataPoints.Add(new MESADataPoint
                         {
-                            f = mesa4hCut[i].Fast,
-                            s = mesa4hCut[i].Slow,
+                            f = (float)mesa4hCut[i].Fast,
+                            s = (float)mesa4hCut[i].Slow,
                             t = minuteTimesCut[i]
                         });
                     }
@@ -268,8 +268,8 @@ namespace Algoserver.API.Services
                     {
                         mesa1dDataPoints.Add(new MESADataPoint
                         {
-                            f = mesa1dCut[i].Fast,
-                            s = mesa1dCut[i].Slow,
+                            f = (float)mesa1dCut[i].Fast,
+                            s = (float)mesa1dCut[i].Slow,
                             t = hourTimesCut[i]
                         });
                     }
@@ -318,14 +318,14 @@ namespace Algoserver.API.Services
                     tfSummary.Add(14400, mesa4hDataPoints.LastOrDefault());
                     tfSummary.Add(86400, mesa1dDataPoints.LastOrDefault());
 
-                    var tfAvgSummary = new Dictionary<int, decimal>();
-                    tfAvgSummary.Add(1, mesa1driver.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1driver.Length);
-                    tfAvgSummary.Add(60, mesa1min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1min.Length);
-                    tfAvgSummary.Add(300, mesa5min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa5min.Length);
-                    tfAvgSummary.Add(900, mesa15min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa15min.Length);
-                    tfAvgSummary.Add(3600, mesa1h.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1h.Length);
-                    tfAvgSummary.Add(14400, mesa4h.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa4h.Length);
-                    tfAvgSummary.Add(86400, mesa1d.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1d.Length);
+                    var tfAvgSummary = new Dictionary<int, float>();
+                    tfAvgSummary.Add(1, (float)mesa1driver.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1driver.Length);
+                    tfAvgSummary.Add(60, (float)mesa1min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1min.Length);
+                    tfAvgSummary.Add(300, (float)mesa5min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa5min.Length);
+                    tfAvgSummary.Add(900, (float)mesa15min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa15min.Length);
+                    tfAvgSummary.Add(3600, (float)mesa1h.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1h.Length);
+                    tfAvgSummary.Add(14400, (float)mesa4h.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa4h.Length);
+                    tfAvgSummary.Add(86400, (float)mesa1d.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1d.Length);
 
                     var length = calculation_input.Count();
 
@@ -335,13 +335,13 @@ namespace Algoserver.API.Services
                         Datafeed = datafeed,
                         Strength = tfSummary,
                         AvgStrength = tfAvgSummary,
-                        LastPrice = calculation_input.LastOrDefault(),
-                        Price60 = calculation_input.ElementAt(length - 1),
-                        Price300 = calculation_input.ElementAt(length - 5),
-                        Price900 = calculation_input.ElementAt(length - 15),
-                        Price3600 = calculation_input.ElementAt(length - 60),
-                        Price14400 = calculation_input.ElementAt(length - 240),
-                        Price86400 = calculation_input.ElementAt(length - 1440),
+                        LastPrice = (float)calculation_input.LastOrDefault(),
+                        Price60 = (float)calculation_input.ElementAt(length - 1),
+                        Price300 = (float)calculation_input.ElementAt(length - 5),
+                        Price900 = (float)calculation_input.ElementAt(length - 15),
+                        Price3600 = (float)calculation_input.ElementAt(length - 60),
+                        Price14400 = (float)calculation_input.ElementAt(length - 240),
+                        Price86400 = (float)calculation_input.ElementAt(length - 1440),
                     });
 
                 }

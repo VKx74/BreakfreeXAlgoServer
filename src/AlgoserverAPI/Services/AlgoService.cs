@@ -681,7 +681,7 @@ namespace Algoserver.API.Services
                     var levelsV3 = new LevelsV3Response();
                     levelsV3.sar = item.Value;
                     levelsV3.mesa = new List<MesaTrendV3Response>();
-                    levelsV3.mesa_avg = rtd.global_avg;
+                    levelsV3.mesa_avg = (float)rtd.global_avg;
 
                     var dates = rtd.dates.ToList();
                     var fast = rtd.fast_2.ToList();
@@ -691,8 +691,8 @@ namespace Algoserver.API.Services
                     {
                         levelsV3.mesa.Add(new MesaTrendV3Response
                         {
-                            f = fast[i],
-                            s = slow[i],
+                            f = (float)fast[i],
+                            s = (float)slow[i],
                             t = dates[i]
                         });
                     }
