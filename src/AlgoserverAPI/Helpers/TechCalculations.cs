@@ -7,7 +7,7 @@ namespace Algoserver.API.Helpers
 {
 
     [Serializable]
-    public struct MESADataPoint
+    public class MESADataPoint
     {
         public decimal f { get; set; }
         public decimal s { get; set; }
@@ -15,7 +15,7 @@ namespace Algoserver.API.Helpers
     }
     
     [Serializable]
-    public struct MESADataSummary
+    public class MESADataSummary
     {
         public string Symbol { get; set; }
         public string Datafeed { get; set; }
