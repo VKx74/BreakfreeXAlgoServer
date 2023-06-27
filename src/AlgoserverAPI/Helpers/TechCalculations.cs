@@ -9,8 +9,8 @@ namespace Algoserver.API.Helpers
     [Serializable]
     public class MESADataPoint
     {
-        public decimal f { get; set; }
-        public decimal s { get; set; }
+        public float f { get; set; }
+        public float s { get; set; }
         public long t { get; set; }
     }
     
@@ -20,14 +20,14 @@ namespace Algoserver.API.Helpers
         public string Symbol { get; set; }
         public string Datafeed { get; set; }
         public Dictionary<int, MESADataPoint> Strength { get; set; }
-        public Dictionary<int, decimal> AvgStrength { get; set; }
-        public decimal LastPrice { get; set; }
-        public decimal Price60 { get; set; }
-        public decimal Price300 { get; set; }
-        public decimal Price900 { get; set; }
-        public decimal Price3600 { get; set; }
-        public decimal Price14400 { get; set; }
-        public decimal Price86400 { get; set; }
+        public Dictionary<int, float> AvgStrength { get; set; }
+        public float LastPrice { get; set; }
+        public float Price60 { get; set; }
+        public float Price300 { get; set; }
+        public float Price900 { get; set; }
+        public float Price3600 { get; set; }
+        public float Price14400 { get; set; }
+        public float Price86400 { get; set; }
     }
     
     public class TradeZone

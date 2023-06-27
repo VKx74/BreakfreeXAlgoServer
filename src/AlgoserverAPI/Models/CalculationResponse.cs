@@ -47,8 +47,8 @@ namespace Algoserver.API.Models.REST
 
     public class MesaTrendV3Response 
     {
-        public decimal f { get; set; }
-        public decimal s { get; set; }
+        public float f { get; set; }
+        public float s { get; set; }
         public long t { get; set; }
     }
 
@@ -57,7 +57,7 @@ namespace Algoserver.API.Models.REST
         
         public List<SaRResponse> sar { get; set; }
         public List<MesaTrendV3Response> mesa { get; set; }
-        public decimal mesa_avg { get; set; }
+        public float mesa_avg { get; set; }
     }
 
     public class CalculationResponseV3
@@ -297,8 +297,8 @@ namespace Algoserver.API.Models.REST
 
     public class MesaLevelResponse
     {
-        public decimal f { get; set; }
-        public decimal s { get; set; }
+        public float f { get; set; }
+        public float s { get; set; }
         public long t { get; set; }
     }
 
@@ -313,14 +313,14 @@ namespace Algoserver.API.Models.REST
         public string symbol { get; set; }
         public string datafeed { get; set; }
         public Dictionary<int, MesaLevelResponse> strength { get; set; }
-        public Dictionary<int, decimal> avg_strength { get; set; }
-        public decimal last_price { get; set; }
-        public decimal price60 { get; set; }
-        public decimal price300 { get; set; }
-        public decimal price900 { get; set; }
-        public decimal price3600 { get; set; }
-        public decimal price14400 { get; set; }
-        public decimal price86400 { get; set; }
+        public Dictionary<int, float> avg_strength { get; set; }
+        public float last_price { get; set; }
+        public float price60 { get; set; }
+        public float price300 { get; set; }
+        public float price900 { get; set; }
+        public float price3600 { get; set; }
+        public float price14400 { get; set; }
+        public float price86400 { get; set; }
     }
 
 }
