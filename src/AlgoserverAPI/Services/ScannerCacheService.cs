@@ -235,46 +235,49 @@ namespace Algoserver.API.Services
                     var minuteTimesCut = minHistory.Bars.TakeLast(longMinHistoryCount).Select(_ => _.Timestamp).ToList();
                     for (var i = 0; i < minuteTimesCut.Count; i++)
                     {
-                        if (minuteTimesCut[i] % (60 * 5) != 0 && i != minuteTimesCut.Count - 1) {
-                            continue;
+                        if (minuteTimesCut[i] % (60 * 5) == 0 || i == minuteTimesCut.Count - 1)
+                        {
+                            mesa1driverDataPoints.Add(new MESADataPoint
+                            {
+                                f = (float)mesa1driverCut[i].Fast,
+                                s = (float)mesa1driverCut[i].Slow,
+                                t = minuteTimesCut[i]
+                            });
+                            mesa1minDataPoints.Add(new MESADataPoint
+                            {
+                                f = (float)mesa1minCut[i].Fast,
+                                s = (float)mesa1minCut[i].Slow,
+                                t = minuteTimesCut[i]
+                            });
+                            mesa5minDataPoints.Add(new MESADataPoint
+                            {
+                                f = (float)mesa5minCut[i].Fast,
+                                s = (float)mesa5minCut[i].Slow,
+                                t = minuteTimesCut[i]
+                            });
+                            mesa15minDataPoints.Add(new MESADataPoint
+                            {
+                                f = (float)mesa15minCut[i].Fast,
+                                s = (float)mesa15minCut[i].Slow,
+                                t = minuteTimesCut[i]
+                            });
                         }
 
-                        mesa1driverDataPoints.Add(new MESADataPoint
+                        if (minuteTimesCut[i] % (60 * 10) == 0 || i == minuteTimesCut.Count - 1)
                         {
-                            f = (float)mesa1driverCut[i].Fast,
-                            s = (float)mesa1driverCut[i].Slow,
-                            t = minuteTimesCut[i]
-                        });
-                        mesa1minDataPoints.Add(new MESADataPoint
-                        {
-                            f = (float)mesa1minCut[i].Fast,
-                            s = (float)mesa1minCut[i].Slow,
-                            t = minuteTimesCut[i]
-                        });
-                        mesa5minDataPoints.Add(new MESADataPoint
-                        {
-                            f = (float)mesa5minCut[i].Fast,
-                            s = (float)mesa5minCut[i].Slow,
-                            t = minuteTimesCut[i]
-                        });
-                        mesa15minDataPoints.Add(new MESADataPoint
-                        {
-                            f = (float)mesa15minCut[i].Fast,
-                            s = (float)mesa15minCut[i].Slow,
-                            t = minuteTimesCut[i]
-                        });
-                        mesa1hDataPoints.Add(new MESADataPoint
-                        {
-                            f = (float)mesa1hCut[i].Fast,
-                            s = (float)mesa1hCut[i].Slow,
-                            t = minuteTimesCut[i]
-                        });
-                        mesa4hDataPoints.Add(new MESADataPoint
-                        {
-                            f = (float)mesa4hCut[i].Fast,
-                            s = (float)mesa4hCut[i].Slow,
-                            t = minuteTimesCut[i]
-                        });
+                            mesa1hDataPoints.Add(new MESADataPoint
+                            {
+                                f = (float)mesa1hCut[i].Fast,
+                                s = (float)mesa1hCut[i].Slow,
+                                t = minuteTimesCut[i]
+                            });
+                            mesa4hDataPoints.Add(new MESADataPoint
+                            {
+                                f = (float)mesa4hCut[i].Fast,
+                                s = (float)mesa4hCut[i].Slow,
+                                t = minuteTimesCut[i]
+                            });
+                        }
                     }
 
                     var hourTfCount = 360;
