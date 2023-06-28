@@ -86,6 +86,8 @@ namespace Algoserver.API.Services
         public string RefreshAllMarketsTime { get; set; }
         public string RefreshLongMinuteHistoryTime { get; set; }
         public string RefreshMarketsTime { get; set; }
+        private List<MESADataSummary> MESADataSummaryCache;
+        private int MESADataSummaryCacheMinute = 0;
 
         public ScannerCacheService(ScannerHistoryService historyService, ScannerService scanner, ICacheService cache)
         {
@@ -106,8 +108,16 @@ namespace Algoserver.API.Services
 
         public List<MESADataSummary> GetMesaSummary()
         {
+            var currentMinute = DateTime.UtcNow.Minute;
+            if (MESADataSummaryCache != null && MESADataSummaryCacheMinute == currentMinute)
+            {
+                return MESADataSummaryCache.ToList();
+            }
+            MESADataSummaryCacheMinute = currentMinute;
+
             if (_cache.TryGetValue(cachePrefix(), "mesa_data_summary", out List<MESADataSummary> cachedResponse))
             {
+                MESADataSummaryCache = cachedResponse;
                 return cachedResponse.ToList();
             }
 
@@ -116,9 +126,17 @@ namespace Algoserver.API.Services
 
         public async Task<List<MESADataSummary>> GetMesaSummaryAsync()
         {
+            var currentMinute = DateTime.UtcNow.Minute;
+            if (MESADataSummaryCache != null && MESADataSummaryCacheMinute == currentMinute)
+            {
+                return MESADataSummaryCache.ToList();
+            }
+            MESADataSummaryCacheMinute = currentMinute;
+
             var cachedResponse = await _cache.TryGetValueAsync<List<MESADataSummary>>(cachePrefix(), "mesa_data_summary");
             if (cachedResponse != null)
             {
+                MESADataSummaryCache = cachedResponse;
                 return cachedResponse.ToList();
             }
 
