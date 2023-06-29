@@ -454,22 +454,33 @@ namespace Algoserver.API.Services
 
                 result.sar = await CalculateV3Levels(container, req);
 
-                if ((granularity <= TimeframeHelper.HOURLY_GRANULARITY) && result.sar.TryGetValue(TimeframeHelper.HOURLY_GRANULARITY, out var hourlySar) && result.sar.TryGetValue(granularity, out var mainSar))
+                if ((granularity <= TimeframeHelper.HOURLY_GRANULARITY))
                 {
-                    var lastHourlyMesa = hourlySar.mesa.LastOrDefault();
-                    var lastHourlySar = hourlySar.sar.LastOrDefault();
-                    var lastMainSar = mainSar.sar.LastOrDefault();
-                    if (lastHourlyMesa != null && lastHourlySar != null && lastMainSar != null)
+                    if (result.sar.TryGetValue(TimeframeHelper.HOURLY_GRANULARITY, out var hourlySar))
                     {
-                        if (lastHourlyMesa.f > lastHourlyMesa.s)
+                        var lastHourlyMesa = hourlySar.mesa.LastOrDefault();
+                        var isUp = lastHourlyMesa.f < lastHourlyMesa.s;
+                        if (lastHourlyMesa != null)
                         {
-                            result.sl_price = lastHourlySar.s_m18;
-                            // result.tp_price = (lastMainSar.n * 2 + lastMainSar.s) / 3;
-                        }
-                        else
-                        {
-                            result.sl_price = lastHourlySar.r_p18;
-                            // result.tp_price = (lastMainSar.n * 2 + lastMainSar.r) / 3;
+                            if (result.sar.TryGetValue(TimeframeHelper.HOUR4_GRANULARITY, out var hour4Sar))
+                            {
+                                var lastHour4Sar = hour4Sar.sar.LastOrDefault();
+                                if (lastHour4Sar != null)
+                                {
+                                    if (isUp)
+                                    {
+                                        result.sl_price = lastHour4Sar.r_p18;
+                                    }
+                                    else
+                                    {
+                                        result.sl_price = lastHour4Sar.s_m18;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                result.sl_price = await CalculateTradeZoneSL(container, req, isUp);
+                            }
                         }
                     }
                 }
@@ -803,6 +814,36 @@ namespace Algoserver.API.Services
             }
 
             return levelsResult;
+        }
+
+        private async Task<decimal?> CalculateTradeZoneSL(InputDataContainer container, CalculationRequestV3 req, bool isUp)
+        {
+            var historicalData = await _historyService.GetHistory(container.Symbol, TimeframeHelper.HOUR4_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack, req.BarsCount.GetValueOrDefault(0));
+            try
+            {
+                var high = historicalData.Bars.Select(_ => _.High);
+                var low = historicalData.Bars.Select(_ => _.Low);
+                var levelsList = TechCalculations.CalculateLevelsBasedOnTradeZone(high, low);
+                var lastSar = levelsList.LastOrDefault();
+                if (lastSar == null)
+                {
+                    return null;
+                }
+
+                if (isUp)
+                {
+                    return lastSar.Plus18;
+                }
+                else
+                {
+                    return lastSar.Minus18;
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+
+            return null;
         }
 
         private async Task<Dictionary<int, RTDCalculationResponse>> CalculateTradeZoneRTD(InputDataContainer container, CalculationRequestV3 req)
