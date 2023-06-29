@@ -11,6 +11,12 @@ using Microsoft.Extensions.Logging;
 
 namespace Algoserver.API.Services
 {
+    class BandsDescriptionV3Data
+    {
+        public Dictionary<int, LevelsV3Response> levels { get; set; }
+        public float total_strength { get; set; }
+    }
+
     public class AlgoService
     {
 
@@ -452,36 +458,31 @@ namespace Algoserver.API.Services
                 var additionalLevels = req.AdditionalLevels.GetValueOrDefault(false);
                 result.prediction_exists = predict;
 
-                result.sar = await CalculateV3Levels(container, req);
+                var levelsdescription = await CalculateV3Levels(container, req);
+                result.sar = levelsdescription.levels;
+                result.total_strength = levelsdescription.total_strength;
 
-                if ((granularity <= TimeframeHelper.HOURLY_GRANULARITY))
+                if ((granularity <= TimeframeHelper.HOUR4_GRANULARITY))
                 {
-                    if (result.sar.TryGetValue(TimeframeHelper.HOURLY_GRANULARITY, out var hourlySar))
+                    var isUp = result.total_strength > 0;
+                    if (result.sar.TryGetValue(TimeframeHelper.HOUR4_GRANULARITY, out var hour4Sar))
                     {
-                        var lastHourlyMesa = hourlySar.mesa.LastOrDefault();
-                        var isUp = lastHourlyMesa.f < lastHourlyMesa.s;
-                        if (lastHourlyMesa != null)
+                        var lastHour4Sar = hour4Sar.sar.LastOrDefault();
+                        if (lastHour4Sar != null)
                         {
-                            if (result.sar.TryGetValue(TimeframeHelper.HOUR4_GRANULARITY, out var hour4Sar))
+                            if (isUp)
                             {
-                                var lastHour4Sar = hour4Sar.sar.LastOrDefault();
-                                if (lastHour4Sar != null)
-                                {
-                                    if (isUp)
-                                    {
-                                        result.sl_price = lastHour4Sar.r_p18;
-                                    }
-                                    else
-                                    {
-                                        result.sl_price = lastHour4Sar.s_m18;
-                                    }
-                                }
+                                result.sl_price = lastHour4Sar.r_p18;
                             }
                             else
                             {
-                                result.sl_price = await CalculateTradeZoneSL(container, req, isUp);
+                                result.sl_price = lastHour4Sar.s_m18;
                             }
                         }
+                    }
+                    else
+                    {
+                        result.sl_price = await CalculateTradeZoneSL(container, req, isUp);
                     }
                 }
 
@@ -560,7 +561,7 @@ namespace Algoserver.API.Services
             return result;
         }
 
-        private async Task<Dictionary<int, LevelsV3Response>> CalculateV3Levels(InputDataContainer container, CalculationRequestV3 req)
+        private async Task<BandsDescriptionV3Data> CalculateV3Levels(InputDataContainer container, CalculationRequestV3 req)
         {
             var result = new Dictionary<int, LevelsV3Response>();
             var granularity = AlgoHelper.ConvertTimeframeToGranularity(container.TimeframeInterval, container.TimeframePeriod);
@@ -573,6 +574,7 @@ namespace Algoserver.API.Services
                 mesaGranularity.Add(mesaRequiredTf);
             }
             var mesa_additional = await getMesaAsync(req.Instrument.Id, req.Instrument.Datafeed, mesaGranularity);
+            var total_strength = 0f;
 
             if (mesa_additional != null && mesa_additional.mesa != null && mesa_additional.mesa.Any())
             {
@@ -624,6 +626,11 @@ namespace Algoserver.API.Services
 
                 }
 
+                if (summaryForSymbol != null)
+                {
+                    total_strength = summaryForSymbol.total_strength;
+                }
+
                 foreach (var item in sar_additional)
                 {
                     var mesaRequiredTf = GetTrendIndexGranularity(item.Key);
@@ -637,9 +644,10 @@ namespace Algoserver.API.Services
                     levelsV3.mesa = new List<MesaTrendV3Response>();
                     var mesa_additional_values = mesa_additional.mesa[mesaRequiredTf];
 
-                    if (summaryForSymbol != null && summaryForSymbol.avg_strength.TryGetValue(mesaRequiredTf, out var str))
+                    if (summaryForSymbol != null && summaryForSymbol.avg_strength.TryGetValue(mesaRequiredTf, out var str) && summaryForSymbol.timeframe_strengths.TryGetValue(mesaRequiredTf, out var tf_str))
                     {
                         levelsV3.mesa_avg = str;
+                        levelsV3.strength = tf_str;
                     }
 
                     if (levelsV3.mesa_avg <= 0)
@@ -707,11 +715,23 @@ namespace Algoserver.API.Services
                             t = dates[i]
                         });
                     }
+
+                    var lastMesa = levelsV3.mesa.LastOrDefault();
+                    if (lastMesa != null)
+                    {
+                        levelsV3.strength = (lastMesa.f - lastMesa.s) / (float)rtd.global_avg;
+                        total_strength += levelsV3.strength;
+                    }
                     result.Add(item.Key, levelsV3);
                 }
+                total_strength = total_strength / sar_additional.Count;
             }
 
-            return result;
+            return new BandsDescriptionV3Data
+            {
+                levels = result,
+                total_strength = total_strength
+            };
         }
 
         private int GetTrendIndexGranularity(int tf)

@@ -58,6 +58,7 @@ namespace Algoserver.API.Models.REST
         public List<SaRResponse> sar { get; set; }
         public List<MesaTrendV3Response> mesa { get; set; }
         public float mesa_avg { get; set; }
+        public float strength { get; set; }
     }
 
     public class CalculationResponseV3
@@ -77,6 +78,7 @@ namespace Algoserver.API.Models.REST
         public decimal size { get; set; }
         public string id { get; set; }
         public bool prediction_exists { get; set; }
+        public float total_strength { get; set; }
     }
 
     public class CalculatePositionSizeResponse
@@ -314,6 +316,8 @@ namespace Algoserver.API.Models.REST
         public string datafeed { get; set; }
         public Dictionary<int, MesaLevelResponse> strength { get; set; }
         public Dictionary<int, float> avg_strength { get; set; }
+        public Dictionary<int, float> timeframe_strengths { get; set; }
+        public float total_strength { get; set; }
         public float last_price { get; set; }
         public float price60 { get; set; }
         public float price300 { get; set; }

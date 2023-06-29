@@ -348,6 +348,71 @@ namespace Algoserver.API.Services
                     tfAvgSummary.Add(14400, (float)mesa4h.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa4h.Length);
                     tfAvgSummary.Add(86400, (float)mesa1d.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1d.Length);
 
+                    var totalStrength = 0f;
+                    var timeframeStrengths = new Dictionary<int, float>();
+                    var d = mesa1driverDataPoints.LastOrDefault();
+                    var ast = tfAvgSummary[1];
+                    if (d != null && ast > 0)
+                    {
+                        var currentStrength = (d.f - d.s) / ast;
+                        totalStrength += currentStrength * 0.033f;
+                        timeframeStrengths.Add(1, currentStrength);
+                    }
+
+                    d = mesa1minDataPoints.LastOrDefault();
+                    ast = tfAvgSummary[60];
+                    if (d != null)
+                    {
+                        var currentStrength = (d.f - d.s) / ast;
+                        totalStrength += currentStrength * 0.066f;
+                        timeframeStrengths.Add(60, currentStrength);
+                    }
+
+                    d = mesa5minDataPoints.LastOrDefault();
+                    ast = tfAvgSummary[300];
+                    if (d != null)
+                    {
+                        var currentStrength = (d.f - d.s) / ast;
+                        totalStrength += currentStrength * 0.1f;
+                        timeframeStrengths.Add(300, currentStrength);
+                    }
+
+                    d = mesa15minDataPoints.LastOrDefault();
+                    ast = tfAvgSummary[900];
+                    if (d != null)
+                    {
+                        var currentStrength = (d.f - d.s) / ast;
+                        totalStrength += currentStrength * 0.15f;
+                        timeframeStrengths.Add(900, currentStrength);
+                    }
+
+                    d = mesa1hDataPoints.LastOrDefault();
+                    ast = tfAvgSummary[3600];
+                    if (d != null)
+                    {
+                        var currentStrength = (d.f - d.s) / ast;
+                        totalStrength += currentStrength * 0.2f;
+                        timeframeStrengths.Add(3600, currentStrength);
+                    }
+
+                    d = mesa4hDataPoints.LastOrDefault();
+                    ast = tfAvgSummary[14400];
+                    if (d != null)
+                    {
+                        var currentStrength = (d.f - d.s) / ast;
+                        totalStrength += currentStrength * 0.2f;
+                        timeframeStrengths.Add(14400, currentStrength);
+                    }
+
+                    d = mesa1dDataPoints.LastOrDefault();
+                    ast = tfAvgSummary[86400];
+                    if (d != null)
+                    {
+                        var currentStrength = (d.f - d.s) / ast;
+                        totalStrength += currentStrength * 0.25f;
+                        timeframeStrengths.Add(86400, currentStrength);
+                    }
+
                     var length = calculation_input.Count();
 
                     summary.Add(new MESADataSummary
@@ -356,6 +421,8 @@ namespace Algoserver.API.Services
                         Datafeed = datafeed,
                         Strength = tfSummary,
                         AvgStrength = tfAvgSummary,
+                        TimeframeStrengths = timeframeStrengths,
+                        TotalStrength = totalStrength,
                         LastPrice = (float)calculation_input.LastOrDefault(),
                         Price60 = (float)calculation_input.ElementAt(length - 1),
                         Price300 = (float)calculation_input.ElementAt(length - 5),

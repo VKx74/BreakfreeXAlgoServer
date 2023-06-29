@@ -51,6 +51,8 @@ namespace Algoserver.API.Services
                         s = _.Value.s,
                         t = _.Value.t
                     }),
+                    timeframe_strengths = r.TimeframeStrengths,
+                    total_strength = r.TotalStrength,
                     avg_strength = r.AvgStrength,
                     last_price = r.LastPrice,
                     price60 = r.Price60,
@@ -84,6 +86,8 @@ namespace Algoserver.API.Services
                         s = _.Value.s,
                         t = _.Value.t
                     }),
+                    timeframe_strengths = r.TimeframeStrengths,
+                    total_strength = r.TotalStrength,
                     avg_strength = r.AvgStrength,
                     last_price = r.LastPrice,
                     price60 = r.Price60,
