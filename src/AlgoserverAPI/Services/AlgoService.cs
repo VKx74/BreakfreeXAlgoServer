@@ -472,11 +472,11 @@ namespace Algoserver.API.Services
                         {
                             if (isUp)
                             {
-                                result.sl_price = lastHour4Sar.r_p18;
+                                result.sl_price = lastHour4Sar.s_m18;
                             }
                             else
                             {
-                                result.sl_price = lastHour4Sar.s_m18;
+                                result.sl_price = lastHour4Sar.r_p18;
                             }
                         }
                     }
