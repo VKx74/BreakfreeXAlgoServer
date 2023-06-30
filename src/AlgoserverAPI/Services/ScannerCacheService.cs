@@ -133,8 +133,7 @@ namespace Algoserver.API.Services
             }
             MESADataSummaryCacheMinute = currentMinute;
 
-            var cachedResponse = await _cache.TryGetValueAsync<List<MESADataSummary>>(cachePrefix(), "mesa_data_summary");
-            if (cachedResponse != null)
+            if (_cache.TryGetValue<List<MESADataSummary>>(cachePrefix(), "mesa_data_summary", out var cachedResponse))
             {
                 MESADataSummaryCache = cachedResponse;
                 return cachedResponse.ToList();
@@ -168,11 +167,11 @@ namespace Algoserver.API.Services
         {
             await Task.Run(async () =>
                        {
-                           await CalculateMinuteMesaAsync();
+                           CalculateMinuteMesaAsync();
                        });
         }
 
-        private async Task CalculateMinuteMesaAsync()
+        private void CalculateMinuteMesaAsync()
         {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
@@ -305,7 +304,7 @@ namespace Algoserver.API.Services
                     mesaDataPointsMap.Add(3600, mesa1hDataPoints);
                     mesaDataPointsMap.Add(14400, mesa4hDataPoints);
                     mesaDataPointsMap.Add(86400, mesa1dDataPoints);
-                    await SetMinuteMesaCache(mesaDataPointsMap, key);
+                    SetMinuteMesaCache(mesaDataPointsMap, key);
 
                     count++;
 
@@ -449,7 +448,7 @@ namespace Algoserver.API.Services
 
             try
             {
-                await SetMesaSummaryCache(summary);
+                SetMesaSummaryCache(summary);
             }
             catch (Exception ex)
             {
@@ -462,20 +461,20 @@ namespace Algoserver.API.Services
             Console.WriteLine(">>> " + elapsedTime1);
         }
 
-        private async Task SetMinuteMesaCache(Dictionary<int, List<MESADataPoint>> mesa, string key)
+        private void SetMinuteMesaCache(Dictionary<int, List<MESADataPoint>> mesa, string key)
         {
             try
             {
-                await _cache.SetAsync(_mesaCachePrefix, key.ToLower(), mesa, TimeSpan.FromDays(1));
+                _cache.Set(_mesaCachePrefix, key.ToLower(), mesa, TimeSpan.FromDays(1));
             }
             catch (Exception ex) { }
         }
 
-        private async Task SetMesaSummaryCache(List<MESADataSummary> mesa)
+        private void SetMesaSummaryCache(List<MESADataSummary> mesa)
         {
             try
             {
-                await _cache.SetAsync(cachePrefix(), "mesa_data_summary", mesa, TimeSpan.FromDays(1));
+                _cache.Set(cachePrefix(), "mesa_data_summary", mesa, TimeSpan.FromDays(1));
             }
             catch (Exception ex) { }
         }

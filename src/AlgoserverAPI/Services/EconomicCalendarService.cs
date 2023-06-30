@@ -20,12 +20,11 @@ namespace Algoserver.API.Services
             _cache = cache;
         }
 
-        public async Task<List<EconomicEvent>> GetEconomicEvents()
+        public List<EconomicEvent> GetEconomicEvents()
         {
             try
             {
-                var cachedResponse = await _cache.TryGetValueAsync<List<EconomicEvent>>(_cachePrefix, _calendarCacheKey);
-                if (cachedResponse != null)
+                if (_cache.TryGetValue<List<EconomicEvent>>(_cachePrefix, _calendarCacheKey, out var cachedResponse))
                 {
                    return cachedResponse;
                 }
@@ -70,7 +69,7 @@ namespace Algoserver.API.Services
             {
                 try
                 {
-                    var cachedResponse = await _cache.SetAsync(_cachePrefix, _calendarCacheKey, response, TimeSpan.FromDays(7));
+                    _cache.Set(_cachePrefix, _calendarCacheKey, response, TimeSpan.FromDays(7));
                 }
                 catch (Exception ex)
                 {

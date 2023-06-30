@@ -1170,20 +1170,22 @@ namespace Algoserver.API.Services
             try
             {
                 var hash = datafeed + "_" + symbol;
-                var mesaDataPointsMap = await _cache.TryGetValueAsync<Dictionary<int, List<MESADataPoint>>>(mesaCachePrefix, hash.ToLower());
-                foreach (var i in mesaDataPointsMap)
+                if (_cache.TryGetValue<Dictionary<int, List<MESADataPoint>>>(mesaCachePrefix, hash.ToLower(), out var mesaDataPointsMap))
                 {
-                    if (!granularityList.Contains(i.Key))
+                    foreach (var i in mesaDataPointsMap)
                     {
-                        continue;
-                    }
+                        if (!granularityList.Contains(i.Key))
+                        {
+                            continue;
+                        }
 
-                    mesa.Add(i.Key, i.Value.Select((_) => new MesaLevelResponse
-                    {
-                        f = _.f,
-                        s = _.s,
-                        t = _.t
-                    }).ToList());
+                        mesa.Add(i.Key, i.Value.Select((_) => new MesaLevelResponse
+                        {
+                            f = _.f,
+                            s = _.s,
+                            t = _.t
+                        }).ToList());
+                    }
                 }
             }
             catch (Exception ex) { }

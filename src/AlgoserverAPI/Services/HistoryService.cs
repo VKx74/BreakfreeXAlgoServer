@@ -49,8 +49,7 @@ namespace Algoserver.API.Services
 
             try
             {
-                var cachedResponse = await _cache.TryGetValueAsync<HistoryData>(_cachePrefix, hash);
-                if (cachedResponse != null)
+                if (_cache.TryGetValue<HistoryData>(_cachePrefix, hash, out var cachedResponse))
                 {
                     if (cachedResponse.Bars != null && cachedResponse.Bars.Count() >= barsBack)
                     {
@@ -63,9 +62,6 @@ namespace Algoserver.API.Services
                 _logger.LogError("Failed to get cached response");
                 _logger.LogError(e.Message);
             }
-
-            // var exists = _contextAccessor.HttpContext.Request.Headers.TryGetValue("Authorization", out var authHeader);
-            // var bearerString = authHeader.ToString();
 
             var result = await LoadHistoricalData(datafeed, symbol, granularity, barsBack, exchange);
 

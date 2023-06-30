@@ -71,13 +71,23 @@ namespace Algoserver.API.Services
                 _1MinHistory.AddRange(min1history);
             }
 
-            _updateHigherTimeframes();
+            try
+            {
+                _updateHigherTimeframes();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
 
             try
             {
                 _updateMinuteLongHistory();
             }
-            catch (Exception ex) { }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
 
             string elapsedTime1 = String.Format(" * 1 min {0:00}:{1:00} - data loaded " + min1history.Count, ts1.Minutes, ts1.Seconds);
             Console.WriteLine(">>> " + elapsedTime1);
