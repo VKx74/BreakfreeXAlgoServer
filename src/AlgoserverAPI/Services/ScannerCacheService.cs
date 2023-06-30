@@ -208,9 +208,6 @@ namespace Algoserver.API.Services
                     }
 
                     var hourly_calculation_input = hourlyHistory.Bars.Select(_ => _.Close);
-
-                    // "granularity": ['1min', '5min', '15min', '60min', '240min', '1440min'],
-                    // "limits": [(0.0325, 0.0325), (0.0085, 0.0085), (0.0032, 0.0032), (0.0012, 0.0012), (0.0007, 0.0007), (0.00039, 0.00039)],
                     var mesa1driver = TechCalculations.MESA(calculation_input.TakeLast(28000).ToList(), 0.0325, 0.0325);
                     var mesa1min = TechCalculations.MESA(calculation_input.TakeLast(32000).ToList(), 0.0085, 0.0085);
                     var mesa5min = TechCalculations.MESA(calculation_input.TakeLast(36000).ToList(), 0.0032, 0.0032);
@@ -299,16 +296,6 @@ namespace Algoserver.API.Services
                     var symbol = minHistory.Symbol;
                     var datafeed = minHistory.Datafeed;
 
-                    // if (symbol == "BTC_USD" && datafeed == "Oanda") {
-                    //     datafeed = "Binance";
-                    //     symbol = "BTCUSDT";
-                    // }
-
-                    // if (symbol == "ETH_USD" && datafeed == "Oanda") {
-                    //     datafeed = "Binance";
-                    //     symbol = "ETHUSDT";
-                    // }
-
                     var key = datafeed + "_" + symbol;
                     var mesaDataPointsMap = new Dictionary<int, List<MESADataPoint>>();
                     mesaDataPointsMap.Add(1, mesa1driverDataPoints);
@@ -320,14 +307,6 @@ namespace Algoserver.API.Services
                     mesaDataPointsMap.Add(86400, mesa1dDataPoints);
                     await SetMinuteMesaCache(mesaDataPointsMap, key);
 
-                    // var task1 = SetMinuteMesaCache(mesa1driverDataPoints, key + "_1");
-                    // var task2 = SetMinuteMesaCache(mesa1minDataPoints, key + "_60");
-                    // var task3 = SetMinuteMesaCache(mesa5minDataPoints, key + "_300");
-                    // var task4 = SetMinuteMesaCache(mesa15minDataPoints, key + "_900");
-                    // var task5 = SetMinuteMesaCache(mesa1hDataPoints, key + "_3600");
-                    // var task6 = SetMinuteMesaCache(mesa4hDataPoints, key + "_14400");
-                    // var task7 = SetMinuteMesaCache(mesa1dDataPoints, key + "_86400");
-                    // await Task.WhenAll(task1, task2, task3, task4, task5, task6, task7);
                     count++;
 
                     var tfSummary = new Dictionary<int, MESADataPoint>();
@@ -350,67 +329,95 @@ namespace Algoserver.API.Services
 
                     var totalStrength = 0f;
                     var timeframeStrengths = new Dictionary<int, float>();
-                    var d = mesa1driverDataPoints.LastOrDefault();
-                    var ast = tfAvgSummary[1];
+                    var d = tfSummary.GetValueOrDefault(1);
+                    var ast = tfAvgSummary.GetValueOrDefault(1);
                     if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
                         totalStrength += currentStrength * 0.033f;
                         timeframeStrengths.Add(1, currentStrength);
                     }
+                    else
+                    {
+                        timeframeStrengths.Add(1, 0);
+                    }
 
-                    d = mesa1minDataPoints.LastOrDefault();
-                    ast = tfAvgSummary[60];
-                    if (d != null)
+                    d = tfSummary.GetValueOrDefault(60);
+                    ast = tfAvgSummary.GetValueOrDefault(60);
+                    if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
                         totalStrength += currentStrength * 0.066f;
                         timeframeStrengths.Add(60, currentStrength);
                     }
+                    else
+                    {
+                        timeframeStrengths.Add(60, 0);
+                    }
 
-                    d = mesa5minDataPoints.LastOrDefault();
-                    ast = tfAvgSummary[300];
-                    if (d != null)
+                    d = tfSummary.GetValueOrDefault(300);
+                    ast = tfAvgSummary.GetValueOrDefault(300);
+                    if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
                         totalStrength += currentStrength * 0.1f;
                         timeframeStrengths.Add(300, currentStrength);
                     }
+                    else
+                    {
+                        timeframeStrengths.Add(300, 0);
+                    }
 
-                    d = mesa15minDataPoints.LastOrDefault();
-                    ast = tfAvgSummary[900];
-                    if (d != null)
+                    d = tfSummary.GetValueOrDefault(900);
+                    ast = tfAvgSummary.GetValueOrDefault(900);
+                    if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
                         totalStrength += currentStrength * 0.15f;
                         timeframeStrengths.Add(900, currentStrength);
                     }
+                    else
+                    {
+                        timeframeStrengths.Add(900, 0);
+                    }
 
-                    d = mesa1hDataPoints.LastOrDefault();
-                    ast = tfAvgSummary[3600];
-                    if (d != null)
+                    d = tfSummary.GetValueOrDefault(3600);
+                    ast = tfAvgSummary.GetValueOrDefault(3600);
+                    if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
                         totalStrength += currentStrength * 0.2f;
                         timeframeStrengths.Add(3600, currentStrength);
                     }
+                    else
+                    {
+                        timeframeStrengths.Add(3600, 0);
+                    }
 
-                    d = mesa4hDataPoints.LastOrDefault();
-                    ast = tfAvgSummary[14400];
-                    if (d != null)
+                    d = tfSummary.GetValueOrDefault(14400);
+                    ast = tfAvgSummary.GetValueOrDefault(14400);
+                    if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
                         totalStrength += currentStrength * 0.2f;
                         timeframeStrengths.Add(14400, currentStrength);
                     }
+                    else
+                    {
+                        timeframeStrengths.Add(14400, 0);
+                    }
 
-                    d = mesa1dDataPoints.LastOrDefault();
-                    ast = tfAvgSummary[86400];
-                    if (d != null)
+                    d = tfSummary.GetValueOrDefault(86400);
+                    ast = tfAvgSummary.GetValueOrDefault(86400);
+                    if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
                         totalStrength += currentStrength * 0.25f;
                         timeframeStrengths.Add(86400, currentStrength);
+                    }
+                    else
+                    {
+                        timeframeStrengths.Add(86400, 0);
                     }
 
                     var length = calculation_input.Count();
