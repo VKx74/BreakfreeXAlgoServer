@@ -5,7 +5,7 @@ using Microsoft.Extensions.Caching.Memory;
 namespace Algoserver.API.Services.CacheServices
 {
 
-    public class MemoryCacheService : ICacheService
+    public class MemoryCacheService : ICacheService, IInMemoryCache
     {
         private readonly IMemoryCache _cache;
 

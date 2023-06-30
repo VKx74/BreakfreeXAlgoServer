@@ -86,8 +86,6 @@ namespace Algoserver.API.Services
         public string RefreshAllMarketsTime { get; set; }
         public string RefreshLongMinuteHistoryTime { get; set; }
         public string RefreshMarketsTime { get; set; }
-        private List<MESADataSummary> MESADataSummaryCache;
-        private int MESADataSummaryCacheMinute = 0;
 
         public ScannerCacheService(ScannerHistoryService historyService, ScannerService scanner, ICacheService cache)
         {
@@ -108,38 +106,22 @@ namespace Algoserver.API.Services
 
         public List<MESADataSummary> GetMesaSummary()
         {
-            var currentMinute = DateTime.UtcNow.Minute;
-            if (MESADataSummaryCache != null && MESADataSummaryCacheMinute == currentMinute)
-            {
-                return MESADataSummaryCache.ToList();
-            }
-            MESADataSummaryCacheMinute = currentMinute;
-
             if (_cache.TryGetValue(cachePrefix(), "mesa_data_summary", out List<MESADataSummary> cachedResponse))
             {
-                MESADataSummaryCache = cachedResponse;
                 return cachedResponse.ToList();
             }
 
             return new List<MESADataSummary>();
         }
 
-        public async Task<List<MESADataSummary>> GetMesaSummaryAsync()
+        public Dictionary<int, List<MESADataPoint>> GetMinuteMesaCache(String key)
         {
-            var currentMinute = DateTime.UtcNow.Minute;
-            if (MESADataSummaryCache != null && MESADataSummaryCacheMinute == currentMinute)
+            if (_cache.TryGetValue(_mesaCachePrefix, key, out Dictionary<int, List<MESADataPoint>> cachedResponse))
             {
-                return MESADataSummaryCache.ToList();
-            }
-            MESADataSummaryCacheMinute = currentMinute;
-
-            if (_cache.TryGetValue<List<MESADataSummary>>(cachePrefix(), "mesa_data_summary", out var cachedResponse))
-            {
-                MESADataSummaryCache = cachedResponse;
-                return cachedResponse.ToList();
+                return cachedResponse;
             }
 
-            return new List<MESADataSummary>();
+            return new Dictionary<int, List<MESADataPoint>>();
         }
 
         public List<ScannerResponseHistoryItem> GetHistoryData()

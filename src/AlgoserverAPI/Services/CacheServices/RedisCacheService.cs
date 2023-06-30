@@ -3,8 +3,9 @@ using System.Threading.Tasks;
 using Algoserver.API.Exceptions;
 using Microsoft.Extensions.Caching.Distributed;
 
-namespace Algoserver.API.Services.CacheServices {
-    
+namespace Algoserver.API.Services.CacheServices
+{
+
     public class RedisCacheService: ICacheService {
         private readonly IDistributedCache _cache;
 

@@ -38,8 +38,8 @@ namespace Algoserver.API.HostedServices
                     {
                         var result = await _scannerHistory.Refresh1MinLongHistory();
                         _scannerCache.RefreshLongMinuteHistoryTime = result;
-                    }  
-                    
+                    }
+
                     if (currentHour != _prevHour)
                     {
                         var result = await _scannerHistory.RefreshAll();

@@ -13,7 +13,7 @@ namespace Algoserver.API.Services
         {
         }
 
-        protected override List<IInstrument> _getInstruments()
+        public override List<IInstrument> getInstruments()
         {
             var instruments = new List<IInstrument>();
             var forexInstruments = _instrumentService.GetOandaInstruments();
@@ -48,11 +48,11 @@ namespace Algoserver.API.Services
                 PricePrecision = 0.00000001m
             });
 
-            // return instruments.TakeLast(2).ToList();
+            // return instruments.Take(5).ToList();
             return instruments;
         }
 
-        protected override List<IInstrument> _getInstrumentsForLongHistory()
+        public override List<IInstrument> getInstrumentsForLongHistory()
         {
             var instruments = new List<IInstrument>();
             var forexInstruments = _instrumentService.GetOandaInstruments();
@@ -90,7 +90,7 @@ namespace Algoserver.API.Services
                 PricePrecision = 0.00000001m
             });
 
-            // return instruments.TakeLast(2).ToList();
+            // return instruments.Take(5).ToList();
             return instruments;
         }
     }

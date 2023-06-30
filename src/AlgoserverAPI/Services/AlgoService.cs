@@ -8,6 +8,7 @@ using Algoserver.API.Models.REST;
 using Algoserver.API.Services.CacheServices;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Collections.Concurrent;
 
 namespace Algoserver.API.Services
 {
@@ -24,15 +25,13 @@ namespace Algoserver.API.Services
         private readonly HistoryService _historyService;
         private readonly ScannerService _scanner;
         private readonly LevelsPredictionService _levelsPrediction;
-        private readonly ScannerResultService _scannerResultService;
+        private readonly MesaPreloaderService _mesaPreloaderService;
         private readonly ICacheService _cache;
         private string _cachePrefix = "MarketInfo_";
         private string _cachePrefixV2 = "MarketInfoV2_";
-        private readonly List<MesaSummaryResponse> _mesaSummaryCache = new List<MesaSummaryResponse>();
-        private int _mesaSummaryCacheTime = -1;
         private readonly PriceRatioCalculationService _priceRatioCalculationService;
 
-        public AlgoService(ILogger<AlgoService> logger, HistoryService historyService, PriceRatioCalculationService priceRatioCalculationService, ScannerService scanner, LevelsPredictionService levelsPrediction, ScannerResultService scannerResultService, ICacheService cache)
+        public AlgoService(ILogger<AlgoService> logger, HistoryService historyService, PriceRatioCalculationService priceRatioCalculationService, ScannerService scanner, LevelsPredictionService levelsPrediction, ICacheService cache, MesaPreloaderService mesaPreloaderService)
         {
             _logger = logger;
             _historyService = historyService;
@@ -40,17 +39,12 @@ namespace Algoserver.API.Services
             _cache = cache;
             _priceRatioCalculationService = priceRatioCalculationService;
             _levelsPrediction = levelsPrediction;
-            _scannerResultService = scannerResultService;
+            _mesaPreloaderService = mesaPreloaderService;
         }
 
         public async Task<InputDataContainer> InitAsync(CalculationRequest req, int minBarsCount = 0)
         {
             var container = InputDataContainer.MapCalculationRequestToInputDataContainer(req);
-            // if (container.Datafeed != "twelvedata" && container.Datafeed != "oanda")
-            // {
-            //     throw new ApiException(HttpStatusCode.BadRequest,
-            //         $"Unsupported '{container.Datafeed}' datafeed. Available 'twelvedata' or 'oanda' only.");
-            // }
 
             if (container.Type == "forex")
             {
@@ -578,37 +572,7 @@ namespace Algoserver.API.Services
 
             if (mesa_additional != null && mesa_additional.mesa != null && mesa_additional.mesa.Any())
             {
-                List<MesaSummaryResponse> mesa_summary = new List<MesaSummaryResponse>();
-                lock (_mesaSummaryCache)
-                {
-                    if (_mesaSummaryCache.Any())
-                    {
-                        mesa_summary = _mesaSummaryCache.ToList();
-                    }
-                }
-
-                var currentHour = DateTime.UtcNow.Hour;
-
-                if (!mesa_summary.Any() || currentHour != _mesaSummaryCacheTime)
-                {
-                    mesa_summary = await _scannerResultService.GetMesaSummaryAsync();
-                    lock (_mesaSummaryCache)
-                    {
-                        _mesaSummaryCache.Clear();
-                        _mesaSummaryCache.AddRange(mesa_summary);
-                    }
-                    _mesaSummaryCacheTime = currentHour;
-                }
-
-                MesaSummaryResponse summaryForSymbol = null;
-                foreach (var summary in mesa_summary)
-                {
-                    if (string.Equals(req.Instrument.Id, summary.symbol, StringComparison.InvariantCultureIgnoreCase) && string.Equals(req.Instrument.Datafeed, summary.datafeed, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        summaryForSymbol = summary;
-                        break;
-                    }
-                }
+                var summaryForSymbol = _mesaPreloaderService.GetMesaSummary(req.Instrument.Id, req.Instrument.Datafeed);
 
                 var startDate = 0L;
                 foreach (var item in sar_additional)
@@ -628,7 +592,7 @@ namespace Algoserver.API.Services
 
                 if (summaryForSymbol != null)
                 {
-                    total_strength = summaryForSymbol.total_strength;
+                    total_strength = summaryForSymbol.TotalStrength;
                 }
 
                 foreach (var item in sar_additional)
@@ -644,7 +608,7 @@ namespace Algoserver.API.Services
                     levelsV3.mesa = new List<MesaTrendV3Response>();
                     var mesa_additional_values = mesa_additional.mesa[mesaRequiredTf];
 
-                    if (summaryForSymbol != null && summaryForSymbol.avg_strength.TryGetValue(mesaRequiredTf, out var str) && summaryForSymbol.timeframe_strengths.TryGetValue(mesaRequiredTf, out var tf_str))
+                    if (summaryForSymbol != null && summaryForSymbol.AvgStrength.TryGetValue(mesaRequiredTf, out var str) && summaryForSymbol.TimeframeStrengths.TryGetValue(mesaRequiredTf, out var tf_str))
                     {
                         levelsV3.mesa_avg = str;
                         levelsV3.strength = tf_str;
@@ -1164,28 +1128,23 @@ namespace Algoserver.API.Services
                 granularityList.Add(86400);
             }
 
-            var mesaCachePrefix = "MesaCache_";
             var mesa = new Dictionary<int, List<MesaLevelResponse>>();
-
             try
             {
-                var hash = datafeed + "_" + symbol;
-                if (_cache.TryGetValue<Dictionary<int, List<MESADataPoint>>>(mesaCachePrefix, hash.ToLower(), out var mesaDataPointsMap))
+                var mesaDataPointsMap = _mesaPreloaderService.GetMesa(symbol, datafeed);
+                foreach (var i in mesaDataPointsMap)
                 {
-                    foreach (var i in mesaDataPointsMap)
+                    if (!granularityList.Contains(i.Key))
                     {
-                        if (!granularityList.Contains(i.Key))
-                        {
-                            continue;
-                        }
-
-                        mesa.Add(i.Key, i.Value.Select((_) => new MesaLevelResponse
-                        {
-                            f = _.f,
-                            s = _.s,
-                            t = _.t
-                        }).ToList());
+                        continue;
                     }
+
+                    mesa.Add(i.Key, i.Value.Select((_) => new MesaLevelResponse
+                    {
+                        f = _.f,
+                        s = _.s,
+                        t = _.t
+                    }).ToList());
                 }
             }
             catch (Exception ex) { }
