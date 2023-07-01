@@ -219,25 +219,25 @@ namespace Algoserver.API.Services
                             {
                                 f = (float)mesa1driverCut[i].Fast,
                                 s = (float)mesa1driverCut[i].Slow,
-                                t = minuteTimesCut[i]
+                                t = (uint)minuteTimesCut[i]
                             });
                             mesa1minDataPoints.Add(new MESADataPoint
                             {
                                 f = (float)mesa1minCut[i].Fast,
                                 s = (float)mesa1minCut[i].Slow,
-                                t = minuteTimesCut[i]
+                                t = (uint)minuteTimesCut[i]
                             });
                             mesa5minDataPoints.Add(new MESADataPoint
                             {
                                 f = (float)mesa5minCut[i].Fast,
                                 s = (float)mesa5minCut[i].Slow,
-                                t = minuteTimesCut[i]
+                                t = (uint)minuteTimesCut[i]
                             });
                             mesa15minDataPoints.Add(new MESADataPoint
                             {
                                 f = (float)mesa15minCut[i].Fast,
                                 s = (float)mesa15minCut[i].Slow,
-                                t = minuteTimesCut[i]
+                                t = (uint)minuteTimesCut[i]
                             });
                         }
 
@@ -247,13 +247,13 @@ namespace Algoserver.API.Services
                             {
                                 f = (float)mesa1hCut[i].Fast,
                                 s = (float)mesa1hCut[i].Slow,
-                                t = minuteTimesCut[i]
+                                t = (uint)minuteTimesCut[i]
                             });
                             mesa4hDataPoints.Add(new MESADataPoint
                             {
                                 f = (float)mesa4hCut[i].Fast,
                                 s = (float)mesa4hCut[i].Slow,
-                                t = minuteTimesCut[i]
+                                t = (uint)minuteTimesCut[i]
                             });
                         }
                     }
@@ -269,7 +269,7 @@ namespace Algoserver.API.Services
                         {
                             f = (float)mesa1dCut[i].Fast,
                             s = (float)mesa1dCut[i].Slow,
-                            t = hourTimesCut[i]
+                            t = (uint)hourTimesCut[i]
                         });
                     }
 
@@ -290,135 +290,135 @@ namespace Algoserver.API.Services
 
                     count++;
 
-                    // var tfSummary = new Dictionary<int, MESADataPoint>();
-                    // tfSummary.Add(1, mesa1driverDataPoints.LastOrDefault());
-                    // tfSummary.Add(60, mesa1minDataPoints.LastOrDefault());
-                    // tfSummary.Add(300, mesa5minDataPoints.LastOrDefault());
-                    // tfSummary.Add(900, mesa15minDataPoints.LastOrDefault());
-                    // tfSummary.Add(3600, mesa1hDataPoints.LastOrDefault());
-                    // tfSummary.Add(14400, mesa4hDataPoints.LastOrDefault());
-                    // tfSummary.Add(86400, mesa1dDataPoints.LastOrDefault());
+                    var tfSummary = new Dictionary<int, MESADataPoint>();
+                    tfSummary.Add(1, mesa1driverDataPoints.LastOrDefault());
+                    tfSummary.Add(60, mesa1minDataPoints.LastOrDefault());
+                    tfSummary.Add(300, mesa5minDataPoints.LastOrDefault());
+                    tfSummary.Add(900, mesa15minDataPoints.LastOrDefault());
+                    tfSummary.Add(3600, mesa1hDataPoints.LastOrDefault());
+                    tfSummary.Add(14400, mesa4hDataPoints.LastOrDefault());
+                    tfSummary.Add(86400, mesa1dDataPoints.LastOrDefault());
 
-                    // var tfAvgSummary = new Dictionary<int, float>();
-                    // tfAvgSummary.Add(1, (float)mesa1driver.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1driver.Length);
-                    // tfAvgSummary.Add(60, (float)mesa1min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1min.Length);
-                    // tfAvgSummary.Add(300, (float)mesa5min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa5min.Length);
-                    // tfAvgSummary.Add(900, (float)mesa15min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa15min.Length);
-                    // tfAvgSummary.Add(3600, (float)mesa1h.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1h.Length);
-                    // tfAvgSummary.Add(14400, (float)mesa4h.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa4h.Length);
-                    // tfAvgSummary.Add(86400, (float)mesa1d.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1d.Length);
+                    var tfAvgSummary = new Dictionary<int, float>();
+                    tfAvgSummary.Add(1, (float)mesa1driver.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1driver.Length);
+                    tfAvgSummary.Add(60, (float)mesa1min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1min.Length);
+                    tfAvgSummary.Add(300, (float)mesa5min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa5min.Length);
+                    tfAvgSummary.Add(900, (float)mesa15min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa15min.Length);
+                    tfAvgSummary.Add(3600, (float)mesa1h.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1h.Length);
+                    tfAvgSummary.Add(14400, (float)mesa4h.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa4h.Length);
+                    tfAvgSummary.Add(86400, (float)mesa1d.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1d.Length);
 
-                    // var totalStrength = 0f;
-                    // var timeframeStrengths = new Dictionary<int, float>();
-                    // var d = tfSummary.GetValueOrDefault(1);
-                    // var ast = tfAvgSummary.GetValueOrDefault(1);
-                    // if (d != null && ast > 0)
-                    // {
-                    //     var currentStrength = (d.f - d.s) / ast;
-                    //     totalStrength += currentStrength * 0.033f;
-                    //     timeframeStrengths.Add(1, currentStrength);
-                    // }
-                    // else
-                    // {
-                    //     timeframeStrengths.Add(1, 0);
-                    // }
+                    var totalStrength = 0f;
+                    var timeframeStrengths = new Dictionary<int, float>();
+                    var d = tfSummary.GetValueOrDefault(1);
+                    var ast = tfAvgSummary.GetValueOrDefault(1);
+                    if (d != null && ast > 0)
+                    {
+                        var currentStrength = (d.f - d.s) / ast;
+                        totalStrength += currentStrength * 0.033f;
+                        timeframeStrengths.Add(1, currentStrength);
+                    }
+                    else
+                    {
+                        timeframeStrengths.Add(1, 0);
+                    }
 
-                    // d = tfSummary.GetValueOrDefault(60);
-                    // ast = tfAvgSummary.GetValueOrDefault(60);
-                    // if (d != null && ast > 0)
-                    // {
-                    //     var currentStrength = (d.f - d.s) / ast;
-                    //     totalStrength += currentStrength * 0.066f;
-                    //     timeframeStrengths.Add(60, currentStrength);
-                    // }
-                    // else
-                    // {
-                    //     timeframeStrengths.Add(60, 0);
-                    // }
+                    d = tfSummary.GetValueOrDefault(60);
+                    ast = tfAvgSummary.GetValueOrDefault(60);
+                    if (d != null && ast > 0)
+                    {
+                        var currentStrength = (d.f - d.s) / ast;
+                        totalStrength += currentStrength * 0.066f;
+                        timeframeStrengths.Add(60, currentStrength);
+                    }
+                    else
+                    {
+                        timeframeStrengths.Add(60, 0);
+                    }
 
-                    // d = tfSummary.GetValueOrDefault(300);
-                    // ast = tfAvgSummary.GetValueOrDefault(300);
-                    // if (d != null && ast > 0)
-                    // {
-                    //     var currentStrength = (d.f - d.s) / ast;
-                    //     totalStrength += currentStrength * 0.1f;
-                    //     timeframeStrengths.Add(300, currentStrength);
-                    // }
-                    // else
-                    // {
-                    //     timeframeStrengths.Add(300, 0);
-                    // }
+                    d = tfSummary.GetValueOrDefault(300);
+                    ast = tfAvgSummary.GetValueOrDefault(300);
+                    if (d != null && ast > 0)
+                    {
+                        var currentStrength = (d.f - d.s) / ast;
+                        totalStrength += currentStrength * 0.1f;
+                        timeframeStrengths.Add(300, currentStrength);
+                    }
+                    else
+                    {
+                        timeframeStrengths.Add(300, 0);
+                    }
 
-                    // d = tfSummary.GetValueOrDefault(900);
-                    // ast = tfAvgSummary.GetValueOrDefault(900);
-                    // if (d != null && ast > 0)
-                    // {
-                    //     var currentStrength = (d.f - d.s) / ast;
-                    //     totalStrength += currentStrength * 0.15f;
-                    //     timeframeStrengths.Add(900, currentStrength);
-                    // }
-                    // else
-                    // {
-                    //     timeframeStrengths.Add(900, 0);
-                    // }
+                    d = tfSummary.GetValueOrDefault(900);
+                    ast = tfAvgSummary.GetValueOrDefault(900);
+                    if (d != null && ast > 0)
+                    {
+                        var currentStrength = (d.f - d.s) / ast;
+                        totalStrength += currentStrength * 0.15f;
+                        timeframeStrengths.Add(900, currentStrength);
+                    }
+                    else
+                    {
+                        timeframeStrengths.Add(900, 0);
+                    }
 
-                    // d = tfSummary.GetValueOrDefault(3600);
-                    // ast = tfAvgSummary.GetValueOrDefault(3600);
-                    // if (d != null && ast > 0)
-                    // {
-                    //     var currentStrength = (d.f - d.s) / ast;
-                    //     totalStrength += currentStrength * 0.2f;
-                    //     timeframeStrengths.Add(3600, currentStrength);
-                    // }
-                    // else
-                    // {
-                    //     timeframeStrengths.Add(3600, 0);
-                    // }
+                    d = tfSummary.GetValueOrDefault(3600);
+                    ast = tfAvgSummary.GetValueOrDefault(3600);
+                    if (d != null && ast > 0)
+                    {
+                        var currentStrength = (d.f - d.s) / ast;
+                        totalStrength += currentStrength * 0.2f;
+                        timeframeStrengths.Add(3600, currentStrength);
+                    }
+                    else
+                    {
+                        timeframeStrengths.Add(3600, 0);
+                    }
 
-                    // d = tfSummary.GetValueOrDefault(14400);
-                    // ast = tfAvgSummary.GetValueOrDefault(14400);
-                    // if (d != null && ast > 0)
-                    // {
-                    //     var currentStrength = (d.f - d.s) / ast;
-                    //     totalStrength += currentStrength * 0.2f;
-                    //     timeframeStrengths.Add(14400, currentStrength);
-                    // }
-                    // else
-                    // {
-                    //     timeframeStrengths.Add(14400, 0);
-                    // }
+                    d = tfSummary.GetValueOrDefault(14400);
+                    ast = tfAvgSummary.GetValueOrDefault(14400);
+                    if (d != null && ast > 0)
+                    {
+                        var currentStrength = (d.f - d.s) / ast;
+                        totalStrength += currentStrength * 0.2f;
+                        timeframeStrengths.Add(14400, currentStrength);
+                    }
+                    else
+                    {
+                        timeframeStrengths.Add(14400, 0);
+                    }
 
-                    // d = tfSummary.GetValueOrDefault(86400);
-                    // ast = tfAvgSummary.GetValueOrDefault(86400);
-                    // if (d != null && ast > 0)
-                    // {
-                    //     var currentStrength = (d.f - d.s) / ast;
-                    //     totalStrength += currentStrength * 0.25f;
-                    //     timeframeStrengths.Add(86400, currentStrength);
-                    // }
-                    // else
-                    // {
-                    //     timeframeStrengths.Add(86400, 0);
-                    // }
+                    d = tfSummary.GetValueOrDefault(86400);
+                    ast = tfAvgSummary.GetValueOrDefault(86400);
+                    if (d != null && ast > 0)
+                    {
+                        var currentStrength = (d.f - d.s) / ast;
+                        totalStrength += currentStrength * 0.25f;
+                        timeframeStrengths.Add(86400, currentStrength);
+                    }
+                    else
+                    {
+                        timeframeStrengths.Add(86400, 0);
+                    }
 
-                    // var length = calculation_input.Count();
+                    var length = calculation_input.Count();
 
-                    // summary.Add(new MESADataSummary
-                    // {
-                    //     Symbol = symbol,
-                    //     Datafeed = datafeed,
-                    //     Strength = tfSummary,
-                    //     AvgStrength = tfAvgSummary,
-                    //     TimeframeStrengths = timeframeStrengths,
-                    //     TotalStrength = totalStrength,
-                    //     LastPrice = (float)calculation_input.LastOrDefault(),
-                    //     Price60 = (float)calculation_input.ElementAt(length - 1),
-                    //     Price300 = (float)calculation_input.ElementAt(length - 5),
-                    //     Price900 = (float)calculation_input.ElementAt(length - 15),
-                    //     Price3600 = (float)calculation_input.ElementAt(length - 60),
-                    //     Price14400 = (float)calculation_input.ElementAt(length - 240),
-                    //     Price86400 = (float)calculation_input.ElementAt(length - 1440),
-                    // });
+                    summary.Add(new MESADataSummary
+                    {
+                        Symbol = symbol,
+                        Datafeed = datafeed,
+                        Strength = tfSummary,
+                        AvgStrength = tfAvgSummary,
+                        TimeframeStrengths = timeframeStrengths,
+                        TotalStrength = totalStrength,
+                        LastPrice = (float)calculation_input.LastOrDefault(),
+                        Price60 = (float)calculation_input.ElementAt(length - 1),
+                        Price300 = (float)calculation_input.ElementAt(length - 5),
+                        Price900 = (float)calculation_input.ElementAt(length - 15),
+                        Price3600 = (float)calculation_input.ElementAt(length - 60),
+                        Price14400 = (float)calculation_input.ElementAt(length - 240),
+                        Price86400 = (float)calculation_input.ElementAt(length - 1440),
+                    });
 
                 }
                 catch (Exception ex)
@@ -430,7 +430,7 @@ namespace Algoserver.API.Services
 
             try
             {
-                // SetMesaSummaryCache(summary);
+                SetMesaSummaryCache(summary);
             }
             catch (Exception ex)
             {

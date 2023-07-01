@@ -83,6 +83,7 @@ namespace Algoserver.API
 
             // services.AddSingleton<ICacheService, MemoryCacheService>();
             services.AddSingleton<ICacheService, RedisCacheService>();
+            services.AddSingleton<IInMemoryCache, MemoryCacheService>();
             services.AddSingleton<IAuthorizationHandler, GuestRightProtectionHandler>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddLogging(opt => opt.AddConsole().AddDebug());
@@ -107,7 +108,6 @@ namespace Algoserver.API
             services.AddSingleton<LevelsPredictionService>();
             services.AddSingleton<EconomicCalendarService>();
             services.AddSingleton<MesaPreloaderService>();
-            services.AddSingleton<IInMemoryCache, MemoryCacheService>();
 
             if (scanInstruments)
             {

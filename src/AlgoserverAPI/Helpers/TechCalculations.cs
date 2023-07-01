@@ -11,7 +11,7 @@ namespace Algoserver.API.Helpers
     {
         public float f { get; set; }
         public float s { get; set; }
-        public long t { get; set; }
+        public uint t { get; set; }
     }
     
     [Serializable]
