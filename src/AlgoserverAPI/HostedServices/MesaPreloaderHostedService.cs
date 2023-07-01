@@ -34,7 +34,7 @@ namespace Algoserver.API.HostedServices
                 try
                 {
                     var currentMinute = DateTime.UtcNow.Minute;
-                    if (currentMinute != _prevMin && DateTime.UtcNow.Seconds > 30)
+                    if (currentMinute != _prevMin && DateTime.UtcNow.Second > 30)
                     {
                         Console.WriteLine(">>> Mesa Preloader start");
                         var mesaSummary = _scannerCache.GetMesaSummary();
