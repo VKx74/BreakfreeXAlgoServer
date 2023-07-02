@@ -59,10 +59,13 @@ namespace Algoserver.API.HostedServices
 
                     if (scanRequired)
                     {
+                        await Task.Delay(TimeSpan.FromSeconds(3), stoppingToken).ConfigureAwait(false);
                         Console.WriteLine(">>> Forex ScanMarkets start");
+                        _scannerCache.CalculateMinuteMesa();
+                        await Task.Delay(TimeSpan.FromSeconds(3), stoppingToken).ConfigureAwait(false);
                         _scannerCache.ScanMarkets();
-                        await _scannerCache.CalculateMinuteMesa();
                         Console.WriteLine(">>> Forex ScanMarkets ends");
+                        await Task.Delay(TimeSpan.FromSeconds(3), stoppingToken).ConfigureAwait(false);
                     }
                 }
                 catch (Exception ex)

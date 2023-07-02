@@ -145,15 +145,7 @@ namespace Algoserver.API.Services
             return null;
         }
 
-        public async Task CalculateMinuteMesa()
-        {
-            await Task.Run(async () =>
-                       {
-                           CalculateMinuteMesaAsync();
-                       });
-        }
-
-        private void CalculateMinuteMesaAsync()
+        public void CalculateMinuteMesa()
         {
             var stopWatch = new Stopwatch();
             stopWatch.Start();

@@ -34,11 +34,11 @@ namespace Algoserver.API.HostedServices
                     var currentMinute = DateTime.UtcNow.Minute;
                     var scanRequired = false;
 
-                    if (currentDay != _prevDay)
-                    {
-                        var result = await _scannerHistory.Refresh1MinLongHistory();
-                        _scannerCache.RefreshLongMinuteHistoryTime = result;
-                    }
+                    // if (currentDay != _prevDay)
+                    // {
+                    //     var result = await _scannerHistory.Refresh1MinLongHistory();
+                    //     _scannerCache.RefreshLongMinuteHistoryTime = result;
+                    // }
 
                     if (currentHour != _prevHour)
                     {
@@ -61,12 +61,13 @@ namespace Algoserver.API.HostedServices
                     {
                         Console.WriteLine(">>> Stock ScanMarkets start");
                         _scannerCache.ScanMarkets();
-                        await _scannerCache.CalculateMinuteMesa();
+                        // _scannerCache.CalculateMinuteMesa();
                         Console.WriteLine(">>> Stock ScanMarkets ends");
                     }
                 }
                 catch (Exception ex)
                 {
+                    Console.WriteLine(ex);
                 }
 
                 await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken).ConfigureAwait(false);
