@@ -44,7 +44,7 @@ namespace Algoserver.API.HostedServices
                     {
                         var result = await _scannerHistory.RefreshAll();
                         _scannerCache.RefreshAllMarketsTime = result;
-                        scanRequired = true;
+                        // scanRequired = true;
                     }
                     else if (currentMinute != _prevMin)
                     {

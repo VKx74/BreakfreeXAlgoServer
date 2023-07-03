@@ -150,9 +150,14 @@ namespace Algoserver.API.Services
             var stopWatch = new Stopwatch();
             stopWatch.Start();
             var _1Mins = _historyService.Get1MinLongData();
-            var _1Hour = _historyService.Get1HDataDictionary();
+            var _1Hour = _historyService.Get1HData();
             var count = 0;
             var summary = new List<MESADataSummary>();
+
+            if (_1Hour == null || _1Mins == null)
+            { 
+                return; 
+            }
 
             foreach (var minHistory in _1Mins)
             {
@@ -169,13 +174,8 @@ namespace Algoserver.API.Services
                         continue;
                     }
 
-                    HistoryData hourlyHistory;
-                    if (!_1Hour.TryGetValue(minHistory.Symbol + minHistory.Exchange, out hourlyHistory))
-                    {
-                        continue;
-                    }
-
-                    if (hourlyHistory == null)
+                    var hourlyHistory = _1Hour.FirstOrDefault((_) => String.Equals(_.Symbol, minHistory.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, minHistory.Exchange, StringComparison.InvariantCultureIgnoreCase));
+                    if (hourlyHistory == null || hourlyHistory.Bars == null || !hourlyHistory.Bars.Any())
                     {
                         continue;
                     }
