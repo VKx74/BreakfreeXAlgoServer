@@ -238,7 +238,7 @@ namespace Algoserver.API.Helpers
             get
             {
                 return new List<string> {
-                    "DE10YB_EUR", "UK100_GBP", "USB02Y_USD", "USB05Y_USD", "USB30Y_USD"
+                    "DE10YB_EUR", "UK100_GBP", "USB02Y_USD", "USB30Y_USD"
                 };
             }
         }
@@ -344,8 +344,6 @@ namespace Algoserver.API.Helpers
                     "US2000_USD",
                     "US30_USD",
                     "USB02Y_USD",
-                    "USB05Y_USD",
-                    "USB10Y_USD",
                     "USB30Y_USD",
                     "USD_CAD",
                     "USD_CHF",
