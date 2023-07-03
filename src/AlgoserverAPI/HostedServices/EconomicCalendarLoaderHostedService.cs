@@ -27,7 +27,7 @@ namespace Algoserver.API.HostedServices
                 var currentMinute = DateTime.UtcNow.Minute;
                 try
                 {
-                    if (currentHour != _prevHour || currentMinute % 10 == 0)
+                    if (currentHour != _prevHour)
                     {
                         await _economicCalendarService.LoadEconomicEvents();
                     } 
