@@ -69,7 +69,7 @@ namespace Algoserver.API.Services
 
     public abstract class ScannerCacheService
     {
-        private static int longMinHistoryCount = 21600;
+        private static int longMinHistoryCount = 10000;
         protected string _mesaCachePrefix = "MesaCache_";
         protected readonly ICacheService _cache;
         protected readonly ScannerHistoryService _historyService;
