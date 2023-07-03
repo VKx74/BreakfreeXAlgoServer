@@ -113,7 +113,7 @@ namespace Algoserver.API
             {
                 services.AddHostedService<StockHistoryLoaderHostedService>();
                 services.AddHostedService<ForexHistoryLoaderHostedService>();
-                // services.AddHostedService<CryptoHistoryLoaderHostedService>();
+                services.AddHostedService<CryptoHistoryLoaderHostedService>();
                 services.AddHostedService<EconomicCalendarLoaderHostedService>();
                 // for local debugging
                 // services.AddHostedService<MesaPreloaderHostedService>();
