@@ -27,11 +27,11 @@ namespace Algoserver.API.HostedServices
         {
             while (!stoppingToken.IsCancellationRequested)
             {
+                var currentDay = DateTime.UtcNow.Day;
+                var currentHour = DateTime.UtcNow.Hour;
+                var currentMinute = DateTime.UtcNow.Minute;
                 try
                 {
-                    var currentDay = DateTime.UtcNow.Day;
-                    var currentHour = DateTime.UtcNow.Hour;
-                    var currentMinute = DateTime.UtcNow.Minute;
                     var scanRequired = false;
 
                     // if (currentDay != _prevDay)
@@ -40,7 +40,7 @@ namespace Algoserver.API.HostedServices
                     //     _scannerCache.RefreshLongMinuteHistoryTime = result;
                     // }
 
-                    if (currentHour != _prevHour)
+                    if (currentHour != _prevHour || currentMinute % 10 == 0)
                     {
                         var result = await _scannerHistory.RefreshAll();
                         _scannerCache.RefreshAllMarketsTime = result;
@@ -52,10 +52,6 @@ namespace Algoserver.API.HostedServices
                         _scannerCache.RefreshMarketsTime = result;
                         scanRequired = true;
                     }
-
-                    _prevDay = currentDay;
-                    _prevHour = currentHour;
-                    _prevMin = currentMinute;
 
                     if (scanRequired)
                     {
@@ -69,6 +65,9 @@ namespace Algoserver.API.HostedServices
                 {
                     Console.WriteLine(ex);
                 }
+                _prevDay = currentDay;
+                _prevHour = currentHour;
+                _prevMin = currentMinute;
 
                 await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken).ConfigureAwait(false);
             }

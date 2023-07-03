@@ -23,21 +23,21 @@ namespace Algoserver.API.HostedServices
         {
             while (!stoppingToken.IsCancellationRequested)
             {
+                var currentHour = DateTime.UtcNow.Hour;
+                var currentMinute = DateTime.UtcNow.Minute;
                 try
                 {
-                    var currentHour = DateTime.UtcNow.Hour;
-
-                    if (currentHour != _prevHour)
+                    if (currentHour != _prevHour || currentMinute % 10 == 0)
                     {
                         await _economicCalendarService.LoadEconomicEvents();
                     } 
-
-                    _prevHour = currentHour;
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex);
                 }
+
+                _prevHour = currentHour;
 
                 await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken).ConfigureAwait(false);
             }
