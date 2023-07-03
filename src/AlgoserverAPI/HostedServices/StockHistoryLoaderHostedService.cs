@@ -40,7 +40,7 @@ namespace Algoserver.API.HostedServices
                     //     _scannerCache.RefreshLongMinuteHistoryTime = result;
                     // }
 
-                    if (currentHour != _prevHour || currentMinute % 10 == 0)
+                    if (currentHour != _prevHour)
                     {
                         var result = await _scannerHistory.RefreshAll();
                         _scannerCache.RefreshAllMarketsTime = result;
