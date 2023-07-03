@@ -111,10 +111,10 @@ namespace Algoserver.API
 
             if (scanInstruments)
             {
-                services.AddHostedService<StockHistoryLoaderHostedService>();
+                // services.AddHostedService<StockHistoryLoaderHostedService>();
                 services.AddHostedService<ForexHistoryLoaderHostedService>();
-                services.AddHostedService<CryptoHistoryLoaderHostedService>();
-                services.AddHostedService<EconomicCalendarLoaderHostedService>();
+                // services.AddHostedService<CryptoHistoryLoaderHostedService>();
+                // services.AddHostedService<EconomicCalendarLoaderHostedService>();
                 // for local debugging
                 // services.AddHostedService<MesaPreloaderHostedService>();
             }
