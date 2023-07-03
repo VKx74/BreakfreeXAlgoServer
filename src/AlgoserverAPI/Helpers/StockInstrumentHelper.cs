@@ -80,7 +80,7 @@ namespace Algoserver.API.Helpers
                     new InstrumentDescription { Symbol = "ZM", Exchange = "NASDAQ" },
                     new InstrumentDescription { Symbol = "GE", Exchange = "NYSE" },
                     new InstrumentDescription { Symbol = "AAL", Exchange = "NASDAQ" },
-                    new InstrumentDescription { Symbol = "DELTA", Exchange = "BSE" },
+                    // new InstrumentDescription { Symbol = "DELTA", Exchange = "BSE" },
                     new InstrumentDescription { Symbol = "GPRO", Exchange = "NASDAQ" },
                     new InstrumentDescription { Symbol = "ACB", Exchange = "NYSE" },
                     new InstrumentDescription { Symbol = "CUK", Exchange = "NYSE" },
@@ -176,7 +176,7 @@ namespace Algoserver.API.Helpers
                     new InstrumentDescription { Symbol = "dogeusdt", Exchange = "Binance" },
                     new InstrumentDescription { Symbol = "ftmusdt", Exchange = "Binance" },
                     new InstrumentDescription { Symbol = "omgusdt", Exchange = "Binance" },
-                    new InstrumentDescription { Symbol = "fttusdt", Exchange = "Binance" },
+                    // new InstrumentDescription { Symbol = "fttusdt", Exchange = "Binance" },
                     new InstrumentDescription { Symbol = "filusdt", Exchange = "Binance" },
                     new InstrumentDescription { Symbol = "axsusdt", Exchange = "Binance" },
                     new InstrumentDescription { Symbol = "bnbusdt", Exchange = "Binance" },
@@ -238,7 +238,7 @@ namespace Algoserver.API.Helpers
             get
             {
                 return new List<string> {
-                    "DE10YB_EUR", "UK10YB_GBP", "UK100_GBP", "USB02Y_USD", "USB05Y_USD", "USB30Y_USD"
+                    "DE10YB_EUR", "UK100_GBP", "USB02Y_USD", "USB05Y_USD", "USB30Y_USD"
                 };
             }
         }
@@ -248,7 +248,7 @@ namespace Algoserver.API.Helpers
             get
             {
                 return new List<string> {
-                    "BCO_USD", "CORN_USD", "NATGAS_USD", "SOYBN_USD", "SUGAR_USD", "WHEAT_USD", "WTICO_USD", "XCU_USD"
+                    "BCO_USD", "CORN_USD", "NATGAS_USD", "SOYBN_USD", "WHEAT_USD", "WTICO_USD", "XCU_USD"
                 };
             }
         }
@@ -340,9 +340,7 @@ namespace Algoserver.API.Helpers
                     "SGD_JPY",
                     "SOYBN_USD",
                     "SPX500_USD",
-                    "SUGAR_USD",
                     "UK100_GBP",
-                    "UK10YB_GBP",
                     "US2000_USD",
                     "US30_USD",
                     "USB02Y_USD",
