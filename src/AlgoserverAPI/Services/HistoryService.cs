@@ -24,11 +24,11 @@ namespace Algoserver.API.Services
         private readonly ILogger<HistoryService> _logger;
         private readonly AuthService _auth;
         private readonly string _serverUrl;
-        private readonly ICacheService _cache;
+        private readonly IInMemoryCache _cache;
         private string _cachePrefix = "History_";
         private readonly Dictionary<string, Task<HistoryData>> _requestCache = new Dictionary<string, Task<HistoryData>>();
 
-        public HistoryService(ILogger<HistoryService> logger, IConfiguration configuration, ICacheService cache, AuthService auth)
+        public HistoryService(ILogger<HistoryService> logger, IConfiguration configuration, IInMemoryCache cache, AuthService auth)
         {
             _logger = logger;
             _cache = cache;
@@ -49,8 +49,7 @@ namespace Algoserver.API.Services
 
             try
             {
-                var cachedResponse = await _cache.TryGetValueAsync<HistoryData>(_cachePrefix, hash);
-                if (cachedResponse != null)
+                if (_cache.TryGetValue<HistoryData>(_cachePrefix, hash, out var cachedResponse))
                 {
                     if (cachedResponse.Bars != null && cachedResponse.Bars.Count() >= barsBack)
                     {
@@ -63,9 +62,6 @@ namespace Algoserver.API.Services
                 _logger.LogError("Failed to get cached response");
                 _logger.LogError(e.Message);
             }
-
-            // var exists = _contextAccessor.HttpContext.Request.Headers.TryGetValue("Authorization", out var authHeader);
-            // var bearerString = authHeader.ToString();
 
             var result = await LoadHistoricalData(datafeed, symbol, granularity, barsBack, exchange);
 

@@ -13,7 +13,7 @@ namespace Algoserver.API.Services
         {
         }
 
-        protected override List<IInstrument> _getInstruments() 
+        public override List<IInstrument> getInstruments() 
         {
             var instruments = new List<IInstrument>();
             var cryptoInstruments = _instrumentService.GetBinanceInstruments();
@@ -28,11 +28,11 @@ namespace Algoserver.API.Services
                 }
             }
 
-            // return instruments.Take(2).ToList();
+            // return instruments.Take(5).ToList();
             return instruments;
         }
 
-        protected override List<IInstrument> _getInstrumentsForLongHistory() 
+        public override List<IInstrument> getInstrumentsForLongHistory() 
         {
             var instruments = new List<IInstrument>();
             return instruments;

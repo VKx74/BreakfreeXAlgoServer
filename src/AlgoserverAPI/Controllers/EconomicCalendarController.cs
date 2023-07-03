@@ -27,7 +27,7 @@ namespace Algoserver.API.Controllers
         [ProducesResponseType(typeof(Response<List<EconomicEvent>>), 200)]
         public async Task<IActionResult> GetEconomicCalendar()
         {
-            var res = await _economicCalendar.GetEconomicEvents();
+            var res = _economicCalendar.GetEconomicEvents();
             return await ToEncryptedResponse(res, HttpContext.RequestAborted);
         }
     }

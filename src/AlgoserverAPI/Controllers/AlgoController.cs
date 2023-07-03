@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Algoserver.API.Models.REST;
 using Algoserver.API.Services;
 using System;
+using Algoserver.API.Services.CacheServices;
+using System.Linq;
 
 namespace Algoserver.API.Controllers
 {
@@ -15,16 +17,18 @@ namespace Algoserver.API.Controllers
     public class AlgoController : AlgoControllerBase
     {
         private ScannerResultService _scannerResultService;
+        private MesaPreloaderService _mesaPreloaderService;
         private AlgoService _algoService;
         private RTDService _rtdService;
         private ScannerService _scanerService;
 
-        public AlgoController(AlgoService algoService, RTDService rtdService, ScannerService scanerService, ScannerResultService scannerResultService)
+        public AlgoController(AlgoService algoService, RTDService rtdService, ScannerService scanerService, ScannerResultService scannerResultService, MesaPreloaderService mesaPreloaderService)
         {
             _algoService = algoService;
             _rtdService = rtdService;
             _scanerService = scanerService;
             _scannerResultService = scannerResultService;
+            _mesaPreloaderService = mesaPreloaderService;
         }
 
         [Authorize(Policy = "free_user_restriction")]
@@ -53,7 +57,7 @@ namespace Algoserver.API.Controllers
 
             var result = await _algoService.CalculateV3Async(request);
             return await ToEncryptedResponse(result, CancellationToken.None);
-        }  
+        }
 
         [Authorize]
         [HttpPost(Routes.CalculatePositionSize)]
@@ -227,7 +231,7 @@ namespace Algoserver.API.Controllers
         [ProducesResponseType(typeof(Response<List<MesaSummaryResponse>>), 200)]
         public async Task<IActionResult> GetMesaSummaryAsync()
         {
-            var res = await _scannerResultService.GetMesaSummaryAsync();
+            var res = getMesaSummaryResponse();
             return await ToEncryptedResponse(res, HttpContext.RequestAborted);
         }
 
@@ -244,7 +248,7 @@ namespace Algoserver.API.Controllers
             var result = await _algoService.CalculateV3Async(request);
             return Json(result);
         }
-        
+
         [Authorize]
         [HttpGet(Routes.TrendsGlobal)]
         [ProducesResponseType(typeof(MesaResponse), 200)]
@@ -270,9 +274,39 @@ namespace Algoserver.API.Controllers
         [ProducesResponseType(typeof(List<MesaSummaryResponse>), 200)]
         public async Task<IActionResult> GetMesaSummaryGlobalAsync()
         {
-
-            var res = _scannerResultService.GetMesaSummary();
+            var res = getMesaSummaryResponse();
             return Json(res);
+        }
+
+        private List<MesaSummaryResponse> getMesaSummaryResponse()
+        {
+            var res = _mesaPreloaderService.GetMesaSummary();
+            var result = new List<MesaSummaryResponse>();
+            foreach (var r in res)
+            {
+                result.Add(new MesaSummaryResponse
+                {
+                    datafeed = r.Datafeed,
+                    symbol = r.Symbol,
+                    strength = r.Strength.ToDictionary((_) => _.Key, (_) => new MesaLevelResponse
+                    {
+                        f = _.Value.f,
+                        s = _.Value.s,
+                        t = _.Value.t
+                    }),
+                    timeframe_strengths = r.TimeframeStrengths,
+                    total_strength = r.TotalStrength,
+                    avg_strength = r.AvgStrength,
+                    last_price = r.LastPrice,
+                    price60 = r.Price60,
+                    price300 = r.Price300,
+                    price900 = r.Price900,
+                    price3600 = r.Price3600,
+                    price14400 = r.Price14400,
+                    price86400 = r.Price86400,
+                });
+            }
+            return result;
         }
     }
 }

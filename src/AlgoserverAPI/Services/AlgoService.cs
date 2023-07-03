@@ -8,9 +8,16 @@ using Algoserver.API.Models.REST;
 using Algoserver.API.Services.CacheServices;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Collections.Concurrent;
 
 namespace Algoserver.API.Services
 {
+    class BandsDescriptionV3Data
+    {
+        public Dictionary<int, LevelsV3Response> levels { get; set; }
+        public float total_strength { get; set; }
+    }
+
     public class AlgoService
     {
 
@@ -18,15 +25,13 @@ namespace Algoserver.API.Services
         private readonly HistoryService _historyService;
         private readonly ScannerService _scanner;
         private readonly LevelsPredictionService _levelsPrediction;
-        private readonly ScannerResultService _scannerResultService;
+        private readonly MesaPreloaderService _mesaPreloaderService;
         private readonly ICacheService _cache;
         private string _cachePrefix = "MarketInfo_";
         private string _cachePrefixV2 = "MarketInfoV2_";
-        private readonly List<MesaSummaryResponse> _mesaSummaryCache = new List<MesaSummaryResponse>();
-        private int _mesaSummaryCacheTime = -1;
         private readonly PriceRatioCalculationService _priceRatioCalculationService;
 
-        public AlgoService(ILogger<AlgoService> logger, HistoryService historyService, PriceRatioCalculationService priceRatioCalculationService, ScannerService scanner, LevelsPredictionService levelsPrediction, ScannerResultService scannerResultService, ICacheService cache)
+        public AlgoService(ILogger<AlgoService> logger, HistoryService historyService, PriceRatioCalculationService priceRatioCalculationService, ScannerService scanner, LevelsPredictionService levelsPrediction, ICacheService cache, MesaPreloaderService mesaPreloaderService)
         {
             _logger = logger;
             _historyService = historyService;
@@ -34,17 +39,12 @@ namespace Algoserver.API.Services
             _cache = cache;
             _priceRatioCalculationService = priceRatioCalculationService;
             _levelsPrediction = levelsPrediction;
-            _scannerResultService = scannerResultService;
+            _mesaPreloaderService = mesaPreloaderService;
         }
 
         public async Task<InputDataContainer> InitAsync(CalculationRequest req, int minBarsCount = 0)
         {
             var container = InputDataContainer.MapCalculationRequestToInputDataContainer(req);
-            // if (container.Datafeed != "twelvedata" && container.Datafeed != "oanda")
-            // {
-            //     throw new ApiException(HttpStatusCode.BadRequest,
-            //         $"Unsupported '{container.Datafeed}' datafeed. Available 'twelvedata' or 'oanda' only.");
-            // }
 
             if (container.Type == "forex")
             {
@@ -452,25 +452,31 @@ namespace Algoserver.API.Services
                 var additionalLevels = req.AdditionalLevels.GetValueOrDefault(false);
                 result.prediction_exists = predict;
 
-                result.sar = await CalculateV3Levels(container, req);
+                var levelsdescription = await CalculateV3Levels(container, req);
+                result.sar = levelsdescription.levels;
+                result.total_strength = levelsdescription.total_strength;
 
-                if ((granularity <= TimeframeHelper.HOURLY_GRANULARITY) && result.sar.TryGetValue(TimeframeHelper.HOURLY_GRANULARITY, out var hourlySar) && result.sar.TryGetValue(granularity, out var mainSar))
+                if ((granularity <= TimeframeHelper.HOUR4_GRANULARITY))
                 {
-                    var lastHourlyMesa = hourlySar.mesa.LastOrDefault();
-                    var lastHourlySar = hourlySar.sar.LastOrDefault();
-                    var lastMainSar = mainSar.sar.LastOrDefault();
-                    if (lastHourlyMesa != null && lastHourlySar != null && lastMainSar != null)
+                    var isUp = result.total_strength > 0;
+                    if (result.sar.TryGetValue(TimeframeHelper.HOUR4_GRANULARITY, out var hour4Sar))
                     {
-                        if (lastHourlyMesa.f > lastHourlyMesa.s)
+                        var lastHour4Sar = hour4Sar.sar.LastOrDefault();
+                        if (lastHour4Sar != null)
                         {
-                            result.sl_price = lastHourlySar.s_m18;
-                            // result.tp_price = (lastMainSar.n * 2 + lastMainSar.s) / 3;
+                            if (isUp)
+                            {
+                                result.sl_price = lastHour4Sar.s_m18;
+                            }
+                            else
+                            {
+                                result.sl_price = lastHour4Sar.r_p18;
+                            }
                         }
-                        else
-                        {
-                            result.sl_price = lastHourlySar.r_p18;
-                            // result.tp_price = (lastMainSar.n * 2 + lastMainSar.r) / 3;
-                        }
+                    }
+                    else
+                    {
+                        result.sl_price = await CalculateTradeZoneSL(container, req, isUp);
                     }
                 }
 
@@ -549,7 +555,7 @@ namespace Algoserver.API.Services
             return result;
         }
 
-        private async Task<Dictionary<int, LevelsV3Response>> CalculateV3Levels(InputDataContainer container, CalculationRequestV3 req)
+        private async Task<BandsDescriptionV3Data> CalculateV3Levels(InputDataContainer container, CalculationRequestV3 req)
         {
             var result = new Dictionary<int, LevelsV3Response>();
             var granularity = AlgoHelper.ConvertTimeframeToGranularity(container.TimeframeInterval, container.TimeframePeriod);
@@ -562,40 +568,11 @@ namespace Algoserver.API.Services
                 mesaGranularity.Add(mesaRequiredTf);
             }
             var mesa_additional = await getMesaAsync(req.Instrument.Id, req.Instrument.Datafeed, mesaGranularity);
+            var total_strength = 0f;
 
             if (mesa_additional != null && mesa_additional.mesa != null && mesa_additional.mesa.Any())
             {
-                List<MesaSummaryResponse> mesa_summary = new List<MesaSummaryResponse>();
-                lock (_mesaSummaryCache)
-                {
-                    if (_mesaSummaryCache.Any())
-                    {
-                        mesa_summary = _mesaSummaryCache.ToList();
-                    }
-                }
-
-                var currentHour = DateTime.UtcNow.Hour;
-
-                if (!mesa_summary.Any() || currentHour != _mesaSummaryCacheTime)
-                {
-                    mesa_summary = await _scannerResultService.GetMesaSummaryAsync();
-                    lock (_mesaSummaryCache)
-                    {
-                        _mesaSummaryCache.Clear();
-                        _mesaSummaryCache.AddRange(mesa_summary);
-                    }
-                    _mesaSummaryCacheTime = currentHour;
-                }
-
-                MesaSummaryResponse summaryForSymbol = null;
-                foreach (var summary in mesa_summary)
-                {
-                    if (string.Equals(req.Instrument.Id, summary.symbol, StringComparison.InvariantCultureIgnoreCase) && string.Equals(req.Instrument.Datafeed, summary.datafeed, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        summaryForSymbol = summary;
-                        break;
-                    }
-                }
+                var summaryForSymbol = _mesaPreloaderService.GetMesaSummary(req.Instrument.Id, req.Instrument.Datafeed);
 
                 var startDate = 0L;
                 foreach (var item in sar_additional)
@@ -613,6 +590,11 @@ namespace Algoserver.API.Services
 
                 }
 
+                if (summaryForSymbol != null)
+                {
+                    total_strength = summaryForSymbol.TotalStrength;
+                }
+
                 foreach (var item in sar_additional)
                 {
                     var mesaRequiredTf = GetTrendIndexGranularity(item.Key);
@@ -626,9 +608,10 @@ namespace Algoserver.API.Services
                     levelsV3.mesa = new List<MesaTrendV3Response>();
                     var mesa_additional_values = mesa_additional.mesa[mesaRequiredTf];
 
-                    if (summaryForSymbol != null && summaryForSymbol.avg_strength.TryGetValue(mesaRequiredTf, out var str))
+                    if (summaryForSymbol != null && summaryForSymbol.AvgStrength.TryGetValue(mesaRequiredTf, out var str) && summaryForSymbol.TimeframeStrengths.TryGetValue(mesaRequiredTf, out var tf_str))
                     {
                         levelsV3.mesa_avg = str;
+                        levelsV3.strength = tf_str;
                     }
 
                     if (levelsV3.mesa_avg <= 0)
@@ -696,11 +679,23 @@ namespace Algoserver.API.Services
                             t = dates[i]
                         });
                     }
+
+                    var lastMesa = levelsV3.mesa.LastOrDefault();
+                    if (lastMesa != null)
+                    {
+                        levelsV3.strength = (lastMesa.f - lastMesa.s) / (float)rtd.global_avg;
+                        total_strength += levelsV3.strength;
+                    }
                     result.Add(item.Key, levelsV3);
                 }
+                total_strength = total_strength / sar_additional.Count;
             }
 
-            return result;
+            return new BandsDescriptionV3Data
+            {
+                levels = result,
+                total_strength = total_strength
+            };
         }
 
         private int GetTrendIndexGranularity(int tf)
@@ -803,6 +798,36 @@ namespace Algoserver.API.Services
             }
 
             return levelsResult;
+        }
+
+        private async Task<decimal?> CalculateTradeZoneSL(InputDataContainer container, CalculationRequestV3 req, bool isUp)
+        {
+            var historicalData = await _historyService.GetHistory(container.Symbol, TimeframeHelper.HOUR4_GRANULARITY, container.Datafeed, container.Exchange, container.Type, container.ReplayBack, req.BarsCount.GetValueOrDefault(0));
+            try
+            {
+                var high = historicalData.Bars.Select(_ => _.High);
+                var low = historicalData.Bars.Select(_ => _.Low);
+                var levelsList = TechCalculations.CalculateLevelsBasedOnTradeZone(high, low);
+                var lastSar = levelsList.LastOrDefault();
+                if (lastSar == null)
+                {
+                    return null;
+                }
+
+                if (isUp)
+                {
+                    return lastSar.Minus18;
+                }
+                else
+                {
+                    return lastSar.Plus18;
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+
+            return null;
         }
 
         private async Task<Dictionary<int, RTDCalculationResponse>> CalculateTradeZoneRTD(InputDataContainer container, CalculationRequestV3 req)
@@ -1103,13 +1128,10 @@ namespace Algoserver.API.Services
                 granularityList.Add(86400);
             }
 
-            var mesaCachePrefix = "MesaCache_";
             var mesa = new Dictionary<int, List<MesaLevelResponse>>();
-
             try
             {
-                var hash = datafeed + "_" + symbol;
-                var mesaDataPointsMap = await _cache.TryGetValueAsync<Dictionary<int, List<MESADataPoint>>>(mesaCachePrefix, hash.ToLower());
+                var mesaDataPointsMap = _mesaPreloaderService.GetMesa(symbol, datafeed);
                 foreach (var i in mesaDataPointsMap)
                 {
                     if (!granularityList.Contains(i.Key))

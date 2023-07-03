@@ -86,8 +86,6 @@ namespace Algoserver.API.Services
         public string RefreshAllMarketsTime { get; set; }
         public string RefreshLongMinuteHistoryTime { get; set; }
         public string RefreshMarketsTime { get; set; }
-        private List<MESADataSummary> MESADataSummaryCache;
-        private int MESADataSummaryCacheMinute = 0;
 
         public ScannerCacheService(ScannerHistoryService historyService, ScannerService scanner, ICacheService cache)
         {
@@ -108,39 +106,22 @@ namespace Algoserver.API.Services
 
         public List<MESADataSummary> GetMesaSummary()
         {
-            var currentMinute = DateTime.UtcNow.Minute;
-            if (MESADataSummaryCache != null && MESADataSummaryCacheMinute == currentMinute)
-            {
-                return MESADataSummaryCache.ToList();
-            }
-            MESADataSummaryCacheMinute = currentMinute;
-
             if (_cache.TryGetValue(cachePrefix(), "mesa_data_summary", out List<MESADataSummary> cachedResponse))
             {
-                MESADataSummaryCache = cachedResponse;
                 return cachedResponse.ToList();
             }
 
             return new List<MESADataSummary>();
         }
 
-        public async Task<List<MESADataSummary>> GetMesaSummaryAsync()
+        public Dictionary<int, List<MESADataPoint>> GetMinuteMesaCache(String key)
         {
-            var currentMinute = DateTime.UtcNow.Minute;
-            if (MESADataSummaryCache != null && MESADataSummaryCacheMinute == currentMinute)
+            if (_cache.TryGetValue(_mesaCachePrefix, key, out Dictionary<int, List<MESADataPoint>> cachedResponse))
             {
-                return MESADataSummaryCache.ToList();
-            }
-            MESADataSummaryCacheMinute = currentMinute;
-
-            var cachedResponse = await _cache.TryGetValueAsync<List<MESADataSummary>>(cachePrefix(), "mesa_data_summary");
-            if (cachedResponse != null)
-            {
-                MESADataSummaryCache = cachedResponse;
-                return cachedResponse.ToList();
+                return cachedResponse;
             }
 
-            return new List<MESADataSummary>();
+            return new Dictionary<int, List<MESADataPoint>>();
         }
 
         public List<ScannerResponseHistoryItem> GetHistoryData()
@@ -164,22 +145,19 @@ namespace Algoserver.API.Services
             return null;
         }
 
-        public async Task CalculateMinuteMesa()
-        {
-            await Task.Run(async () =>
-                       {
-                           await CalculateMinuteMesaAsync();
-                       });
-        }
-
-        private async Task CalculateMinuteMesaAsync()
+        public void CalculateMinuteMesa()
         {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
             var _1Mins = _historyService.Get1MinLongData();
-            var _1Hour = _historyService.Get1HDataDictionary();
+            var _1Hour = _historyService.Get1HData();
             var count = 0;
             var summary = new List<MESADataSummary>();
+
+            if (_1Hour == null || _1Mins == null)
+            { 
+                return; 
+            }
 
             foreach (var minHistory in _1Mins)
             {
@@ -196,21 +174,13 @@ namespace Algoserver.API.Services
                         continue;
                     }
 
-                    HistoryData hourlyHistory;
-                    if (!_1Hour.TryGetValue(minHistory.Symbol + minHistory.Exchange, out hourlyHistory))
-                    {
-                        continue;
-                    }
-
-                    if (hourlyHistory == null)
+                    var hourlyHistory = _1Hour.FirstOrDefault((_) => String.Equals(_.Symbol, minHistory.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, minHistory.Exchange, StringComparison.InvariantCultureIgnoreCase));
+                    if (hourlyHistory == null || hourlyHistory.Bars == null || !hourlyHistory.Bars.Any())
                     {
                         continue;
                     }
 
                     var hourly_calculation_input = hourlyHistory.Bars.Select(_ => _.Close);
-
-                    // "granularity": ['1min', '5min', '15min', '60min', '240min', '1440min'],
-                    // "limits": [(0.0325, 0.0325), (0.0085, 0.0085), (0.0032, 0.0032), (0.0012, 0.0012), (0.0007, 0.0007), (0.00039, 0.00039)],
                     var mesa1driver = TechCalculations.MESA(calculation_input.TakeLast(28000).ToList(), 0.0325, 0.0325);
                     var mesa1min = TechCalculations.MESA(calculation_input.TakeLast(32000).ToList(), 0.0085, 0.0085);
                     var mesa5min = TechCalculations.MESA(calculation_input.TakeLast(36000).ToList(), 0.0032, 0.0032);
@@ -241,25 +211,25 @@ namespace Algoserver.API.Services
                             {
                                 f = (float)mesa1driverCut[i].Fast,
                                 s = (float)mesa1driverCut[i].Slow,
-                                t = minuteTimesCut[i]
+                                t = (uint)minuteTimesCut[i]
                             });
                             mesa1minDataPoints.Add(new MESADataPoint
                             {
                                 f = (float)mesa1minCut[i].Fast,
                                 s = (float)mesa1minCut[i].Slow,
-                                t = minuteTimesCut[i]
+                                t = (uint)minuteTimesCut[i]
                             });
                             mesa5minDataPoints.Add(new MESADataPoint
                             {
                                 f = (float)mesa5minCut[i].Fast,
                                 s = (float)mesa5minCut[i].Slow,
-                                t = minuteTimesCut[i]
+                                t = (uint)minuteTimesCut[i]
                             });
                             mesa15minDataPoints.Add(new MESADataPoint
                             {
                                 f = (float)mesa15minCut[i].Fast,
                                 s = (float)mesa15minCut[i].Slow,
-                                t = minuteTimesCut[i]
+                                t = (uint)minuteTimesCut[i]
                             });
                         }
 
@@ -269,13 +239,13 @@ namespace Algoserver.API.Services
                             {
                                 f = (float)mesa1hCut[i].Fast,
                                 s = (float)mesa1hCut[i].Slow,
-                                t = minuteTimesCut[i]
+                                t = (uint)minuteTimesCut[i]
                             });
                             mesa4hDataPoints.Add(new MESADataPoint
                             {
                                 f = (float)mesa4hCut[i].Fast,
                                 s = (float)mesa4hCut[i].Slow,
-                                t = minuteTimesCut[i]
+                                t = (uint)minuteTimesCut[i]
                             });
                         }
                     }
@@ -291,23 +261,13 @@ namespace Algoserver.API.Services
                         {
                             f = (float)mesa1dCut[i].Fast,
                             s = (float)mesa1dCut[i].Slow,
-                            t = hourTimesCut[i]
+                            t = (uint)hourTimesCut[i]
                         });
                     }
 
 
                     var symbol = minHistory.Symbol;
                     var datafeed = minHistory.Datafeed;
-
-                    // if (symbol == "BTC_USD" && datafeed == "Oanda") {
-                    //     datafeed = "Binance";
-                    //     symbol = "BTCUSDT";
-                    // }
-
-                    // if (symbol == "ETH_USD" && datafeed == "Oanda") {
-                    //     datafeed = "Binance";
-                    //     symbol = "ETHUSDT";
-                    // }
 
                     var key = datafeed + "_" + symbol;
                     var mesaDataPointsMap = new Dictionary<int, List<MESADataPoint>>();
@@ -318,16 +278,8 @@ namespace Algoserver.API.Services
                     mesaDataPointsMap.Add(3600, mesa1hDataPoints);
                     mesaDataPointsMap.Add(14400, mesa4hDataPoints);
                     mesaDataPointsMap.Add(86400, mesa1dDataPoints);
-                    await SetMinuteMesaCache(mesaDataPointsMap, key);
+                    SetMinuteMesaCache(mesaDataPointsMap, key);
 
-                    // var task1 = SetMinuteMesaCache(mesa1driverDataPoints, key + "_1");
-                    // var task2 = SetMinuteMesaCache(mesa1minDataPoints, key + "_60");
-                    // var task3 = SetMinuteMesaCache(mesa5minDataPoints, key + "_300");
-                    // var task4 = SetMinuteMesaCache(mesa15minDataPoints, key + "_900");
-                    // var task5 = SetMinuteMesaCache(mesa1hDataPoints, key + "_3600");
-                    // var task6 = SetMinuteMesaCache(mesa4hDataPoints, key + "_14400");
-                    // var task7 = SetMinuteMesaCache(mesa1dDataPoints, key + "_86400");
-                    // await Task.WhenAll(task1, task2, task3, task4, task5, task6, task7);
                     count++;
 
                     var tfSummary = new Dictionary<int, MESADataPoint>();
@@ -348,6 +300,99 @@ namespace Algoserver.API.Services
                     tfAvgSummary.Add(14400, (float)mesa4h.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa4h.Length);
                     tfAvgSummary.Add(86400, (float)mesa1d.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1d.Length);
 
+                    var totalStrength = 0f;
+                    var timeframeStrengths = new Dictionary<int, float>();
+                    var d = tfSummary.GetValueOrDefault(1);
+                    var ast = tfAvgSummary.GetValueOrDefault(1);
+                    if (d != null && ast > 0)
+                    {
+                        var currentStrength = (d.f - d.s) / ast;
+                        totalStrength += currentStrength * 0.033f;
+                        timeframeStrengths.Add(1, currentStrength);
+                    }
+                    else
+                    {
+                        timeframeStrengths.Add(1, 0);
+                    }
+
+                    d = tfSummary.GetValueOrDefault(60);
+                    ast = tfAvgSummary.GetValueOrDefault(60);
+                    if (d != null && ast > 0)
+                    {
+                        var currentStrength = (d.f - d.s) / ast;
+                        totalStrength += currentStrength * 0.066f;
+                        timeframeStrengths.Add(60, currentStrength);
+                    }
+                    else
+                    {
+                        timeframeStrengths.Add(60, 0);
+                    }
+
+                    d = tfSummary.GetValueOrDefault(300);
+                    ast = tfAvgSummary.GetValueOrDefault(300);
+                    if (d != null && ast > 0)
+                    {
+                        var currentStrength = (d.f - d.s) / ast;
+                        totalStrength += currentStrength * 0.1f;
+                        timeframeStrengths.Add(300, currentStrength);
+                    }
+                    else
+                    {
+                        timeframeStrengths.Add(300, 0);
+                    }
+
+                    d = tfSummary.GetValueOrDefault(900);
+                    ast = tfAvgSummary.GetValueOrDefault(900);
+                    if (d != null && ast > 0)
+                    {
+                        var currentStrength = (d.f - d.s) / ast;
+                        totalStrength += currentStrength * 0.15f;
+                        timeframeStrengths.Add(900, currentStrength);
+                    }
+                    else
+                    {
+                        timeframeStrengths.Add(900, 0);
+                    }
+
+                    d = tfSummary.GetValueOrDefault(3600);
+                    ast = tfAvgSummary.GetValueOrDefault(3600);
+                    if (d != null && ast > 0)
+                    {
+                        var currentStrength = (d.f - d.s) / ast;
+                        totalStrength += currentStrength * 0.2f;
+                        timeframeStrengths.Add(3600, currentStrength);
+                    }
+                    else
+                    {
+                        timeframeStrengths.Add(3600, 0);
+                    }
+
+                    d = tfSummary.GetValueOrDefault(14400);
+                    ast = tfAvgSummary.GetValueOrDefault(14400);
+                    if (d != null && ast > 0)
+                    {
+                        var currentStrength = (d.f - d.s) / ast;
+                        totalStrength += currentStrength * 0.2f;
+                        timeframeStrengths.Add(14400, currentStrength);
+                    }
+                    else
+                    {
+                        timeframeStrengths.Add(14400, 0);
+                    }
+
+                    d = tfSummary.GetValueOrDefault(86400);
+                    ast = tfAvgSummary.GetValueOrDefault(86400);
+                    if (d != null && ast > 0)
+                    {
+                        var currentStrength = (d.f - d.s) / ast;
+                        totalStrength += currentStrength * 0.25f;
+                        timeframeStrengths.Add(86400, currentStrength);
+                    }
+                    else
+                    {
+                        timeframeStrengths.Add(86400, 0);
+                    }
+
                     var length = calculation_input.Count();
 
                     summary.Add(new MESADataSummary
@@ -356,6 +401,8 @@ namespace Algoserver.API.Services
                         Datafeed = datafeed,
                         Strength = tfSummary,
                         AvgStrength = tfAvgSummary,
+                        TimeframeStrengths = timeframeStrengths,
+                        TotalStrength = totalStrength,
                         LastPrice = (float)calculation_input.LastOrDefault(),
                         Price60 = (float)calculation_input.ElementAt(length - 1),
                         Price300 = (float)calculation_input.ElementAt(length - 5),
@@ -375,7 +422,7 @@ namespace Algoserver.API.Services
 
             try
             {
-                await SetMesaSummaryCache(summary);
+                SetMesaSummaryCache(summary);
             }
             catch (Exception ex)
             {
@@ -388,20 +435,20 @@ namespace Algoserver.API.Services
             Console.WriteLine(">>> " + elapsedTime1);
         }
 
-        private async Task SetMinuteMesaCache(Dictionary<int, List<MESADataPoint>> mesa, string key)
+        private void SetMinuteMesaCache(Dictionary<int, List<MESADataPoint>> mesa, string key)
         {
             try
             {
-                await _cache.SetAsync(_mesaCachePrefix, key.ToLower(), mesa, TimeSpan.FromDays(1));
+                _cache.Set(_mesaCachePrefix, key.ToLower(), mesa, TimeSpan.FromDays(1));
             }
             catch (Exception ex) { }
         }
 
-        private async Task SetMesaSummaryCache(List<MESADataSummary> mesa)
+        private void SetMesaSummaryCache(List<MESADataSummary> mesa)
         {
             try
             {
-                await _cache.SetAsync(cachePrefix(), "mesa_data_summary", mesa, TimeSpan.FromDays(1));
+                _cache.Set(cachePrefix(), "mesa_data_summary", mesa, TimeSpan.FromDays(1));
             }
             catch (Exception ex) { }
         }

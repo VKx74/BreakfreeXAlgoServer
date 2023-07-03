@@ -11,7 +11,7 @@ namespace Algoserver.API.Helpers
     {
         public float f { get; set; }
         public float s { get; set; }
-        public long t { get; set; }
+        public uint t { get; set; }
     }
     
     [Serializable]
@@ -21,6 +21,8 @@ namespace Algoserver.API.Helpers
         public string Datafeed { get; set; }
         public Dictionary<int, MESADataPoint> Strength { get; set; }
         public Dictionary<int, float> AvgStrength { get; set; }
+        public Dictionary<int, float> TimeframeStrengths { get; set; }
+        public float TotalStrength { get; set; }
         public float LastPrice { get; set; }
         public float Price60 { get; set; }
         public float Price300 { get; set; }

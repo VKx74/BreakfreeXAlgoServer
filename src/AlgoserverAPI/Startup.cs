@@ -82,8 +82,9 @@ namespace Algoserver.API
             });
 
             // services.AddSingleton<ICacheService, MemoryCacheService>();
-            services.AddSingleton<IAuthorizationHandler, GuestRightProtectionHandler>();
             services.AddSingleton<ICacheService, RedisCacheService>();
+            services.AddSingleton<IInMemoryCache, MemoryCacheService>();
+            services.AddSingleton<IAuthorizationHandler, GuestRightProtectionHandler>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddLogging(opt => opt.AddConsole().AddDebug());
             services.AddSingleton<IConfiguration>(Configuration);
@@ -106,12 +107,20 @@ namespace Algoserver.API
             services.AddSingleton<StatisticsService>();
             services.AddSingleton<LevelsPredictionService>();
             services.AddSingleton<EconomicCalendarService>();
+            services.AddSingleton<MesaPreloaderService>();
 
-            if (scanInstruments) {
+            if (scanInstruments)
+            {
                 services.AddHostedService<StockHistoryLoaderHostedService>();
                 services.AddHostedService<ForexHistoryLoaderHostedService>();
                 services.AddHostedService<CryptoHistoryLoaderHostedService>();
                 services.AddHostedService<EconomicCalendarLoaderHostedService>();
+                // for local debugging
+                // services.AddHostedService<MesaPreloaderHostedService>();
+            }
+            else
+            {
+                services.AddHostedService<MesaPreloaderHostedService>();
             }
 
             services.AddCors(options =>
@@ -168,7 +177,7 @@ namespace Algoserver.API
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, InstrumentService instrumentService)
         {
             instrumentService.Init();
-            
+
             app.UseCors();
             if (env.IsDevelopment())
             {

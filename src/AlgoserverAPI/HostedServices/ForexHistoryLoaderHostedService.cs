@@ -27,48 +27,52 @@ namespace Algoserver.API.HostedServices
         {
             while (!stoppingToken.IsCancellationRequested)
             {
+                var currentDay = DateTime.UtcNow.Day;
+                var currentHour = DateTime.UtcNow.Hour;
+                var currentMinute = DateTime.UtcNow.Minute;
                 try
                 {
-                    var currentDay = DateTime.UtcNow.Day;
-                    var currentHour = DateTime.UtcNow.Hour;
-                    var currentMinute = DateTime.UtcNow.Minute;
                     var scanRequired = false;
 
                     if (currentDay != _prevDay)
                     {
                         var result = await _scannerHistory.Refresh1MinLongHistory();
                         _scannerCache.RefreshLongMinuteHistoryTime = result;
-                    }  
-                    
-                    if (currentHour != _prevHour)
+                    }
+
+                    if (currentHour != _prevHour || currentMinute % 10 == 0)
                     {
                         var result = await _scannerHistory.RefreshAll();
                         _scannerCache.RefreshAllMarketsTime = result;
-                        scanRequired = true;
+                        await Task.Delay(TimeSpan.FromSeconds(20), stoppingToken).ConfigureAwait(false);
+                        // scanRequired = true;
                     }
-                    else if (currentMinute != _prevMin && currentMinute % 2 == 0)
+                    else if (currentMinute != _prevMin)
                     {
                         var result = await _scannerHistory.Refresh();
                         _scannerCache.RefreshMarketsTime = result;
                         scanRequired = true;
                     }
 
-                    _prevDay = currentDay;
-                    _prevHour = currentHour;
-                    _prevMin = currentMinute;
-
                     if (scanRequired)
                     {
+                        await Task.Delay(TimeSpan.FromSeconds(3), stoppingToken).ConfigureAwait(false);
                         Console.WriteLine(">>> Forex ScanMarkets start");
+                        _scannerCache.CalculateMinuteMesa();
+                        await Task.Delay(TimeSpan.FromSeconds(3), stoppingToken).ConfigureAwait(false);
                         _scannerCache.ScanMarkets();
-                        await _scannerCache.CalculateMinuteMesa();
                         Console.WriteLine(">>> Forex ScanMarkets ends");
+                        await Task.Delay(TimeSpan.FromSeconds(3), stoppingToken).ConfigureAwait(false);
                     }
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex);
                 }
+
+                _prevDay = currentDay;
+                _prevHour = currentHour;
+                _prevMin = currentMinute;
 
                 await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken).ConfigureAwait(false);
             }

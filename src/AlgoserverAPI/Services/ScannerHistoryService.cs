@@ -42,7 +42,7 @@ namespace Algoserver.API.Services
 
         public async Task<string> Refresh()
         {
-            var instruments = this._getInstruments();
+            var instruments = this.getInstruments();
             var stopWatch = new Stopwatch();
             var tasks1min = new List<HistoryRequest>();
             foreach (var instrument in instruments)
@@ -71,13 +71,23 @@ namespace Algoserver.API.Services
                 _1MinHistory.AddRange(min1history);
             }
 
-            _updateHigherTimeframes();
+            try
+            {
+                _updateHigherTimeframes();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
 
             try
             {
                 _updateMinuteLongHistory();
             }
-            catch (Exception ex) { }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
 
             string elapsedTime1 = String.Format(" * 1 min {0:00}:{1:00} - data loaded " + min1history.Count, ts1.Minutes, ts1.Seconds);
             Console.WriteLine(">>> " + elapsedTime1);
@@ -86,7 +96,7 @@ namespace Algoserver.API.Services
 
         public async Task<string> Refresh1MinLongHistory()
         {
-            var instruments = this._getInstrumentsForLongHistory();
+            var instruments = this.getInstrumentsForLongHistory();
             var stopWatch = new Stopwatch();
             var tasks1min = new List<HistoryRequest>();
             foreach (var instrument in instruments)
@@ -122,7 +132,7 @@ namespace Algoserver.API.Services
 
         public async Task<string> RefreshAll()
         {
-            var instruments = this._getInstruments();
+            var instruments = this.getInstruments();
             var stopWatch = new Stopwatch();
             var tasks1min = new List<HistoryRequest>();
             var tasks5min = new List<HistoryRequest>();
@@ -677,7 +687,7 @@ namespace Algoserver.API.Services
             }
         }
 
-        protected abstract List<IInstrument> _getInstruments();
-        protected abstract List<IInstrument> _getInstrumentsForLongHistory();
+        public abstract List<IInstrument> getInstruments();
+        public abstract List<IInstrument> getInstrumentsForLongHistory();
     }
 }
