@@ -11,6 +11,20 @@ namespace Algoserver.API.Services.CacheServices
 
         public void UpdateMesaSummary(List<MESADataSummary> data)
         {
+
+            foreach (var ms in data)
+            {
+                if (ms.Symbol == "BTC_USD" && ms.Datafeed == "Oanda")
+                {
+                    ms.Datafeed = "Binance";
+                    ms.Symbol = "BTCUSDT";
+                }
+                if (ms.Symbol == "ETH_USD" && ms.Datafeed == "Oanda")
+                {
+                    ms.Datafeed = "Binance";
+                    ms.Symbol = "ETHUSDT";
+                }
+            }
             lock (mesaSummary)
             {
                 mesaSummary.Clear();
@@ -40,6 +54,18 @@ namespace Algoserver.API.Services.CacheServices
 
         public MESADataSummary GetMesaSummary(string symbol, string datafeed)
         {
+            var normalizedSymbol = symbol.Replace("_", "").Replace("/", "").Replace("-", "");
+            if (string.Equals(normalizedSymbol, "btcusdt", System.StringComparison.InvariantCultureIgnoreCase) || string.Equals(normalizedSymbol, "btcusd", System.StringComparison.InvariantCultureIgnoreCase))
+            {
+                datafeed = "Binance";
+                symbol = "BTCUSDT";
+            }
+            else if (string.Equals(normalizedSymbol, "ethusdt", System.StringComparison.InvariantCultureIgnoreCase) || string.Equals(normalizedSymbol, "ethusd", System.StringComparison.InvariantCultureIgnoreCase))
+            {
+                datafeed = "Binance";
+                symbol = "ETHUSDT";
+            }
+
             lock (mesaSummary)
             {
                 foreach (var m in mesaSummary)
@@ -55,6 +81,18 @@ namespace Algoserver.API.Services.CacheServices
 
         public Dictionary<int, List<MESADataPoint>> GetMesa(string symbol, string datafeed)
         {
+            var normalizedSymbol = symbol.Replace("_", "").Replace("/", "").Replace("-", "");
+            if (string.Equals(normalizedSymbol, "btcusdt", System.StringComparison.InvariantCultureIgnoreCase) || string.Equals(normalizedSymbol, "btcusd", System.StringComparison.InvariantCultureIgnoreCase))
+            {
+                datafeed = "Oanda";
+                symbol = "BTC_USD";
+            }
+            else if (string.Equals(normalizedSymbol, "ethusdt", System.StringComparison.InvariantCultureIgnoreCase) || string.Equals(normalizedSymbol, "ethusd", System.StringComparison.InvariantCultureIgnoreCase))
+            {
+                datafeed = "Oanda";
+                symbol = "ETH_USD";
+            }
+
             var key = (datafeed + "_" + symbol).ToLower();
             lock (mesa)
             {

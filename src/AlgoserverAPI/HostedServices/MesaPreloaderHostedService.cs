@@ -45,7 +45,10 @@ namespace Algoserver.API.HostedServices
                         {
                             try
                             {
-                                var key = (instrument.Datafeed + "_" + instrument.Symbol).ToLower();
+                                var datafeed = instrument.Datafeed;
+                                var symbol = instrument.Symbol;
+
+                                var key = (datafeed + "_" + symbol).ToLower();
                                 var mesa = _scannerCache.GetMinuteMesaCache(key);
                                 if (mesa != null && mesa.Any())
                                 {
