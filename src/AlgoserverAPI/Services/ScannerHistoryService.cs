@@ -478,22 +478,6 @@ namespace Algoserver.API.Services
                 tasks.RemoveRange(0, Math.Min(count, tasks.Count));
             }
 
-            foreach (var i in result)
-            {
-                if (i.Symbol == "BTC_USD" && i.Exchange == "Oanda")
-                {
-                    i.Exchange = "Binance";
-                    i.Datafeed = "Binance";
-                    i.Symbol = "BTCUSDT";
-                }
-                if (i.Symbol == "ETH_USD" && i.Exchange == "Oanda")
-                {
-                    i.Exchange = "Binance";
-                    i.Datafeed = "Binance";
-                    i.Symbol = "ETHUSDT";
-                }
-            }
-
             return result;
         }
 
