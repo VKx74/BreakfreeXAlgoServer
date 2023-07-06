@@ -245,7 +245,7 @@ namespace Algoserver.API.Controllers
             }
 
             var result = await _algoService.CalculateV3Async(request);
-            return Json(result);
+            return await ToResponse(result, HttpContext.RequestAborted);
         }
 
         [HttpGet(Routes.TrendsGlobal)]
@@ -264,15 +264,15 @@ namespace Algoserver.API.Controllers
             }
 
             var result = await _algoService.GetMesaAsync(symbol, datafeed, granularityList);
-            return Json(result);
+            return await ToResponse(result, HttpContext.RequestAborted);
         }
 
         [HttpGet(Routes.TrendsGlobalSummary)]
         [ProducesResponseType(typeof(List<MesaSummaryResponse>), 200)]
         public async Task<IActionResult> GetMesaSummaryGlobalAsync()
         {
-            var res = getMesaSummaryResponse();
-            return Json(res);
+            var result = getMesaSummaryResponse();
+            return await ToResponse(result, HttpContext.RequestAborted);
         }
 
         private List<MesaSummaryResponse> getMesaSummaryResponse()
