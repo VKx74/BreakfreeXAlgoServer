@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 using Algoserver.API.Exceptions;
 using Microsoft.Extensions.Caching.Distributed;
 

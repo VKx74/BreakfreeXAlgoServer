@@ -21,6 +21,16 @@ namespace Algoserver.API.Controllers
                     data = encryptedRes
                 });
             }, token);
+        } 
+        
+        [NonAction]
+        public Task<OkObjectResult> ToResponse(object data, CancellationToken token = default)
+        {
+            return Task.Run(() =>
+            {
+                var res = JsonConvert.SerializeObject(data);
+                return Ok(res);
+            }, token);
         }
     }
 }

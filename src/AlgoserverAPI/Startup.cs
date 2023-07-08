@@ -6,8 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Serialization;
-using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using System;
 using System.Collections.Generic;
@@ -21,6 +19,7 @@ using Algoserver.API.Services.CacheServices;
 using Algoserver.API.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.OpenApi.Models;
 
 namespace Algoserver.API
 {
@@ -41,7 +40,6 @@ namespace Algoserver.API
             //.AddJsonOptions(options => options.SerializerSettings.ContractResolver = new DefaultContractResolver())
             .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
             .AddApiExplorer()
-            .AddJsonFormatters()
             .AddDataAnnotations()
             .AddAuthorization(options =>
             {
@@ -140,15 +138,16 @@ namespace Algoserver.API
 
             services.AddSwaggerGen(options =>
             {
-                options.SwaggerDoc("v1", new Info { Title = "Algoserver API" });
+                options.SwaggerDoc("v1", new OpenApiInfo { Title = "Algoserver API" });
 
-                options.AddSecurityDefinition("Bearer", new ApiKeyScheme
+                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
                     Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
-                    In = "header",
-                    Type = "apiKey"
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey
                 });
+
 
                 var security = new Dictionary<string, IEnumerable<string>>
                 {
@@ -157,7 +156,24 @@ namespace Algoserver.API
                     }
                 };
 
-                options.AddSecurityRequirement(security);
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement()
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            },
+                            Scheme = "oauth2",
+                            Name = "Bearer",
+                            In = ParameterLocation.Header,
+
+                        },
+                        new List<string>()
+                    }
+                });
             });
 
             services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
@@ -186,9 +202,12 @@ namespace Algoserver.API
 
             app.UseAuthentication();
 
-#if !DEBUG
-            // app.UseHttpsRedirection();
-#endif
+            app.UseHttpsRedirection();
+
+            app.UseRouting();
+
+            app.UseAuthorization();
+
             var swaggerUIRoutePrefix = RoutePrefix + "/swagger";
             var swaggerEndpoint = $"/{RoutePrefix}/swagger/v1/swagger.json";
             app.UseSwagger(options => options.RouteTemplate = RoutePrefix + "/swagger/{documentName}/swagger.json");
@@ -200,13 +219,17 @@ namespace Algoserver.API
             });
 
             app.UseStaticFiles();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
+
             app.UseWebSockets(new WebSocketOptions
             {
                 KeepAliveInterval = TimeSpan.FromSeconds(120),
                 ReceiveBufferSize = Configuration.GetValue<int>("WebSocketBufferSize", 4 * 1024)
             });
-
-            app.UseMvc();
 
             Console.WriteLine($"Swagger UI: /{swaggerUIRoutePrefix}");
             Console.WriteLine($"Swagger Endpoint: {swaggerEndpoint}");
