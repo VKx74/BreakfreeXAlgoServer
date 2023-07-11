@@ -11,6 +11,7 @@ using System;
 using Algoserver.API.Services.CacheServices;
 using System.Linq;
 using System.Text;
+using Algoserver.API.Helpers;
 
 namespace Algoserver.API.Controllers
 {
@@ -39,7 +40,8 @@ namespace Algoserver.API.Controllers
                 return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
             }
 
-            var result = await _algoService.CalculateV3LevelsAsync(request.Instrument.Id, request.Instrument.Datafeed, request.Instrument.Exchange, request.Instrument.Type);
+            var mappedSymbol = SymbolMapper(request.Instrument.Id);
+            var result = await _algoService.CalculateV3LevelsAsync(mappedSymbol, request.Instrument.Datafeed, request.Instrument.Exchange, request.Instrument.Type);
             var trendDirection = 0;
             if ((decimal)Math.Abs(result.TotalStrength) * 100 >= request.MinStrength)
             {
@@ -93,6 +95,40 @@ namespace Algoserver.API.Controllers
             stringResult.AppendLine($"strength1d={Math.Round(result.Strength1D * 100, 2)}");
 
             return Ok(stringResult.ToString());
+        }
+
+        private string SymbolMapper(string symbol)
+        {
+            var mappedInstruments = new Dictionary<string, string> {
+                {"BTCUSD", "BTCUSDT"},
+                {"ETHUSD", "ETHUSDT"},
+                {"US30", "US30_USD"},
+                {"US100", "NAS100_USD"},
+                {"NAS100", "NAS100_USD"},
+                {"US500", "SPX500_USD"},
+                {"SPX500", "SPX500_USD"},
+                {"XBRUSD", "BCO_USD"},
+                {"XTIUSD", "WTICO_USD"},
+            };
+
+            if (mappedInstruments.ContainsKey(symbol))
+            {
+                symbol = mappedInstruments[symbol];
+            }
+
+            symbol = symbol.Replace("_", "").Replace("-", "").Replace("/", "").Replace("^", "");
+            
+            var allowedForex = InstrumentsHelper.ForexInstrumentList;
+            foreach (var instrument in allowedForex)
+            {
+                var normalizedInstrument = instrument.Replace("_", "").Replace("-", "").Replace("/", "").Replace("^", "");
+                if (string.Equals(symbol, normalizedInstrument, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return instrument;
+                }
+            }
+
+            return symbol;
         }
     }
 }
