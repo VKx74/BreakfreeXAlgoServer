@@ -41,6 +41,11 @@ namespace Algoserver.API.Controllers
             }
 
             var mappedSymbol = SymbolMapper(request.Instrument.Id);
+            if (string.IsNullOrEmpty(mappedSymbol))
+            {
+                return BadRequest("Invalid instrument");
+            }
+
             var result = await _algoService.CalculateV3LevelsAsync(mappedSymbol, request.Instrument.Datafeed, request.Instrument.Exchange, request.Instrument.Type);
             var trendDirection = 0;
             if ((decimal)Math.Abs(result.TotalStrength) * 100 >= request.MinStrength)
@@ -102,6 +107,12 @@ namespace Algoserver.API.Controllers
             var mappedInstruments = new Dictionary<string, string> {
                 {"BTCUSD", "BTCUSDT"},
                 {"ETHUSD", "ETHUSDT"},
+                {"BTC/USD", "BTCUSDT"},
+                {"ETH/USD", "ETHUSDT"},
+                {"BTC_USD", "BTCUSDT"},
+                {"ETH_USD", "ETHUSDT"},
+                {"BTCUSDT", "BTCUSDT"},
+                {"ETHUSDT", "ETHUSDT"},
                 {"US30", "US30_USD"},
                 {"US100", "NAS100_USD"},
                 {"NAS100", "NAS100_USD"},
@@ -113,7 +124,7 @@ namespace Algoserver.API.Controllers
 
             if (mappedInstruments.ContainsKey(symbol))
             {
-                symbol = mappedInstruments[symbol];
+                return mappedInstruments[symbol];
             }
 
             symbol = symbol.Replace("_", "").Replace("-", "").Replace("/", "").Replace("^", "");
@@ -128,7 +139,7 @@ namespace Algoserver.API.Controllers
                 }
             }
 
-            return symbol;
+            return string.Empty;
         }
     }
 }
