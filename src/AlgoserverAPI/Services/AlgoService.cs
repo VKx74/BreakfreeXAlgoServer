@@ -171,11 +171,27 @@ namespace Algoserver.API.Services
             });
         }
 
+        public Task<AutoTradingSymbolInfoResponse> CalculateV3LevelsAsync(string symbol, string datafeed, string exchange, string type)
+        {
+            return Task.Run(() =>
+            {
+                return calculateV3LevelsAsync(symbol, datafeed, exchange, type);
+            });
+        }
+
         public Task<MesaResponse> GetMesaAsync(string symbol, string datafeed, List<int> granularity = null)
         {
             return Task.Run(() =>
             {
                 return getMesaAsync(symbol, datafeed, granularity);
+            });
+        }
+
+        public Task<MLDataResponse> CalculateSRAsync(string symbol, int granularity)
+        {
+            return Task.Run(async () =>
+            {
+                return await calculateSRAsync(symbol, granularity);
             });
         }
 
@@ -555,6 +571,121 @@ namespace Algoserver.API.Services
             return result;
         }
 
+        private async Task<AutoTradingSymbolInfoResponse> calculateV3LevelsAsync(string symbol, string datafeed, string exchange, string type)
+        {
+            var result = new Dictionary<int, LevelsV3Response>();
+            var granularity = 60;
+            var granularity_list = new List<int>();
+            granularity_list.Add(TimeframeHelper.MIN1_GRANULARITY);
+            granularity_list.Add(TimeframeHelper.MIN5_GRANULARITY);
+            granularity_list.Add(TimeframeHelper.MIN15_GRANULARITY);
+            granularity_list.Add(TimeframeHelper.HOURLY_GRANULARITY);
+            granularity_list.Add(TimeframeHelper.HOUR4_GRANULARITY);
+            granularity_list.Add(TimeframeHelper.DAILY_GRANULARITY);
+            var sar_additional = await CalculateTradeZoneLevels(granularity, granularity_list, symbol, datafeed, exchange, type, 0, 100);
+
+            var mesaGranularity = new List<int>();
+            foreach (var item in sar_additional)
+            {
+                var mesaRequiredTf = GetTrendIndexGranularity(item.Key);
+                mesaGranularity.Add(mesaRequiredTf);
+            }
+            var mesa_additional = await getMesaAsync(symbol, datafeed, mesaGranularity);
+            var total_strength = 0f;
+
+            if (mesa_additional != null && mesa_additional.mesa != null && mesa_additional.mesa.Any())
+            {
+                var summaryForSymbol = _mesaPreloaderService.GetMesaSummary(symbol, datafeed);
+
+                if (summaryForSymbol != null)
+                {
+                    total_strength = summaryForSymbol.TotalStrength;
+                }
+
+                foreach (var item in sar_additional)
+                {
+                    var mesaRequiredTf = GetTrendIndexGranularity(item.Key);
+                    if (!mesa_additional.mesa.ContainsKey(mesaRequiredTf))
+                    {
+                        continue;
+                    }
+
+                    var levelsV3 = new LevelsV3Response();
+                    levelsV3.sar = item.Value;
+                    levelsV3.mesa = new List<MesaTrendV3Response>();
+                    var mesa_additional_values = mesa_additional.mesa[mesaRequiredTf];
+
+                    if (summaryForSymbol != null && summaryForSymbol.AvgStrength.TryGetValue(mesaRequiredTf, out var str) && summaryForSymbol.TimeframeStrengths.TryGetValue(mesaRequiredTf, out var tf_str))
+                    {
+                        levelsV3.mesa_avg = str;
+                        levelsV3.strength = tf_str;
+                    }
+
+                    for (var i = 0; i < mesa_additional_values.Count; i++)
+                    {
+                        levelsV3.mesa.Add(new MesaTrendV3Response
+                        {
+                            f = mesa_additional_values[i].f,
+                            s = mesa_additional_values[i].s,
+                            t = mesa_additional_values[i].t
+                        });
+                    }
+
+                    result.Add(item.Key, levelsV3);
+                }
+            }
+
+            var sl_price = 0m;
+            if (result.TryGetValue(TimeframeHelper.HOUR4_GRANULARITY, out var item4HData))
+            {
+                var lastHour4Sar = item4HData.sar.LastOrDefault();
+                if (lastHour4Sar != null)
+                {
+                    if (total_strength > 0)
+                    {
+                        sl_price = lastHour4Sar.s_m18;
+                    }
+                    if (total_strength < 0)
+                    {
+                        sl_price = lastHour4Sar.r_p18;
+                    }
+                }
+            }
+
+            return new AutoTradingSymbolInfoResponse
+            {
+                TotalStrength = total_strength,
+                SL = sl_price,
+                Entry1M = GetEntry(TimeframeHelper.MIN1_GRANULARITY, total_strength, result),
+                Entry5M = GetEntry(TimeframeHelper.MIN5_GRANULARITY, total_strength, result),
+                Entry15M = GetEntry(TimeframeHelper.MIN15_GRANULARITY, total_strength, result),
+                Entry1H = GetEntry(TimeframeHelper.HOURLY_GRANULARITY, total_strength, result),
+                Entry4H = GetEntry(TimeframeHelper.HOUR4_GRANULARITY, total_strength, result),
+                Entry1D = GetEntry(TimeframeHelper.DAILY_GRANULARITY, total_strength, result),
+
+                HalfBand1M = GetHalfBand(TimeframeHelper.MIN1_GRANULARITY, total_strength, result),
+                HalfBand5M = GetHalfBand(TimeframeHelper.MIN5_GRANULARITY, total_strength, result),
+                HalfBand15M = GetHalfBand(TimeframeHelper.MIN15_GRANULARITY, total_strength, result),
+                HalfBand1H = GetHalfBand(TimeframeHelper.HOURLY_GRANULARITY, total_strength, result),
+                HalfBand4H = GetHalfBand(TimeframeHelper.HOUR4_GRANULARITY, total_strength, result),
+                HalfBand1D = GetHalfBand(TimeframeHelper.DAILY_GRANULARITY, total_strength, result),
+
+                TP1M = GetTP(TimeframeHelper.MIN1_GRANULARITY, result),
+                TP5M = GetTP(TimeframeHelper.MIN5_GRANULARITY, result),
+                TP15M = GetTP(TimeframeHelper.MIN15_GRANULARITY, result),
+                TP1H = GetTP(TimeframeHelper.HOURLY_GRANULARITY, result),
+                TP4H = GetTP(TimeframeHelper.HOUR4_GRANULARITY, result),
+                TP1D = GetTP(TimeframeHelper.DAILY_GRANULARITY, result),
+
+                Strength1M = GetStrength(TimeframeHelper.MIN1_GRANULARITY, result),
+                Strength5M = GetStrength(TimeframeHelper.MIN5_GRANULARITY, result),
+                Strength15M = GetStrength(TimeframeHelper.MIN15_GRANULARITY, result),
+                Strength1H = GetStrength(TimeframeHelper.HOURLY_GRANULARITY, result),
+                Strength4H = GetStrength(TimeframeHelper.HOUR4_GRANULARITY, result),
+                Strength1D = GetStrength(TimeframeHelper.DAILY_GRANULARITY, result),
+            };
+        }
+
         private async Task<BandsDescriptionV3Data> CalculateV3Levels(InputDataContainer container, CalculationRequestV3 req)
         {
             var result = new Dictionary<int, LevelsV3Response>();
@@ -573,22 +704,6 @@ namespace Algoserver.API.Services
             if (mesa_additional != null && mesa_additional.mesa != null && mesa_additional.mesa.Any())
             {
                 var summaryForSymbol = _mesaPreloaderService.GetMesaSummary(req.Instrument.Id, req.Instrument.Datafeed);
-
-                var startDate = 0L;
-                foreach (var item in sar_additional)
-                {
-                    var firstValue = item.Value.FirstOrDefault();
-                    if (firstValue == null)
-                    {
-                        continue;
-                    }
-
-                    if (startDate == 0 || firstValue.date < startDate)
-                    {
-                        startDate = firstValue.date;
-                    }
-
-                }
 
                 if (summaryForSymbol != null)
                 {
@@ -700,17 +815,11 @@ namespace Algoserver.API.Services
 
         private int GetTrendIndexGranularity(int tf)
         {
-            // if (TimeframeHelper.MIN1_GRANULARITY == tf)
-            // {
-            //      return TimeframeHelper.DRIVER_GRANULARITY; 
-            // }
             return tf;
         }
 
         private async Task<Dictionary<int, List<SaRResponse>>> CalculateTradeZoneLevels(InputDataContainer container, CalculationRequestV3 req)
         {
-            var levelsResult = new Dictionary<int, List<SaRResponse>>();
-
             var granularity = AlgoHelper.ConvertTimeframeToGranularity(container.TimeframeInterval, container.TimeframePeriod);
             var granularity_list = new List<int>();
             granularity_list.Add(granularity);
@@ -743,13 +852,21 @@ namespace Algoserver.API.Services
                 granularity_list.Add(TimeframeHelper.DAILY_GRANULARITY);
             }
 
+            var result = await CalculateTradeZoneLevels(granularity, granularity_list, container.Symbol, container.Datafeed, container.Exchange, container.Type, container.ReplayBack, req.BarsCount);
+            return result;
+        }
+
+        private async Task<Dictionary<int, List<SaRResponse>>> CalculateTradeZoneLevels(int granularity, List<int> granularity_list, string symbol, string datafeed, string exchange, string type, int replayBack, int? barsCount)
+        {
+            var levelsResult = new Dictionary<int, List<SaRResponse>>();
+
             var tasksToWait = new List<Task<HistoryData>>();
 
             foreach (var g in granularity_list)
             {
                 try
                 {
-                    var task = _historyService.GetHistory(container.Symbol, g, container.Datafeed, container.Exchange, container.Type, container.ReplayBack, req.BarsCount.GetValueOrDefault(0));
+                    var task = _historyService.GetHistory(symbol, g, datafeed, exchange, type, replayBack, barsCount.GetValueOrDefault(0));
                     tasksToWait.Add(task);
                 }
                 catch (Exception ex)
@@ -764,9 +881,6 @@ namespace Algoserver.API.Services
                 foreach (var historicalData in historicalDataArray)
                 {
                     var granularityDiff = historicalData.Granularity / granularity;
-                    // var historyCount = (int)(req.BarsCount.GetValueOrDefault(historicalData.Bars.Count) / granularityDiff) + 500;
-
-                    // var cutBars = historicalData.Bars.TakeLast(historyCount);
                     var high = historicalData.Bars.Select(_ => _.High);
                     var low = historicalData.Bars.Select(_ => _.Low);
                     var dates = historicalData.Bars.Select(_ => _.Timestamp).ToList();
@@ -788,7 +902,7 @@ namespace Algoserver.API.Services
                         });
                     }
 
-                    var count = (int)(req.BarsCount.GetValueOrDefault(sar.Count) / granularityDiff) + 1;
+                    var count = (int)(barsCount.GetValueOrDefault(sar.Count) / granularityDiff) + 1;
                     levelsResult.Add((int)(historicalData.Granularity), sar.TakeLast(count).ToList());
                 }
             }
@@ -1059,58 +1173,7 @@ namespace Algoserver.API.Services
             }
         }
 
-        // -------- for ML //
-
-        public Task<MLDataResponse> CalculateSRAsync(string symbol, int granularity)
-        {
-            return Task.Run(async () =>
-            {
-                return await calculateSRAsync(symbol, granularity);
-            });
-        }
-
-        private async Task<MLDataResponse> calculateSRAsync(string symbol, int granularity)
-        {
-            var res = new MLDataResponse();
-            res.data = new List<MLDataResponseItem>();
-
-            var data = await _historyService.GetHistory(symbol, granularity, "Oanda", "Oanda", "Forex");
-            var bars = data.Bars.ToList();
-
-            for (var i = 0; i < bars.Count; i++)
-            {
-                var item = new MLDataResponseItem
-                {
-                    open = bars[i].Open,
-                    high = bars[i].High,
-                    low = bars[i].Low,
-                    close = bars[i].Close,
-                    time = bars[i].Timestamp
-                };
-
-                res.data.Add(item);
-
-                if (i > 128)
-                {
-                    var high = res.data.Select(_ => _.high);
-                    var low = res.data.Select(_ => _.low);
-                    var levels = TechCalculations.CalculateLevel128(high, low);
-
-                    item.upExt1 = levels.Plus18;
-                    item.upExt2 = levels.Plus28;
-                    item.downExt1 = levels.Minus18;
-                    item.downExt2 = levels.Minus28;
-
-                    item.n = levels.FourEight;
-                    item.s = levels.ZeroEight;
-                    item.r = levels.EightEight;
-                }
-            }
-
-            return res;
-        }
-
-        public async Task<MesaResponse> getMesaAsync(string symbol, string datafeed, List<int> granularity = null)
+        private async Task<MesaResponse> getMesaAsync(string symbol, string datafeed, List<int> granularity = null)
         {
             var granularityList = new List<int>();
             if (granularity != null && granularity.Any())
@@ -1154,5 +1217,118 @@ namespace Algoserver.API.Services
                 mesa = mesa
             };
         }
+
+        private async Task<MLDataResponse> calculateSRAsync(string symbol, int granularity)
+        {
+            var res = new MLDataResponse();
+            res.data = new List<MLDataResponseItem>();
+
+            var data = await _historyService.GetHistory(symbol, granularity, "Oanda", "Oanda", "Forex");
+            var bars = data.Bars.ToList();
+
+            for (var i = 0; i < bars.Count; i++)
+            {
+                var item = new MLDataResponseItem
+                {
+                    open = bars[i].Open,
+                    high = bars[i].High,
+                    low = bars[i].Low,
+                    close = bars[i].Close,
+                    time = bars[i].Timestamp
+                };
+
+                res.data.Add(item);
+
+                if (i > 128)
+                {
+                    var high = res.data.Select(_ => _.high);
+                    var low = res.data.Select(_ => _.low);
+                    var levels = TechCalculations.CalculateLevel128(high, low);
+
+                    item.upExt1 = levels.Plus18;
+                    item.upExt2 = levels.Plus28;
+                    item.downExt1 = levels.Minus18;
+                    item.downExt2 = levels.Minus28;
+
+                    item.n = levels.FourEight;
+                    item.s = levels.ZeroEight;
+                    item.r = levels.EightEight;
+                }
+            }
+
+            return res;
+        }
+
+        private decimal GetEntry(int granularity, float strength, Dictionary<int, LevelsV3Response> data)
+        {
+            if (data.TryGetValue(granularity, out var item))
+            {
+                var lastSar = item.sar.LastOrDefault();
+                if (lastSar == null)
+                {
+                    return 0;
+                }
+
+                if (strength > 0)
+                {
+                    return lastSar.s;
+                }
+                if (strength < 0)
+                {
+                    return lastSar.r;
+                }
+            }
+            return 0;
+        }
+
+        private decimal GetTP(int granularity, Dictionary<int, LevelsV3Response> data)
+        {
+            if (data.TryGetValue(granularity, out var item))
+            {
+                var lastSar = item.sar.LastOrDefault();
+                if (lastSar == null)
+                {
+                    return 0;
+                }
+
+                return lastSar.n;
+            }
+            return 0;
+        }
+
+        private decimal GetStrength(int granularity, Dictionary<int, LevelsV3Response> data)
+        {
+            if (data.TryGetValue(granularity, out var item))
+            {
+                return (decimal)item.strength;
+            }
+            return 0;
+        }
+
+        private decimal GetHalfBand(int granularity, float strength, Dictionary<int, LevelsV3Response> data)
+        {
+            if (data.TryGetValue(granularity, out var item))
+            {
+                var lastSar = item.sar.LastOrDefault();
+                if (lastSar == null)
+                {
+                    return 0;
+                }
+
+                var rH = (lastSar.r_p28 - lastSar.r) / 6;
+                var sH = (lastSar.s - lastSar.s_m28) / 6;
+
+                if (strength > 0)
+                {
+                    return sH;
+                }
+                if (strength < 0)
+                {
+                    return rH;
+                }
+            }
+            return 0;
+        }
+
     }
 }

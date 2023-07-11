@@ -28,6 +28,7 @@
         public const string TrendsGlobalSummary = "trends-global-summary";
         public const string TrendsGlobal = "trends-global";
         public const string NeuralAlgoGlobal = "neural-algo-global";
+        public const string SymbolInfo = "symbol-info";
         public const string Version = "version";
     }
 }
