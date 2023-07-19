@@ -7,29 +7,28 @@ using Microsoft.Extensions.Logging;
 
 namespace Algoserver.API.HostedServices
 {
-    public class EconomicCalendarLoaderHostedService : BackgroundService
+    public class AutoTradingAccountsLoaderHostedService : BackgroundService
     {
-        private int _prevHour = -1;
-        private readonly ILogger<EconomicCalendarLoaderHostedService> _logger;
-        private readonly EconomicCalendarService _economicCalendarService;
+        private int _prevMinute = -1;
+        private readonly ILogger<AutoTradingAccountsLoaderHostedService> _logger;
+        private readonly AutoTradingAccountsLoadingService _autoTradingAccountsLoadingService;
         private Timer _timer;
 
-        public EconomicCalendarLoaderHostedService(ILogger<EconomicCalendarLoaderHostedService> logger, EconomicCalendarService economicCalendarService)
+        public AutoTradingAccountsLoaderHostedService(ILogger<AutoTradingAccountsLoaderHostedService> logger, AutoTradingAccountsLoadingService autoTradingAccountsLoadingService)
         {
             _logger = logger;
-            _economicCalendarService = economicCalendarService;
+            _autoTradingAccountsLoadingService = autoTradingAccountsLoadingService;
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                var currentHour = DateTime.UtcNow.Hour;
                 var currentMinute = DateTime.UtcNow.Minute;
                 try
                 {
-                    if (currentHour != _prevHour)
+                    if (currentMinute != _prevMinute)
                     {
-                        await _economicCalendarService.LoadEconomicEvents();
+                        await _autoTradingAccountsLoadingService.Update();
                     }
                 }
                 catch (Exception ex)
@@ -37,7 +36,7 @@ namespace Algoserver.API.HostedServices
                     Console.WriteLine(ex);
                 }
 
-                _prevHour = currentHour;
+                _prevMinute = currentMinute;
 
                 await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken).ConfigureAwait(false);
             }

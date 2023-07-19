@@ -15,5 +15,11 @@ namespace Algoserver.API.Models.REST
 
         [JsonProperty("minStrength")]
         public decimal MinStrength { get; set; }
+
+        [JsonProperty("account")]
+        public string Account { get; set; }
+
+        [JsonProperty("version")]
+        public string Version { get; set; }
     }
 }

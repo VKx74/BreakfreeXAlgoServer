@@ -29,6 +29,7 @@
         public const string TrendsGlobal = "trends-global";
         public const string NeuralAlgoGlobal = "neural-algo-global";
         public const string SymbolInfo = "symbol-info";
+        public const string AutoTradeInfo = "auto-trade-info";
         public const string Version = "version";
     }
 }

@@ -20,26 +20,48 @@ namespace Algoserver.API.Controllers
     {
         private ScannerResultService _scannerResultService;
         private MesaPreloaderService _mesaPreloaderService;
+        private AutoTradingAccountsService _autoTradingAccountsService;
         private AlgoService _algoService;
         private ScannerService _scanerService;
 
-        public AutoTraderController(AlgoService algoService, ScannerService scanerService, ScannerResultService scannerResultService, MesaPreloaderService mesaPreloaderService)
+        public AutoTraderController(AlgoService algoService, ScannerService scanerService, ScannerResultService scannerResultService, MesaPreloaderService mesaPreloaderService, AutoTradingAccountsService autoTradingAccountsService)
         {
             _algoService = algoService;
             _scanerService = scanerService;
             _scannerResultService = scannerResultService;
             _mesaPreloaderService = mesaPreloaderService;
+            _autoTradingAccountsService = autoTradingAccountsService;
         }
 
         [HttpPost(Routes.SymbolInfo)]
         [ProducesResponseType(typeof(Response<string>), 200)]
         public async Task<IActionResult> GetSymbolInfoAsync([FromBody] AutoTradingSymbolInfoRequest request)
-        {
-            if (!ModelState.IsValid)
+        { if (!ModelState.IsValid)
             {
                 return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
             }
 
+            return await CalculateSymbolInfoAsync(request);
+        } 
+
+        [HttpPost(Routes.AutoTradeInfo)]
+        [ProducesResponseType(typeof(Response<string>), 200)]
+        public async Task<IActionResult> GetAutoTradeInfoAsync([FromBody] AutoTradingSymbolInfoRequest request)
+        { if (!ModelState.IsValid)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
+            }
+
+            if (!_autoTradingAccountsService.Validate(request.Account))
+            {
+                return Forbid("Invalid trading account");
+            }
+
+            return await CalculateSymbolInfoAsync(request);
+        } 
+        
+        private async Task<IActionResult> CalculateSymbolInfoAsync(AutoTradingSymbolInfoRequest request)
+        {
             var mappedSymbol = SymbolMapper(request.Instrument.Id);
             if (string.IsNullOrEmpty(mappedSymbol))
             {

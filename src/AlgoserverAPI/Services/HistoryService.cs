@@ -76,7 +76,7 @@ namespace Algoserver.API.Services
                     else if (granularity > 60 * 5)
                     {
                         _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(5));
-                    } 
+                    }
                     else if (granularity > 60)
                     {
                         _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(3));

@@ -106,6 +106,8 @@ namespace Algoserver.API
             services.AddSingleton<LevelsPredictionService>();
             services.AddSingleton<EconomicCalendarService>();
             services.AddSingleton<MesaPreloaderService>();
+            services.AddSingleton<AutoTradingAccountsLoadingService>();
+            services.AddSingleton<AutoTradingAccountsService>();
 
             if (scanInstruments)
             {
@@ -113,12 +115,14 @@ namespace Algoserver.API
                 services.AddHostedService<ForexHistoryLoaderHostedService>();
                 services.AddHostedService<CryptoHistoryLoaderHostedService>();
                 services.AddHostedService<EconomicCalendarLoaderHostedService>();
+                services.AddHostedService<AutoTradingAccountsLoaderHostedService>();
                 // for local debugging
                 // services.AddHostedService<MesaPreloaderHostedService>();
             }
             else
             {
                 services.AddHostedService<MesaPreloaderHostedService>();
+                services.AddHostedService<AutoTradingAccountsPreloaderHostedService>();
             }
 
             services.AddCors(options =>
