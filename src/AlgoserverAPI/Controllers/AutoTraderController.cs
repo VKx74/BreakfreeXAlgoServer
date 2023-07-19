@@ -54,7 +54,7 @@ namespace Algoserver.API.Controllers
 
             if (!_autoTradingAccountsService.Validate(request.Account))
             {
-                return Forbid("Invalid trading account");
+                return Unauthorized("Invalid trading account");
             }
 
             return await CalculateSymbolInfoAsync(request);
