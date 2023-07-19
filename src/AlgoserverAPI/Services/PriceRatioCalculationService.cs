@@ -13,10 +13,10 @@ namespace Algoserver.API.Services
         private readonly ILogger<PriceRatioCalculationService> _logger;
         private readonly HistoryService _historyService;
         private readonly InstrumentService _instrumentService;
-        private readonly ICacheService _cache;
+        private readonly IInMemoryCache _cache;
         private string _cachePrefix = "PriceRatio";
 
-        public PriceRatioCalculationService(ILogger<PriceRatioCalculationService> logger, HistoryService historyService, InstrumentService instrumentService, ICacheService cache)
+        public PriceRatioCalculationService(ILogger<PriceRatioCalculationService> logger, HistoryService historyService, InstrumentService instrumentService, IInMemoryCache cache)
         {
             _cache = cache;
             _logger = logger;
