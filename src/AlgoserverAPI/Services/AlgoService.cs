@@ -683,6 +683,8 @@ namespace Algoserver.API.Services
                 Strength1H = GetStrength(TimeframeHelper.HOURLY_GRANULARITY, result),
                 Strength4H = GetStrength(TimeframeHelper.HOUR4_GRANULARITY, result),
                 Strength1D = GetStrength(TimeframeHelper.DAILY_GRANULARITY, result),
+
+                Levels = result
             };
         }
 

@@ -13,7 +13,7 @@ namespace Algoserver.API.Helpers
         public float s { get; set; }
         public uint t { get; set; }
     }
-    
+
     [Serializable]
     public class MESADataSummary
     {
@@ -31,7 +31,7 @@ namespace Algoserver.API.Helpers
         public float Price14400 { get; set; }
         public float Price86400 { get; set; }
     }
-    
+
     public class TradeZone
     {
         public decimal OutsideUpper { get; set; }
@@ -906,6 +906,42 @@ namespace Algoserver.API.Helpers
 
             var condRiskVal = sum / (total - index);
             return Math.Round(condRiskVal * 100, 4);
+        }
+
+        public static List<decimal> AroonOscillator(IEnumerable<decimal> cPrice, int period)
+        {
+            var res = new List<decimal>();
+            var quotesHist = cPrice.ToList();
+
+            for (var i = 1; i < quotesHist.Count; i++)
+            {
+                var back = Math.Min(period, i);
+                var idxMax = -1;
+                var idxMin = -1;
+                var max = Decimal.MinValue;
+                var min = Decimal.MaxValue;
+
+                for (var idx = back; idx >= 0; idx--)
+                {
+                    var index = i - back + idx;
+                    if (quotesHist[index] >= max)
+                    {
+                        max = quotesHist[index];
+                        idxMax = index;
+                    }
+
+                    if (quotesHist[index] <= min)
+                    {
+                        min = quotesHist[index];
+                        idxMin = index;
+                    }
+                }
+
+                var aroonOscillator = 100m * (decimal)((back - (i - idxMax)) / (decimal)back) - 100m * (decimal)((back - (i - idxMin)) / (decimal)back);
+                res.Add(aroonOscillator);
+            }
+
+            return res;
         }
     }
 }

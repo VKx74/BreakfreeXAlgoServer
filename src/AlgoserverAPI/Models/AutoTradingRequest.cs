@@ -7,6 +7,9 @@ namespace Algoserver.API.Models.REST
         [JsonProperty("instrument")]
         public Instrument Instrument { get; set; }
 
+        [JsonProperty("minStrength1h")]
+        public decimal MinStrength1h { get; set; } = 15m;
+
         [JsonProperty("minStrength4h")]
         public decimal MinStrength4h { get; set; }
 

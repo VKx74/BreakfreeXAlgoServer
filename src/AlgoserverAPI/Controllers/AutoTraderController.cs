@@ -36,18 +36,20 @@ namespace Algoserver.API.Controllers
         [HttpPost(Routes.SymbolInfo)]
         [ProducesResponseType(typeof(Response<string>), 200)]
         public async Task<IActionResult> GetSymbolInfoAsync([FromBody] AutoTradingSymbolInfoRequest request)
-        { if (!ModelState.IsValid)
+        {
+            if (!ModelState.IsValid)
             {
                 return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
             }
 
             return await CalculateSymbolInfoAsync(request);
-        } 
+        }
 
         [HttpPost(Routes.AutoTradeInfo)]
         [ProducesResponseType(typeof(Response<string>), 200)]
         public async Task<IActionResult> GetAutoTradeInfoAsync([FromBody] AutoTradingSymbolInfoRequest request)
-        { if (!ModelState.IsValid)
+        {
+            if (!ModelState.IsValid)
             {
                 return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
             }
@@ -58,8 +60,8 @@ namespace Algoserver.API.Controllers
             }
 
             return await CalculateSymbolInfoAsync(request);
-        } 
-        
+        }
+
         private async Task<IActionResult> CalculateSymbolInfoAsync(AutoTradingSymbolInfoRequest request)
         {
             var mappedSymbol = SymbolMapper(request.Instrument.Id);
@@ -74,17 +76,47 @@ namespace Algoserver.API.Controllers
             {
                 if (result.TotalStrength > 0)
                 {
-                    if ((result.Strength4H * 100 >= request.MinStrength4h) && (result.Strength1D * 100 >= request.MinStrength1d))
+                    if ((result.Strength1H * 100 >= request.MinStrength1h) && (result.Strength4H * 100 >= request.MinStrength4h) && (result.Strength1D * 100 >= request.MinStrength1d))
                     {
                         trendDirection = 1;
                     }
                 }
                 else if (result.TotalStrength < 0)
                 {
-                    if ((result.Strength4H * 100 <= request.MinStrength4h * -1) && (result.Strength1D * 100 <= request.MinStrength1d * -1))
+                    if ((result.Strength1H * 100 <= request.MinStrength1h * -1) && (result.Strength4H * 100 <= request.MinStrength4h * -1) && (result.Strength1D * 100 <= request.MinStrength1d * -1))
                     {
                         trendDirection = -1;
                     }
+                }
+            }
+
+            var state = 0; // Not state at all
+            var avgOscillator = 0m; // Not state at all
+            var stateHistory = result.Levels.GetValueOrDefault(TimeframeHelper.HOURLY_GRANULARITY);
+            if (stateHistory != null && trendDirection != 0)
+            {
+                var sh = stateHistory.mesa.Select((_) => (decimal)(_.f - _.s) / (decimal)stateHistory.mesa_avg * 100).ToList();
+                sh.Reverse();
+                sh = sh.TakeWhile((_) => trendDirection > 0 ? _ > 0 : _ < 0).ToList();
+                sh = sh.Select((_) => Math.Abs(_)).ToList();
+                sh.Reverse();
+                var count = 120;
+                var aroon = TechCalculations.AroonOscillator(sh, count);
+                var aroonLast = aroon.TakeLast(count).ToList();
+                var sum = aroonLast.Sum();
+                var avg = sum / count;
+                avgOscillator = avg;
+                if (avg < 0)
+                {
+                    state = 1; // Tail
+                }
+                else if (avg < 80)
+                {
+                    state = 2; // Capitulation
+                }
+                else
+                {
+                    state = 3; // Drive
                 }
             }
 
@@ -92,6 +124,8 @@ namespace Algoserver.API.Controllers
             stringResult.AppendLine($"strengthTotal={Math.Round(result.TotalStrength * 100, 2)}");
             stringResult.AppendLine($"generalStopLoss={Math.Round(result.SL, 5)}");
             stringResult.AppendLine($"trendDirection={trendDirection}");
+            stringResult.AppendLine($"state={state}");
+            stringResult.AppendLine($"avgOscillator={avgOscillator}");
 
             stringResult.AppendLine($"hbh1m={Math.Round(result.HalfBand1M, 5)}");
             stringResult.AppendLine($"hbh5m={Math.Round(result.HalfBand5M, 5)}");
@@ -150,7 +184,7 @@ namespace Algoserver.API.Controllers
             }
 
             symbol = symbol.Replace("_", "").Replace("-", "").Replace("/", "").Replace("^", "");
-            
+
             var allowedForex = InstrumentsHelper.ForexInstrumentList;
             foreach (var instrument in allowedForex)
             {
