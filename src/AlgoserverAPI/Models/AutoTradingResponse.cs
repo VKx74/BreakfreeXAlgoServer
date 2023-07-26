@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace Algoserver.API.Models.REST
 {
+    [Serializable]
     public class AutoTradingSymbolInfoResponse
     {
         public float TotalStrength { get; set; }
