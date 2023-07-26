@@ -48,7 +48,7 @@ namespace Algoserver.API.Services
                 PricePrecision = 0.00000001m
             });
 
-            return instruments.Take(5).ToList();
+            // return instruments.Take(5).ToList();
             return instruments;
         }
 
@@ -90,7 +90,7 @@ namespace Algoserver.API.Services
                 PricePrecision = 0.00000001m
             });
 
-            return instruments.Take(5).ToList();
+            // return instruments.Take(5).ToList();
             return instruments;
         }
     }
