@@ -108,6 +108,7 @@ namespace Algoserver.API.Controllers
             stringResult.AppendLine($"strength1h={Math.Round(result.Strength1H * 100, 2)}");
             stringResult.AppendLine($"strength4h={Math.Round(result.Strength4H * 100, 2)}");
             stringResult.AppendLine($"strength1d={Math.Round(result.Strength1D * 100, 2)}");
+            stringResult.AppendLine($"tt={result.Time}");
 
             return Ok(stringResult.ToString());
         }

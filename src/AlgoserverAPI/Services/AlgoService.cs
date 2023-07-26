@@ -682,7 +682,9 @@ namespace Algoserver.API.Services
                 Strength15M = GetStrength(TimeframeHelper.MIN15_GRANULARITY, levelsResponse),
                 Strength1H = GetStrength(TimeframeHelper.HOURLY_GRANULARITY, levelsResponse),
                 Strength4H = GetStrength(TimeframeHelper.HOUR4_GRANULARITY, levelsResponse),
-                Strength1D = GetStrength(TimeframeHelper.DAILY_GRANULARITY, levelsResponse)
+                Strength1D = GetStrength(TimeframeHelper.DAILY_GRANULARITY, levelsResponse),
+
+                Time = AlgoHelper.UnixTimeNow()
             };
 
             var minStrength1h = 15;
