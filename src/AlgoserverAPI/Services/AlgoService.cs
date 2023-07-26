@@ -687,9 +687,9 @@ namespace Algoserver.API.Services
                 Time = AlgoHelper.UnixTimeNow()
             };
 
-            var minStrength1h = 15;
-            var minStrength4h = 15;
-            var minStrength1d = 15;
+            var minStrength1h = 1;
+            var minStrength4h = 1;
+            var minStrength1d = 1;
 
             result.TrendDirection = 0;
 
