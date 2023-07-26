@@ -171,11 +171,11 @@ namespace Algoserver.API.Services
             });
         }
 
-        public Task<AutoTradingSymbolInfoResponse> CalculateV3LevelsAsync(string symbol, string datafeed, string exchange, string type)
+        public Task<AutoTradingSymbolInfoResponse> CalculateAutoTradingInfoAsync(string symbol, string datafeed, string exchange, string type)
         {
             return Task.Run(() =>
             {
-                return calculateV3LevelsAsync(symbol, datafeed, exchange, type);
+                return calculateAutoTradingInfoAsync(symbol, datafeed, exchange, type);
             });
         }
 
@@ -571,7 +571,7 @@ namespace Algoserver.API.Services
             return result;
         }
 
-        private async Task<AutoTradingSymbolInfoResponse> calculateV3LevelsAsync(string symbol, string datafeed, string exchange, string type)
+        private async Task<AutoTradingSymbolInfoResponse> calculateAutoTradingInfoAsync(string symbol, string datafeed, string exchange, string type)
         {
             var levelsResponse = new Dictionary<int, LevelsV3Response>();
             var granularity = 60;

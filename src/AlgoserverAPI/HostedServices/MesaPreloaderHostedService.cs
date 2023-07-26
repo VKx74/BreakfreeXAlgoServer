@@ -18,14 +18,16 @@ namespace Algoserver.API.HostedServices
         private readonly ScannerHistoryService _scannerHistory;
         private readonly ScannerCacheService _scannerCache;
         private readonly MesaPreloaderService _mesaPreloaderService;
+        private readonly AutoTradingPreloaderService _autoTradingPreloaderService;
         private Timer _timer;
 
-        public MesaPreloaderHostedService(ILogger<MesaPreloaderHostedService> logger, MesaPreloaderService mesaPreloaderService, ScannerForexHistoryService scannerHistory, ScannerForexCacheService scannerCache)
+        public MesaPreloaderHostedService(ILogger<MesaPreloaderHostedService> logger, MesaPreloaderService mesaPreloaderService, ScannerForexHistoryService scannerHistory, ScannerForexCacheService scannerCache, AutoTradingPreloaderService autoTradingPreloaderService)
         {
             _logger = logger;
             _scannerHistory = scannerHistory;
             _scannerCache = scannerCache;
             _mesaPreloaderService = mesaPreloaderService;
+            _autoTradingPreloaderService = autoTradingPreloaderService;
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -62,7 +64,12 @@ namespace Algoserver.API.HostedServices
                         }
                         _mesaPreloaderService.UpdateMesa(minuteMesaCache);
                         _mesaPreloaderService.UpdateMesaSummary(mesaSummary);
+
                         Console.WriteLine(">>> Mesa Preloader ends");
+
+                        Console.WriteLine(">>> Auto Trading Info Preloader start");
+                        await _autoTradingPreloaderService.LoadInstruments("Forex");
+                        Console.WriteLine(">>> Auto Trading Info Preloader ends");
                     }
                 }
                 catch (Exception ex)

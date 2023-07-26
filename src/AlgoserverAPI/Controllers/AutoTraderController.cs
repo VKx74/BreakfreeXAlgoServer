@@ -21,16 +21,18 @@ namespace Algoserver.API.Controllers
         private ScannerResultService _scannerResultService;
         private MesaPreloaderService _mesaPreloaderService;
         private AutoTradingAccountsService _autoTradingAccountsService;
+        private readonly AutoTradingPreloaderService _autoTradingPreloaderService;
         private AlgoService _algoService;
         private ScannerService _scanerService;
 
-        public AutoTraderController(AlgoService algoService, ScannerService scanerService, ScannerResultService scannerResultService, MesaPreloaderService mesaPreloaderService, AutoTradingAccountsService autoTradingAccountsService)
+        public AutoTraderController(AlgoService algoService, ScannerService scanerService, ScannerResultService scannerResultService, MesaPreloaderService mesaPreloaderService, AutoTradingAccountsService autoTradingAccountsService, AutoTradingPreloaderService autoTradingPreloaderService)
         {
             _algoService = algoService;
             _scanerService = scanerService;
             _scannerResultService = scannerResultService;
             _mesaPreloaderService = mesaPreloaderService;
             _autoTradingAccountsService = autoTradingAccountsService;
+            _autoTradingPreloaderService = autoTradingPreloaderService;
         }
 
         [HttpPost(Routes.SymbolInfo)]
@@ -70,7 +72,7 @@ namespace Algoserver.API.Controllers
                 return BadRequest("Invalid instrument");
             }
 
-            var result = await _algoService.CalculateV3LevelsAsync(mappedSymbol, request.Instrument.Datafeed, request.Instrument.Exchange, request.Instrument.Type);
+            var result = await _autoTradingPreloaderService.GetAutoTradingSymbolInfoResponse(mappedSymbol, request.Instrument.Datafeed, request.Instrument.Exchange, request.Instrument.Type);
 
             var stringResult = new StringBuilder();
             stringResult.AppendLine($"strengthTotal={Math.Round(result.TotalStrength * 100, 2)}");

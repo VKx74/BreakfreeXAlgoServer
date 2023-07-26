@@ -11,7 +11,6 @@ namespace Algoserver.API.Services.CacheServices
 
         public void UpdateMesaSummary(List<MESADataSummary> data)
         {
-
             foreach (var ms in data)
             {
                 if (ms.Symbol == "BTC_USD" && ms.Datafeed == "Oanda")
@@ -39,7 +38,7 @@ namespace Algoserver.API.Services.CacheServices
                 mesa.Clear();
                 foreach (var d in data)
                 {
-                    mesa.Add(d.Key, d.Value);
+                    mesa.Add(d.Key.ToLower(), d.Value);
                 }
             }
         }

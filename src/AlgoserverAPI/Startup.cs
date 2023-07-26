@@ -108,6 +108,8 @@ namespace Algoserver.API
             services.AddSingleton<MesaPreloaderService>();
             services.AddSingleton<AutoTradingAccountsLoadingService>();
             services.AddSingleton<AutoTradingAccountsService>();
+            services.AddSingleton<AutoTradingPreloaderService>();
+            services.AddSingleton<AutoTradingPrecalculationService>();
 
             if (scanInstruments)
             {
