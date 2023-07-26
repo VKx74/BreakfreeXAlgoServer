@@ -64,6 +64,29 @@ namespace Algoserver.API.Controllers
             return await CalculateSymbolInfoAsync(request);
         }
 
+        [HttpPost(Routes.AutoTradeInstruments)]
+        [ProducesResponseType(typeof(Response<string>), 200)]
+        public async Task<IActionResult> GetAutoTradeInstrumentsAsync([FromBody] AutoTradeInstrumentsRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
+            }
+
+            if (!_autoTradingAccountsService.Validate(request.Account))
+            {
+                return Unauthorized("Invalid trading account");
+            }
+
+            var items = await _autoTradingPreloaderService.GetAutoTradeInstruments();
+            var stringResult = new StringBuilder();
+            foreach (var item in items)
+            {
+                stringResult.AppendLine($"{item.Symbol}={Math.Round(item.Risk, 2)}");
+            }
+            return Ok(stringResult.ToString());
+        }
+
         private async Task<IActionResult> CalculateSymbolInfoAsync(AutoTradingSymbolInfoRequest request)
         {
             var mappedSymbol = SymbolMapper(request.Instrument.Id);
@@ -72,7 +95,7 @@ namespace Algoserver.API.Controllers
                 return BadRequest("Invalid instrument");
             }
 
-            var result = await _autoTradingPreloaderService.GetAutoTradingSymbolInfoResponse(mappedSymbol, request.Instrument.Datafeed, request.Instrument.Exchange, request.Instrument.Type);
+            var result = await _autoTradingPreloaderService.GetAutoTradingSymbolInfo(mappedSymbol, request.Instrument.Datafeed, request.Instrument.Exchange, request.Instrument.Type);
 
             var stringResult = new StringBuilder();
             stringResult.AppendLine($"strengthTotal={Math.Round(result.TotalStrength * 100, 2)}");

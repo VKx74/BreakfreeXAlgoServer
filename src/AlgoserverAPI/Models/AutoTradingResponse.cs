@@ -5,6 +5,13 @@ using Newtonsoft.Json;
 namespace Algoserver.API.Models.REST
 {
     [Serializable]
+    public class AutoTradingInstrumentsResponse
+    {
+        public string Symbol { get; set; }
+        public decimal Risk { get; set; }
+    }
+
+    [Serializable]
     public class AutoTradingSymbolInfoResponse
     {
         public float TotalStrength { get; set; }

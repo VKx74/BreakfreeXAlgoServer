@@ -43,7 +43,41 @@ namespace Algoserver.API.Services.CacheServices
             }
         }
 
-        public async Task<AutoTradingSymbolInfoResponse> GetAutoTradingSymbolInfoResponse(string symbol, string datafeed, string exchange, string type)
+        public async Task<List<AutoTradingInstrumentsResponse>> GetAutoTradeInstruments()
+        {
+            var result = new List<AutoTradingInstrumentsResponse>();
+            var symbols = new Dictionary<string, AutoTradingSymbolInfoResponse>();
+
+            lock (_data)
+            {
+                foreach (var types in _data)
+                {
+                    foreach (var symbol in types.Value)
+                    {
+                        if (symbol.Value.TrendState == 3)
+                        {
+                            var name = symbol.Key.Split("_");
+                            name = name.TakeLast(name.Length - 1).ToArray();
+                            var instrument = String.Join("_", name).ToUpper();
+                            symbols.Add(instrument, symbol.Value);
+                        }
+                    }
+                }
+            }
+
+            foreach (var symbol in symbols)
+            {
+                result.Add(new AutoTradingInstrumentsResponse
+                {
+                    Symbol = symbol.Key,
+                    Risk = 1m / symbols.Count
+                });
+            }
+
+            return result;
+        }
+
+        public async Task<AutoTradingSymbolInfoResponse> GetAutoTradingSymbolInfo(string symbol, string datafeed, string exchange, string type)
         {
             type = type.ToLower();
             try
