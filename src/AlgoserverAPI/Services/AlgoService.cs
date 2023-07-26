@@ -573,7 +573,7 @@ namespace Algoserver.API.Services
 
         private async Task<AutoTradingSymbolInfoResponse> calculateV3LevelsAsync(string symbol, string datafeed, string exchange, string type)
         {
-            var result = new Dictionary<int, LevelsV3Response>();
+            var levelsResponse = new Dictionary<int, LevelsV3Response>();
             var granularity = 60;
             var granularity_list = new List<int>();
             granularity_list.Add(TimeframeHelper.MIN1_GRANULARITY);
@@ -631,12 +631,12 @@ namespace Algoserver.API.Services
                         });
                     }
 
-                    result.Add(item.Key, levelsV3);
+                    levelsResponse.Add(item.Key, levelsV3);
                 }
             }
 
             var sl_price = 0m;
-            if (result.TryGetValue(TimeframeHelper.HOUR4_GRANULARITY, out var item4HData))
+            if (levelsResponse.TryGetValue(TimeframeHelper.HOUR4_GRANULARITY, out var item4HData))
             {
                 var lastHour4Sar = item4HData.sar.LastOrDefault();
                 if (lastHour4Sar != null)
@@ -652,40 +652,90 @@ namespace Algoserver.API.Services
                 }
             }
 
-            return new AutoTradingSymbolInfoResponse
+            var result = new AutoTradingSymbolInfoResponse
             {
                 TotalStrength = total_strength,
                 SL = sl_price,
-                Entry1M = GetEntry(TimeframeHelper.MIN1_GRANULARITY, total_strength, result),
-                Entry5M = GetEntry(TimeframeHelper.MIN5_GRANULARITY, total_strength, result),
-                Entry15M = GetEntry(TimeframeHelper.MIN15_GRANULARITY, total_strength, result),
-                Entry1H = GetEntry(TimeframeHelper.HOURLY_GRANULARITY, total_strength, result),
-                Entry4H = GetEntry(TimeframeHelper.HOUR4_GRANULARITY, total_strength, result),
-                Entry1D = GetEntry(TimeframeHelper.DAILY_GRANULARITY, total_strength, result),
+                Entry1M = GetEntry(TimeframeHelper.MIN1_GRANULARITY, total_strength, levelsResponse),
+                Entry5M = GetEntry(TimeframeHelper.MIN5_GRANULARITY, total_strength, levelsResponse),
+                Entry15M = GetEntry(TimeframeHelper.MIN15_GRANULARITY, total_strength, levelsResponse),
+                Entry1H = GetEntry(TimeframeHelper.HOURLY_GRANULARITY, total_strength, levelsResponse),
+                Entry4H = GetEntry(TimeframeHelper.HOUR4_GRANULARITY, total_strength, levelsResponse),
+                Entry1D = GetEntry(TimeframeHelper.DAILY_GRANULARITY, total_strength, levelsResponse),
 
-                HalfBand1M = GetHalfBand(TimeframeHelper.MIN1_GRANULARITY, total_strength, result),
-                HalfBand5M = GetHalfBand(TimeframeHelper.MIN5_GRANULARITY, total_strength, result),
-                HalfBand15M = GetHalfBand(TimeframeHelper.MIN15_GRANULARITY, total_strength, result),
-                HalfBand1H = GetHalfBand(TimeframeHelper.HOURLY_GRANULARITY, total_strength, result),
-                HalfBand4H = GetHalfBand(TimeframeHelper.HOUR4_GRANULARITY, total_strength, result),
-                HalfBand1D = GetHalfBand(TimeframeHelper.DAILY_GRANULARITY, total_strength, result),
+                HalfBand1M = GetHalfBand(TimeframeHelper.MIN1_GRANULARITY, total_strength, levelsResponse),
+                HalfBand5M = GetHalfBand(TimeframeHelper.MIN5_GRANULARITY, total_strength, levelsResponse),
+                HalfBand15M = GetHalfBand(TimeframeHelper.MIN15_GRANULARITY, total_strength, levelsResponse),
+                HalfBand1H = GetHalfBand(TimeframeHelper.HOURLY_GRANULARITY, total_strength, levelsResponse),
+                HalfBand4H = GetHalfBand(TimeframeHelper.HOUR4_GRANULARITY, total_strength, levelsResponse),
+                HalfBand1D = GetHalfBand(TimeframeHelper.DAILY_GRANULARITY, total_strength, levelsResponse),
 
-                TP1M = GetTP(TimeframeHelper.MIN1_GRANULARITY, result),
-                TP5M = GetTP(TimeframeHelper.MIN5_GRANULARITY, result),
-                TP15M = GetTP(TimeframeHelper.MIN15_GRANULARITY, result),
-                TP1H = GetTP(TimeframeHelper.HOURLY_GRANULARITY, result),
-                TP4H = GetTP(TimeframeHelper.HOUR4_GRANULARITY, result),
-                TP1D = GetTP(TimeframeHelper.DAILY_GRANULARITY, result),
+                TP1M = GetTP(TimeframeHelper.MIN1_GRANULARITY, levelsResponse),
+                TP5M = GetTP(TimeframeHelper.MIN5_GRANULARITY, levelsResponse),
+                TP15M = GetTP(TimeframeHelper.MIN15_GRANULARITY, levelsResponse),
+                TP1H = GetTP(TimeframeHelper.HOURLY_GRANULARITY, levelsResponse),
+                TP4H = GetTP(TimeframeHelper.HOUR4_GRANULARITY, levelsResponse),
+                TP1D = GetTP(TimeframeHelper.DAILY_GRANULARITY, levelsResponse),
 
-                Strength1M = GetStrength(TimeframeHelper.MIN1_GRANULARITY, result),
-                Strength5M = GetStrength(TimeframeHelper.MIN5_GRANULARITY, result),
-                Strength15M = GetStrength(TimeframeHelper.MIN15_GRANULARITY, result),
-                Strength1H = GetStrength(TimeframeHelper.HOURLY_GRANULARITY, result),
-                Strength4H = GetStrength(TimeframeHelper.HOUR4_GRANULARITY, result),
-                Strength1D = GetStrength(TimeframeHelper.DAILY_GRANULARITY, result),
-
-                Levels = result
+                Strength1M = GetStrength(TimeframeHelper.MIN1_GRANULARITY, levelsResponse),
+                Strength5M = GetStrength(TimeframeHelper.MIN5_GRANULARITY, levelsResponse),
+                Strength15M = GetStrength(TimeframeHelper.MIN15_GRANULARITY, levelsResponse),
+                Strength1H = GetStrength(TimeframeHelper.HOURLY_GRANULARITY, levelsResponse),
+                Strength4H = GetStrength(TimeframeHelper.HOUR4_GRANULARITY, levelsResponse),
+                Strength1D = GetStrength(TimeframeHelper.DAILY_GRANULARITY, levelsResponse)
             };
+
+            var minStrength1h = 15;
+            var minStrength4h = 15;
+            var minStrength1d = 15;
+
+            result.TrendDirection = 0;
+
+            if (total_strength > 0)
+            {
+                if ((result.Strength1H * 100 >= minStrength1h) && (result.Strength4H * 100 >= minStrength4h) && (result.Strength1D * 100 >= minStrength1d))
+                {
+                    result.TrendDirection = 1;
+                }
+            }
+            else if (total_strength < 0)
+            {
+                if ((result.Strength1H * 100 <= minStrength1h * -1) && (result.Strength4H * 100 <= minStrength4h * -1) && (result.Strength1D * 100 <= minStrength1d * -1))
+                {
+                    result.TrendDirection = -1;
+                }
+            }
+
+            var stateHistory = levelsResponse.GetValueOrDefault(TimeframeHelper.HOURLY_GRANULARITY);
+            if (stateHistory != null && result.TrendDirection != 0)
+            {
+                var sh = stateHistory.mesa.Select((_) => (decimal)(_.f - _.s) / (decimal)stateHistory.mesa_avg * 100).ToList();
+                sh.Reverse();
+                sh = sh.TakeWhile((_) => result.TrendDirection > 0 ? _ > 0 : _ < 0).ToList();
+                sh = sh.Select((_) => Math.Abs(_)).ToList();
+                sh.Reverse();
+                var period = 30;
+                var count = 90;
+                var aroon = TechCalculations.AroonOscillator(sh, period);
+                var aroonLast = aroon.TakeLast(count).ToList();
+                var sum = aroonLast.Sum();
+                var avg = sum / count;
+                result.AvgOscillator = avg;
+                if (avg < 0)
+                {
+                    result.TrendState = 1; // Tail
+                }
+                else if (avg < 50)
+                {
+                    result.TrendState = 2; // Capitulation
+                }
+                else
+                {
+                    result.TrendState = 3; // Drive
+                }
+            }
+
+            return result;
         }
 
         private async Task<BandsDescriptionV3Data> CalculateV3Levels(InputDataContainer container, CalculationRequestV3 req)

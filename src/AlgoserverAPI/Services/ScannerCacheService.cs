@@ -10,6 +10,12 @@ using Algoserver.API.Services.CacheServices;
 
 namespace Algoserver.API.Services
 {
+    public class MesaSummaryInfo
+    {
+        public Dictionary<string, Dictionary<int, List<MESADataPoint>>> MesaDataPoints { get; set; }
+        public List<MESADataSummary> MesaSummary { get; set; }
+    }
+
     public class ScannerForexCacheService : ScannerCacheService
     {
         public ScannerForexCacheService(ScannerForexHistoryService historyService, ScannerService scanner, ICacheService cache) : base(historyService, scanner, cache)
@@ -145,7 +151,7 @@ namespace Algoserver.API.Services
             return null;
         }
 
-        public void CalculateMinuteMesa()
+        public MesaSummaryInfo CalculateMinuteMesa()
         {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
@@ -153,10 +159,11 @@ namespace Algoserver.API.Services
             var _1Hour = _historyService.Get1HData();
             var count = 0;
             var summary = new List<MESADataSummary>();
+            var mesaDataPoints = new Dictionary<string, Dictionary<int, List<MESADataPoint>>>();
 
             if (_1Hour == null || _1Mins == null)
-            { 
-                return; 
+            {
+                return null;
             }
 
             foreach (var minHistory in _1Mins)
@@ -231,16 +238,16 @@ namespace Algoserver.API.Services
                                 s = (float)mesa15minCut[i].Slow,
                                 t = (uint)minuteTimesCut[i]
                             });
-                        }
-
-                        if (minuteTimesCut[i] % (60 * 10) == 0 || i == minuteTimesCut.Count - 1)
-                        {
                             mesa1hDataPoints.Add(new MESADataPoint
                             {
                                 f = (float)mesa1hCut[i].Fast,
                                 s = (float)mesa1hCut[i].Slow,
                                 t = (uint)minuteTimesCut[i]
                             });
+                        }
+
+                        if (minuteTimesCut[i] % (60 * 10) == 0 || i == minuteTimesCut.Count - 1)
+                        {
                             mesa4hDataPoints.Add(new MESADataPoint
                             {
                                 f = (float)mesa4hCut[i].Fast,
@@ -278,6 +285,7 @@ namespace Algoserver.API.Services
                     mesaDataPointsMap.Add(3600, mesa1hDataPoints);
                     mesaDataPointsMap.Add(14400, mesa4hDataPoints);
                     mesaDataPointsMap.Add(86400, mesa1dDataPoints);
+                    mesaDataPoints.Add(key, mesaDataPointsMap);
                     SetMinuteMesaCache(mesaDataPointsMap, key);
 
                     count++;
@@ -433,6 +441,12 @@ namespace Algoserver.API.Services
             TimeSpan ts1 = stopWatch.Elapsed;
             string elapsedTime1 = String.Format(" * 1 min MESA calculation {0:00}:{1:00} - instruments count " + count, ts1.Minutes, ts1.Seconds);
             Console.WriteLine(">>> " + elapsedTime1);
+
+            return new MesaSummaryInfo 
+            {
+                MesaSummary = summary,
+                MesaDataPoints = mesaDataPoints
+            };
         }
 
         private void SetMinuteMesaCache(Dictionary<int, List<MESADataPoint>> mesa, string key)

@@ -31,6 +31,8 @@ namespace Algoserver.API.Models.REST
         public decimal Strength1H { get; set; }
         public decimal Strength4H { get; set; }
         public decimal Strength1D { get; set; }
-        public Dictionary<int, LevelsV3Response> Levels { get; set; }
+        public decimal AvgOscillator { get; set; }
+        public int TrendDirection { get; set; }
+        public int TrendState { get; set; }
     }
 }
