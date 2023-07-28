@@ -708,7 +708,7 @@ namespace Algoserver.API.Services
                 }
             }
 
-            var stateHistory = levelsResponse.GetValueOrDefault(TimeframeHelper.HOURLY_GRANULARITY);
+            var stateHistory = levelsResponse.GetValueOrDefault(TimeframeHelper.HOUR4_GRANULARITY);
             if (stateHistory != null && result.TrendDirection != 0)
             {
                 var sh = stateHistory.mesa.Select((_) => (decimal)(_.f - _.s) / (decimal)stateHistory.mesa_avg * 100).ToList();
@@ -716,18 +716,18 @@ namespace Algoserver.API.Services
                 sh = sh.TakeWhile((_) => result.TrendDirection > 0 ? _ > 0 : _ < 0).ToList();
                 sh = sh.Select((_) => Math.Abs(_)).ToList();
                 sh.Reverse();
-                var period = 30;
-                var count = 90;
+                var period = 72;
+                var count = 72;
                 var aroon = TechCalculations.AroonOscillator(sh, period);
                 var aroonLast = aroon.TakeLast(count).ToList();
                 var sum = aroonLast.Sum();
                 var avg = sum / count;
                 result.AvgOscillator = avg;
-                if (avg < 0)
+                if (avg < -30)
                 {
                     result.TrendState = 1; // Tail
                 }
-                else if (avg < 50)
+                else if (avg < 5)
                 {
                     result.TrendState = 2; // Capitulation
                 }

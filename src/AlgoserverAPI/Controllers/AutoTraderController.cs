@@ -22,10 +22,11 @@ namespace Algoserver.API.Controllers
         private MesaPreloaderService _mesaPreloaderService;
         private AutoTradingAccountsService _autoTradingAccountsService;
         private readonly AutoTradingPreloaderService _autoTradingPreloaderService;
+        private readonly AutoTradingRateLimitsService _autoTradingRateLimitsService;
         private AlgoService _algoService;
         private ScannerService _scanerService;
 
-        public AutoTraderController(AlgoService algoService, ScannerService scanerService, ScannerResultService scannerResultService, MesaPreloaderService mesaPreloaderService, AutoTradingAccountsService autoTradingAccountsService, AutoTradingPreloaderService autoTradingPreloaderService)
+        public AutoTraderController(AlgoService algoService, ScannerService scanerService, ScannerResultService scannerResultService, MesaPreloaderService mesaPreloaderService, AutoTradingAccountsService autoTradingAccountsService, AutoTradingPreloaderService autoTradingPreloaderService, AutoTradingRateLimitsService autoTradingRateLimitsService)
         {
             _algoService = algoService;
             _scanerService = scanerService;
@@ -33,6 +34,7 @@ namespace Algoserver.API.Controllers
             _mesaPreloaderService = mesaPreloaderService;
             _autoTradingAccountsService = autoTradingAccountsService;
             _autoTradingPreloaderService = autoTradingPreloaderService;
+            _autoTradingRateLimitsService = autoTradingRateLimitsService;
         }
 
         [HttpPost(Routes.SymbolInfo)]
@@ -56,6 +58,16 @@ namespace Algoserver.API.Controllers
                 return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
             }
 
+            if (String.IsNullOrEmpty(request.Account))
+            {
+                return Unauthorized("Invalid trading account");
+            }
+
+            if (!_autoTradingRateLimitsService.Validate(request.Account))
+            {
+                return StatusCode(429);
+            }
+
             if (!_autoTradingAccountsService.Validate(request.Account))
             {
                 return Unauthorized("Invalid trading account");
@@ -71,6 +83,16 @@ namespace Algoserver.API.Controllers
             if (!ModelState.IsValid)
             {
                 return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
+            }
+
+            if (String.IsNullOrEmpty(request.Account))
+            {
+                return Unauthorized("Invalid trading account");
+            }
+
+            if (!_autoTradingRateLimitsService.Validate(request.Account))
+            {
+                return StatusCode(429);
             }
 
             if (!_autoTradingAccountsService.Validate(request.Account))

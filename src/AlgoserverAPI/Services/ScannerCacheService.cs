@@ -244,10 +244,6 @@ namespace Algoserver.API.Services
                                 s = (float)mesa1hCut[i].Slow,
                                 t = (uint)minuteTimesCut[i]
                             });
-                        }
-
-                        if (minuteTimesCut[i] % (60 * 10) == 0 || i == minuteTimesCut.Count - 1)
-                        {
                             mesa4hDataPoints.Add(new MESADataPoint
                             {
                                 f = (float)mesa4hCut[i].Fast,
