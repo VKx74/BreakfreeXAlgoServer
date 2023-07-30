@@ -584,22 +584,26 @@ namespace Algoserver.API.Services
             granularity_list.Add(TimeframeHelper.DAILY_GRANULARITY);
             var sar_additional = await CalculateTradeZoneLevels(granularity, granularity_list, symbol, datafeed, exchange, type, 0, 100);
 
-            var mesaGranularity = new List<int>();
-            foreach (var item in sar_additional)
-            {
-                var mesaRequiredTf = GetTrendIndexGranularity(item.Key);
-                mesaGranularity.Add(mesaRequiredTf);
-            }
-            var mesa_additional = await getMesaAsync(symbol, datafeed, mesaGranularity);
+            // var mesaGranularity = new List<int>();
+            // foreach (var item in sar_additional)
+            // {
+            //     var mesaRequiredTf = GetTrendIndexGranularity(item.Key);
+            //     mesaGranularity.Add(mesaRequiredTf);
+            // }
+            var mesa_additional = await getMesaAsync(symbol, datafeed, null);
             var total_strength = 0f;
+            var monthlyTrend = 0;
 
             if (mesa_additional != null && mesa_additional.mesa != null && mesa_additional.mesa.Any())
             {
                 var summaryForSymbol = _mesaPreloaderService.GetMesaSummary(symbol, datafeed);
-
                 if (summaryForSymbol != null)
                 {
                     total_strength = summaryForSymbol.TotalStrength;
+                    if (summaryForSymbol.AvgStrength.TryGetValue(TimeframeHelper.MONTHLY_GRANULARITY, out var str) && summaryForSymbol.TimeframeStrengths.TryGetValue(TimeframeHelper.MONTHLY_GRANULARITY, out var tf_str))
+                    {
+                        monthlyTrend = tf_str > 0 ? 1 : -1;
+                    }
                 }
 
                 foreach (var item in sar_additional)
@@ -684,7 +688,8 @@ namespace Algoserver.API.Services
                 Strength4H = GetStrength(TimeframeHelper.HOUR4_GRANULARITY, levelsResponse),
                 Strength1D = GetStrength(TimeframeHelper.DAILY_GRANULARITY, levelsResponse),
 
-                Time = AlgoHelper.UnixTimeNow()
+                Time = AlgoHelper.UnixTimeNow(),
+                MonthlyTrend = monthlyTrend
             };
 
             var minStrength1h = 1;
@@ -734,6 +739,11 @@ namespace Algoserver.API.Services
                 else
                 {
                     result.TrendState = 3; // Drive
+                }
+
+                if (result.MonthlyTrend != result.TrendDirection)
+                {
+                    result.TrendState = 0;
                 }
             }
 
@@ -1236,13 +1246,14 @@ namespace Algoserver.API.Services
             }
             else
             {
-                granularityList.Add(1);
-                granularityList.Add(60);
-                granularityList.Add(300);
-                granularityList.Add(900);
-                granularityList.Add(3600);
-                granularityList.Add(14400);
-                granularityList.Add(86400);
+                granularityList.Add(TimeframeHelper.DRIVER_GRANULARITY);
+                granularityList.Add(TimeframeHelper.MIN1_GRANULARITY);
+                granularityList.Add(TimeframeHelper.MIN5_GRANULARITY);
+                granularityList.Add(TimeframeHelper.MIN15_GRANULARITY);
+                granularityList.Add(TimeframeHelper.HOURLY_GRANULARITY);
+                granularityList.Add(TimeframeHelper.HOUR4_GRANULARITY);
+                granularityList.Add(TimeframeHelper.DAILY_GRANULARITY);
+                granularityList.Add(TimeframeHelper.MONTHLY_GRANULARITY);
             }
 
             var mesa = new Dictionary<int, List<MesaLevelResponse>>();

@@ -157,11 +157,12 @@ namespace Algoserver.API.Services
             stopWatch.Start();
             var _1Mins = _historyService.Get1MinLongData();
             var _1Hour = _historyService.Get1HData();
+            var _1Day = _historyService.Get1DData();
             var count = 0;
             var summary = new List<MESADataSummary>();
             var mesaDataPoints = new Dictionary<string, Dictionary<int, List<MESADataPoint>>>();
 
-            if (_1Hour == null || _1Mins == null)
+            if (_1Hour == null || _1Mins == null || _1Day == null)
             {
                 return null;
             }
@@ -185,9 +186,17 @@ namespace Algoserver.API.Services
                     if (hourlyHistory == null || hourlyHistory.Bars == null || !hourlyHistory.Bars.Any())
                     {
                         continue;
+                    } 
+                    
+                    var dailyHistory = _1Day.FirstOrDefault((_) => String.Equals(_.Symbol, minHistory.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, minHistory.Exchange, StringComparison.InvariantCultureIgnoreCase));
+                    if (dailyHistory == null || dailyHistory.Bars == null || !dailyHistory.Bars.Any())
+                    {
+                        continue;
                     }
 
                     var hourly_calculation_input = hourlyHistory.Bars.Select(_ => _.Close);
+                    var daily_calculation_input = dailyHistory.Bars.Select(_ => _.Close);
+
                     var mesa1driver = TechCalculations.MESA(calculation_input.TakeLast(28000).ToList(), 0.0325, 0.0325);
                     var mesa1min = TechCalculations.MESA(calculation_input.TakeLast(32000).ToList(), 0.0085, 0.0085);
                     var mesa5min = TechCalculations.MESA(calculation_input.TakeLast(36000).ToList(), 0.0032, 0.0032);
@@ -195,6 +204,7 @@ namespace Algoserver.API.Services
                     var mesa1h = TechCalculations.MESA(calculation_input.TakeLast(44000).ToList(), 0.0007, 0.0007);
                     var mesa4h = TechCalculations.MESA(calculation_input.TakeLast(50000).ToList(), 0.00039, 0.00039);
                     var mesa1d = TechCalculations.MESA(hourly_calculation_input.TakeLast(3000).ToList(), 0.0085, 0.0085);
+                    var mesa1month = TechCalculations.MESA(daily_calculation_input.TakeLast(3000).ToList(), 0.0085, 0.0085);
 
                     var mesa1driverCut = mesa1driver.TakeLast(longMinHistoryCount).ToList();
                     var mesa1minCut = mesa1min.TakeLast(longMinHistoryCount).ToList();
@@ -266,6 +276,20 @@ namespace Algoserver.API.Services
                             s = (float)mesa1dCut[i].Slow,
                             t = (uint)hourTimesCut[i]
                         });
+                    } 
+                    
+                    var dailyTimesCut = dailyHistory.Bars.TakeLast(hourTfCount).Select(_ => _.Timestamp).ToList();
+                    var mesa1monthCut = mesa1month.TakeLast(hourTfCount).ToList();
+                    var mesa1monthDataPoints = new List<MESADataPoint>();
+
+                    for (var i = 0; i < dailyTimesCut.Count; i++)
+                    {
+                        mesa1monthDataPoints.Add(new MESADataPoint
+                        {
+                            f = (float)mesa1monthCut[i].Fast,
+                            s = (float)mesa1monthCut[i].Slow,
+                            t = (uint)dailyTimesCut[i]
+                        });
                     }
 
 
@@ -274,127 +298,142 @@ namespace Algoserver.API.Services
 
                     var key = datafeed + "_" + symbol;
                     var mesaDataPointsMap = new Dictionary<int, List<MESADataPoint>>();
-                    mesaDataPointsMap.Add(1, mesa1driverDataPoints);
-                    mesaDataPointsMap.Add(60, mesa1minDataPoints);
-                    mesaDataPointsMap.Add(300, mesa5minDataPoints);
-                    mesaDataPointsMap.Add(900, mesa15minDataPoints);
-                    mesaDataPointsMap.Add(3600, mesa1hDataPoints);
-                    mesaDataPointsMap.Add(14400, mesa4hDataPoints);
-                    mesaDataPointsMap.Add(86400, mesa1dDataPoints);
+                    mesaDataPointsMap.Add(TimeframeHelper.DRIVER_GRANULARITY, mesa1driverDataPoints);
+                    mesaDataPointsMap.Add(TimeframeHelper.MIN1_GRANULARITY, mesa1minDataPoints);
+                    mesaDataPointsMap.Add(TimeframeHelper.MIN5_GRANULARITY, mesa5minDataPoints);
+                    mesaDataPointsMap.Add(TimeframeHelper.MIN15_GRANULARITY, mesa15minDataPoints);
+                    mesaDataPointsMap.Add(TimeframeHelper.HOURLY_GRANULARITY, mesa1hDataPoints);
+                    mesaDataPointsMap.Add(TimeframeHelper.HOUR4_GRANULARITY, mesa4hDataPoints);
+                    mesaDataPointsMap.Add(TimeframeHelper.DAILY_GRANULARITY, mesa1dDataPoints);
+                    mesaDataPointsMap.Add(TimeframeHelper.MONTHLY_GRANULARITY, mesa1monthDataPoints);
                     mesaDataPoints.Add(key, mesaDataPointsMap);
                     SetMinuteMesaCache(mesaDataPointsMap, key);
 
                     count++;
 
                     var tfSummary = new Dictionary<int, MESADataPoint>();
-                    tfSummary.Add(1, mesa1driverDataPoints.LastOrDefault());
-                    tfSummary.Add(60, mesa1minDataPoints.LastOrDefault());
-                    tfSummary.Add(300, mesa5minDataPoints.LastOrDefault());
-                    tfSummary.Add(900, mesa15minDataPoints.LastOrDefault());
-                    tfSummary.Add(3600, mesa1hDataPoints.LastOrDefault());
-                    tfSummary.Add(14400, mesa4hDataPoints.LastOrDefault());
-                    tfSummary.Add(86400, mesa1dDataPoints.LastOrDefault());
+                    tfSummary.Add(TimeframeHelper.DRIVER_GRANULARITY, mesa1driverDataPoints.LastOrDefault());
+                    tfSummary.Add(TimeframeHelper.MIN1_GRANULARITY, mesa1minDataPoints.LastOrDefault());
+                    tfSummary.Add(TimeframeHelper.MIN5_GRANULARITY, mesa5minDataPoints.LastOrDefault());
+                    tfSummary.Add(TimeframeHelper.MIN15_GRANULARITY, mesa15minDataPoints.LastOrDefault());
+                    tfSummary.Add(TimeframeHelper.HOURLY_GRANULARITY, mesa1hDataPoints.LastOrDefault());
+                    tfSummary.Add(TimeframeHelper.HOUR4_GRANULARITY, mesa4hDataPoints.LastOrDefault());
+                    tfSummary.Add(TimeframeHelper.DAILY_GRANULARITY, mesa1dDataPoints.LastOrDefault());
+                    tfSummary.Add(TimeframeHelper.MONTHLY_GRANULARITY, mesa1monthDataPoints.LastOrDefault());
 
                     var tfAvgSummary = new Dictionary<int, float>();
-                    tfAvgSummary.Add(1, (float)mesa1driver.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1driver.Length);
-                    tfAvgSummary.Add(60, (float)mesa1min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1min.Length);
-                    tfAvgSummary.Add(300, (float)mesa5min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa5min.Length);
-                    tfAvgSummary.Add(900, (float)mesa15min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa15min.Length);
-                    tfAvgSummary.Add(3600, (float)mesa1h.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1h.Length);
-                    tfAvgSummary.Add(14400, (float)mesa4h.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa4h.Length);
-                    tfAvgSummary.Add(86400, (float)mesa1d.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1d.Length);
+                    tfAvgSummary.Add(TimeframeHelper.DRIVER_GRANULARITY, (float)mesa1driver.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1driver.Length);
+                    tfAvgSummary.Add(TimeframeHelper.MIN1_GRANULARITY, (float)mesa1min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1min.Length);
+                    tfAvgSummary.Add(TimeframeHelper.MIN5_GRANULARITY, (float)mesa5min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa5min.Length);
+                    tfAvgSummary.Add(TimeframeHelper.MIN15_GRANULARITY, (float)mesa15min.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa15min.Length);
+                    tfAvgSummary.Add(TimeframeHelper.HOURLY_GRANULARITY, (float)mesa1h.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1h.Length);
+                    tfAvgSummary.Add(TimeframeHelper.HOUR4_GRANULARITY, (float)mesa4h.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa4h.Length);
+                    tfAvgSummary.Add(TimeframeHelper.DAILY_GRANULARITY, (float)mesa1d.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1d.Length);
+                    tfAvgSummary.Add(TimeframeHelper.MONTHLY_GRANULARITY, (float)mesa1month.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1month.Length);
 
                     var totalStrength = 0f;
                     var timeframeStrengths = new Dictionary<int, float>();
-                    var d = tfSummary.GetValueOrDefault(1);
-                    var ast = tfAvgSummary.GetValueOrDefault(1);
+                    var d = tfSummary.GetValueOrDefault(TimeframeHelper.DRIVER_GRANULARITY);
+                    var ast = tfAvgSummary.GetValueOrDefault(TimeframeHelper.DRIVER_GRANULARITY);
                     if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
                         totalStrength += currentStrength * 0.033f;
-                        timeframeStrengths.Add(1, currentStrength);
+                        timeframeStrengths.Add(TimeframeHelper.DRIVER_GRANULARITY, currentStrength);
                     }
                     else
                     {
-                        timeframeStrengths.Add(1, 0);
+                        timeframeStrengths.Add(TimeframeHelper.DRIVER_GRANULARITY, 0);
                     }
 
-                    d = tfSummary.GetValueOrDefault(60);
-                    ast = tfAvgSummary.GetValueOrDefault(60);
+                    d = tfSummary.GetValueOrDefault(TimeframeHelper.MIN1_GRANULARITY);
+                    ast = tfAvgSummary.GetValueOrDefault(TimeframeHelper.MIN1_GRANULARITY);
                     if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
                         totalStrength += currentStrength * 0.066f;
-                        timeframeStrengths.Add(60, currentStrength);
+                        timeframeStrengths.Add(TimeframeHelper.MIN1_GRANULARITY, currentStrength);
                     }
                     else
                     {
-                        timeframeStrengths.Add(60, 0);
+                        timeframeStrengths.Add(TimeframeHelper.MIN1_GRANULARITY, 0);
                     }
 
-                    d = tfSummary.GetValueOrDefault(300);
-                    ast = tfAvgSummary.GetValueOrDefault(300);
+                    d = tfSummary.GetValueOrDefault(TimeframeHelper.MIN5_GRANULARITY);
+                    ast = tfAvgSummary.GetValueOrDefault(TimeframeHelper.MIN5_GRANULARITY);
                     if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
                         totalStrength += currentStrength * 0.1f;
-                        timeframeStrengths.Add(300, currentStrength);
+                        timeframeStrengths.Add(TimeframeHelper.MIN5_GRANULARITY, currentStrength);
                     }
                     else
                     {
-                        timeframeStrengths.Add(300, 0);
+                        timeframeStrengths.Add(TimeframeHelper.MIN5_GRANULARITY, 0);
                     }
 
-                    d = tfSummary.GetValueOrDefault(900);
-                    ast = tfAvgSummary.GetValueOrDefault(900);
+                    d = tfSummary.GetValueOrDefault(TimeframeHelper.MIN15_GRANULARITY);
+                    ast = tfAvgSummary.GetValueOrDefault(TimeframeHelper.MIN15_GRANULARITY);
                     if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
                         totalStrength += currentStrength * 0.15f;
-                        timeframeStrengths.Add(900, currentStrength);
+                        timeframeStrengths.Add(TimeframeHelper.MIN15_GRANULARITY, currentStrength);
                     }
                     else
                     {
-                        timeframeStrengths.Add(900, 0);
+                        timeframeStrengths.Add(TimeframeHelper.MIN15_GRANULARITY, 0);
                     }
 
-                    d = tfSummary.GetValueOrDefault(3600);
-                    ast = tfAvgSummary.GetValueOrDefault(3600);
+                    d = tfSummary.GetValueOrDefault(TimeframeHelper.HOURLY_GRANULARITY);
+                    ast = tfAvgSummary.GetValueOrDefault(TimeframeHelper.HOURLY_GRANULARITY);
                     if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
                         totalStrength += currentStrength * 0.2f;
-                        timeframeStrengths.Add(3600, currentStrength);
+                        timeframeStrengths.Add(TimeframeHelper.HOURLY_GRANULARITY, currentStrength);
                     }
                     else
                     {
-                        timeframeStrengths.Add(3600, 0);
+                        timeframeStrengths.Add(TimeframeHelper.HOURLY_GRANULARITY, 0);
                     }
 
-                    d = tfSummary.GetValueOrDefault(14400);
-                    ast = tfAvgSummary.GetValueOrDefault(14400);
+                    d = tfSummary.GetValueOrDefault(TimeframeHelper.HOUR4_GRANULARITY);
+                    ast = tfAvgSummary.GetValueOrDefault(TimeframeHelper.HOUR4_GRANULARITY);
                     if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
                         totalStrength += currentStrength * 0.2f;
-                        timeframeStrengths.Add(14400, currentStrength);
+                        timeframeStrengths.Add(TimeframeHelper.HOUR4_GRANULARITY, currentStrength);
                     }
                     else
                     {
-                        timeframeStrengths.Add(14400, 0);
+                        timeframeStrengths.Add(TimeframeHelper.HOUR4_GRANULARITY, 0);
                     }
 
-                    d = tfSummary.GetValueOrDefault(86400);
-                    ast = tfAvgSummary.GetValueOrDefault(86400);
+                    d = tfSummary.GetValueOrDefault(TimeframeHelper.DAILY_GRANULARITY);
+                    ast = tfAvgSummary.GetValueOrDefault(TimeframeHelper.DAILY_GRANULARITY);
                     if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
                         totalStrength += currentStrength * 0.25f;
-                        timeframeStrengths.Add(86400, currentStrength);
+                        timeframeStrengths.Add(TimeframeHelper.DAILY_GRANULARITY, currentStrength);
                     }
                     else
                     {
-                        timeframeStrengths.Add(86400, 0);
+                        timeframeStrengths.Add(TimeframeHelper.DAILY_GRANULARITY, 0);
+                    }
+
+                    d = tfSummary.GetValueOrDefault(TimeframeHelper.MONTHLY_GRANULARITY);
+                    ast = tfAvgSummary.GetValueOrDefault(TimeframeHelper.MONTHLY_GRANULARITY);
+                    if (d != null && ast > 0)
+                    {
+                        var currentStrength = (d.f - d.s) / ast;
+                        timeframeStrengths.Add(TimeframeHelper.MONTHLY_GRANULARITY, currentStrength);
+                    }
+                    else
+                    {
+                        timeframeStrengths.Add(TimeframeHelper.MONTHLY_GRANULARITY, 0);
                     }
 
                     var length = calculation_input.Count();

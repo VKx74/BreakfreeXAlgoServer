@@ -43,6 +43,7 @@ namespace Algoserver.API.Models.REST
         public decimal AvgOscillator { get; set; }
         public int TrendDirection { get; set; }
         public int TrendState { get; set; }
+        public int MonthlyTrend { get; set; }
         public long Time { get; set; }
     }
 }
