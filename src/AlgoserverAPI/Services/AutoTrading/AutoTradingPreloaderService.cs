@@ -69,7 +69,7 @@ namespace Algoserver.API.Services.CacheServices
             var totalCount = 0m;
             foreach (var symbol in symbols)
             {
-                var cnt = 1 / relatedSymbolsCount(symbol.Key, symbols);
+                var cnt = 1m / relatedSymbolsCount(symbol.Key, symbols);
                 totalCount += cnt;
                 result.Add(new AutoTradingInstrumentsResponse
                 {
@@ -87,7 +87,7 @@ namespace Algoserver.API.Services.CacheServices
                 return result;
             }
 
-            var weight = 1 / totalCount;
+            var weight = 1m / totalCount;
 
             foreach (var r in result)
             {
@@ -132,6 +132,7 @@ namespace Algoserver.API.Services.CacheServices
             {
                 return 1;
             }
+
             var curency1 = curencies[0];
             var curency2 = curencies[1];
 
@@ -169,19 +170,19 @@ namespace Algoserver.API.Services.CacheServices
 
         private int getSymbolsType(string symbol)
         {
-            if (InstrumentsHelper.ForexCommodities.All((_) => string.Equals(_, symbol, StringComparison.InvariantCultureIgnoreCase)))
+            if (InstrumentsHelper.ForexCommodities.Any((_) => string.Equals(_, symbol, StringComparison.InvariantCultureIgnoreCase)))
             {
                 return 1;
             }
-            if (InstrumentsHelper.ForexBounds.All((_) => string.Equals(_, symbol, StringComparison.InvariantCultureIgnoreCase)))
+            if (InstrumentsHelper.ForexBounds.Any((_) => string.Equals(_, symbol, StringComparison.InvariantCultureIgnoreCase)))
             {
                 return 2;
             }
-            if (InstrumentsHelper.ForexIndices.All((_) => string.Equals(_, symbol, StringComparison.InvariantCultureIgnoreCase)))
+            if (InstrumentsHelper.ForexIndices.Any((_) => string.Equals(_, symbol, StringComparison.InvariantCultureIgnoreCase)))
             {
                 return 3;
             }
-            if (InstrumentsHelper.ForexMetals.All((_) => string.Equals(_, symbol, StringComparison.InvariantCultureIgnoreCase)))
+            if (InstrumentsHelper.ForexMetals.Any((_) => string.Equals(_, symbol, StringComparison.InvariantCultureIgnoreCase)))
             {
                 return 4;
             }
