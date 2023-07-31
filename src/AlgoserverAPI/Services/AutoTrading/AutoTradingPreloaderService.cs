@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Algoserver.API.Helpers;
 using Algoserver.API.Models.REST;
 
 namespace Algoserver.API.Services.CacheServices
@@ -65,13 +66,32 @@ namespace Algoserver.API.Services.CacheServices
                 }
             }
 
+            var totalCount = 0m;
             foreach (var symbol in symbols)
             {
+                var cnt = 1 / relatedSymbolsCount(symbol.Key, symbols);
+                totalCount += cnt;
                 result.Add(new AutoTradingInstrumentsResponse
                 {
                     Symbol = symbol.Key,
-                    Risk = 1m / symbols.Count
+                    Risk = cnt
                 });
+            }
+
+            if (totalCount <= 0)
+            {
+                foreach (var r in result)
+                {
+                    r.Risk = 1m / symbols.Count;
+                }
+                return result;
+            }
+
+            var weight = 1 / totalCount;
+
+            foreach (var r in result)
+            {
+                r.Risk = weight * r.Risk;
             }
 
             return result;
@@ -102,5 +122,71 @@ namespace Algoserver.API.Services.CacheServices
             var info = await _algoService.CalculateAutoTradingInfoAsync(symbol, datafeed, exchange, type);
             return info;
         }
+
+        private int relatedSymbolsCount(string symbol, Dictionary<string, AutoTradingSymbolInfoResponse> symbols)
+        {
+            var symbolType = getSymbolsType(symbol);
+            var curencies = symbol.Split("_");
+
+            if (curencies.Length != 2)
+            {
+                return 1;
+            }
+            var curency1 = curencies[0];
+            var curency2 = curencies[1];
+
+
+            var count = 1;
+            foreach (var s in symbols)
+            {
+                var c = s.Key.Split("_");
+                if (c.Length != 2 || s.Key == symbol)
+                {
+                    continue;
+                }
+
+                var sT = getSymbolsType(s.Key);
+                if (symbolType != sT)
+                {
+                    continue;
+                }
+
+                var c1 = c[0];
+                var c2 = c[1];
+
+                if (c1 == curency1)
+                {
+                    count++;
+                }
+                if (c2 == curency2)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private int getSymbolsType(string symbol)
+        {
+            if (InstrumentsHelper.ForexCommodities.All((_) => string.Equals(_, symbol, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return 1;
+            }
+            if (InstrumentsHelper.ForexBounds.All((_) => string.Equals(_, symbol, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return 2;
+            }
+            if (InstrumentsHelper.ForexIndices.All((_) => string.Equals(_, symbol, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return 3;
+            }
+            if (InstrumentsHelper.ForexMetals.All((_) => string.Equals(_, symbol, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return 4;
+            }
+            return 0;
+        }
+
     }
 }
