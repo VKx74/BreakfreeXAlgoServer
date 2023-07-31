@@ -204,7 +204,7 @@ namespace Algoserver.API.Services
                     var mesa1h = TechCalculations.MESA(calculation_input.TakeLast(44000).ToList(), 0.0007, 0.0007);
                     var mesa4h = TechCalculations.MESA(calculation_input.TakeLast(50000).ToList(), 0.00039, 0.00039);
                     var mesa1d = TechCalculations.MESA(hourly_calculation_input.TakeLast(3000).ToList(), 0.0085, 0.0085);
-                    var mesa1month = TechCalculations.MESA(daily_calculation_input.TakeLast(3000).ToList(), 0.0085, 0.0085);
+                    var mesa1month = TechCalculations.MESA(daily_calculation_input.TakeLast(3000).ToList(), 0.09, 0.09);
 
                     var mesa1driverCut = mesa1driver.TakeLast(longMinHistoryCount).ToList();
                     var mesa1minCut = mesa1min.TakeLast(longMinHistoryCount).ToList();
