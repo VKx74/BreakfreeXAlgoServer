@@ -1,7 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Reflection;
-using System.Threading;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
@@ -9,13 +6,13 @@ using Algoserver.API.Models.REST;
 using Algoserver.API.Services;
 using System;
 using Algoserver.API.Services.CacheServices;
-using System.Linq;
 using System.Text;
 using Algoserver.API.Helpers;
 
 namespace Algoserver.API.Controllers
 {
 
+    [Route("apex")]
     public class AutoTraderController : AlgoControllerBase
     {
         private ScannerResultService _scannerResultService;
@@ -37,19 +34,7 @@ namespace Algoserver.API.Controllers
             _autoTradingRateLimitsService = autoTradingRateLimitsService;
         }
 
-        [HttpPost(Routes.SymbolInfo)]
-        [ProducesResponseType(typeof(Response<string>), 200)]
-        public async Task<IActionResult> GetSymbolInfoAsync([FromBody] AutoTradingSymbolInfoRequest request)
-        {
-            if (!ModelState.IsValid)
-            {
-                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
-            }
-
-            return await CalculateSymbolInfoAsync(request);
-        }
-
-        [HttpPost(Routes.AutoTradeInfo)]
+        [HttpPost(Routes.ApexStream)]
         [ProducesResponseType(typeof(Response<string>), 200)]
         public async Task<IActionResult> GetAutoTradeInfoAsync([FromBody] AutoTradingSymbolInfoRequest request)
         {
@@ -76,7 +61,7 @@ namespace Algoserver.API.Controllers
             return await CalculateSymbolInfoAsync(request);
         }
 
-        [HttpPost(Routes.AutoTradeInstruments)]
+        [HttpPost(Routes.ApexMarkets)]
         [ProducesResponseType(typeof(Response<string>), 200)]
         public async Task<IActionResult> GetAutoTradeInstrumentsAsync([FromBody] AutoTradeInstrumentsRequest request)
         {

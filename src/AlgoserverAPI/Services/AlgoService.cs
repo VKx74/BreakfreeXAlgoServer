@@ -721,8 +721,8 @@ namespace Algoserver.API.Services
                 sh = sh.TakeWhile((_) => result.TrendDirection > 0 ? _ > 0 : _ < 0).ToList();
                 sh = sh.Select((_) => Math.Abs(_)).ToList();
                 sh.Reverse();
-                var period = 72;
-                var count = 72;
+                var period = 66;
+                var count = 66;
                 var aroon = TechCalculations.AroonOscillator(sh, period);
                 var aroonLast = aroon.TakeLast(count).ToList();
                 var sum = aroonLast.Sum();

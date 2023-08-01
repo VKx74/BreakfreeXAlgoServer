@@ -28,9 +28,8 @@
         public const string TrendsGlobalSummary = "trends-global-summary";
         public const string TrendsGlobal = "trends-global";
         public const string NeuralAlgoGlobal = "neural-algo-global";
-        public const string SymbolInfo = "symbol-info";
-        public const string AutoTradeInfo = "auto-trade-info";
-        public const string AutoTradeInstruments = "auto-trade-instruments";
+        public const string ApexStream = "stream";
+        public const string ApexMarkets = "markets";
         public const string Version = "version";
     }
 }
