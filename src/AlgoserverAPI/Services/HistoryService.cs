@@ -24,11 +24,11 @@ namespace Algoserver.API.Services
         private readonly ILogger<HistoryService> _logger;
         private readonly AuthService _auth;
         private readonly string _serverUrl;
-        private readonly ICacheService _cache;
+        private readonly IInMemoryCache _cache;
         private string _cachePrefix = "History_";
         private readonly Dictionary<string, Task<HistoryData>> _requestCache = new Dictionary<string, Task<HistoryData>>();
 
-        public HistoryService(ILogger<HistoryService> logger, IConfiguration configuration, ICacheService cache, AuthService auth)
+        public HistoryService(ILogger<HistoryService> logger, IConfiguration configuration, IInMemoryCache cache, AuthService auth)
         {
             _logger = logger;
             _cache = cache;
@@ -76,7 +76,7 @@ namespace Algoserver.API.Services
                     else if (granularity > 60 * 5)
                     {
                         _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(5));
-                    } 
+                    }
                     else if (granularity > 60)
                     {
                         _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(3));

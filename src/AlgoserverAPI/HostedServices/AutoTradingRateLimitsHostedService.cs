@@ -7,29 +7,31 @@ using Microsoft.Extensions.Logging;
 
 namespace Algoserver.API.HostedServices
 {
-    public class EconomicCalendarLoaderHostedService : BackgroundService
+    public class AutoTradingRateLimitsHostedService : BackgroundService
     {
         private int _prevHour = -1;
-        private readonly ILogger<EconomicCalendarLoaderHostedService> _logger;
-        private readonly EconomicCalendarService _economicCalendarService;
-        private Timer _timer;
+        private readonly ILogger<AutoTradingRateLimitsHostedService> _logger;
+        private readonly AutoTradingRateLimitsService _autoTradingRateLimitsService;
 
-        public EconomicCalendarLoaderHostedService(ILogger<EconomicCalendarLoaderHostedService> logger, EconomicCalendarService economicCalendarService)
+        public AutoTradingRateLimitsHostedService(ILogger<AutoTradingRateLimitsHostedService> logger, AutoTradingRateLimitsService autoTradingRateLimitsService)
         {
             _logger = logger;
-            _economicCalendarService = economicCalendarService;
+            _autoTradingRateLimitsService = autoTradingRateLimitsService;
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
             {
                 var currentHour = DateTime.UtcNow.Hour;
-                var currentMinute = DateTime.UtcNow.Minute;
                 try
                 {
                     if (currentHour != _prevHour)
                     {
-                        await _economicCalendarService.LoadEconomicEvents();
+                        _autoTradingRateLimitsService.Clear();
+                    }
+                    else
+                    {
+                        _autoTradingRateLimitsService.Decrease();
                     }
                 }
                 catch (Exception ex)
@@ -39,7 +41,7 @@ namespace Algoserver.API.HostedServices
 
                 _prevHour = currentHour;
 
-                await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken).ConfigureAwait(false);
+                await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken).ConfigureAwait(false);
             }
         }
     }

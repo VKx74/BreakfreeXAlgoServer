@@ -171,11 +171,27 @@ namespace Algoserver.API.Services
             });
         }
 
+        public Task<AutoTradingSymbolInfoResponse> CalculateAutoTradingInfoAsync(string symbol, string datafeed, string exchange, string type)
+        {
+            return Task.Run(() =>
+            {
+                return calculateAutoTradingInfoAsync(symbol, datafeed, exchange, type);
+            });
+        }
+
         public Task<MesaResponse> GetMesaAsync(string symbol, string datafeed, List<int> granularity = null)
         {
             return Task.Run(() =>
             {
                 return getMesaAsync(symbol, datafeed, granularity);
+            });
+        }
+
+        public Task<MLDataResponse> CalculateSRAsync(string symbol, int granularity)
+        {
+            return Task.Run(async () =>
+            {
+                return await calculateSRAsync(symbol, granularity);
             });
         }
 
@@ -555,6 +571,185 @@ namespace Algoserver.API.Services
             return result;
         }
 
+        private async Task<AutoTradingSymbolInfoResponse> calculateAutoTradingInfoAsync(string symbol, string datafeed, string exchange, string type)
+        {
+            var levelsResponse = new Dictionary<int, LevelsV3Response>();
+            var granularity = 60;
+            var granularity_list = new List<int>();
+            granularity_list.Add(TimeframeHelper.MIN1_GRANULARITY);
+            granularity_list.Add(TimeframeHelper.MIN5_GRANULARITY);
+            granularity_list.Add(TimeframeHelper.MIN15_GRANULARITY);
+            granularity_list.Add(TimeframeHelper.HOURLY_GRANULARITY);
+            granularity_list.Add(TimeframeHelper.HOUR4_GRANULARITY);
+            granularity_list.Add(TimeframeHelper.DAILY_GRANULARITY);
+            var sar_additional = await CalculateTradeZoneLevels(granularity, granularity_list, symbol, datafeed, exchange, type, 0, 100);
+
+            // var mesaGranularity = new List<int>();
+            // foreach (var item in sar_additional)
+            // {
+            //     var mesaRequiredTf = GetTrendIndexGranularity(item.Key);
+            //     mesaGranularity.Add(mesaRequiredTf);
+            // }
+            var mesa_additional = await getMesaAsync(symbol, datafeed, null);
+            var total_strength = 0f;
+            var monthlyTrend = 0;
+
+            if (mesa_additional != null && mesa_additional.mesa != null && mesa_additional.mesa.Any())
+            {
+                var summaryForSymbol = _mesaPreloaderService.GetMesaSummary(symbol, datafeed);
+                if (summaryForSymbol != null)
+                {
+                    total_strength = summaryForSymbol.TotalStrength;
+                    if (summaryForSymbol.AvgStrength.TryGetValue(TimeframeHelper.MONTHLY_GRANULARITY, out var str) && summaryForSymbol.TimeframeStrengths.TryGetValue(TimeframeHelper.MONTHLY_GRANULARITY, out var tf_str))
+                    {
+                        monthlyTrend = tf_str > 0 ? 1 : -1;
+                    }
+                }
+
+                foreach (var item in sar_additional)
+                {
+                    var mesaRequiredTf = GetTrendIndexGranularity(item.Key);
+                    if (!mesa_additional.mesa.ContainsKey(mesaRequiredTf))
+                    {
+                        continue;
+                    }
+
+                    var levelsV3 = new LevelsV3Response();
+                    levelsV3.sar = item.Value;
+                    levelsV3.mesa = new List<MesaTrendV3Response>();
+                    var mesa_additional_values = mesa_additional.mesa[mesaRequiredTf];
+
+                    if (summaryForSymbol != null && summaryForSymbol.AvgStrength.TryGetValue(mesaRequiredTf, out var str) && summaryForSymbol.TimeframeStrengths.TryGetValue(mesaRequiredTf, out var tf_str))
+                    {
+                        levelsV3.mesa_avg = str;
+                        levelsV3.strength = tf_str;
+                    }
+
+                    for (var i = 0; i < mesa_additional_values.Count; i++)
+                    {
+                        levelsV3.mesa.Add(new MesaTrendV3Response
+                        {
+                            f = mesa_additional_values[i].f,
+                            s = mesa_additional_values[i].s,
+                            t = mesa_additional_values[i].t
+                        });
+                    }
+
+                    levelsResponse.Add(item.Key, levelsV3);
+                }
+            }
+
+            var sl_price = 0m;
+            if (levelsResponse.TryGetValue(TimeframeHelper.HOUR4_GRANULARITY, out var item4HData))
+            {
+                var lastHour4Sar = item4HData.sar.LastOrDefault();
+                if (lastHour4Sar != null)
+                {
+                    if (total_strength > 0)
+                    {
+                        sl_price = lastHour4Sar.s_m18;
+                    }
+                    if (total_strength < 0)
+                    {
+                        sl_price = lastHour4Sar.r_p18;
+                    }
+                }
+            }
+
+            var result = new AutoTradingSymbolInfoResponse
+            {
+                TotalStrength = total_strength,
+                SL = sl_price,
+                Entry1M = GetEntry(TimeframeHelper.MIN1_GRANULARITY, total_strength, levelsResponse),
+                Entry5M = GetEntry(TimeframeHelper.MIN5_GRANULARITY, total_strength, levelsResponse),
+                Entry15M = GetEntry(TimeframeHelper.MIN15_GRANULARITY, total_strength, levelsResponse),
+                Entry1H = GetEntry(TimeframeHelper.HOURLY_GRANULARITY, total_strength, levelsResponse),
+                Entry4H = GetEntry(TimeframeHelper.HOUR4_GRANULARITY, total_strength, levelsResponse),
+                Entry1D = GetEntry(TimeframeHelper.DAILY_GRANULARITY, total_strength, levelsResponse),
+
+                HalfBand1M = GetHalfBand(TimeframeHelper.MIN1_GRANULARITY, total_strength, levelsResponse),
+                HalfBand5M = GetHalfBand(TimeframeHelper.MIN5_GRANULARITY, total_strength, levelsResponse),
+                HalfBand15M = GetHalfBand(TimeframeHelper.MIN15_GRANULARITY, total_strength, levelsResponse),
+                HalfBand1H = GetHalfBand(TimeframeHelper.HOURLY_GRANULARITY, total_strength, levelsResponse),
+                HalfBand4H = GetHalfBand(TimeframeHelper.HOUR4_GRANULARITY, total_strength, levelsResponse),
+                HalfBand1D = GetHalfBand(TimeframeHelper.DAILY_GRANULARITY, total_strength, levelsResponse),
+
+                TP1M = GetTP(TimeframeHelper.MIN1_GRANULARITY, levelsResponse),
+                TP5M = GetTP(TimeframeHelper.MIN5_GRANULARITY, levelsResponse),
+                TP15M = GetTP(TimeframeHelper.MIN15_GRANULARITY, levelsResponse),
+                TP1H = GetTP(TimeframeHelper.HOURLY_GRANULARITY, levelsResponse),
+                TP4H = GetTP(TimeframeHelper.HOUR4_GRANULARITY, levelsResponse),
+                TP1D = GetTP(TimeframeHelper.DAILY_GRANULARITY, levelsResponse),
+
+                Strength1M = GetStrength(TimeframeHelper.MIN1_GRANULARITY, levelsResponse),
+                Strength5M = GetStrength(TimeframeHelper.MIN5_GRANULARITY, levelsResponse),
+                Strength15M = GetStrength(TimeframeHelper.MIN15_GRANULARITY, levelsResponse),
+                Strength1H = GetStrength(TimeframeHelper.HOURLY_GRANULARITY, levelsResponse),
+                Strength4H = GetStrength(TimeframeHelper.HOUR4_GRANULARITY, levelsResponse),
+                Strength1D = GetStrength(TimeframeHelper.DAILY_GRANULARITY, levelsResponse),
+
+                Time = AlgoHelper.UnixTimeNow(),
+                MonthlyTrend = monthlyTrend
+            };
+
+            var minStrength1h = AutoTradingParametersHelper.GetStrength1H(symbol);
+            var minStrength4h = AutoTradingParametersHelper.GetStrength4H(symbol);
+            var minStrength1d = AutoTradingParametersHelper.GetStrength1D(symbol);
+
+            result.TrendDirection = 0;
+
+            if (total_strength > 0)
+            {
+                if ((result.Strength1H * 100 >= minStrength1h) && (result.Strength4H * 100 >= minStrength4h) && (result.Strength1D * 100 >= minStrength1d))
+                {
+                    result.TrendDirection = 1;
+                }
+            }
+            else if (total_strength < 0)
+            {
+                if ((result.Strength1H * 100 <= minStrength1h * -1) && (result.Strength4H * 100 <= minStrength4h * -1) && (result.Strength1D * 100 <= minStrength1d * -1))
+                {
+                    result.TrendDirection = -1;
+                }
+            }
+
+            var stateHistory = levelsResponse.GetValueOrDefault(TimeframeHelper.HOUR4_GRANULARITY);
+            if (stateHistory != null && result.TrendDirection != 0)
+            {
+                var sh = stateHistory.mesa.Select((_) => (decimal)(_.f - _.s) / (decimal)stateHistory.mesa_avg * 100).ToList();
+                sh.Reverse();
+                sh = sh.TakeWhile((_) => result.TrendDirection > 0 ? _ > 0 : _ < 0).ToList();
+                sh = sh.Select((_) => Math.Abs(_)).ToList();
+                sh.Reverse();
+                var period = AutoTradingParametersHelper.GetAroonPeriod(symbol);
+                var count = AutoTradingParametersHelper.GetAroonCount(symbol);
+                var aroon = TechCalculations.AroonOscillator(sh, period);
+                var aroonLast = aroon.TakeLast(count).ToList();
+                var sum = aroonLast.Sum();
+                var avg = sum / count;
+                result.AvgOscillator = avg;
+                if (avg < -30)
+                {
+                    result.TrendState = 1; // Tail
+                }
+                else if (avg < 5)
+                {
+                    result.TrendState = 2; // Capitulation
+                }
+                else
+                {
+                    result.TrendState = 3; // Drive
+                }
+
+                if (result.MonthlyTrend != result.TrendDirection)
+                {
+                    result.TrendState = 0;
+                }
+            }
+
+            return result;
+        }
+
         private async Task<BandsDescriptionV3Data> CalculateV3Levels(InputDataContainer container, CalculationRequestV3 req)
         {
             var result = new Dictionary<int, LevelsV3Response>();
@@ -573,22 +768,6 @@ namespace Algoserver.API.Services
             if (mesa_additional != null && mesa_additional.mesa != null && mesa_additional.mesa.Any())
             {
                 var summaryForSymbol = _mesaPreloaderService.GetMesaSummary(req.Instrument.Id, req.Instrument.Datafeed);
-
-                var startDate = 0L;
-                foreach (var item in sar_additional)
-                {
-                    var firstValue = item.Value.FirstOrDefault();
-                    if (firstValue == null)
-                    {
-                        continue;
-                    }
-
-                    if (startDate == 0 || firstValue.date < startDate)
-                    {
-                        startDate = firstValue.date;
-                    }
-
-                }
 
                 if (summaryForSymbol != null)
                 {
@@ -700,17 +879,11 @@ namespace Algoserver.API.Services
 
         private int GetTrendIndexGranularity(int tf)
         {
-            // if (TimeframeHelper.MIN1_GRANULARITY == tf)
-            // {
-            //      return TimeframeHelper.DRIVER_GRANULARITY; 
-            // }
             return tf;
         }
 
         private async Task<Dictionary<int, List<SaRResponse>>> CalculateTradeZoneLevels(InputDataContainer container, CalculationRequestV3 req)
         {
-            var levelsResult = new Dictionary<int, List<SaRResponse>>();
-
             var granularity = AlgoHelper.ConvertTimeframeToGranularity(container.TimeframeInterval, container.TimeframePeriod);
             var granularity_list = new List<int>();
             granularity_list.Add(granularity);
@@ -743,13 +916,21 @@ namespace Algoserver.API.Services
                 granularity_list.Add(TimeframeHelper.DAILY_GRANULARITY);
             }
 
+            var result = await CalculateTradeZoneLevels(granularity, granularity_list, container.Symbol, container.Datafeed, container.Exchange, container.Type, container.ReplayBack, req.BarsCount);
+            return result;
+        }
+
+        private async Task<Dictionary<int, List<SaRResponse>>> CalculateTradeZoneLevels(int granularity, List<int> granularity_list, string symbol, string datafeed, string exchange, string type, int replayBack, int? barsCount)
+        {
+            var levelsResult = new Dictionary<int, List<SaRResponse>>();
+
             var tasksToWait = new List<Task<HistoryData>>();
 
             foreach (var g in granularity_list)
             {
                 try
                 {
-                    var task = _historyService.GetHistory(container.Symbol, g, container.Datafeed, container.Exchange, container.Type, container.ReplayBack, req.BarsCount.GetValueOrDefault(0));
+                    var task = _historyService.GetHistory(symbol, g, datafeed, exchange, type, replayBack, barsCount.GetValueOrDefault(0));
                     tasksToWait.Add(task);
                 }
                 catch (Exception ex)
@@ -764,9 +945,6 @@ namespace Algoserver.API.Services
                 foreach (var historicalData in historicalDataArray)
                 {
                     var granularityDiff = historicalData.Granularity / granularity;
-                    // var historyCount = (int)(req.BarsCount.GetValueOrDefault(historicalData.Bars.Count) / granularityDiff) + 500;
-
-                    // var cutBars = historicalData.Bars.TakeLast(historyCount);
                     var high = historicalData.Bars.Select(_ => _.High);
                     var low = historicalData.Bars.Select(_ => _.Low);
                     var dates = historicalData.Bars.Select(_ => _.Timestamp).ToList();
@@ -788,7 +966,7 @@ namespace Algoserver.API.Services
                         });
                     }
 
-                    var count = (int)(req.BarsCount.GetValueOrDefault(sar.Count) / granularityDiff) + 1;
+                    var count = (int)(barsCount.GetValueOrDefault(sar.Count) / granularityDiff) + 1;
                     levelsResult.Add((int)(historicalData.Granularity), sar.TakeLast(count).ToList());
                 }
             }
@@ -1059,14 +1237,50 @@ namespace Algoserver.API.Services
             }
         }
 
-        // -------- for ML //
-
-        public Task<MLDataResponse> CalculateSRAsync(string symbol, int granularity)
+        private async Task<MesaResponse> getMesaAsync(string symbol, string datafeed, List<int> granularity = null)
         {
-            return Task.Run(async () =>
+            var granularityList = new List<int>();
+            if (granularity != null && granularity.Any())
             {
-                return await calculateSRAsync(symbol, granularity);
-            });
+                granularityList = granularity.ToList();
+            }
+            else
+            {
+                granularityList.Add(TimeframeHelper.DRIVER_GRANULARITY);
+                granularityList.Add(TimeframeHelper.MIN1_GRANULARITY);
+                granularityList.Add(TimeframeHelper.MIN5_GRANULARITY);
+                granularityList.Add(TimeframeHelper.MIN15_GRANULARITY);
+                granularityList.Add(TimeframeHelper.HOURLY_GRANULARITY);
+                granularityList.Add(TimeframeHelper.HOUR4_GRANULARITY);
+                granularityList.Add(TimeframeHelper.DAILY_GRANULARITY);
+                granularityList.Add(TimeframeHelper.MONTHLY_GRANULARITY);
+            }
+
+            var mesa = new Dictionary<int, List<MesaLevelResponse>>();
+            try
+            {
+                var mesaDataPointsMap = _mesaPreloaderService.GetMesa(symbol, datafeed);
+                foreach (var i in mesaDataPointsMap)
+                {
+                    if (!granularityList.Contains(i.Key))
+                    {
+                        continue;
+                    }
+
+                    mesa.Add(i.Key, i.Value.Select((_) => new MesaLevelResponse
+                    {
+                        f = _.f,
+                        s = _.s,
+                        t = _.t
+                    }).ToList());
+                }
+            }
+            catch (Exception ex) { }
+
+            return new MesaResponse
+            {
+                mesa = mesa
+            };
         }
 
         private async Task<MLDataResponse> calculateSRAsync(string symbol, int granularity)
@@ -1110,49 +1324,76 @@ namespace Algoserver.API.Services
             return res;
         }
 
-        public async Task<MesaResponse> getMesaAsync(string symbol, string datafeed, List<int> granularity = null)
+        private decimal GetEntry(int granularity, float strength, Dictionary<int, LevelsV3Response> data)
         {
-            var granularityList = new List<int>();
-            if (granularity != null && granularity.Any())
+            if (data.TryGetValue(granularity, out var item))
             {
-                granularityList = granularity.ToList();
-            }
-            else
-            {
-                granularityList.Add(1);
-                granularityList.Add(60);
-                granularityList.Add(300);
-                granularityList.Add(900);
-                granularityList.Add(3600);
-                granularityList.Add(14400);
-                granularityList.Add(86400);
-            }
-
-            var mesa = new Dictionary<int, List<MesaLevelResponse>>();
-            try
-            {
-                var mesaDataPointsMap = _mesaPreloaderService.GetMesa(symbol, datafeed);
-                foreach (var i in mesaDataPointsMap)
+                var lastSar = item.sar.LastOrDefault();
+                if (lastSar == null)
                 {
-                    if (!granularityList.Contains(i.Key))
-                    {
-                        continue;
-                    }
+                    return 0;
+                }
 
-                    mesa.Add(i.Key, i.Value.Select((_) => new MesaLevelResponse
-                    {
-                        f = _.f,
-                        s = _.s,
-                        t = _.t
-                    }).ToList());
+                if (strength > 0)
+                {
+                    return lastSar.s;
+                }
+                if (strength < 0)
+                {
+                    return lastSar.r;
                 }
             }
-            catch (Exception ex) { }
-
-            return new MesaResponse
-            {
-                mesa = mesa
-            };
+            return 0;
         }
+
+        private decimal GetTP(int granularity, Dictionary<int, LevelsV3Response> data)
+        {
+            if (data.TryGetValue(granularity, out var item))
+            {
+                var lastSar = item.sar.LastOrDefault();
+                if (lastSar == null)
+                {
+                    return 0;
+                }
+
+                return lastSar.n;
+            }
+            return 0;
+        }
+
+        private decimal GetStrength(int granularity, Dictionary<int, LevelsV3Response> data)
+        {
+            if (data.TryGetValue(granularity, out var item))
+            {
+                return (decimal)item.strength;
+            }
+            return 0;
+        }
+
+        private decimal GetHalfBand(int granularity, float strength, Dictionary<int, LevelsV3Response> data)
+        {
+            if (data.TryGetValue(granularity, out var item))
+            {
+                var lastSar = item.sar.LastOrDefault();
+                if (lastSar == null)
+                {
+                    return 0;
+                }
+
+                var rH = (lastSar.r_p28 - lastSar.r) / 6;
+                var sH = (lastSar.s - lastSar.s_m28) / 6;
+
+                if (strength > 0)
+                {
+                    return sH;
+                }
+                if (strength < 0)
+                {
+                    return rH;
+                }
+            }
+            return 0;
+        }
+
     }
 }

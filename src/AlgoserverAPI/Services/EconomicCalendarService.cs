@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 
 namespace Algoserver.API.Services
 {
+
     public class EconomicCalendarService
     {
         private ICacheService _cache;
@@ -26,7 +27,7 @@ namespace Algoserver.API.Services
             {
                 if (_cache.TryGetValue<List<EconomicEvent>>(_cachePrefix, _calendarCacheKey, out var cachedResponse))
                 {
-                   return cachedResponse;
+                    return cachedResponse;
                 }
                 return new List<EconomicEvent>();
             }

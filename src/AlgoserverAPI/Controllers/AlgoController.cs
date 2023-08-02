@@ -13,7 +13,6 @@ using System.Linq;
 
 namespace Algoserver.API.Controllers
 {
-
     public class AlgoController : AlgoControllerBase
     {
         private ScannerResultService _scannerResultService;
