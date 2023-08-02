@@ -692,9 +692,9 @@ namespace Algoserver.API.Services
                 MonthlyTrend = monthlyTrend
             };
 
-            var minStrength1h = 1;
-            var minStrength4h = 1;
-            var minStrength1d = 1;
+            var minStrength1h = 66;
+            var minStrength4h = 66;
+            var minStrength1d = 66;
 
             result.TrendDirection = 0;
 
