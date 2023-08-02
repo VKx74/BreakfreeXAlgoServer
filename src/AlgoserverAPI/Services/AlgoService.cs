@@ -692,9 +692,9 @@ namespace Algoserver.API.Services
                 MonthlyTrend = monthlyTrend
             };
 
-            var minStrength1h = 66;
-            var minStrength4h = 66;
-            var minStrength1d = 66;
+            var minStrength1h = AutoTradingParametersHelper.GetStrength1H(symbol);
+            var minStrength4h = AutoTradingParametersHelper.GetStrength4H(symbol);
+            var minStrength1d = AutoTradingParametersHelper.GetStrength1D(symbol);
 
             result.TrendDirection = 0;
 
@@ -721,8 +721,8 @@ namespace Algoserver.API.Services
                 sh = sh.TakeWhile((_) => result.TrendDirection > 0 ? _ > 0 : _ < 0).ToList();
                 sh = sh.Select((_) => Math.Abs(_)).ToList();
                 sh.Reverse();
-                var period = 66;
-                var count = 66;
+                var period = AutoTradingParametersHelper.GetAroonPeriod(symbol);
+                var count = AutoTradingParametersHelper.GetAroonCount(symbol);
                 var aroon = TechCalculations.AroonOscillator(sh, period);
                 var aroonLast = aroon.TakeLast(count).ToList();
                 var sum = aroonLast.Sum();
