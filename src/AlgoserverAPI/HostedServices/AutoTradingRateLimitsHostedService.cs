@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Algoserver.API.Controllers;
 using Algoserver.API.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -10,6 +11,7 @@ namespace Algoserver.API.HostedServices
     public class AutoTradingRateLimitsHostedService : BackgroundService
     {
         private int _prevHour = -1;
+        private int _prevDay = -1;
         private readonly ILogger<AutoTradingRateLimitsHostedService> _logger;
         private readonly AutoTradingRateLimitsService _autoTradingRateLimitsService;
 
@@ -23,6 +25,8 @@ namespace Algoserver.API.HostedServices
             while (!stoppingToken.IsCancellationRequested)
             {
                 var currentHour = DateTime.UtcNow.Hour;
+                var currentDay = DateTime.UtcNow.Day;
+
                 try
                 {
                     if (currentHour != _prevHour)
@@ -38,8 +42,21 @@ namespace Algoserver.API.HostedServices
                 {
                     Console.WriteLine(ex);
                 }
+                
+                try
+                {
+                    if (currentDay != _prevDay)
+                    {
+                        AutoTraderStatisticService.Init();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
 
                 _prevHour = currentHour;
+                _prevDay = currentDay;
 
                 await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken).ConfigureAwait(false);
             }

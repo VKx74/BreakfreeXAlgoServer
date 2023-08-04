@@ -8,9 +8,74 @@ using System;
 using Algoserver.API.Services.CacheServices;
 using System.Text;
 using Algoserver.API.Helpers;
+using Microsoft.AspNetCore.Authorization;
+using System.Threading;
 
 namespace Algoserver.API.Controllers
 {
+    [Serializable]
+    public class AutoTraderStatistic
+    {
+        public Dictionary<string, DateTime> Accounts { get; set; }
+        public Dictionary<string, int> Requests { get; set; }
+        public Dictionary<string, int> Errors { get; set; }
+        public string Id { get; set; }
+        public DateTime Date { get; set; }
+    }
+
+    public static class AutoTraderStatisticService
+    {
+        private static string id = Guid.NewGuid().ToString();
+
+        private static AutoTraderStatistic info;
+
+        static AutoTraderStatisticService()
+        {
+            Init();
+        }
+
+        public static void Init()
+        {
+            info = new AutoTraderStatistic();
+            info.Id = id;
+            info.Date = DateTime.UtcNow;
+        }
+
+        public static void AddAccount(string account)
+        {
+            if (info.Accounts.ContainsKey(account))
+            {
+                info.Accounts[account] = DateTime.UtcNow;
+            }
+            else
+            {
+                info.Accounts.Add(account, DateTime.UtcNow);
+            }
+        }
+
+        public static void AddRequest(string request)
+        {
+            if (!info.Requests.ContainsKey(request))
+            {
+                info.Requests.Add(request, 0);
+            }
+            info.Requests[request] = info.Requests[request] + 1;
+        }
+
+        public static void AddError(string error)
+        {
+            if (!info.Errors.ContainsKey(error))
+            {
+                info.Errors.Add(error, 0);
+            }
+            info.Errors[error] = info.Errors[error] + 1;
+        }
+
+        public static AutoTraderStatistic GetData()
+        {
+            return info;
+        }
+    }
 
     [Route("apex")]
     public class AutoTraderController : AlgoControllerBase
@@ -34,27 +99,42 @@ namespace Algoserver.API.Controllers
             _autoTradingRateLimitsService = autoTradingRateLimitsService;
         }
 
+        [Authorize]
+        [HttpGet("info")]
+        public async Task<IActionResult> GetInfoAsync()
+        {
+            return await ToResponse(AutoTraderStatisticService.GetData(), CancellationToken.None);
+        }
+
         [HttpPost(Routes.ApexStream)]
         [ProducesResponseType(typeof(Response<string>), 200)]
         public async Task<IActionResult> GetAutoTradeInfoAsync([FromBody] AutoTradingSymbolInfoRequest request)
         {
+            AutoTraderStatisticService.AddRequest(Routes.ApexStream);
+
             if (!ModelState.IsValid)
             {
+                AutoTraderStatisticService.AddError("500");
                 return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
             }
 
             if (String.IsNullOrEmpty(request.Account))
             {
+                AutoTraderStatisticService.AddError("401");
                 return Unauthorized("Invalid trading account");
             }
 
+            AutoTraderStatisticService.AddAccount(request.Account);
+
             if (!_autoTradingRateLimitsService.Validate(request.Account))
             {
+                AutoTraderStatisticService.AddError("429");
                 return StatusCode(429);
             }
 
             if (!_autoTradingAccountsService.Validate(request.Account))
             {
+                AutoTraderStatisticService.AddError("401");
                 return Unauthorized("Invalid trading account");
             }
 
@@ -65,23 +145,31 @@ namespace Algoserver.API.Controllers
         [ProducesResponseType(typeof(Response<string>), 200)]
         public async Task<IActionResult> GetAutoTradeInstrumentsAsync([FromBody] AutoTradeInstrumentsRequest request)
         {
+            AutoTraderStatisticService.AddRequest(Routes.ApexMarkets);
+
             if (!ModelState.IsValid)
             {
+                AutoTraderStatisticService.AddError("500");
                 return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
             }
 
             if (String.IsNullOrEmpty(request.Account))
             {
+                AutoTraderStatisticService.AddError("401");
                 return Unauthorized("Invalid trading account");
             }
 
+            AutoTraderStatisticService.AddAccount(request.Account);
+
             if (!_autoTradingRateLimitsService.Validate(request.Account))
             {
+                AutoTraderStatisticService.AddError("429");
                 return StatusCode(429);
             }
 
             if (!_autoTradingAccountsService.Validate(request.Account))
             {
+                AutoTraderStatisticService.AddError("401");
                 return Unauthorized("Invalid trading account");
             }
 
