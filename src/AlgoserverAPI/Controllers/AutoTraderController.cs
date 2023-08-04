@@ -39,6 +39,9 @@ namespace Algoserver.API.Controllers
             info = new AutoTraderStatistic();
             info.Id = id;
             info.Date = DateTime.UtcNow;
+            info.Accounts = new Dictionary<string, DateTime>();
+            info.Requests = new Dictionary<string, int>();
+            info.Errors = new Dictionary<string, int>();
         }
 
         public static void AddAccount(string account)
