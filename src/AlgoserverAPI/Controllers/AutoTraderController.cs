@@ -157,7 +157,109 @@ namespace Algoserver.API.Controllers
 
             _autoTradingUserInfoService.UpdateUserInfo(request.Account, userInfo);
 
-            return await ToResponse(_autoTradingUserInfoService.GetUserInfo(request.Account), CancellationToken.None);
+            return await ToResponse(userInfo, CancellationToken.None);
+        }
+
+        [Authorize]
+        [HttpPost("config/add-markets")]
+        public async Task<IActionResult> UserInfoAddMarketsAsync([FromBody] UserInfoAddMarketsRequest request)
+        {
+            AutoTraderStatisticService.AddRequest("[POST]config/add-markets/" + request.Account);
+
+            if (String.IsNullOrEmpty(request.Account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            AutoTraderStatisticService.AddAccount(request.Account);
+
+            if (!_autoTradingRateLimitsService.Validate(request.Account))
+            {
+                AutoTraderStatisticService.AddError("429");
+                return StatusCode(429);
+            }
+
+            if (!_autoTradingAccountsService.Validate(request.Account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            var markets = request.Markets.Select((_) => new UserDefinedMarketData
+            {
+                symbol = _.Symbol,
+                minStrength = _.MinStrength,
+                minStrength1H = _.MinStrength1H,
+                minStrength4H = _.MinStrength4H,
+                minStrength1D = _.MinStrength1D
+            }).ToList();
+
+            var result = _autoTradingUserInfoService.AddMarkets(request.Account, markets);
+
+            return await ToResponse(result, CancellationToken.None);
+        }
+
+        [Authorize]
+        [HttpPost("config/remove-markets")]
+        public async Task<IActionResult> UserInfoRemoveMarketsAsync([FromBody] UserInfoRemoveMarketsRequest request)
+        {
+            AutoTraderStatisticService.AddRequest("[POST]config/remove-markets/" + request.Account);
+
+            if (String.IsNullOrEmpty(request.Account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            AutoTraderStatisticService.AddAccount(request.Account);
+
+            if (!_autoTradingRateLimitsService.Validate(request.Account))
+            {
+                AutoTraderStatisticService.AddError("429");
+                return StatusCode(429);
+            }
+
+            if (!_autoTradingAccountsService.Validate(request.Account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            var result = _autoTradingUserInfoService.RemoveMarkets(request.Account, request.Markets);
+
+            return await ToResponse(result, CancellationToken.None);
+        }
+
+        [Authorize]
+        [HttpPost("config/change-use-manual-trading")]
+        public async Task<IActionResult> UserInfoChangeUseManualTradingAsync([FromBody] UserInfoChangeUseManualTradingRequest request)
+        {
+            AutoTraderStatisticService.AddRequest("[POST]config/change-use-manual-trading/" + request.Account);
+
+            if (String.IsNullOrEmpty(request.Account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            AutoTraderStatisticService.AddAccount(request.Account);
+
+            if (!_autoTradingRateLimitsService.Validate(request.Account))
+            {
+                AutoTraderStatisticService.AddError("429");
+                return StatusCode(429);
+            }
+
+            if (!_autoTradingAccountsService.Validate(request.Account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            var result = _autoTradingUserInfoService.UpdateUseManualTrading(request.Account, request.UseManualTrading);
+
+            return await ToResponse(result, CancellationToken.None);
         }
 
         [HttpPost(Routes.ApexStream)]
