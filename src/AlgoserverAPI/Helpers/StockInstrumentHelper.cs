@@ -415,7 +415,7 @@ namespace Algoserver.API.Helpers
 
         public static string NormalizeInstrument(string symbol)
         {
-            return symbol.Replace("_", "").Replace("/", "").ToLower();
+            return symbol.Replace("_", "").Replace("-", "").Replace("/", "").Replace("^", "").ToLower();
         }
 
         public static string GetInstrumentType(string symbol)

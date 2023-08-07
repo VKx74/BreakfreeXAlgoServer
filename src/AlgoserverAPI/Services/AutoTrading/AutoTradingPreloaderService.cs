@@ -11,13 +11,15 @@ namespace Algoserver.API.Services.CacheServices
     {
         private readonly ICacheService _cache;
         private readonly AlgoService _algoService;
+        private readonly AutoTradingUserInfoService _autoTradingUserInfoService;
         private readonly string _cachePrefix = "at_trading_info_";
         private readonly Dictionary<string, Dictionary<string, AutoTradingSymbolInfoResponse>> _data = new Dictionary<string, Dictionary<string, AutoTradingSymbolInfoResponse>>();
 
-        public AutoTradingPreloaderService(ICacheService cache, AlgoService algoService)
+        public AutoTradingPreloaderService(ICacheService cache, AlgoService algoService, AutoTradingUserInfoService autoTradingUserInfoService)
         {
             _cache = cache;
             _algoService = algoService;
+            _autoTradingUserInfoService = autoTradingUserInfoService;
         }
 
         public async Task LoadInstruments(string type)
@@ -44,10 +46,11 @@ namespace Algoserver.API.Services.CacheServices
             }
         }
 
-        public async Task<List<AutoTradingInstrumentsResponse>> GetAutoTradeInstruments()
+        public async Task<List<AutoTradingInstrumentsResponse>> GetAutoTradeInstruments(string account)
         {
             var result = new List<AutoTradingInstrumentsResponse>();
             var symbols = new Dictionary<string, AutoTradingSymbolInfoResponse>();
+            var userSettings = _autoTradingUserInfoService.GetUserInfo(account);
 
             lock (_data)
             {
@@ -55,12 +58,47 @@ namespace Algoserver.API.Services.CacheServices
                 {
                     foreach (var symbol in types.Value)
                     {
+                        var name = symbol.Key.Split("_");
+                        name = name.TakeLast(name.Length - 1).ToArray();
+                        var instrument = String.Join("_", name).ToUpper();
                         if (symbol.Value.TrendState == 3)
                         {
-                            var name = symbol.Key.Split("_");
-                            name = name.TakeLast(name.Length - 1).ToArray();
-                            var instrument = String.Join("_", name).ToUpper();
                             symbols.Add(instrument, symbol.Value);
+                        }
+                        else if (userSettings != null && userSettings.useManualTrading && userSettings.markets != null)
+                        {
+                            var s = InstrumentsHelper.NormalizeInstrument(symbol.Key);
+                            var marketConfig = userSettings.markets.FirstOrDefault((_) => !string.IsNullOrEmpty(_.symbol) && InstrumentsHelper.NormalizeInstrument(_.symbol) == s);
+                            if (marketConfig != null)
+                            {
+                                var tradingConfig = symbol.Value;
+                                var minStrength = marketConfig.minStrength;
+                                var minStrength1h = marketConfig.minStrength1H;
+                                var minStrength4h = marketConfig.minStrength4H;
+                                var minStrength1d = marketConfig.minStrength1D;
+
+                                if (Math.Abs(tradingConfig.TotalStrength * 100) < minStrength)
+                                {
+                                    continue;
+                                }
+
+                                if (tradingConfig.TrendDirection == 1)
+                                {
+                                    if ((tradingConfig.Strength1H * 100 < minStrength1h) || (tradingConfig.Strength4H * 100 < minStrength4h) || (tradingConfig.Strength1D * 100 < minStrength1d))
+                                    {
+                                        continue;
+                                    }
+                                }
+                                else if (tradingConfig.TrendDirection == -1)
+                                {
+                                    if ((tradingConfig.Strength1H * 100 > minStrength1h * -1) || (tradingConfig.Strength4H * 100 > minStrength4h * -1) || (tradingConfig.Strength1D * 100 > minStrength1d * -1))
+                                    {
+                                        continue;
+                                    }
+                                }
+
+                                symbols.Add(instrument, tradingConfig);
+                            }
                         }
                     }
                 }
