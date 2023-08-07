@@ -68,34 +68,34 @@ namespace Algoserver.API.Services.CacheServices
                         else if (userSettings != null && userSettings.useManualTrading && userSettings.markets != null)
                         {
                             var s = InstrumentsHelper.NormalizeInstrument(symbol.Key);
-                            var marketConfig = userSettings.markets.FirstOrDefault((_) => !string.IsNullOrEmpty(_.symbol) && InstrumentsHelper.NormalizeInstrument(_.symbol) == s);
+                            var marketConfig = userSettings.markets.FirstOrDefault((_) => !string.IsNullOrEmpty(_.symbol) && string.Equals(InstrumentsHelper.NormalizeInstrument(_.symbol), s, StringComparison.InvariantCultureIgnoreCase));
                             if (marketConfig != null)
                             {
                                 var tradingConfig = symbol.Value;
-                                var minStrength = marketConfig.minStrength;
-                                var minStrength1h = marketConfig.minStrength1H;
-                                var minStrength4h = marketConfig.minStrength4H;
-                                var minStrength1d = marketConfig.minStrength1D;
+                                // var minStrength = marketConfig.minStrength;
+                                // var minStrength1h = marketConfig.minStrength1H;
+                                // var minStrength4h = marketConfig.minStrength4H;
+                                // var minStrength1d = marketConfig.minStrength1D;
 
-                                if (Math.Abs(tradingConfig.TotalStrength * 100) < minStrength)
-                                {
-                                    continue;
-                                }
+                                // if (Math.Abs(tradingConfig.TotalStrength * 100) < minStrength)
+                                // {
+                                //     continue;
+                                // }
 
-                                if (tradingConfig.TrendDirection == 1)
-                                {
-                                    if ((tradingConfig.Strength1H * 100 < minStrength1h) || (tradingConfig.Strength4H * 100 < minStrength4h) || (tradingConfig.Strength1D * 100 < minStrength1d))
-                                    {
-                                        continue;
-                                    }
-                                }
-                                else if (tradingConfig.TrendDirection == -1)
-                                {
-                                    if ((tradingConfig.Strength1H * 100 > minStrength1h * -1) || (tradingConfig.Strength4H * 100 > minStrength4h * -1) || (tradingConfig.Strength1D * 100 > minStrength1d * -1))
-                                    {
-                                        continue;
-                                    }
-                                }
+                                // if (tradingConfig.TrendDirection == 1)
+                                // {
+                                //     if ((tradingConfig.Strength1H * 100 < minStrength1h) || (tradingConfig.Strength4H * 100 < minStrength4h) || (tradingConfig.Strength1D * 100 < minStrength1d))
+                                //     {
+                                //         continue;
+                                //     }
+                                // }
+                                // else if (tradingConfig.TrendDirection == -1)
+                                // {
+                                //     if ((tradingConfig.Strength1H * 100 > minStrength1h * -1) || (tradingConfig.Strength4H * 100 > minStrength4h * -1) || (tradingConfig.Strength1D * 100 > minStrength1d * -1))
+                                //     {
+                                //         continue;
+                                //     }
+                                // }
 
                                 symbols.Add(instrument, tradingConfig);
                             }
