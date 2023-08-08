@@ -111,6 +111,26 @@ namespace Algoserver.API.Controllers
         {
             AutoTraderStatisticService.AddRequest("[GET]config/" + account);
 
+            if (String.IsNullOrEmpty(account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            AutoTraderStatisticService.AddAccount(account);
+
+            if (!_autoTradingRateLimitsService.Validate(account))
+            {
+                AutoTraderStatisticService.AddError("429");
+                return StatusCode(429);
+            }
+
+            if (!_autoTradingAccountsService.Validate(account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
             return await ToResponse(_autoTradingUserInfoService.GetUserInfo(account), CancellationToken.None);
         }
 
