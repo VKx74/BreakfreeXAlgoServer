@@ -692,33 +692,43 @@ namespace Algoserver.API.Services
                 MonthlyTrend = monthlyTrend
             };
 
-            var minStrength1h = AutoTradingParametersHelper.GetStrength1H(symbol);
-            var minStrength4h = AutoTradingParametersHelper.GetStrength4H(symbol);
-            var minStrength1d = AutoTradingParametersHelper.GetStrength1D(symbol);
-
             result.TrendDirection = 0;
 
             if (total_strength > 0)
             {
-                if ((result.Strength1H * 100 >= minStrength1h) && (result.Strength4H * 100 >= minStrength4h) && (result.Strength1D * 100 >= minStrength1d))
-                {
-                    result.TrendDirection = 1;
-                }
+                result.TrendDirection = 1;
             }
             else if (total_strength < 0)
             {
+                result.TrendDirection = -1;
+            }
+
+            var filteredTrend = 0;
+            var minStrength1h = AutoTradingParametersHelper.GetStrength1H(symbol);
+            var minStrength4h = AutoTradingParametersHelper.GetStrength4H(symbol);
+            var minStrength1d = AutoTradingParametersHelper.GetStrength1D(symbol);
+
+            if (result.TrendDirection == 1)
+            {
+                if ((result.Strength1H * 100 >= minStrength1h) && (result.Strength4H * 100 >= minStrength4h) && (result.Strength1D * 100 >= minStrength1d))
+                {
+                    filteredTrend = 1;
+                }
+            }
+            else if (result.TrendDirection == -1)
+            {
                 if ((result.Strength1H * 100 <= minStrength1h * -1) && (result.Strength4H * 100 <= minStrength4h * -1) && (result.Strength1D * 100 <= minStrength1d * -1))
                 {
-                    result.TrendDirection = -1;
+                    filteredTrend = -1;
                 }
             }
 
             var stateHistory = levelsResponse.GetValueOrDefault(TimeframeHelper.HOUR4_GRANULARITY);
-            if (stateHistory != null && result.TrendDirection != 0)
+            if (stateHistory != null && filteredTrend != 0)
             {
                 var sh = stateHistory.mesa.Select((_) => (decimal)(_.f - _.s) / (decimal)stateHistory.mesa_avg * 100).ToList();
                 sh.Reverse();
-                sh = sh.TakeWhile((_) => result.TrendDirection > 0 ? _ > 0 : _ < 0).ToList();
+                sh = sh.TakeWhile((_) => filteredTrend > 0 ? _ > 0 : _ < 0).ToList();
                 sh = sh.Select((_) => Math.Abs(_)).ToList();
                 sh.Reverse();
                 var period = AutoTradingParametersHelper.GetAroonPeriod(symbol);

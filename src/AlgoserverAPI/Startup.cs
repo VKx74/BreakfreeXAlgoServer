@@ -111,6 +111,7 @@ namespace Algoserver.API
             services.AddSingleton<AutoTradingPreloaderService>();
             services.AddSingleton<AutoTradingPrecalculationService>();
             services.AddSingleton<AutoTradingRateLimitsService>();
+            services.AddSingleton<AutoTradingUserInfoService>();
 
             if (scanInstruments)
             {

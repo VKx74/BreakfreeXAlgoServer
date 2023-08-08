@@ -377,7 +377,7 @@ namespace Algoserver.API.Services
                     if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
-                        totalStrength += currentStrength * 0.15f;
+                        totalStrength += currentStrength * 0.1f;
                         timeframeStrengths.Add(TimeframeHelper.MIN15_GRANULARITY, currentStrength);
                     }
                     else
@@ -416,7 +416,7 @@ namespace Algoserver.API.Services
                     if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
-                        totalStrength += currentStrength * 0.25f;
+                        totalStrength += currentStrength * 0.2f;
                         timeframeStrengths.Add(TimeframeHelper.DAILY_GRANULARITY, currentStrength);
                     }
                     else
@@ -429,6 +429,7 @@ namespace Algoserver.API.Services
                     if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
+                        totalStrength += currentStrength * 0.1f;
                         timeframeStrengths.Add(TimeframeHelper.MONTHLY_GRANULARITY, currentStrength);
                     }
                     else
