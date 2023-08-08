@@ -27,9 +27,6 @@ namespace Algoserver.API.Services
 
         public static int GetStrength1H(string symbol)
         {
-            // test for stage
-            return 66;
-            
             symbol = NormalizeSymbol(symbol);
             if (parameters.TryGetValue(symbol, out var res))
             {
@@ -40,9 +37,6 @@ namespace Algoserver.API.Services
         
         public static int GetStrength4H(string symbol)
         {
-            // test for stage
-            return 66;
-
             symbol = NormalizeSymbol(symbol);
             if (parameters.TryGetValue(symbol, out var res))
             {
@@ -53,9 +47,6 @@ namespace Algoserver.API.Services
 
         public static int GetStrength1D(string symbol)
         {
-            // test for stage
-            return 66;
-
             symbol = NormalizeSymbol(symbol);
             if (parameters.TryGetValue(symbol, out var res))
             {
