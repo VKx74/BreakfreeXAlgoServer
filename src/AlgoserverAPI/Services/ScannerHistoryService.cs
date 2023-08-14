@@ -469,6 +469,7 @@ namespace Algoserver.API.Services
                 try
                 {
                     var res = await Task.WhenAll<HistoryData>(tasksToWait);
+                    res = res.Where((_) => _ != null).ToArray();
                     result.AddRange(res);
                 }
                 catch (Exception ex)
