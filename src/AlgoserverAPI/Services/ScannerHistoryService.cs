@@ -463,14 +463,24 @@ namespace Algoserver.API.Services
                     }
                     catch (Exception ex)
                     {
-
+                        Console.WriteLine(">>> HISTORY LOAD EXCEPTION: " + t.Symbol + " - " + t.Granularity);
+                        Console.WriteLine(ex.ToString());
                     }
                 }
                 try
                 {
                     var res = await Task.WhenAll<HistoryData>(tasksToWait);
-                    res = res.Where((_) => _ != null).ToArray();
-                    result.AddRange(res);
+                    foreach (var historyItem in res)
+                    {
+                        if (historyItem != null)
+                        {
+                            result.Add(historyItem);
+                        }
+                        else
+                        {
+                            Console.WriteLine(">>> HISTORY NOT LOADED");
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {

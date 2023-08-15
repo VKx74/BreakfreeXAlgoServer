@@ -164,7 +164,7 @@ namespace Algoserver.API.Services
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogError($"Error occured while sending http request to {request.RequestUri}, response string: {content}");
+                Console.WriteLine($"Error occured while sending http request to {request.RequestUri}, response string: {content}");
                 response.EnsureSuccessStatusCode();
             }
 
@@ -244,6 +244,8 @@ namespace Algoserver.API.Services
             }
             catch (Exception ex)
             {
+                Console.WriteLine(">>> HISTORY LOAD EXCEPTION: " + symbol + " - " + granularity);
+                Console.WriteLine(ex.ToString());
             }
             finally
             {
