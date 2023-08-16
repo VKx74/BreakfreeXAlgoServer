@@ -453,6 +453,11 @@ namespace Algoserver.API.Services
 
                     var length = calculation_input.Count();
 
+                    hour1Strength *= 100f;
+                    hour4Strength *= 100f;
+                    dailyStrength *= 100f;
+                    monthlyStrength *= 100f;
+
                     if (hour1Strength > 0 && hour4Strength > 0 && dailyStrength > 0 && monthlyStrength > 0)
                     {
                         if (hour1Strength > 20 && hour4Strength > 20 && dailyStrength > 20 && monthlyStrength > 20)
@@ -474,15 +479,15 @@ namespace Algoserver.API.Services
                     }
                     if (hour1Strength < 0 && hour4Strength < 0 && dailyStrength < 0 && monthlyStrength < 0)
                     {
-                        if (hour1Strength < 20 && hour4Strength < 20 && dailyStrength < 20 && monthlyStrength < 20)
+                        if (hour1Strength < -20 && hour4Strength < -20 && dailyStrength < -20 && monthlyStrength < -20)
                         {
                             totalStrength -= 0.3f;
                         }
-                        else if (hour1Strength < 15 && hour4Strength < 15 && dailyStrength < 15 && monthlyStrength < 15)
+                        else if (hour1Strength < -15 && hour4Strength < -15 && dailyStrength < -15 && monthlyStrength < -15)
                         {
                             totalStrength -= 0.2f;
                         }
-                        else if (hour1Strength < 10 && hour4Strength < 10 && dailyStrength < 10 && monthlyStrength < 10)
+                        else if (hour1Strength < -10 && hour4Strength < -10 && dailyStrength < -10 && monthlyStrength < -10)
                         {
                             totalStrength -= 0.1f;
                         }
