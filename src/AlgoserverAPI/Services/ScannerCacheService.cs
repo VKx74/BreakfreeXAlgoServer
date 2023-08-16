@@ -457,39 +457,39 @@ namespace Algoserver.API.Services
                     {
                         if (hour1Strength > 20 && hour4Strength > 20 && dailyStrength > 20 && monthlyStrength > 20)
                         {
-                            totalStrength += 0.5f;
+                            totalStrength += 0.3f;
                         }
                         else if (hour1Strength > 15 && hour4Strength > 15 && dailyStrength > 15 && monthlyStrength > 15)
                         {
-                            totalStrength += 0.4f;
+                            totalStrength += 0.3f;
                         }
                          else if (hour1Strength > 10 && hour4Strength > 10 && dailyStrength > 10 && monthlyStrength > 10)
                         {
-                            totalStrength += 0.3f;
+                            totalStrength += 0.1f;
                         }
-                        else
-                        {
-                            totalStrength += 0.2f;
-                        }
+                        // else
+                        // {
+                        //     totalStrength += 0.05f;
+                        // }
                     }
                     if (hour1Strength < 0 && hour4Strength < 0 && dailyStrength < 0 && monthlyStrength < 0)
                     {
                         if (hour1Strength < 20 && hour4Strength < 20 && dailyStrength < 20 && monthlyStrength < 20)
                         {
-                            totalStrength -= 0.5f;
+                            totalStrength -= 0.3f;
                         }
                         else if (hour1Strength < 15 && hour4Strength < 15 && dailyStrength < 15 && monthlyStrength < 15)
                         {
-                            totalStrength -= 0.4f;
+                            totalStrength -= 0.2f;
                         }
                         else if (hour1Strength < 10 && hour4Strength < 10 && dailyStrength < 10 && monthlyStrength < 10)
                         {
-                            totalStrength -= 0.3f;
+                            totalStrength -= 0.1f;
                         }
-                        else
-                        {
-                            totalStrength -= 0.2f;
-                        }
+                        // else
+                        // {
+                        //     totalStrength -= 0.05f;
+                        // }
                     }
 
                     summary.Add(new MESADataSummary
