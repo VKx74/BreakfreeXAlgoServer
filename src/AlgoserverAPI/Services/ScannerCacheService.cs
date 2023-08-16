@@ -459,13 +459,17 @@ namespace Algoserver.API.Services
                         {
                             totalStrength += 0.5f;
                         }
-                        else if (hour1Strength > 10 && hour4Strength > 10 && dailyStrength > 10 && monthlyStrength > 10)
+                        else if (hour1Strength > 15 && hour4Strength > 15 && dailyStrength > 15 && monthlyStrength > 15)
                         {
                             totalStrength += 0.4f;
                         }
+                         else if (hour1Strength > 10 && hour4Strength > 10 && dailyStrength > 10 && monthlyStrength > 10)
+                        {
+                            totalStrength += 0.3f;
+                        }
                         else
                         {
-                            totalStrength += 0.25f;
+                            totalStrength += 0.2f;
                         }
                     }
                     if (hour1Strength < 0 && hour4Strength < 0 && dailyStrength < 0 && monthlyStrength < 0)
@@ -474,13 +478,17 @@ namespace Algoserver.API.Services
                         {
                             totalStrength -= 0.5f;
                         }
-                        else if (hour1Strength < 10 && hour4Strength < 10 && dailyStrength < 10 && monthlyStrength < 10)
+                        else if (hour1Strength < 15 && hour4Strength < 15 && dailyStrength < 15 && monthlyStrength < 15)
                         {
                             totalStrength -= 0.4f;
                         }
+                        else if (hour1Strength < 10 && hour4Strength < 10 && dailyStrength < 10 && monthlyStrength < 10)
+                        {
+                            totalStrength -= 0.3f;
+                        }
                         else
                         {
-                            totalStrength -= 0.25f;
+                            totalStrength -= 0.2f;
                         }
                     }
 
