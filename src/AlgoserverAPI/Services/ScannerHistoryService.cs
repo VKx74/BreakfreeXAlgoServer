@@ -115,7 +115,7 @@ namespace Algoserver.API.Services
             }
 
             stopWatch.Start();
-            var min1history = await this._loadPack(tasks1min, 5);
+            var min1history = await this._loadPack(tasks1min, 1);
             stopWatch.Stop();
             TimeSpan ts1 = stopWatch.Elapsed;
 

@@ -391,13 +391,14 @@ namespace Algoserver.API.Services
                         timeframeStrengths.Add(TimeframeHelper.MIN15_GRANULARITY, 0);
                     }
 
-                    var hour1Strength = 0f;
+                    var hour1Strength = 0;
                     d = tfSummary.GetValueOrDefault(TimeframeHelper.HOURLY_GRANULARITY);
                     ast = tfAvgSummary.GetValueOrDefault(TimeframeHelper.HOURLY_GRANULARITY);
                     if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
-                        hour1Strength = currentStrength;
+                        var stateData = mesa1hDataPoints.Select((_) => (_.f - _.s) / ast * 100).ToList();
+                        hour1Strength = TechCalculations.MeasureTrendState(stateData, 5);
                         totalStrength += currentStrength * 0.2f;
                         timeframeStrengths.Add(TimeframeHelper.HOURLY_GRANULARITY, currentStrength);
                     }
@@ -406,13 +407,14 @@ namespace Algoserver.API.Services
                         timeframeStrengths.Add(TimeframeHelper.HOURLY_GRANULARITY, 0);
                     }
 
-                    var hour4Strength = 0f;
+                    var hour4Strength = 0;
                     d = tfSummary.GetValueOrDefault(TimeframeHelper.HOUR4_GRANULARITY);
                     ast = tfAvgSummary.GetValueOrDefault(TimeframeHelper.HOUR4_GRANULARITY);
                     if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
-                        hour4Strength = currentStrength;
+                        var stateData = mesa4hDataPoints.Select((_) => (_.f - _.s) / ast * 100).ToList();
+                        hour4Strength = TechCalculations.MeasureTrendState(stateData, 5);
                         totalStrength += currentStrength * 0.2f;
                         timeframeStrengths.Add(TimeframeHelper.HOUR4_GRANULARITY, currentStrength);
                     }
@@ -421,13 +423,14 @@ namespace Algoserver.API.Services
                         timeframeStrengths.Add(TimeframeHelper.HOUR4_GRANULARITY, 0);
                     }
 
-                    var dailyStrength = 0f;
+                    var dailyStrength = 0;
                     d = tfSummary.GetValueOrDefault(TimeframeHelper.DAILY_GRANULARITY);
                     ast = tfAvgSummary.GetValueOrDefault(TimeframeHelper.DAILY_GRANULARITY);
                     if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
-                        dailyStrength = currentStrength;
+                        var stateData = mesa1dDataPoints.Select((_) => (_.f - _.s) / ast * 100).ToList();
+                        dailyStrength = TechCalculations.MeasureTrendState(stateData, 5);
                         totalStrength += currentStrength * 0.2f;
                         timeframeStrengths.Add(TimeframeHelper.DAILY_GRANULARITY, currentStrength);
                     }
@@ -436,13 +439,14 @@ namespace Algoserver.API.Services
                         timeframeStrengths.Add(TimeframeHelper.DAILY_GRANULARITY, 0);
                     }
 
-                    var monthlyStrength = 0f;
+                    var monthlyStrength = 0;
                     d = tfSummary.GetValueOrDefault(TimeframeHelper.MONTHLY_GRANULARITY);
                     ast = tfAvgSummary.GetValueOrDefault(TimeframeHelper.MONTHLY_GRANULARITY);
                     if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
-                        monthlyStrength = currentStrength;
+                        var stateData = mesa1monthDataPoints.Select((_) => (_.f - _.s) / ast * 100).ToList();
+                        monthlyStrength = TechCalculations.MeasureTrendState(stateData, 5);
                         totalStrength += currentStrength * 0.1f;
                         timeframeStrengths.Add(TimeframeHelper.MONTHLY_GRANULARITY, currentStrength);
                     }
@@ -453,48 +457,24 @@ namespace Algoserver.API.Services
 
                     var length = calculation_input.Count();
 
-                    hour1Strength *= 100f;
-                    hour4Strength *= 100f;
-                    dailyStrength *= 100f;
-                    monthlyStrength *= 100f;
-
                     if (hour1Strength > 0 && hour4Strength > 0 && dailyStrength > 0 && monthlyStrength > 0)
                     {
-                        if (hour1Strength > 20 && hour4Strength > 20 && dailyStrength > 20 && monthlyStrength > 20)
+                        if (hour1Strength == 2)
                         {
-                            totalStrength += 0.3f;
+                            totalStrength += totalStrength > 0 ? 0.1f : -0.1f;
                         }
-                        else if (hour1Strength > 15 && hour4Strength > 15 && dailyStrength > 15 && monthlyStrength > 15)
+                        if (hour4Strength == 2)
                         {
-                            totalStrength += 0.2f;
+                            totalStrength += totalStrength > 0 ? 0.1f : -0.1f;
                         }
-                        else if (hour1Strength > 10 && hour4Strength > 10 && dailyStrength > 10 && monthlyStrength > 10)
+                        if (dailyStrength == 2)
                         {
-                            totalStrength += 0.1f;
+                            totalStrength += totalStrength > 0 ? 0.1f : -0.1f;
                         }
-                        // else
-                        // {
-                        //     totalStrength += 0.05f;
-                        // }
-                    }
-                    if (hour1Strength < 0 && hour4Strength < 0 && dailyStrength < 0 && monthlyStrength < 0)
-                    {
-                        if (hour1Strength < -20 && hour4Strength < -20 && dailyStrength < -20 && monthlyStrength < -20)
+                        if (monthlyStrength == 2)
                         {
-                            totalStrength -= 0.3f;
+                            totalStrength += totalStrength > 0 ? 0.1f : -0.1f;
                         }
-                        else if (hour1Strength < -15 && hour4Strength < -15 && dailyStrength < -15 && monthlyStrength < -15)
-                        {
-                            totalStrength -= 0.2f;
-                        }
-                        else if (hour1Strength < -10 && hour4Strength < -10 && dailyStrength < -10 && monthlyStrength < -10)
-                        {
-                            totalStrength -= 0.1f;
-                        }
-                        // else
-                        // {
-                        //     totalStrength -= 0.05f;
-                        // }
                     }
 
                     summary.Add(new MESADataSummary
@@ -512,6 +492,10 @@ namespace Algoserver.API.Services
                         Price3600 = (float)calculation_input.ElementAt(length - 60),
                         Price14400 = (float)calculation_input.ElementAt(length - 240),
                         Price86400 = (float)calculation_input.ElementAt(length - 1440),
+                        Hour1State = hour1Strength,
+                        Hour4State = hour4Strength,
+                        DailyState = dailyStrength,
+                        MonthlyState = monthlyStrength
                     });
 
                 }

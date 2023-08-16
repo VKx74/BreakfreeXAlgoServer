@@ -30,6 +30,10 @@ namespace Algoserver.API.Helpers
         public float Price3600 { get; set; }
         public float Price14400 { get; set; }
         public float Price86400 { get; set; }
+        public int Hour1State { get; set; }
+        public int Hour4State { get; set; }
+        public int DailyState { get; set; }
+        public int MonthlyState { get; set; }
     }
 
     public class TradeZone
@@ -942,6 +946,95 @@ namespace Algoserver.API.Helpers
             }
 
             return res;
+        }
+
+        public static int MeasureTrendState(List<float> values, float deviation)
+        {
+            if (!values.Any())
+            {
+                return 0;
+            }
+
+            var lastValue = values.LastOrDefault();
+            if (lastValue == 0)
+            {
+                return 0;
+            }
+
+            var reversedValues = values.ToList();
+            reversedValues.Reverse();
+            var data = reversedValues.TakeWhile((_) =>
+            {
+                return lastValue > 0 ? _ > 0 : _ < 0;
+            }).ToList();
+
+            if (data.Count < 3)
+            {
+                return 0;
+            }
+
+            data.Reverse();
+            data = data.Select((_) => Math.Abs(_)).ToList();
+            var max = data.Max();
+            var percentage = max / 100 * deviation;
+            if (percentage < 3)
+            {
+                percentage = 3;
+            }
+
+            var extremum = new List<float>();
+            extremum.Add(0);
+            var isUpTrending = true;
+
+            foreach (var item in data)
+            {
+                if (isUpTrending)
+                {
+                    if (extremum.Last() <= item)
+                    {
+                        extremum[extremum.Count - 1] = item;
+                        continue;
+                    }
+                    else
+                    {
+                        if (extremum.Last() - item > percentage)
+                        {
+                            isUpTrending = false;
+                            extremum.Add(item);
+                        }
+                    }
+                }
+                else
+                {
+                    if (extremum.Last() >= item)
+                    {
+                        extremum[extremum.Count - 1] = item;
+                        continue;
+                    }
+                    else
+                    {
+                        if (item - extremum.Last() > percentage)
+                        {
+                            isUpTrending = true;
+                            extremum.Add(item);
+                        }
+                    }
+                }
+            }
+
+            var lastItem = data.LastOrDefault();
+            var lastExtremum = extremum.LastOrDefault();
+            if (!isUpTrending) {
+                return 0;
+            }
+            
+            var lvl = lastExtremum - (percentage / 4);
+            if (lastItem > lvl)
+            {
+                return 2;
+            }
+
+            return 1;
         }
     }
 }
