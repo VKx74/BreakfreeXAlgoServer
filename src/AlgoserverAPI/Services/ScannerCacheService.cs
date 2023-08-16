@@ -182,7 +182,7 @@ namespace Algoserver.API.Services
                     var calculation_input = minHistory.Bars.Select(_ => _.Close);
                     if (calculation_input.Count() < 45000)
                     {
-                        Console.WriteLine(">>> MESA Calculation Error (calculation_input)");
+                        Console.WriteLine(">>> MESA Calculation Error (calculation_input) - " + minHistory.Symbol);
                         continue;
                     }
 
@@ -455,11 +455,27 @@ namespace Algoserver.API.Services
 
                     if (hour1Strength > 0 && hour4Strength > 0 && dailyStrength > 0 && monthlyStrength > 0)
                     {
-                        totalStrength += 0.5f;
+                        if (hour1Strength > 20 && hour4Strength > 20 && dailyStrength > 20 && monthlyStrength > 20)
+                        {
+                            totalStrength += 0.5f;
+                        }
+                        if (hour1Strength > 10 && hour4Strength > 10 && dailyStrength > 10 && monthlyStrength > 10)
+                        {
+                            totalStrength += 0.4f;
+                        }
+                        totalStrength += 0.25f;
                     }
                     if (hour1Strength < 0 && hour4Strength < 0 && dailyStrength < 0 && monthlyStrength < 0)
                     {
-                        totalStrength -= 0.5f;
+                        if (hour1Strength < 20 && hour4Strength < 20 && dailyStrength < 20 && monthlyStrength < 20)
+                        {
+                            totalStrength -= 0.5f;
+                        }
+                        if (hour1Strength < 10 && hour4Strength < 10 && dailyStrength < 10 && monthlyStrength < 10)
+                        {
+                            totalStrength -= 0.4f;
+                        }
+                        totalStrength -= 0.25f;
                     }
 
                     summary.Add(new MESADataSummary
