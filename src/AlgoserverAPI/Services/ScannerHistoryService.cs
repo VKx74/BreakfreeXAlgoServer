@@ -115,7 +115,7 @@ namespace Algoserver.API.Services
             }
 
             stopWatch.Start();
-            var min1history = await this._loadPack(tasks1min, 1);
+            var min1history = await this._loadPack(tasks1min, 5);
             stopWatch.Stop();
             TimeSpan ts1 = stopWatch.Elapsed;
 
@@ -204,7 +204,7 @@ namespace Algoserver.API.Services
             }
 
             stopWatch.Start();
-            var min1history = await this._loadPack(tasks1min, 2);
+            var min1history = await this._loadPack(tasks1min);
             stopWatch.Stop();
             TimeSpan ts1 = stopWatch.Elapsed;
 
@@ -444,7 +444,7 @@ namespace Algoserver.API.Services
             }
         }
 
-        protected async Task<List<HistoryData>> _loadPack(List<HistoryRequest> tasks, int defaultPackCount = 4)
+        protected async Task<List<HistoryData>> _loadPack(List<HistoryRequest> tasks, int defaultPackCount = 1)
         {
             var result = new List<HistoryData>();
             var count = defaultPackCount;
