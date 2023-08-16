@@ -191,8 +191,8 @@ namespace Algoserver.API.Services
                     {
                         Console.WriteLine(">>> MESA Calculation Error (hourlyHistory)");
                         continue;
-                    } 
-                    
+                    }
+
                     var dailyHistory = _1Day.FirstOrDefault((_) => String.Equals(_.Symbol, minHistory.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, minHistory.Exchange, StringComparison.InvariantCultureIgnoreCase));
                     if (dailyHistory == null || dailyHistory.Bars == null || !dailyHistory.Bars.Any())
                     {
@@ -282,8 +282,8 @@ namespace Algoserver.API.Services
                             s = (float)mesa1dCut[i].Slow,
                             t = (uint)hourTimesCut[i]
                         });
-                    } 
-                    
+                    }
+
                     var dailyTimesCut = dailyHistory.Bars.TakeLast(hourTfCount).Select(_ => _.Timestamp).ToList();
                     var mesa1monthCut = mesa1month.TakeLast(hourTfCount).ToList();
                     var mesa1monthDataPoints = new List<MESADataPoint>();
@@ -459,11 +459,14 @@ namespace Algoserver.API.Services
                         {
                             totalStrength += 0.5f;
                         }
-                        if (hour1Strength > 10 && hour4Strength > 10 && dailyStrength > 10 && monthlyStrength > 10)
+                        else if (hour1Strength > 10 && hour4Strength > 10 && dailyStrength > 10 && monthlyStrength > 10)
                         {
                             totalStrength += 0.4f;
                         }
-                        totalStrength += 0.25f;
+                        else
+                        {
+                            totalStrength += 0.25f;
+                        }
                     }
                     if (hour1Strength < 0 && hour4Strength < 0 && dailyStrength < 0 && monthlyStrength < 0)
                     {
@@ -471,11 +474,14 @@ namespace Algoserver.API.Services
                         {
                             totalStrength -= 0.5f;
                         }
-                        if (hour1Strength < 10 && hour4Strength < 10 && dailyStrength < 10 && monthlyStrength < 10)
+                        else if (hour1Strength < 10 && hour4Strength < 10 && dailyStrength < 10 && monthlyStrength < 10)
                         {
                             totalStrength -= 0.4f;
                         }
-                        totalStrength -= 0.25f;
+                        else
+                        {
+                            totalStrength -= 0.25f;
+                        }
                     }
 
                     summary.Add(new MESADataSummary
@@ -517,7 +523,7 @@ namespace Algoserver.API.Services
             string elapsedTime1 = String.Format(" * 1 min MESA calculation {0:00}:{1:00} - instruments count " + count, ts1.Minutes, ts1.Seconds);
             Console.WriteLine(">>> " + elapsedTime1);
 
-            return new MesaSummaryInfo 
+            return new MesaSummaryInfo
             {
                 MesaSummary = summary,
                 MesaDataPoints = mesaDataPoints
