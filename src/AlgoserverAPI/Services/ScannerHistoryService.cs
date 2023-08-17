@@ -204,7 +204,7 @@ namespace Algoserver.API.Services
             }
 
             stopWatch.Start();
-            var min1history = await this._loadPack(tasks1min, 2);
+            var min1history = await this._loadPack(tasks1min);
             stopWatch.Stop();
             TimeSpan ts1 = stopWatch.Elapsed;
 
@@ -444,7 +444,7 @@ namespace Algoserver.API.Services
             }
         }
 
-        protected async Task<List<HistoryData>> _loadPack(List<HistoryRequest> tasks, int defaultPackCount = 4)
+        protected async Task<List<HistoryData>> _loadPack(List<HistoryRequest> tasks, int defaultPackCount = 1)
         {
             var result = new List<HistoryData>();
             var count = defaultPackCount;
@@ -463,13 +463,24 @@ namespace Algoserver.API.Services
                     }
                     catch (Exception ex)
                     {
-
+                        Console.WriteLine(">>> HISTORY LOAD EXCEPTION: " + t.Symbol + " - " + t.Granularity);
+                        Console.WriteLine(ex.ToString());
                     }
                 }
                 try
                 {
                     var res = await Task.WhenAll<HistoryData>(tasksToWait);
-                    result.AddRange(res);
+                    foreach (var historyItem in res)
+                    {
+                        if (historyItem != null)
+                        {
+                            result.Add(historyItem);
+                        }
+                        else
+                        {
+                            Console.WriteLine(">>> HISTORY NOT LOADED");
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {

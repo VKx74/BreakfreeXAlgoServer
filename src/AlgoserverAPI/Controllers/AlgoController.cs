@@ -303,6 +303,10 @@ namespace Algoserver.API.Controllers
                     price3600 = r.Price3600,
                     price14400 = r.Price14400,
                     price86400 = r.Price86400,
+                    hour1State = r.Hour1State,
+                    hour4State = r.Hour4State,
+                    dailyState = r.DailyState,
+                    monthlyState = r.MonthlyState
                 });
             }
             return result;

@@ -325,6 +325,10 @@ namespace Algoserver.API.Models.REST
         public float price3600 { get; set; }
         public float price14400 { get; set; }
         public float price86400 { get; set; }
+        public int hour1State { get; set; }
+        public int hour4State { get; set; }
+        public int dailyState { get; set; }
+        public int monthlyState { get; set; }
     }
 
 }

@@ -167,30 +167,36 @@ namespace Algoserver.API.Services
                 return null;
             }
 
+            Console.WriteLine(">>> MESA Counts: " + _1Mins.Count + " - " + _1Hour.Count + " - " + _1Day.Count);
+
             foreach (var minHistory in _1Mins)
             {
                 try
                 {
                     if (minHistory == null || minHistory.Bars == null)
                     {
+                        Console.WriteLine(">>> MESA Calculation Error (minHistory)");
                         continue;
                     }
 
                     var calculation_input = minHistory.Bars.Select(_ => _.Close);
                     if (calculation_input.Count() < 45000)
                     {
+                        Console.WriteLine(">>> MESA Calculation Error (calculation_input) - " + minHistory.Symbol);
                         continue;
                     }
 
                     var hourlyHistory = _1Hour.FirstOrDefault((_) => String.Equals(_.Symbol, minHistory.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, minHistory.Exchange, StringComparison.InvariantCultureIgnoreCase));
                     if (hourlyHistory == null || hourlyHistory.Bars == null || !hourlyHistory.Bars.Any())
                     {
+                        Console.WriteLine(">>> MESA Calculation Error (hourlyHistory)");
                         continue;
-                    } 
-                    
+                    }
+
                     var dailyHistory = _1Day.FirstOrDefault((_) => String.Equals(_.Symbol, minHistory.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, minHistory.Exchange, StringComparison.InvariantCultureIgnoreCase));
                     if (dailyHistory == null || dailyHistory.Bars == null || !dailyHistory.Bars.Any())
                     {
+                        Console.WriteLine(">>> MESA Calculation Error (dailyHistory)");
                         continue;
                     }
 
@@ -276,8 +282,8 @@ namespace Algoserver.API.Services
                             s = (float)mesa1dCut[i].Slow,
                             t = (uint)hourTimesCut[i]
                         });
-                    } 
-                    
+                    }
+
                     var dailyTimesCut = dailyHistory.Bars.TakeLast(hourTfCount).Select(_ => _.Timestamp).ToList();
                     var mesa1monthCut = mesa1month.TakeLast(hourTfCount).ToList();
                     var mesa1monthDataPoints = new List<MESADataPoint>();
@@ -385,11 +391,14 @@ namespace Algoserver.API.Services
                         timeframeStrengths.Add(TimeframeHelper.MIN15_GRANULARITY, 0);
                     }
 
+                    var hour1Strength = 0;
                     d = tfSummary.GetValueOrDefault(TimeframeHelper.HOURLY_GRANULARITY);
                     ast = tfAvgSummary.GetValueOrDefault(TimeframeHelper.HOURLY_GRANULARITY);
                     if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
+                        var stateData = mesa1hDataPoints.Select((_) => (_.f - _.s) / ast * 100).ToList();
+                        hour1Strength = TechCalculations.MeasureTrendState(stateData, 5);
                         totalStrength += currentStrength * 0.2f;
                         timeframeStrengths.Add(TimeframeHelper.HOURLY_GRANULARITY, currentStrength);
                     }
@@ -398,11 +407,14 @@ namespace Algoserver.API.Services
                         timeframeStrengths.Add(TimeframeHelper.HOURLY_GRANULARITY, 0);
                     }
 
+                    var hour4Strength = 0;
                     d = tfSummary.GetValueOrDefault(TimeframeHelper.HOUR4_GRANULARITY);
                     ast = tfAvgSummary.GetValueOrDefault(TimeframeHelper.HOUR4_GRANULARITY);
                     if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
+                        var stateData = mesa4hDataPoints.Select((_) => (_.f - _.s) / ast * 100).ToList();
+                        hour4Strength = TechCalculations.MeasureTrendState(stateData, 5);
                         totalStrength += currentStrength * 0.2f;
                         timeframeStrengths.Add(TimeframeHelper.HOUR4_GRANULARITY, currentStrength);
                     }
@@ -411,11 +423,14 @@ namespace Algoserver.API.Services
                         timeframeStrengths.Add(TimeframeHelper.HOUR4_GRANULARITY, 0);
                     }
 
+                    var dailyStrength = 0;
                     d = tfSummary.GetValueOrDefault(TimeframeHelper.DAILY_GRANULARITY);
                     ast = tfAvgSummary.GetValueOrDefault(TimeframeHelper.DAILY_GRANULARITY);
                     if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
+                        var stateData = mesa1dDataPoints.Select((_) => (_.f - _.s) / ast * 100).ToList();
+                        dailyStrength = TechCalculations.MeasureTrendState(stateData, 5);
                         totalStrength += currentStrength * 0.2f;
                         timeframeStrengths.Add(TimeframeHelper.DAILY_GRANULARITY, currentStrength);
                     }
@@ -424,11 +439,14 @@ namespace Algoserver.API.Services
                         timeframeStrengths.Add(TimeframeHelper.DAILY_GRANULARITY, 0);
                     }
 
+                    var monthlyStrength = 0;
                     d = tfSummary.GetValueOrDefault(TimeframeHelper.MONTHLY_GRANULARITY);
                     ast = tfAvgSummary.GetValueOrDefault(TimeframeHelper.MONTHLY_GRANULARITY);
                     if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
+                        var stateData = mesa1monthDataPoints.Select((_) => (_.f - _.s) / ast * 100).ToList();
+                        monthlyStrength = TechCalculations.MeasureTrendState(stateData, 5);
                         totalStrength += currentStrength * 0.1f;
                         timeframeStrengths.Add(TimeframeHelper.MONTHLY_GRANULARITY, currentStrength);
                     }
@@ -438,6 +456,26 @@ namespace Algoserver.API.Services
                     }
 
                     var length = calculation_input.Count();
+
+                    if (hour1Strength > 0 && hour4Strength > 0 && dailyStrength > 0 && monthlyStrength > 0)
+                    {
+                        if (hour1Strength == 2)
+                        {
+                            totalStrength += totalStrength > 0 ? 0.05f : -0.05f;
+                        }
+                        if (hour4Strength == 2)
+                        {
+                            totalStrength += totalStrength > 0 ? 0.05f : -0.05f;
+                        }
+                        if (dailyStrength == 2)
+                        {
+                            totalStrength += totalStrength > 0 ? 0.05f : -0.05f;
+                        }
+                        if (monthlyStrength == 2)
+                        {
+                            totalStrength += totalStrength > 0 ? 0.05f : -0.05f;
+                        }
+                    }
 
                     summary.Add(new MESADataSummary
                     {
@@ -454,6 +492,10 @@ namespace Algoserver.API.Services
                         Price3600 = (float)calculation_input.ElementAt(length - 60),
                         Price14400 = (float)calculation_input.ElementAt(length - 240),
                         Price86400 = (float)calculation_input.ElementAt(length - 1440),
+                        Hour1State = hour1Strength,
+                        Hour4State = hour4Strength,
+                        DailyState = dailyStrength,
+                        MonthlyState = monthlyStrength
                     });
 
                 }
@@ -478,7 +520,7 @@ namespace Algoserver.API.Services
             string elapsedTime1 = String.Format(" * 1 min MESA calculation {0:00}:{1:00} - instruments count " + count, ts1.Minutes, ts1.Seconds);
             Console.WriteLine(">>> " + elapsedTime1);
 
-            return new MesaSummaryInfo 
+            return new MesaSummaryInfo
             {
                 MesaSummary = summary,
                 MesaDataPoints = mesaDataPoints
