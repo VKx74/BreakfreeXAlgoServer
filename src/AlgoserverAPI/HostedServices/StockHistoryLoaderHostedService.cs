@@ -56,10 +56,10 @@ namespace Algoserver.API.HostedServices
 
                     if (scanRequired)
                     {
-                        Console.WriteLine(">>> Stock ScanMarkets start");
-                        _scannerCache.ScanMarkets();
+                        // Console.WriteLine(">>> Stock ScanMarkets start");
+                        // _scannerCache.ScanMarkets();
                         // _scannerCache.CalculateMinuteMesa();
-                        Console.WriteLine(">>> Stock ScanMarkets ends");
+                        // Console.WriteLine(">>> Stock ScanMarkets ends");
                     }
                 }
                 catch (Exception ex)
