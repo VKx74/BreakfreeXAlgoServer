@@ -67,8 +67,8 @@ namespace Algoserver.API.Services.CacheServices
                         }
                         else if (userSettings != null && userSettings.useManualTrading && userSettings.markets != null)
                         {
-                            var s = InstrumentsHelper.NormalizeInstrument(instrument);
-                            var marketConfig = userSettings.markets.FirstOrDefault((_) => !string.IsNullOrEmpty(_.symbol) && string.Equals(InstrumentsHelper.NormalizeInstrument(_.symbol), s, StringComparison.InvariantCultureIgnoreCase));
+                            var s = getNormalizedInstrument(instrument);
+                            var marketConfig = userSettings.markets.FirstOrDefault((_) => !string.IsNullOrEmpty(_.symbol) && string.Equals(getNormalizedInstrument(_.symbol), s, StringComparison.InvariantCultureIgnoreCase));
                             if (marketConfig != null)
                             {
                                 var tradingConfig = symbol.Value;
@@ -114,6 +114,20 @@ namespace Algoserver.API.Services.CacheServices
                     Symbol = symbol.Key,
                     Risk = cnt
                 });
+            }
+
+            foreach (var r in result)
+            {
+                if (string.Equals(r.Symbol, "BTC_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                    string.Equals(r.Symbol, "BTCUSD", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    r.Symbol = "BTC_USDT";
+                }
+                if (string.Equals(r.Symbol, "ETH_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                    string.Equals(r.Symbol, "ETHUSD", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    r.Symbol = "ETH_USDT";
+                }
             }
 
             if (totalCount <= 0)
@@ -225,6 +239,23 @@ namespace Algoserver.API.Services.CacheServices
                 return 4;
             }
             return 0;
+        }
+
+        private string getNormalizedInstrument(string instrument)
+        {
+            instrument = InstrumentsHelper.NormalizeInstrument(instrument);
+            var btcusd = new List<string> { "BTCUSDT", "BTCUSD" };
+            if (btcusd.Any(_ => _.Equals(instrument, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return "btcusdt";
+            } 
+            var ethusdt = new List<string> { "ETHUSDT", "ETHUSD" };
+            if (ethusdt.Any(_ => _.Equals(instrument, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return "ethusdt";
+            }
+
+            return instrument;
         }
 
     }

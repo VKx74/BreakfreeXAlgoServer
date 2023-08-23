@@ -56,10 +56,10 @@ namespace Algoserver.API.HostedServices
 
                     if (scanRequired)
                     {
-                        Console.WriteLine(">>> Crypto ScanMarkets start");
-                        _scannerCache.ScanMarkets();
+                        // Console.WriteLine(">>> Crypto ScanMarkets start");
+                        // _scannerCache.ScanMarkets();
                         // _scannerCache.CalculateMinuteMesa();
-                        Console.WriteLine(">>> Crypto ScanMarkets ends");
+                        // Console.WriteLine(">>> Crypto ScanMarkets ends");
                     }
                 }
                 catch (Exception ex)

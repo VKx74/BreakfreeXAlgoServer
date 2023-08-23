@@ -49,7 +49,7 @@ namespace Algoserver.API.Services
             }
 
             var instrumentSeparator = "/";
-            if (datafeed == "oanda")
+            if (datafeed.ToLowerInvariant() == "oanda")
             {
                 instrumentSeparator = "_";
             }
@@ -115,7 +115,7 @@ namespace Algoserver.API.Services
             }
 
             var instrumentSeparator = "/";
-            if (datafeed == "oanda")
+            if (datafeed.ToLowerInvariant() == "oanda")
             {
                 instrumentSeparator = "_";
             }
