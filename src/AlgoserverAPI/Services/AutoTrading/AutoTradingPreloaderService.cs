@@ -116,6 +116,20 @@ namespace Algoserver.API.Services.CacheServices
                 });
             }
 
+            foreach (var r in result)
+            {
+                if (string.Equals(r.Symbol, "BTC_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                    string.Equals(r.Symbol, "BTCUSD", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    r.Symbol = "BTC_USDT";
+                }
+                if (string.Equals(r.Symbol, "ETH_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                    string.Equals(r.Symbol, "ETHUSD", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    r.Symbol = "ETH_USDT";
+                }
+            }
+
             if (totalCount <= 0)
             {
                 foreach (var r in result)
