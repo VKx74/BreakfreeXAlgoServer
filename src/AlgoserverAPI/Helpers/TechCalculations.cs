@@ -21,6 +21,7 @@ namespace Algoserver.API.Helpers
         public string Datafeed { get; set; }
         public Dictionary<int, MESADataPoint> Strength { get; set; }
         public Dictionary<int, float> AvgStrength { get; set; }
+        public Dictionary<int, float> Volatility { get; set; }
         public Dictionary<int, float> TimeframeStrengths { get; set; }
         public float TotalStrength { get; set; }
         public float LastPrice { get; set; }

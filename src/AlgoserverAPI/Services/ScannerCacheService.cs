@@ -156,7 +156,10 @@ namespace Algoserver.API.Services
             var stopWatch = new Stopwatch();
             stopWatch.Start();
             var _1Mins = _historyService.Get1MinLongData();
+            var _5Mins = _historyService.Get5MinData();
+            var _15Mins = _historyService.Get15MinData();
             var _1Hour = _historyService.Get1HData();
+            var _4Hour = _historyService.Get4HData();
             var _1Day = _historyService.Get1DData();
             var count = 0;
             var summary = new List<MESADataSummary>();
@@ -477,6 +480,40 @@ namespace Algoserver.API.Services
                         }
                     }
 
+                    var volatility = new Dictionary<int, float>();
+
+                    volatility.Add(TimeframeHelper.MIN1_GRANULARITY, CalculateVolatility(minHistory.Bars));
+
+                    var _5MinHistory = _5Mins.FirstOrDefault((_) => String.Equals(_.Symbol, minHistory.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, minHistory.Exchange, StringComparison.InvariantCultureIgnoreCase));
+                    if (_5MinHistory != null && _5MinHistory.Bars != null && _5MinHistory.Bars.Any())
+                    {
+                        volatility.Add(TimeframeHelper.MIN5_GRANULARITY, CalculateVolatility(_5MinHistory.Bars));
+                    } 
+                    
+                    var _15MinHistory = _15Mins.FirstOrDefault((_) => String.Equals(_.Symbol, minHistory.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, minHistory.Exchange, StringComparison.InvariantCultureIgnoreCase));
+                    if (_15MinHistory != null && _15MinHistory.Bars != null && _15MinHistory.Bars.Any())
+                    {
+                        volatility.Add(TimeframeHelper.MIN15_GRANULARITY, CalculateVolatility(_15MinHistory.Bars));
+                    }
+                    
+                    var _1HourHistory = _1Hour.FirstOrDefault((_) => String.Equals(_.Symbol, minHistory.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, minHistory.Exchange, StringComparison.InvariantCultureIgnoreCase));
+                    if (_1HourHistory != null && _1HourHistory.Bars != null && _1HourHistory.Bars.Any())
+                    {
+                        volatility.Add(TimeframeHelper.HOURLY_GRANULARITY, CalculateVolatility(_1HourHistory.Bars));
+                    }
+                    
+                    var _4HourHistory = _4Hour.FirstOrDefault((_) => String.Equals(_.Symbol, minHistory.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, minHistory.Exchange, StringComparison.InvariantCultureIgnoreCase));
+                    if (_4HourHistory != null && _4HourHistory.Bars != null && _4HourHistory.Bars.Any())
+                    {
+                        volatility.Add(TimeframeHelper.HOUR4_GRANULARITY, CalculateVolatility(_4HourHistory.Bars));
+                    }
+                    
+                    var _1DayHistory = _1Day.FirstOrDefault((_) => String.Equals(_.Symbol, minHistory.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, minHistory.Exchange, StringComparison.InvariantCultureIgnoreCase));
+                    if (_1DayHistory != null && _1DayHistory.Bars != null && _1DayHistory.Bars.Any())
+                    {
+                        volatility.Add(TimeframeHelper.DAILY_GRANULARITY, CalculateVolatility(_1DayHistory.Bars));
+                    }
+
                     summary.Add(new MESADataSummary
                     {
                         Symbol = symbol,
@@ -485,6 +522,7 @@ namespace Algoserver.API.Services
                         AvgStrength = tfAvgSummary,
                         TimeframeStrengths = timeframeStrengths,
                         TotalStrength = totalStrength,
+                        Volatility = volatility,
                         LastPrice = (float)calculation_input.LastOrDefault(),
                         Price60 = (float)calculation_input.ElementAt(length - 1),
                         Price300 = (float)calculation_input.ElementAt(length - 5),
@@ -525,6 +563,18 @@ namespace Algoserver.API.Services
                 MesaSummary = summary,
                 MesaDataPoints = mesaDataPoints
             };
+        }
+
+        private float CalculateVolatility(IEnumerable<BarMessage> bars)
+        {
+            bars = bars.TakeLast(3000);
+            var high = bars.Select(_ => _.High);
+            var low = bars.Select(_ => _.Low);
+            var levelsList = TechCalculations.CalculateLevelsBasedOnTradeZone(high, low);
+            var spreads = levelsList.Select((_) => _.Plus28 - _.Minus28);
+            var avgSpread = spreads.Sum() / spreads.Count();
+            var lastSpread = spreads.Last();
+            return (float)lastSpread / (float)avgSpread * 100;
         }
 
         private void SetMinuteMesaCache(Dictionary<int, List<MESADataPoint>> mesa, string key)

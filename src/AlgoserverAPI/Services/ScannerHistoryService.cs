@@ -152,7 +152,7 @@ namespace Algoserver.API.Services
                     Symbol = Symbol,
                     Datafeed = Datafeed,
                     Exchange = Exchange,
-                    Count = 1000,
+                    Count = 3000,
                     Granularity = TimeframeHelper.MIN1_GRANULARITY
                 });
                 // tasks5min.Add(new HistoryRequest {
@@ -167,7 +167,7 @@ namespace Algoserver.API.Services
                     Symbol = Symbol,
                     Datafeed = Datafeed,
                     Exchange = Exchange,
-                    Count = 400,
+                    Count = 3000,
                     Granularity = TimeframeHelper.MIN15_GRANULARITY
                 });
                 // tasks30min.Add(new HistoryRequest {
@@ -190,7 +190,7 @@ namespace Algoserver.API.Services
                     Symbol = Symbol,
                     Datafeed = Datafeed,
                     Exchange = Exchange,
-                    Count = 200,
+                    Count = 3000,
                     Granularity = TimeframeHelper.HOUR4_GRANULARITY
                 });
                 tasks1d.Add(new HistoryRequest
