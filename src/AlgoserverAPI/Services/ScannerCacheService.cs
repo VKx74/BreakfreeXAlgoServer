@@ -573,7 +573,8 @@ namespace Algoserver.API.Services
             var levelsList = TechCalculations.CalculateLevelsBasedOnTradeZone(high, low);
             var spreads = levelsList.Select((_) => _.Plus28 - _.Minus28);
             var avgSpread = spreads.Sum() / spreads.Count();
-            var lastSpread = spreads.Last();
+            var count = 50;
+            var lastSpread = spreads.TakeLast(count).Sum() / count;
             return (float)lastSpread / (float)avgSpread * 100;
         }
 
