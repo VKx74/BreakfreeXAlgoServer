@@ -288,7 +288,8 @@ namespace Algoserver.API.Controllers
                     {
                         f = _.Value.f,
                         s = _.Value.s,
-                        t = _.Value.t
+                        t = _.Value.t,
+                        v = _.Value.v
                     }),
                     timeframe_strengths = r.TimeframeStrengths,
                     volatility = r.Volatility,

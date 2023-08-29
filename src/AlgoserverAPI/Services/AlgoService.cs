@@ -1282,7 +1282,8 @@ namespace Algoserver.API.Services
                     {
                         f = _.f,
                         s = _.s,
-                        t = _.t
+                        t = _.t,
+                        v = _.v
                     }).ToList());
                 }
             }

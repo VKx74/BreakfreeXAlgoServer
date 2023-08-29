@@ -301,6 +301,7 @@ namespace Algoserver.API.Models.REST
     {
         public float f { get; set; }
         public float s { get; set; }
+        public float v { get; set; }
         public long t { get; set; }
     }
 

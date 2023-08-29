@@ -12,6 +12,7 @@ namespace Algoserver.API.Helpers
         public float f { get; set; }
         public float s { get; set; }
         public uint t { get; set; }
+        public float v { get; set; }
     }
 
     [Serializable]
@@ -953,6 +954,8 @@ namespace Algoserver.API.Helpers
         {
             var res = new List<decimal>();
             var sumDataRows = new List<decimal>();
+            var globalSumDataRows = new List<decimal>();
+            var sum = 0m;
             var input = cPrice.ToList();
             for (var i = 0; i < input.Count; i++)
             {
@@ -968,10 +971,12 @@ namespace Algoserver.API.Helpers
                                         (i >= period ? input[i - period] : 0);
                     sumDataRows.Add(val);
                     var avg = sumDataRows.Last() / Math.Min(i + 1, period);
-                    var sum = 0m;
-                    for (var barsBack = Math.Min(i, period - 1); barsBack >= 0; barsBack--)
+                    var currentSum = (decimal)Math.Pow((double)input[i] - (double)avg, 2);
+                    globalSumDataRows.Add(currentSum);
+                    sum += currentSum;
+                    if (globalSumDataRows.Count > period)
                     {
-                        sum += (input[i - barsBack] - avg) * (input[i - barsBack] - avg);
+                        sum -= globalSumDataRows[globalSumDataRows.Count - period - 1];
                     }
                     stdDev = (decimal)Math.Sqrt((double)sum / Math.Min(i + 1, period));
                 }
