@@ -482,6 +482,7 @@ namespace Algoserver.API.Services
 
                     var volatility = new Dictionary<int, float>();
 
+                    volatility.Add(TimeframeHelper.DRIVER_GRANULARITY, CalculateVolatility(minHistory.Bars, 33));
                     volatility.Add(TimeframeHelper.MIN1_GRANULARITY, CalculateVolatility(minHistory.Bars));
 
                     var _5MinHistory = _5Mins.FirstOrDefault((_) => String.Equals(_.Symbol, minHistory.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, minHistory.Exchange, StringComparison.InvariantCultureIgnoreCase));
@@ -512,6 +513,7 @@ namespace Algoserver.API.Services
                     if (_1DayHistory != null && _1DayHistory.Bars != null && _1DayHistory.Bars.Any())
                     {
                         volatility.Add(TimeframeHelper.DAILY_GRANULARITY, CalculateVolatility(_1DayHistory.Bars));
+                        volatility.Add(TimeframeHelper.MONTHLY_GRANULARITY, CalculateVolatility(_1DayHistory.Bars, 132));
                     }
 
                     summary.Add(new MESADataSummary
@@ -565,16 +567,14 @@ namespace Algoserver.API.Services
             };
         }
 
-        private float CalculateVolatility(IEnumerable<BarMessage> bars)
+        private float CalculateVolatility(IEnumerable<BarMessage> bars, int period = 66)
         {
-            bars = bars.TakeLast(3000);
-            var high = bars.Select(_ => _.High);
-            var low = bars.Select(_ => _.Low);
-            var levelsList = TechCalculations.CalculateLevelsBasedOnTradeZone(high, low);
-            var spreads = levelsList.Select((_) => _.Plus28 - _.Minus28);
-            var avgSpread = spreads.Sum() / spreads.Count();
-            var count = 50;
-            var lastSpread = spreads.TakeLast(count).Sum() / count;
+            bars = bars.TakeLast(1000);
+            var input = bars.Select(_ => _.Close);
+            var levelsList = TechCalculations.StdDevPercentage(input, period);
+            var avgSpread = levelsList.Sum() / levelsList.Count();
+            var count = 9;
+            var lastSpread = levelsList.TakeLast(count).Sum() / count;
             return (float)lastSpread / (float)avgSpread * 100;
         }
 

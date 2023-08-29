@@ -949,6 +949,51 @@ namespace Algoserver.API.Helpers
             return res;
         }
 
+        public static List<decimal> StdDev(IEnumerable<decimal> cPrice, int period)
+        {
+            var res = new List<decimal>();
+            var sumDataRows = new List<decimal>();
+            var input = cPrice.ToList();
+            for (var i = 0; i < input.Count; i++)
+            {
+                var stdDev = 0m;
+                if (i < 1)
+                {
+                    sumDataRows.Add(input[i]);
+                    stdDev = 0;
+                }
+                else
+                {
+                    var val = input[i] + sumDataRows.Last() -
+                                        (i >= period ? input[i - period] : 0);
+                    sumDataRows.Add(val);
+                    var avg = sumDataRows.Last() / Math.Min(i + 1, period);
+                    var sum = 0m;
+                    for (var barsBack = Math.Min(i, period - 1); barsBack >= 0; barsBack--)
+                    {
+                        sum += (input[i - barsBack] - avg) * (input[i - barsBack] - avg);
+                    }
+                    stdDev = (decimal)Math.Sqrt((double)sum / Math.Min(i + 1, period));
+                }
+
+                res.Add(stdDev);
+            }
+
+            return res;
+        }
+
+        public static List<decimal> StdDevPercentage(IEnumerable<decimal> cPrice, int period)
+        {
+            var res = new List<decimal>();
+            var stddev = StdDev(cPrice, period);
+            var input = cPrice.ToList();
+            for (var i = 0; i < input.Count; i++)
+            {
+                res.Add(stddev[i] / input[i] * 100);
+            }
+            return res;
+        }
+
         public static int MeasureTrendState(List<float> values, float deviation)
         {
             if (!values.Any())
@@ -1025,10 +1070,11 @@ namespace Algoserver.API.Helpers
 
             var lastItem = data.LastOrDefault();
             var lastExtremum = extremum.LastOrDefault();
-            if (!isUpTrending) {
+            if (!isUpTrending)
+            {
                 return 0;
             }
-            
+
             var lvl = lastExtremum - (percentage / 4);
             if (lastItem > lvl)
             {
