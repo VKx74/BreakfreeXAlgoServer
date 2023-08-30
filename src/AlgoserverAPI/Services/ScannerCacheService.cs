@@ -289,7 +289,7 @@ namespace Algoserver.API.Services
                         }
                     }
 
-                    var hourTfCount = 3600;
+                    var hourTfCount = 3000;
                     var hourTimesCut = hourlyHistory.Bars.TakeLast(hourTfCount).Select(_ => _.Timestamp).ToList();
                     var mesa1dCut = mesa1d.TakeLast(hourTfCount).ToList();
                     var mesa1dDataPoints = new List<MESADataPoint>();
@@ -306,7 +306,7 @@ namespace Algoserver.API.Services
                         });
                     }
 
-                    var dailyTfCount = 360;
+                    var dailyTfCount = 300;
                     var dailyTimesCut = dailyHistory.Bars.TakeLast(dailyTfCount).Select(_ => _.Timestamp).ToList();
                     var mesa1monthCut = mesa1month.TakeLast(dailyTfCount).ToList();
                     var mesa1monthDataPoints = new List<MESADataPoint>();
