@@ -447,7 +447,7 @@ namespace Algoserver.API.Services
                         var currentStrength = (d.f - d.s) / ast;
                         var stateData = mesa1monthDataPoints.Select((_) => (_.f - _.s) / ast * 100).ToList();
                         monthlyStrength = TechCalculations.MeasureTrendState(stateData, 5);
-                        totalStrength += currentStrength * 0.2f;
+                        totalStrength += currentStrength * 0.1f;
                         timeframeStrengths.Add(TimeframeHelper.MONTHLY_GRANULARITY, currentStrength);
                     }
                     else
