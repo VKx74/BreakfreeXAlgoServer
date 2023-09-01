@@ -369,7 +369,7 @@ namespace Algoserver.API.Services
                     if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
-                        totalStrength += currentStrength * 0.033f;
+                        totalStrength += currentStrength * 0.0066f;
                         timeframeStrengths.Add(TimeframeHelper.DRIVER_GRANULARITY, currentStrength);
                     }
                     else
@@ -382,7 +382,7 @@ namespace Algoserver.API.Services
                     if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
-                        totalStrength += currentStrength * 0.066f;
+                        totalStrength += currentStrength * 0.0274f;
                         timeframeStrengths.Add(TimeframeHelper.MIN1_GRANULARITY, currentStrength);
                     }
                     else
@@ -395,7 +395,7 @@ namespace Algoserver.API.Services
                     if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
-                        totalStrength += currentStrength * 0.1f;
+                        totalStrength += currentStrength * 0.066f;
                         timeframeStrengths.Add(TimeframeHelper.MIN5_GRANULARITY, currentStrength);
                     }
                     else
@@ -486,19 +486,19 @@ namespace Algoserver.API.Services
                     {
                         if (hour1Strength == 2)
                         {
-                            totalStrength += totalStrength > 0 ? 0.05f : -0.05f;
+                            totalStrength += totalStrength > 0 ? 0.01f : -0.01f;
                         }
                         if (hour4Strength == 2)
                         {
-                            totalStrength += totalStrength > 0 ? 0.05f : -0.05f;
+                            totalStrength += totalStrength > 0 ? 0.02f : -0.02f;
                         }
                         if (dailyStrength == 2)
                         {
-                            totalStrength += totalStrength > 0 ? 0.05f : -0.05f;
+                            totalStrength += totalStrength > 0 ? 0.03f : -0.03f;
                         }
                         if (monthlyStrength == 2)
                         {
-                            totalStrength += totalStrength > 0 ? 0.05f : -0.05f;
+                            totalStrength += totalStrength > 0 ? 0.04f : -0.04f;
                         }
                     }
 
