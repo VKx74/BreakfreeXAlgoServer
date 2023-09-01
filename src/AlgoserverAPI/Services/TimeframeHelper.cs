@@ -10,5 +10,6 @@ namespace Algoserver.API.Services
         public const int HOUR4_GRANULARITY = 14400;
         public const int DAILY_GRANULARITY = 86400;
         public const int MONTHLY_GRANULARITY = 2592000;
+        public const int YEARLY_GRANULARITY = 2592000 * 12;
     }
 }

@@ -213,7 +213,8 @@ namespace Algoserver.API.Services
                     var mesa1h = TechCalculations.MESA(calculation_input.TakeLast(44000).ToList(), 0.0007, 0.0007);
                     var mesa4h = TechCalculations.MESA(calculation_input.TakeLast(50000).ToList(), 0.00039, 0.00039);
                     var mesa1d = TechCalculations.MESA(hourly_calculation_input.TakeLast(3000).ToList(), 0.0085, 0.0085);
-                    var mesa1month = TechCalculations.MESA(daily_calculation_input.TakeLast(3000).ToList(), 0.09, 0.09);
+                    var mesa1month = TechCalculations.MESA(daily_calculation_input.TakeLast(10000).ToList(), 0.09, 0.09);
+                    var mesa1year = TechCalculations.MESA(daily_calculation_input.TakeLast(10000).ToList(), 0.0085, 0.0085);
 
                     var volatilityCalculationData = minHistory.Bars.TakeLast(28000);
                     var volDriver = CalculateVolatility(volatilityCalculationData, 14);
@@ -289,7 +290,7 @@ namespace Algoserver.API.Services
                         }
                     }
 
-                    var hourTfCount = Math.Min(1500, mesa1d.Length);
+                    var hourTfCount = Math.Min(3000, hourlyHistory.Bars.Count - 1000);
                     var hourTimesCut = hourlyHistory.Bars.TakeLast(hourTfCount).Select(_ => _.Timestamp).ToList();
                     var mesa1dCut = mesa1d.TakeLast(hourTfCount).ToList();
                     var mesa1dDataPoints = new List<MESADataPoint>();
@@ -306,10 +307,12 @@ namespace Algoserver.API.Services
                         });
                     }
 
-                    var dailyTfCount = Math.Min(300, mesa1month.Length);
+                    var dailyTfCount = Math.Min(8000, dailyHistory.Bars.Count - 1000);
                     var dailyTimesCut = dailyHistory.Bars.TakeLast(dailyTfCount).Select(_ => _.Timestamp).ToList();
                     var mesa1monthCut = mesa1month.TakeLast(dailyTfCount).ToList();
+                    var mesa1yearCut = mesa1year.TakeLast(dailyTfCount).ToList();
                     var mesa1monthDataPoints = new List<MESADataPoint>();
+                    var mesa1yearDataPoints = new List<MESADataPoint>();
 
                     for (var i = 0; i < dailyTimesCut.Count; i++)
                     {
@@ -320,6 +323,12 @@ namespace Algoserver.API.Services
                             s = (float)mesa1monthCut[i].Slow,
                             t = (uint)tt,
                             v = vol1month.GetValueOrDefault(tt, 0)
+                        }); 
+                        mesa1yearDataPoints.Add(new MESADataPoint
+                        {
+                            f = (float)mesa1yearCut[i].Fast,
+                            s = (float)mesa1yearCut[i].Slow,
+                            t = (uint)tt
                         });
                     }
 
@@ -337,6 +346,7 @@ namespace Algoserver.API.Services
                     mesaDataPointsMap.Add(TimeframeHelper.HOUR4_GRANULARITY, mesa4hDataPoints);
                     mesaDataPointsMap.Add(TimeframeHelper.DAILY_GRANULARITY, mesa1dDataPoints);
                     mesaDataPointsMap.Add(TimeframeHelper.MONTHLY_GRANULARITY, mesa1monthDataPoints);
+                    mesaDataPointsMap.Add(TimeframeHelper.YEARLY_GRANULARITY, mesa1yearDataPoints);
                     mesaDataPoints.Add(key, mesaDataPointsMap);
                     SetMinuteMesaCache(mesaDataPointsMap, key);
 
@@ -351,6 +361,7 @@ namespace Algoserver.API.Services
                     tfSummary.Add(TimeframeHelper.HOUR4_GRANULARITY, mesa4hDataPoints.LastOrDefault());
                     tfSummary.Add(TimeframeHelper.DAILY_GRANULARITY, mesa1dDataPoints.LastOrDefault());
                     tfSummary.Add(TimeframeHelper.MONTHLY_GRANULARITY, mesa1monthDataPoints.LastOrDefault());
+                    tfSummary.Add(TimeframeHelper.YEARLY_GRANULARITY, mesa1yearDataPoints.LastOrDefault());
 
                     var tfAvgSummary = new Dictionary<int, float>();
                     tfAvgSummary.Add(TimeframeHelper.DRIVER_GRANULARITY, (float)mesa1driver.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1driver.Length);
@@ -361,6 +372,7 @@ namespace Algoserver.API.Services
                     tfAvgSummary.Add(TimeframeHelper.HOUR4_GRANULARITY, (float)mesa4h.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa4h.Length);
                     tfAvgSummary.Add(TimeframeHelper.DAILY_GRANULARITY, (float)mesa1d.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1d.Length);
                     tfAvgSummary.Add(TimeframeHelper.MONTHLY_GRANULARITY, (float)mesa1month.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1month.Length);
+                    tfAvgSummary.Add(TimeframeHelper.YEARLY_GRANULARITY, (float)mesa1year.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1year.Length);
 
                     var totalStrength = 0f;
                     var timeframeStrengths = new Dictionary<int, float>();
@@ -424,7 +436,7 @@ namespace Algoserver.API.Services
                         var currentStrength = (d.f - d.s) / ast;
                         var stateData = mesa1hDataPoints.Select((_) => (_.f - _.s) / ast * 100).ToList();
                         hour1Strength = TechCalculations.MeasureTrendState(stateData, 5);
-                        totalStrength += currentStrength * 0.2f;
+                        totalStrength += currentStrength * 0.18f;
                         timeframeStrengths.Add(TimeframeHelper.HOURLY_GRANULARITY, currentStrength);
                     }
                     else
@@ -440,7 +452,7 @@ namespace Algoserver.API.Services
                         var currentStrength = (d.f - d.s) / ast;
                         var stateData = mesa4hDataPoints.Select((_) => (_.f - _.s) / ast * 100).ToList();
                         hour4Strength = TechCalculations.MeasureTrendState(stateData, 5);
-                        totalStrength += currentStrength * 0.2f;
+                        totalStrength += currentStrength * 0.18f;
                         timeframeStrengths.Add(TimeframeHelper.HOUR4_GRANULARITY, currentStrength);
                     }
                     else
@@ -456,7 +468,7 @@ namespace Algoserver.API.Services
                         var currentStrength = (d.f - d.s) / ast;
                         var stateData = mesa1dDataPoints.Select((_) => (_.f - _.s) / ast * 100).ToList();
                         dailyStrength = TechCalculations.MeasureTrendState(stateData, 5);
-                        totalStrength += currentStrength * 0.2f;
+                        totalStrength += currentStrength * 0.18f;
                         timeframeStrengths.Add(TimeframeHelper.DAILY_GRANULARITY, currentStrength);
                     }
                     else
@@ -480,9 +492,25 @@ namespace Algoserver.API.Services
                         timeframeStrengths.Add(TimeframeHelper.MONTHLY_GRANULARITY, 0);
                     }
 
+                    var yearlyStrength = 0;
+                    d = tfSummary.GetValueOrDefault(TimeframeHelper.YEARLY_GRANULARITY);
+                    ast = tfAvgSummary.GetValueOrDefault(TimeframeHelper.YEARLY_GRANULARITY);
+                    if (d != null && ast > 0)
+                    {
+                        var currentStrength = (d.f - d.s) / ast;
+                        var stateData = mesa1yearDataPoints.Select((_) => (_.f - _.s) / ast * 100).ToList();
+                        yearlyStrength = TechCalculations.MeasureTrendState(stateData, 5);
+                        totalStrength += currentStrength * 0.06f;
+                        timeframeStrengths.Add(TimeframeHelper.YEARLY_GRANULARITY, currentStrength);
+                    }
+                    else
+                    {
+                        timeframeStrengths.Add(TimeframeHelper.YEARLY_GRANULARITY, 0);
+                    }
+
                     var length = calculation_input.Count();
 
-                    if (hour1Strength > 0 && hour4Strength > 0 && dailyStrength > 0 && monthlyStrength > 0)
+                    if (hour1Strength > 0 && hour4Strength > 0 && dailyStrength > 0 && monthlyStrength > 0 && yearlyStrength > 0)
                     {
                         if (hour1Strength == 2)
                         {
