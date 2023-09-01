@@ -461,19 +461,19 @@ namespace Algoserver.API.Services
                     {
                         if (hour1Strength == 2)
                         {
-                            totalStrength += totalStrength > 0 ? 0.05f : -0.05f;
+                            totalStrength += totalStrength > 0 ? 0.01f : -0.01f;
                         }
                         if (hour4Strength == 2)
                         {
-                            totalStrength += totalStrength > 0 ? 0.05f : -0.05f;
+                            totalStrength += totalStrength > 0 ? 0.02f : -0.02f;
                         }
                         if (dailyStrength == 2)
                         {
-                            totalStrength += totalStrength > 0 ? 0.05f : -0.05f;
+                            totalStrength += totalStrength > 0 ? 0.03f : -0.03f;
                         }
                         if (monthlyStrength == 2)
                         {
-                            totalStrength += totalStrength > 0 ? 0.05f : -0.05f;
+                            totalStrength += totalStrength > 0 ? 0.04f : -0.04f;
                         }
                     }
 
