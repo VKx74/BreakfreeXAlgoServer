@@ -331,6 +331,7 @@ namespace Algoserver.API.Models.REST
         public int hour4State { get; set; }
         public int dailyState { get; set; }
         public int monthlyState { get; set; }
+        public int yearlyState { get; set; }
     }
 
 }

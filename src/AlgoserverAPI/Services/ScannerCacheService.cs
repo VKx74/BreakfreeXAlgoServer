@@ -559,7 +559,8 @@ namespace Algoserver.API.Services
                         Hour1State = hour1Strength,
                         Hour4State = hour4Strength,
                         DailyState = dailyStrength,
-                        MonthlyState = monthlyStrength
+                        MonthlyState = monthlyStrength,
+                        YearlyState = yearlyStrength
                     });
 
                 }

@@ -308,7 +308,8 @@ namespace Algoserver.API.Controllers
                     hour1State = r.Hour1State,
                     hour4State = r.Hour4State,
                     dailyState = r.DailyState,
-                    monthlyState = r.MonthlyState
+                    monthlyState = r.MonthlyState,
+                    yearlyState = r.YearlyState,
                 });
             }
             return result;

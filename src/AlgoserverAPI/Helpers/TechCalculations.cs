@@ -36,6 +36,7 @@ namespace Algoserver.API.Helpers
         public int Hour4State { get; set; }
         public int DailyState { get; set; }
         public int MonthlyState { get; set; }
+        public int YearlyState { get; set; }
     }
 
     public class TradeZone
