@@ -297,8 +297,8 @@ namespace Algoserver.API.Services
 
                     for (var i = 0; i < hourTimesCut.Count; i++)
                     {
-                        // if (hourTimesCut[i] % (60 * 60 * 12) == 0 || i == hourTimesCut.Count - 1)
-                        // {
+                        if (i % 10 == 0 || i == hourTimesCut.Count - 1)
+                        {
                             var tt = hourTimesCut[i];
                             mesa1dDataPoints.Add(new MESADataPoint
                             {
@@ -307,7 +307,7 @@ namespace Algoserver.API.Services
                                 t = (uint)tt,
                                 v = vol1d.GetValueOrDefault(tt, 0)
                             });
-                        // }
+                        }
                     }
 
                     var dailyTfCount = Math.Min(5000, dailyHistory.Bars.Count - 1000);
@@ -319,8 +319,8 @@ namespace Algoserver.API.Services
 
                     for (var i = 0; i < dailyTimesCut.Count; i++)
                     {
-                        // if (dailyTimesCut[i] % (60 * 60 * 24 * 10) == 0 || i == dailyTimesCut.Count - 1)
-                        // {
+                        if (i % 10 == 0 || i == dailyTimesCut.Count - 1)
+                        {
                             var tt = dailyTimesCut[i];
                             mesa1monthDataPoints.Add(new MESADataPoint
                             {
@@ -335,7 +335,7 @@ namespace Algoserver.API.Services
                                 s = (float)mesa1yearCut[i].Slow,
                                 t = (uint)tt
                             });
-                        // }
+                        }
                     }
 
 
