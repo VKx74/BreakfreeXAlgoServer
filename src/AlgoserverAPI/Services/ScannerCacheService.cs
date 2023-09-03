@@ -156,10 +156,10 @@ namespace Algoserver.API.Services
             var stopWatch = new Stopwatch();
             stopWatch.Start();
             var _1Mins = _historyService.Get1MinLongData();
-            var _5Mins = _historyService.Get5MinData();
-            var _15Mins = _historyService.Get15MinData();
+            // var _5Mins = _historyService.Get5MinData();
+            // var _15Mins = _historyService.Get15MinData();
             var _1Hour = _historyService.Get1HData();
-            var _4Hour = _historyService.Get4HData();
+            // var _4Hour = _historyService.Get4HData();
             var _1Day = _historyService.Get1DData();
             var count = 0;
             var summary = new List<MESADataSummary>();
@@ -190,14 +190,14 @@ namespace Algoserver.API.Services
                     }
 
                     var hourlyHistory = _1Hour.FirstOrDefault((_) => String.Equals(_.Symbol, minHistory.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, minHistory.Exchange, StringComparison.InvariantCultureIgnoreCase));
-                    if (hourlyHistory == null || hourlyHistory.Bars == null || !hourlyHistory.Bars.Any())
+                    if (hourlyHistory == null || hourlyHistory.Bars == null || hourlyHistory.Bars.Count < 3000)
                     {
                         Console.WriteLine(">>> MESA Calculation Error (hourlyHistory)");
                         continue;
                     }
 
                     var dailyHistory = _1Day.FirstOrDefault((_) => String.Equals(_.Symbol, minHistory.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, minHistory.Exchange, StringComparison.InvariantCultureIgnoreCase));
-                    if (dailyHistory == null || dailyHistory.Bars == null || !dailyHistory.Bars.Any())
+                    if (dailyHistory == null || dailyHistory.Bars == null || dailyHistory.Bars.Count < 5000)
                     {
                         Console.WriteLine(">>> MESA Calculation Error (dailyHistory)");
                         continue;
@@ -297,7 +297,7 @@ namespace Algoserver.API.Services
 
                     for (var i = 0; i < hourTimesCut.Count; i++)
                     {
-                        if (i % (60 * 60 * 12) == 0 || i == hourTimesCut.Count - 1)
+                        if (hourTimesCut[i] % (60 * 60 * 12) == 0 || i == hourTimesCut.Count - 1)
                         {
                             var tt = hourTimesCut[i];
                             mesa1dDataPoints.Add(new MESADataPoint
