@@ -297,14 +297,17 @@ namespace Algoserver.API.Services
 
                     for (var i = 0; i < hourTimesCut.Count; i++)
                     {
-                        var tt = hourTimesCut[i];
-                        mesa1dDataPoints.Add(new MESADataPoint
+                        if (hourTimesCut[i] % (60 * 60 * 12) == 0 || i == hourTimesCut.Count - 1)
                         {
-                            f = (float)mesa1dCut[i].Fast,
-                            s = (float)mesa1dCut[i].Slow,
-                            t = (uint)tt,
-                            v = vol1d.GetValueOrDefault(tt, 0)
-                        });
+                            var tt = hourTimesCut[i];
+                            mesa1dDataPoints.Add(new MESADataPoint
+                            {
+                                f = (float)mesa1dCut[i].Fast,
+                                s = (float)mesa1dCut[i].Slow,
+                                t = (uint)tt,
+                                v = vol1d.GetValueOrDefault(tt, 0)
+                            });
+                        }
                     }
 
                     var dailyTfCount = Math.Min(8000, dailyHistory.Bars.Count - 1000);
@@ -316,20 +319,23 @@ namespace Algoserver.API.Services
 
                     for (var i = 0; i < dailyTimesCut.Count; i++)
                     {
-                        var tt = dailyTimesCut[i];
-                        mesa1monthDataPoints.Add(new MESADataPoint
+                        if (dailyTimesCut[i] % (60 * 60 * 24 * 10) == 0 || i == dailyTimesCut.Count - 1)
                         {
-                            f = (float)mesa1monthCut[i].Fast,
-                            s = (float)mesa1monthCut[i].Slow,
-                            t = (uint)tt,
-                            v = vol1month.GetValueOrDefault(tt, 0)
-                        }); 
-                        mesa1yearDataPoints.Add(new MESADataPoint
-                        {
-                            f = (float)mesa1yearCut[i].Fast,
-                            s = (float)mesa1yearCut[i].Slow,
-                            t = (uint)tt
-                        });
+                            var tt = dailyTimesCut[i];
+                            mesa1monthDataPoints.Add(new MESADataPoint
+                            {
+                                f = (float)mesa1monthCut[i].Fast,
+                                s = (float)mesa1monthCut[i].Slow,
+                                t = (uint)tt,
+                                v = vol1month.GetValueOrDefault(tt, 0)
+                            });
+                            mesa1yearDataPoints.Add(new MESADataPoint
+                            {
+                                f = (float)mesa1yearCut[i].Fast,
+                                s = (float)mesa1yearCut[i].Slow,
+                                t = (uint)tt
+                            });
+                        }
                     }
 
 
