@@ -242,7 +242,7 @@ namespace Algoserver.API.Services
                     var minuteTimesCut = minHistory.Bars.TakeLast(longMinHistoryCount).Select(_ => _.Timestamp).ToList();
                     for (var i = 0; i < minuteTimesCut.Count; i++)
                     {
-                        if (minuteTimesCut[i] % (60 * 5) == 0 || i == minuteTimesCut.Count - 1)
+                        if (i % 10 == 0 || i == minuteTimesCut.Count - 1)
                         {
                             var tt = minuteTimesCut[i];
                             mesa1driverDataPoints.Add(new MESADataPoint
