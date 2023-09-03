@@ -178,7 +178,14 @@ namespace Algoserver.API.Services
                 {
                     if (minHistory == null || minHistory.Bars == null)
                     {
-                        Console.WriteLine(">>> MESA Calculation Error (minHistory)");
+                        if (minHistory != null)
+                        {
+                            Console.WriteLine(">>> MESA Calculation Error (minHistory) - " + minHistory.Symbol);
+                        }
+                        else
+                        {
+                            Console.WriteLine(">>> MESA Calculation Error (minHistory)");
+                        }
                         continue;
                     }
 
@@ -192,14 +199,14 @@ namespace Algoserver.API.Services
                     var hourlyHistory = _1Hour.FirstOrDefault((_) => String.Equals(_.Symbol, minHistory.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, minHistory.Exchange, StringComparison.InvariantCultureIgnoreCase));
                     if (hourlyHistory == null || hourlyHistory.Bars == null || hourlyHistory.Bars.Count < 3000)
                     {
-                        Console.WriteLine(">>> MESA Calculation Error (hourlyHistory)");
+                        Console.WriteLine(">>> MESA Calculation Error (hourlyHistory) - " + minHistory.Symbol);
                         continue;
                     }
 
                     var dailyHistory = _1Day.FirstOrDefault((_) => String.Equals(_.Symbol, minHistory.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, minHistory.Exchange, StringComparison.InvariantCultureIgnoreCase));
                     if (dailyHistory == null || dailyHistory.Bars == null || dailyHistory.Bars.Count < 3000)
                     {
-                        Console.WriteLine(">>> MESA Calculation Error (dailyHistory)");
+                        Console.WriteLine(">>> MESA Calculation Error (dailyHistory) - " + minHistory.Symbol);
                         continue;
                     }
 
@@ -337,7 +344,6 @@ namespace Algoserver.API.Services
                             });
                         }
                     }
-
 
                     var symbol = minHistory.Symbol;
                     var datafeed = minHistory.Datafeed;
