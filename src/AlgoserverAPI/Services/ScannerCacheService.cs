@@ -242,7 +242,7 @@ namespace Algoserver.API.Services
                     var minuteTimesCut = minHistory.Bars.TakeLast(longMinHistoryCount).Select(_ => _.Timestamp).ToList();
                     for (var i = 0; i < minuteTimesCut.Count; i++)
                     {
-                        if (i % 10 == 0 || i == minuteTimesCut.Count - 1)
+                        if (minuteTimesCut[i] % (60 * 10) == 0 || i == minuteTimesCut.Count - 1)
                         {
                             var tt = minuteTimesCut[i];
                             mesa1driverDataPoints.Add(new MESADataPoint
@@ -297,7 +297,7 @@ namespace Algoserver.API.Services
 
                     for (var i = 0; i < hourTimesCut.Count; i++)
                     {
-                        if (i % 10 == 0 || i == hourTimesCut.Count - 1)
+                        if (i % (60 * 60 * 12) == 0 || i == hourTimesCut.Count - 1)
                         {
                             var tt = hourTimesCut[i];
                             mesa1dDataPoints.Add(new MESADataPoint
@@ -319,7 +319,7 @@ namespace Algoserver.API.Services
 
                     for (var i = 0; i < dailyTimesCut.Count; i++)
                     {
-                        if (i % 10 == 0 || i == dailyTimesCut.Count - 1)
+                        if (dailyTimesCut[i] % (60 * 60 * 24 * 10) == 0 || i == dailyTimesCut.Count - 1)
                         {
                             var tt = dailyTimesCut[i];
                             mesa1monthDataPoints.Add(new MESADataPoint

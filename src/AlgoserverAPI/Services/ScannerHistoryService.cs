@@ -182,7 +182,7 @@ namespace Algoserver.API.Services
                     Symbol = Symbol,
                     Datafeed = Datafeed,
                     Exchange = Exchange,
-                    Count = 5000,
+                    Count = 3000,
                     Granularity = TimeframeHelper.HOURLY_GRANULARITY
                 });
                 tasks4h.Add(new HistoryRequest
