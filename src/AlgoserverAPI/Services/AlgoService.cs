@@ -704,59 +704,59 @@ namespace Algoserver.API.Services
                 result.TrendDirection = -1;
             }
 
-            var filteredTrend = 0;
-            var minStrength1h = AutoTradingParametersHelper.GetStrength1H(symbol);
-            var minStrength4h = AutoTradingParametersHelper.GetStrength4H(symbol);
-            var minStrength1d = AutoTradingParametersHelper.GetStrength1D(symbol);
+            // var filteredTrend = 0;
+            // var minStrength1h = AutoTradingParametersHelper.GetStrength1H(symbol);
+            // var minStrength4h = AutoTradingParametersHelper.GetStrength4H(symbol);
+            // var minStrength1d = AutoTradingParametersHelper.GetStrength1D(symbol);
 
-            if (result.TrendDirection == 1)
-            {
-                if ((result.Strength1H * 100 >= minStrength1h) && (result.Strength4H * 100 >= minStrength4h) && (result.Strength1D * 100 >= minStrength1d))
-                {
-                    filteredTrend = 1;
-                }
-            }
-            else if (result.TrendDirection == -1)
-            {
-                if ((result.Strength1H * 100 <= minStrength1h * -1) && (result.Strength4H * 100 <= minStrength4h * -1) && (result.Strength1D * 100 <= minStrength1d * -1))
-                {
-                    filteredTrend = -1;
-                }
-            }
+            // if (result.TrendDirection == 1)
+            // {
+            //     if ((result.Strength1H * 100 >= minStrength1h) && (result.Strength4H * 100 >= minStrength4h) && (result.Strength1D * 100 >= minStrength1d))
+            //     {
+            //         filteredTrend = 1;
+            //     }
+            // }
+            // else if (result.TrendDirection == -1)
+            // {
+            //     if ((result.Strength1H * 100 <= minStrength1h * -1) && (result.Strength4H * 100 <= minStrength4h * -1) && (result.Strength1D * 100 <= minStrength1d * -1))
+            //     {
+            //         filteredTrend = -1;
+            //     }
+            // }
 
-            var stateHistory = levelsResponse.GetValueOrDefault(TimeframeHelper.HOUR4_GRANULARITY);
-            if (stateHistory != null && filteredTrend != 0)
-            {
-                var sh = stateHistory.mesa.Select((_) => (decimal)(_.f - _.s) / (decimal)stateHistory.mesa_avg * 100).ToList();
-                sh.Reverse();
-                sh = sh.TakeWhile((_) => filteredTrend > 0 ? _ > 0 : _ < 0).ToList();
-                sh = sh.Select((_) => Math.Abs(_)).ToList();
-                sh.Reverse();
-                var period = AutoTradingParametersHelper.GetAroonPeriod(symbol);
-                var count = AutoTradingParametersHelper.GetAroonCount(symbol);
-                var aroon = TechCalculations.AroonOscillator(sh, period);
-                var aroonLast = aroon.TakeLast(count).ToList();
-                var sum = aroonLast.Sum();
-                var avg = sum / count;
-                result.AvgOscillator = avg;
-                if (avg < -30)
-                {
-                    result.TrendState = 1; // Tail
-                }
-                else if (avg < 5)
-                {
-                    result.TrendState = 2; // Capitulation
-                }
-                else
-                {
-                    result.TrendState = 3; // Drive
-                }
+            // var stateHistory = levelsResponse.GetValueOrDefault(TimeframeHelper.HOUR4_GRANULARITY);
+            // if (stateHistory != null && filteredTrend != 0)
+            // {
+            //     var sh = stateHistory.mesa.Select((_) => (decimal)(_.f - _.s) / (decimal)stateHistory.mesa_avg * 100).ToList();
+            //     sh.Reverse();
+            //     sh = sh.TakeWhile((_) => filteredTrend > 0 ? _ > 0 : _ < 0).ToList();
+            //     sh = sh.Select((_) => Math.Abs(_)).ToList();
+            //     sh.Reverse();
+            //     var period = AutoTradingParametersHelper.GetAroonPeriod(symbol);
+            //     var count = AutoTradingParametersHelper.GetAroonCount(symbol);
+            //     var aroon = TechCalculations.AroonOscillator(sh, period);
+            //     var aroonLast = aroon.TakeLast(count).ToList();
+            //     var sum = aroonLast.Sum();
+            //     var avg = sum / count;
+            //     result.AvgOscillator = avg;
+            //     if (avg < -30)
+            //     {
+            //         result.TrendState = 1; // Tail
+            //     }
+            //     else if (avg < 5)
+            //     {
+            //         result.TrendState = 2; // Capitulation
+            //     }
+            //     else
+            //     {
+            //         result.TrendState = 3; // Drive
+            //     }
 
-                if (result.MonthlyTrend != result.TrendDirection)
-                {
-                    result.TrendState = 0;
-                }
-            }
+            //     if (result.MonthlyTrend != result.TrendDirection)
+            //     {
+            //         result.TrendState = 0;
+            //     }
+            // }
 
             return result;
         }
