@@ -447,9 +447,10 @@ namespace Algoserver.API.Services
             var sl_ratio = container.InputStoplossRatio;
             var granularity = AlgoHelper.ConvertTimeframeToGranularity(container.TimeframeInterval, container.TimeframePeriod);
 
-            var extendedTrendData = TrendDetector.CalculateByMesaBy2TrendAdjusted(container.CloseD);
-            var trend = TrendDetector.MergeTrends(extendedTrendData);
-            var scanRes = _scanner.ScanExt(scanningHistory, dailyScanningHistory, trend, levels, sl_ratio);
+            // var extendedTrendData = TrendDetector.CalculateByMesaBy2TrendAdjusted(container.CloseD);
+            // var trend = TrendDetector.MergeTrends(extendedTrendData);
+            // var scanRes = _scanner.ScanExt(scanningHistory, dailyScanningHistory, trend, levels, sl_ratio);
+            ScanResponse scanRes = null;
 
             var size = 0m;
 
