@@ -71,8 +71,8 @@ namespace Algoserver.API.HostedServices
                         }
                         Console.WriteLine(">>> Forex Calculate Minute Mesa ends");
                         Console.WriteLine(">>> Forex Auto Trading Precalculation start");
-                        var instruments = _scannerHistory.getInstrumentsForLongHistory();
-                        await _autoTradingPrecalculationService.CalculateInstruments(instruments, "Forex");
+                        // var instruments = _scannerHistory.getInstrumentsForLongHistory();
+                        // await _autoTradingPrecalculationService.CalculateInstruments(instruments, "Forex");
                         Console.WriteLine(">>> Forex Auto Trading Precalculation ends");
                         await Task.Delay(TimeSpan.FromSeconds(3), stoppingToken).ConfigureAwait(false);
                         // Console.WriteLine(">>> Forex ScanMarkets start");
