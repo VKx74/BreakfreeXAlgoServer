@@ -198,7 +198,7 @@ namespace Algoserver.API.Services
                     Symbol = Symbol,
                     Datafeed = Datafeed,
                     Exchange = Exchange,
-                    Count = 3000,
+                    Count = 5000,
                     Granularity = TimeframeHelper.DAILY_GRANULARITY
                 });
             }

@@ -204,7 +204,7 @@ namespace Algoserver.API.Services
                     }
 
                     var dailyHistory = _1Day.FirstOrDefault((_) => String.Equals(_.Symbol, minHistory.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, minHistory.Exchange, StringComparison.InvariantCultureIgnoreCase));
-                    if (dailyHistory == null || dailyHistory.Bars == null || dailyHistory.Bars.Count < 3000)
+                    if (dailyHistory == null || dailyHistory.Bars == null || dailyHistory.Bars.Count < 5000)
                     {
                         Console.WriteLine(">>> MESA Calculation Error (dailyHistory) - " + minHistory.Symbol);
                         continue;
@@ -220,8 +220,8 @@ namespace Algoserver.API.Services
                     var mesa1h = TechCalculations.MESA(calculation_input.TakeLast(44000).ToList(), 0.0007, 0.0007);
                     var mesa4h = TechCalculations.MESA(calculation_input.TakeLast(50000).ToList(), 0.00039, 0.00039);
                     var mesa1d = TechCalculations.MESA(hourly_calculation_input.TakeLast(3000).ToList(), 0.0085, 0.0085);
-                    var mesa1month = TechCalculations.MESA(daily_calculation_input.TakeLast(3000).ToList(), 0.09, 0.09);
-                    var mesa1year = TechCalculations.MESA(daily_calculation_input.TakeLast(3000).ToList(), 0.0085, 0.0085);
+                    var mesa1month = TechCalculations.MESA(daily_calculation_input.TakeLast(5000).ToList(), 0.09, 0.09);
+                    var mesa1year = TechCalculations.MESA(daily_calculation_input.TakeLast(5000).ToList(), 0.0085, 0.0085);
 
                     var volatilityCalculationData = minHistory.Bars.TakeLast(28000);
                     var volDriver = CalculateVolatility(volatilityCalculationData, 14);
@@ -249,7 +249,7 @@ namespace Algoserver.API.Services
                     var minuteTimesCut = minHistory.Bars.TakeLast(longMinHistoryCount).Select(_ => _.Timestamp).ToList();
                     for (var i = 0; i < minuteTimesCut.Count; i++)
                     {
-                        if (minuteTimesCut[i] % (60 * 10) == 0 || i == minuteTimesCut.Count - 1)
+                        if (minuteTimesCut[i] % (60 * 5) == 0 || i == minuteTimesCut.Count - 1)
                         {
                             var tt = minuteTimesCut[i];
                             mesa1driverDataPoints.Add(new MESADataPoint
@@ -304,7 +304,7 @@ namespace Algoserver.API.Services
 
                     for (var i = 0; i < hourTimesCut.Count; i++)
                     {
-                        if (i % 10 == 0 || i == hourTimesCut.Count - 1)
+                        if (i % 5 == 0 || i == hourTimesCut.Count - 1)
                         {
                             var tt = hourTimesCut[i];
                             mesa1dDataPoints.Add(new MESADataPoint
@@ -317,7 +317,7 @@ namespace Algoserver.API.Services
                         }
                     }
 
-                    var dailyTfCount = 2000;
+                    var dailyTfCount = 4000;
                     var dailyTimesCut = dailyHistory.Bars.TakeLast(dailyTfCount).Select(_ => _.Timestamp).ToList();
                     var mesa1monthCut = mesa1month.TakeLast(dailyTfCount).ToList();
                     var mesa1yearCut = mesa1year.TakeLast(dailyTfCount).ToList();
@@ -326,7 +326,7 @@ namespace Algoserver.API.Services
 
                     for (var i = 0; i < dailyTimesCut.Count; i++)
                     {
-                        if (i % 10 == 0 || i == dailyTimesCut.Count - 1)
+                        if (i % 5 == 0 || i == dailyTimesCut.Count - 1)
                         {
                             var tt = dailyTimesCut[i];
                             mesa1monthDataPoints.Add(new MESADataPoint
