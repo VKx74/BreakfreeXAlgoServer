@@ -319,8 +319,8 @@ namespace Algoserver.API.Services
                     }
 
                     var monthlyTfCount = 365;
-                    var yearlyTfCount = 365 * 3;
-                    var year10TfCount = 365 * 6;
+                    var yearlyTfCount = 365 * 2;
+                    var year10TfCount = 365 * 5;
                     var monthlyTimesCut = dailyHistory.Bars.TakeLast(monthlyTfCount).Select(_ => _.Timestamp).ToList();
                     var yearlyTimesCut = dailyHistory.Bars.TakeLast(yearlyTfCount).Select(_ => _.Timestamp).ToList();
                     var year10TimesCut = dailyHistory.Bars.TakeLast(year10TfCount).Select(_ => _.Timestamp).ToList();
