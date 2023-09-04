@@ -1266,6 +1266,7 @@ namespace Algoserver.API.Services
                 granularityList.Add(TimeframeHelper.DAILY_GRANULARITY);
                 granularityList.Add(TimeframeHelper.MONTHLY_GRANULARITY);
                 granularityList.Add(TimeframeHelper.YEARLY_GRANULARITY);
+                granularityList.Add(TimeframeHelper.YEAR10_GRANULARITY);
             }
 
             var mesa = new Dictionary<int, List<MesaLevelResponse>>();

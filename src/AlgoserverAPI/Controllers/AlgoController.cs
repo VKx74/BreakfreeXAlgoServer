@@ -310,6 +310,7 @@ namespace Algoserver.API.Controllers
                     dailyState = r.DailyState,
                     monthlyState = r.MonthlyState,
                     yearlyState = r.YearlyState,
+                    year10State = r.Year10State
                 });
             }
             return result;

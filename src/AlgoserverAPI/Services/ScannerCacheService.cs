@@ -222,6 +222,7 @@ namespace Algoserver.API.Services
                     var mesa1d = TechCalculations.MESA(hourly_calculation_input.TakeLast(3000).ToList(), 0.0085, 0.0085);
                     var mesa1month = TechCalculations.MESA(daily_calculation_input.TakeLast(5000).ToList(), 0.09, 0.09);
                     var mesa1year = TechCalculations.MESA(daily_calculation_input.TakeLast(5000).ToList(), 0.0085, 0.0085);
+                    var mesa10year = TechCalculations.MESA(daily_calculation_input.TakeLast(5000).ToList(), 0.0012, 0.0012);
 
                     var volatilityCalculationData = minHistory.Bars.TakeLast(28000);
                     var volDriver = CalculateVolatility(volatilityCalculationData, 14);
@@ -321,8 +322,10 @@ namespace Algoserver.API.Services
                     var dailyTimesCut = dailyHistory.Bars.TakeLast(dailyTfCount).Select(_ => _.Timestamp).ToList();
                     var mesa1monthCut = mesa1month.TakeLast(dailyTfCount).ToList();
                     var mesa1yearCut = mesa1year.TakeLast(dailyTfCount).ToList();
+                    var mesa10yearCut = mesa10year.TakeLast(dailyTfCount).ToList();
                     var mesa1monthDataPoints = new List<MESADataPoint>();
                     var mesa1yearDataPoints = new List<MESADataPoint>();
+                    var mesa10yearDataPoints = new List<MESADataPoint>();
 
                     for (var i = 0; i < dailyTimesCut.Count; i++)
                     {
@@ -342,6 +345,12 @@ namespace Algoserver.API.Services
                                 s = (float)mesa1yearCut[i].Slow,
                                 t = (uint)tt
                             });
+                            mesa10yearDataPoints.Add(new MESADataPoint
+                            {
+                                f = (float)mesa10yearCut[i].Fast,
+                                s = (float)mesa10yearCut[i].Slow,
+                                t = (uint)tt
+                            });
                         }
                     }
 
@@ -359,6 +368,7 @@ namespace Algoserver.API.Services
                     mesaDataPointsMap.Add(TimeframeHelper.DAILY_GRANULARITY, mesa1dDataPoints);
                     mesaDataPointsMap.Add(TimeframeHelper.MONTHLY_GRANULARITY, mesa1monthDataPoints);
                     mesaDataPointsMap.Add(TimeframeHelper.YEARLY_GRANULARITY, mesa1yearDataPoints);
+                    mesaDataPointsMap.Add(TimeframeHelper.YEAR10_GRANULARITY, mesa10yearDataPoints);
                     mesaDataPoints.Add(key, mesaDataPointsMap);
                     SetMinuteMesaCache(mesaDataPointsMap, key);
 
@@ -374,6 +384,7 @@ namespace Algoserver.API.Services
                     tfSummary.Add(TimeframeHelper.DAILY_GRANULARITY, mesa1dDataPoints.LastOrDefault());
                     tfSummary.Add(TimeframeHelper.MONTHLY_GRANULARITY, mesa1monthDataPoints.LastOrDefault());
                     tfSummary.Add(TimeframeHelper.YEARLY_GRANULARITY, mesa1yearDataPoints.LastOrDefault());
+                    tfSummary.Add(TimeframeHelper.YEAR10_GRANULARITY, mesa10yearDataPoints.LastOrDefault());
 
                     var tfAvgSummary = new Dictionary<int, float>();
                     tfAvgSummary.Add(TimeframeHelper.DRIVER_GRANULARITY, (float)mesa1driver.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1driver.Length);
@@ -385,6 +396,7 @@ namespace Algoserver.API.Services
                     tfAvgSummary.Add(TimeframeHelper.DAILY_GRANULARITY, (float)mesa1d.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1d.Length);
                     tfAvgSummary.Add(TimeframeHelper.MONTHLY_GRANULARITY, (float)mesa1month.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1month.Length);
                     tfAvgSummary.Add(TimeframeHelper.YEARLY_GRANULARITY, (float)mesa1year.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa1year.Length);
+                    tfAvgSummary.Add(TimeframeHelper.YEAR10_GRANULARITY, (float)mesa10year.Select((_) => Math.Abs(_.Fast - _.Slow)).Sum() / mesa10year.Length);
 
                     var totalStrength = 0f;
                     var timeframeStrengths = new Dictionary<int, float>();
@@ -512,12 +524,28 @@ namespace Algoserver.API.Services
                         var currentStrength = (d.f - d.s) / ast;
                         var stateData = mesa1yearDataPoints.Select((_) => (_.f - _.s) / ast * 100).ToList();
                         yearlyStrength = TechCalculations.MeasureTrendState(stateData, 5);
-                        totalStrength += currentStrength * 0.06f;
+                        totalStrength += currentStrength * 0.05f;
                         timeframeStrengths.Add(TimeframeHelper.YEARLY_GRANULARITY, currentStrength);
                     }
                     else
                     {
                         timeframeStrengths.Add(TimeframeHelper.YEARLY_GRANULARITY, 0);
+                    }  
+                    
+                    var year10Strength = 0;
+                    d = tfSummary.GetValueOrDefault(TimeframeHelper.YEAR10_GRANULARITY);
+                    ast = tfAvgSummary.GetValueOrDefault(TimeframeHelper.YEAR10_GRANULARITY);
+                    if (d != null && ast > 0)
+                    {
+                        var currentStrength = (d.f - d.s) / ast;
+                        var stateData = mesa10yearDataPoints.Select((_) => (_.f - _.s) / ast * 100).ToList();
+                        year10Strength = TechCalculations.MeasureTrendState(stateData, 5);
+                        totalStrength += currentStrength * 0.01f;
+                        timeframeStrengths.Add(TimeframeHelper.YEAR10_GRANULARITY, currentStrength);
+                    }
+                    else
+                    {
+                        timeframeStrengths.Add(TimeframeHelper.YEAR10_GRANULARITY, 0);
                     }
 
                     var length = calculation_input.Count();
@@ -572,7 +600,8 @@ namespace Algoserver.API.Services
                         Hour4State = hour4Strength,
                         DailyState = dailyStrength,
                         MonthlyState = monthlyStrength,
-                        YearlyState = yearlyStrength
+                        YearlyState = yearlyStrength,
+                        Year10State = year10Strength
                     });
 
                 }
