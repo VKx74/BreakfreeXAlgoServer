@@ -318,33 +318,50 @@ namespace Algoserver.API.Services
                         }
                     }
 
-                    var dailyTfCount = 4000;
-                    var dailyTimesCut = dailyHistory.Bars.TakeLast(dailyTfCount).Select(_ => _.Timestamp).ToList();
-                    var mesa1monthCut = mesa1month.TakeLast(dailyTfCount).ToList();
-                    var mesa1yearCut = mesa1year.TakeLast(dailyTfCount).ToList();
-                    var mesa10yearCut = mesa10year.TakeLast(dailyTfCount).ToList();
+                    var monthlyTfCount = 365;
+                    var yearlyTfCount = 365 * 3;
+                    var year10TfCount = 365 * 6;
+                    var monthlyTimesCut = dailyHistory.Bars.TakeLast(monthlyTfCount).Select(_ => _.Timestamp).ToList();
+                    var yearlyTimesCut = dailyHistory.Bars.TakeLast(yearlyTfCount).Select(_ => _.Timestamp).ToList();
+                    var year10TimesCut = dailyHistory.Bars.TakeLast(year10TfCount).Select(_ => _.Timestamp).ToList();
+                    var mesa1monthCut = mesa1month.TakeLast(monthlyTfCount).ToList();
+                    var mesa1yearCut = mesa1year.TakeLast(yearlyTfCount).ToList();
+                    var mesa10yearCut = mesa10year.TakeLast(year10TfCount).ToList();
                     var mesa1monthDataPoints = new List<MESADataPoint>();
                     var mesa1yearDataPoints = new List<MESADataPoint>();
                     var mesa10yearDataPoints = new List<MESADataPoint>();
 
-                    for (var i = 0; i < dailyTimesCut.Count; i++)
+                    for (var i = 0; i < monthlyTimesCut.Count; i++)
                     {
-                        if (i % 5 == 0 || i == dailyTimesCut.Count - 1)
+                        var tt = monthlyTimesCut[i];
+                        mesa1monthDataPoints.Add(new MESADataPoint
                         {
-                            var tt = dailyTimesCut[i];
-                            mesa1monthDataPoints.Add(new MESADataPoint
-                            {
-                                f = (float)mesa1monthCut[i].Fast,
-                                s = (float)mesa1monthCut[i].Slow,
-                                t = (uint)tt,
-                                v = vol1month.GetValueOrDefault(tt, 0)
-                            });
+                            f = (float)mesa1monthCut[i].Fast,
+                            s = (float)mesa1monthCut[i].Slow,
+                            t = (uint)tt,
+                            v = vol1month.GetValueOrDefault(tt, 0)
+                        });
+                    }
+
+                    for (var i = 0; i < yearlyTimesCut.Count; i++)
+                    {
+                        if (i % 2 == 0 || i == yearlyTimesCut.Count - 1)
+                        {
+                            var tt = yearlyTimesCut[i];
                             mesa1yearDataPoints.Add(new MESADataPoint
                             {
                                 f = (float)mesa1yearCut[i].Fast,
                                 s = (float)mesa1yearCut[i].Slow,
                                 t = (uint)tt
                             });
+                        }
+                    }
+
+                    for (var i = 0; i < year10TimesCut.Count; i++)
+                    {
+                        if (i % 5 == 0 || i == year10TimesCut.Count - 1)
+                        {
+                            var tt = year10TimesCut[i];
                             mesa10yearDataPoints.Add(new MESADataPoint
                             {
                                 f = (float)mesa10yearCut[i].Fast,
@@ -530,8 +547,8 @@ namespace Algoserver.API.Services
                     else
                     {
                         timeframeStrengths.Add(TimeframeHelper.YEARLY_GRANULARITY, 0);
-                    }  
-                    
+                    }
+
                     var year10Strength = 0;
                     d = tfSummary.GetValueOrDefault(TimeframeHelper.YEAR10_GRANULARITY);
                     ast = tfAvgSummary.GetValueOrDefault(TimeframeHelper.YEAR10_GRANULARITY);
