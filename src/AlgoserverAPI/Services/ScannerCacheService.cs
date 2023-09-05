@@ -436,11 +436,14 @@ namespace Algoserver.API.Services
                         timeframeStrengths.Add(TimeframeHelper.DRIVER_GRANULARITY, 0);
                     }
 
+                    var minutes1Strength = 0;
                     d = tfSummary.GetValueOrDefault(TimeframeHelper.MIN1_GRANULARITY);
                     ast = tfAvgSummary.GetValueOrDefault(TimeframeHelper.MIN1_GRANULARITY);
                     if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
+                        var stateData = mesa1minDataPoints.Select((_) => (_.f - _.s) / ast * 100).ToList();
+                        minutes1Strength = TechCalculations.MeasureTrendState(stateData, 5);
                         totalStrength += currentStrength * 0.0274f;
                         timeframeStrengths.Add(TimeframeHelper.MIN1_GRANULARITY, currentStrength);
                     }
@@ -634,6 +637,7 @@ namespace Algoserver.API.Services
                     durations.Add(TimeframeHelper.MONTHLY_GRANULARITY, duration.Left);
 
                     var timeframeState = new Dictionary<int, int>();
+                    timeframeState.Add(TimeframeHelper.MIN1_GRANULARITY, minutes1Strength);
                     timeframeState.Add(TimeframeHelper.MIN5_GRANULARITY, minutes5Strength);
                     timeframeState.Add(TimeframeHelper.MIN15_GRANULARITY, minutes15Strength);
                     timeframeState.Add(TimeframeHelper.HOURLY_GRANULARITY, hour1Strength);
