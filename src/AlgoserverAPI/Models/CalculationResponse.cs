@@ -317,6 +317,7 @@ namespace Algoserver.API.Models.REST
         public string datafeed { get; set; }
         public Dictionary<int, MesaLevelResponse> strength { get; set; }
         public Dictionary<int, float> volatility { get; set; }
+        public Dictionary<int, long> durations { get; set; }
         public Dictionary<int, float> avg_strength { get; set; }
         public Dictionary<int, float> timeframe_strengths { get; set; }
         public float total_strength { get; set; }

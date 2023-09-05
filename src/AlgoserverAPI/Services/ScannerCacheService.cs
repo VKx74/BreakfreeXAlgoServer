@@ -10,6 +10,12 @@ using Algoserver.API.Services.CacheServices;
 
 namespace Algoserver.API.Services
 {
+    class StateDuration
+    {
+        public long Avg { get; set; }
+        public long Left { get; set; }
+    }
+
     public class MesaSummaryInfo
     {
         public Dictionary<string, Dictionary<int, List<MESADataPoint>>> MesaDataPoints { get; set; }
@@ -597,6 +603,30 @@ namespace Algoserver.API.Services
                     volatility.Add(TimeframeHelper.DAILY_GRANULARITY, vol1d.LastOrDefault().Value);
                     volatility.Add(TimeframeHelper.MONTHLY_GRANULARITY, vol1month.LastOrDefault().Value);
 
+                    var durations = new Dictionary<int, long>();
+                    durations.Add(TimeframeHelper.DRIVER_GRANULARITY, CalculateStateDurationLeft(mesa1driverDataPoints).Left);
+
+                    var duration = CalculateStateDurationLeft(mesa1minDataPoints);
+                    durations.Add(TimeframeHelper.MIN1_GRANULARITY, duration.Left);
+
+                    duration = CalculateStateDurationLeft(mesa5minDataPoints, duration.Avg * 5);
+                    durations.Add(TimeframeHelper.MIN5_GRANULARITY, duration.Left);
+
+                    duration = CalculateStateDurationLeft(mesa15minDataPoints, duration.Avg * 3);
+                    durations.Add(TimeframeHelper.MIN15_GRANULARITY, duration.Left);
+
+                    duration = CalculateStateDurationLeft(mesa1hDataPoints, duration.Avg * 4);
+                    durations.Add(TimeframeHelper.HOURLY_GRANULARITY, duration.Left);
+
+                    duration = CalculateStateDurationLeft(mesa4hDataPoints, duration.Avg * 4);
+                    durations.Add(TimeframeHelper.HOUR4_GRANULARITY, duration.Left);
+
+                    duration = CalculateStateDurationLeft(mesa1dDataPoints, duration.Avg * 6);
+                    durations.Add(TimeframeHelper.DAILY_GRANULARITY, duration.Left);
+
+                    duration = CalculateStateDurationLeft(mesa1monthDataPoints, duration.Avg * 30);
+                    durations.Add(TimeframeHelper.MONTHLY_GRANULARITY, duration.Left);
+
                     summary.Add(new MESADataSummary
                     {
                         Symbol = symbol,
@@ -606,6 +636,7 @@ namespace Algoserver.API.Services
                         TimeframeStrengths = timeframeStrengths,
                         TotalStrength = totalStrength,
                         Volatility = volatility,
+                        Durations = durations,
                         LastPrice = (float)calculation_input.LastOrDefault(),
                         Price60 = (float)calculation_input.ElementAt(length - 1),
                         Price300 = (float)calculation_input.ElementAt(length - 5),
@@ -647,6 +678,60 @@ namespace Algoserver.API.Services
             {
                 MesaSummary = summary,
                 MesaDataPoints = mesaDataPoints
+            };
+        }
+
+        private StateDuration CalculateStateDurationLeft(List<MESADataPoint> data, long existingAvg = 0)
+        {
+            var state = data.FirstOrDefault().f - data.FirstOrDefault().s > 0 ? 1 : 0;
+            var count = 0;
+            var time = 0l;
+            var startDate = 0l;
+
+            foreach (var i in data)
+            {
+                var currentState = i.f - i.s > 0 ? 1 : 0;
+                if (currentState == state)
+                {
+                    continue;
+                }
+                
+                state = currentState;
+
+                if (startDate == 0)
+                {
+                    startDate = i.t;
+                    continue;
+                }
+
+                count++;
+                time += Math.Abs(i.t - startDate);
+                startDate = i.t;
+            }
+
+            var avgTime = 0l;
+            if (count != 0)
+            {
+                avgTime = time / count;
+            }
+
+            if (existingAvg > 0)
+            {
+                if (avgTime > 0)
+                {
+                    avgTime = (avgTime + existingAvg) / 2;
+                }
+                else
+                {
+                    avgTime = existingAvg;
+                }
+            }
+
+            var currentTimePeriod = data.LastOrDefault().t - startDate;
+            return new StateDuration
+            {
+                Avg = avgTime,
+                Left = avgTime - currentTimePeriod
             };
         }
 
