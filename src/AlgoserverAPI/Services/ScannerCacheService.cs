@@ -449,11 +449,14 @@ namespace Algoserver.API.Services
                         timeframeStrengths.Add(TimeframeHelper.MIN1_GRANULARITY, 0);
                     }
 
+                    var minutes5Strength = 0;
                     d = tfSummary.GetValueOrDefault(TimeframeHelper.MIN5_GRANULARITY);
                     ast = tfAvgSummary.GetValueOrDefault(TimeframeHelper.MIN5_GRANULARITY);
                     if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
+                        var stateData = mesa5minDataPoints.Select((_) => (_.f - _.s) / ast * 100).ToList();
+                        minutes5Strength = TechCalculations.MeasureTrendState(stateData, 5);
                         totalStrength += currentStrength * 0.066f;
                         timeframeStrengths.Add(TimeframeHelper.MIN5_GRANULARITY, currentStrength);
                     }
@@ -462,11 +465,14 @@ namespace Algoserver.API.Services
                         timeframeStrengths.Add(TimeframeHelper.MIN5_GRANULARITY, 0);
                     }
 
+                    var minutes15Strength = 0;
                     d = tfSummary.GetValueOrDefault(TimeframeHelper.MIN15_GRANULARITY);
                     ast = tfAvgSummary.GetValueOrDefault(TimeframeHelper.MIN15_GRANULARITY);
                     if (d != null && ast > 0)
                     {
                         var currentStrength = (d.f - d.s) / ast;
+                        var stateData = mesa15minDataPoints.Select((_) => (_.f - _.s) / ast * 100).ToList();
+                        minutes15Strength = TechCalculations.MeasureTrendState(stateData, 5);
                         totalStrength += currentStrength * 0.1f;
                         timeframeStrengths.Add(TimeframeHelper.MIN15_GRANULARITY, currentStrength);
                     }
@@ -627,6 +633,16 @@ namespace Algoserver.API.Services
                     duration = CalculateStateDurationLeft(mesa1monthDataPoints, duration.Avg * 30);
                     durations.Add(TimeframeHelper.MONTHLY_GRANULARITY, duration.Left);
 
+                    var timeframeState = new Dictionary<int, int>();
+                    timeframeState.Add(TimeframeHelper.MIN5_GRANULARITY, minutes5Strength);
+                    timeframeState.Add(TimeframeHelper.MIN15_GRANULARITY, minutes15Strength);
+                    timeframeState.Add(TimeframeHelper.HOURLY_GRANULARITY, hour1Strength);
+                    timeframeState.Add(TimeframeHelper.HOUR4_GRANULARITY, hour4Strength);
+                    timeframeState.Add(TimeframeHelper.DAILY_GRANULARITY, dailyStrength);
+                    timeframeState.Add(TimeframeHelper.MONTHLY_GRANULARITY, monthlyStrength);
+                    timeframeState.Add(TimeframeHelper.YEARLY_GRANULARITY, yearlyStrength);
+                    timeframeState.Add(TimeframeHelper.YEAR10_GRANULARITY, year10Strength);
+
                     summary.Add(new MESADataSummary
                     {
                         Symbol = symbol,
@@ -644,12 +660,7 @@ namespace Algoserver.API.Services
                         Price3600 = (float)calculation_input.ElementAt(length - 60),
                         Price14400 = (float)calculation_input.ElementAt(length - 240),
                         Price86400 = (float)calculation_input.ElementAt(length - 1440),
-                        Hour1State = hour1Strength,
-                        Hour4State = hour4Strength,
-                        DailyState = dailyStrength,
-                        MonthlyState = monthlyStrength,
-                        YearlyState = yearlyStrength,
-                        Year10State = year10Strength
+                        TimeframeState = timeframeState
                     });
 
                 }
@@ -695,7 +706,7 @@ namespace Algoserver.API.Services
                 {
                     continue;
                 }
-                
+
                 state = currentState;
 
                 if (startDate == 0)

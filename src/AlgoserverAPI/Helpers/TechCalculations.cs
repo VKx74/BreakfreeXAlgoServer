@@ -24,6 +24,7 @@ namespace Algoserver.API.Helpers
         public Dictionary<int, float> AvgStrength { get; set; }
         public Dictionary<int, float> Volatility { get; set; }
         public Dictionary<int, float> TimeframeStrengths { get; set; }
+        public Dictionary<int, int> TimeframeState { get; set; }
         public Dictionary<int, long> Durations { get; set; }
         public float TotalStrength { get; set; }
         public float LastPrice { get; set; }
@@ -33,12 +34,6 @@ namespace Algoserver.API.Helpers
         public float Price3600 { get; set; }
         public float Price14400 { get; set; }
         public float Price86400 { get; set; }
-        public int Hour1State { get; set; }
-        public int Hour4State { get; set; }
-        public int DailyState { get; set; }
-        public int MonthlyState { get; set; }
-        public int YearlyState { get; set; }
-        public int Year10State { get; set; }
     }
 
     public class TradeZone
