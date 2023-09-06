@@ -45,16 +45,16 @@ namespace Algoserver.API.Models.REST
         public string id { get; set; }
     }
 
-    public class MesaTrendV3Response 
+    public class MesaTrendV3Response
     {
         public float f { get; set; }
         public float s { get; set; }
         public long t { get; set; }
     }
 
-    public class LevelsV3Response 
+    public class LevelsV3Response
     {
-        
+
         public List<SaRResponse> sar { get; set; }
         public List<MesaTrendV3Response> mesa { get; set; }
         public float mesa_avg { get; set; }
@@ -79,6 +79,7 @@ namespace Algoserver.API.Models.REST
         public string id { get; set; }
         public bool prediction_exists { get; set; }
         public float total_strength { get; set; }
+        public int trend_direction { get; set; }
     }
 
     public class CalculatePositionSizeResponse

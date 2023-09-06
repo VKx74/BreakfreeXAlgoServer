@@ -16,6 +16,7 @@ namespace Algoserver.API.Services
     {
         public Dictionary<int, LevelsV3Response> levels { get; set; }
         public float total_strength { get; set; }
+        public int trend_direction { get; set; }
     }
 
     public class AlgoService
@@ -472,10 +473,11 @@ namespace Algoserver.API.Services
                 var levelsdescription = await CalculateV3Levels(container, req);
                 result.sar = levelsdescription.levels;
                 result.total_strength = levelsdescription.total_strength;
+                result.trend_direction = levelsdescription.trend_direction;
 
                 if ((granularity <= TimeframeHelper.HOUR4_GRANULARITY))
                 {
-                    var isUp = result.total_strength > 0;
+                    var isUp = result.trend_direction > 0;
                     if (result.sar.TryGetValue(TimeframeHelper.HOUR4_GRANULARITY, out var hour4Sar))
                     {
                         var lastHour4Sar = hour4Sar.sar.LastOrDefault();
@@ -594,6 +596,8 @@ namespace Algoserver.API.Services
             var mesa_additional = await getMesaAsync(symbol, datafeed, null);
             var total_strength = 0f;
             var monthlyTrend = 0;
+            var dailyTrend = 0;
+            var trendDirection = 0;
 
             if (mesa_additional != null && mesa_additional.mesa != null && mesa_additional.mesa.Any())
             {
@@ -601,9 +605,11 @@ namespace Algoserver.API.Services
                 if (summaryForSymbol != null)
                 {
                     total_strength = summaryForSymbol.TotalStrength;
-                    if (summaryForSymbol.AvgStrength.TryGetValue(TimeframeHelper.MONTHLY_GRANULARITY, out var str) && summaryForSymbol.TimeframeStrengths.TryGetValue(TimeframeHelper.MONTHLY_GRANULARITY, out var tf_str))
+                    if (summaryForSymbol.TimeframeStrengths.TryGetValue(TimeframeHelper.DAILY_GRANULARITY, out var daily_tf_str) && summaryForSymbol.TimeframeStrengths.TryGetValue(TimeframeHelper.MONTHLY_GRANULARITY, out var monthly_tf_str))
                     {
-                        monthlyTrend = tf_str > 0 ? 1 : -1;
+                        dailyTrend = daily_tf_str > 0 ? 1 : -1;
+                        monthlyTrend = monthly_tf_str > 0 ? 1 : -1;
+                        trendDirection = daily_tf_str + monthly_tf_str > 0 ? 1 : -1;
                     }
                 }
 
@@ -646,11 +652,11 @@ namespace Algoserver.API.Services
                 var lastHour4Sar = item4HData.sar.LastOrDefault();
                 if (lastHour4Sar != null)
                 {
-                    if (total_strength > 0)
+                    if (trendDirection > 0)
                     {
                         sl_price = lastHour4Sar.s_m18;
                     }
-                    if (total_strength < 0)
+                    if (trendDirection < 0)
                     {
                         sl_price = lastHour4Sar.r_p18;
                     }
@@ -690,19 +696,10 @@ namespace Algoserver.API.Services
                 Strength1D = GetStrength(TimeframeHelper.DAILY_GRANULARITY, levelsResponse),
 
                 Time = AlgoHelper.UnixTimeNow(),
+                TrendDirection = trendDirection,
+                DailyTrend = monthlyTrend,
                 MonthlyTrend = monthlyTrend
             };
-
-            result.TrendDirection = 0;
-
-            if (total_strength > 0)
-            {
-                result.TrendDirection = 1;
-            }
-            else if (total_strength < 0)
-            {
-                result.TrendDirection = -1;
-            }
 
             var filteredTrend = 0;
             var minStrength1h = AutoTradingParametersHelper.GetStrength1H(symbol);
