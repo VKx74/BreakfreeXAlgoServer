@@ -79,6 +79,7 @@ namespace Algoserver.API.Models.REST
         public string id { get; set; }
         public bool prediction_exists { get; set; }
         public float total_strength { get; set; }
+        public int trend_direction { get; set; }
     }
 
     public class CalculatePositionSizeResponse
