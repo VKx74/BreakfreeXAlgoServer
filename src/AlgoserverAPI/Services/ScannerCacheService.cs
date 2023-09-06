@@ -627,13 +627,13 @@ namespace Algoserver.API.Services
                     duration = CalculateStateDurationLeft(mesa1hDataPoints, duration.Avg * 4);
                     durations.Add(TimeframeHelper.HOURLY_GRANULARITY, duration.Left);
 
-                    duration = CalculateStateDurationLeft(mesa4hDataPoints, duration.Avg * 4);
+                    duration = CalculateStateDurationLeft(mesa4hDataPoints, duration.Avg * 3);
                     durations.Add(TimeframeHelper.HOUR4_GRANULARITY, duration.Left);
 
-                    duration = CalculateStateDurationLeft(mesa1dDataPoints, duration.Avg * 6);
+                    duration = CalculateStateDurationLeft(mesa1dDataPoints, duration.Avg * 3);
                     durations.Add(TimeframeHelper.DAILY_GRANULARITY, duration.Left);
 
-                    duration = CalculateStateDurationLeft(mesa1monthDataPoints, duration.Avg * 30);
+                    duration = CalculateStateDurationLeft(mesa1monthDataPoints, duration.Avg * 10);
                     durations.Add(TimeframeHelper.MONTHLY_GRANULARITY, duration.Left);
 
                     var timeframeState = new Dictionary<int, int>();
