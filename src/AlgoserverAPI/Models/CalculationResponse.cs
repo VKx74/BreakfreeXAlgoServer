@@ -322,6 +322,7 @@ namespace Algoserver.API.Models.REST
         public Dictionary<int, float> avg_strength { get; set; }
         public Dictionary<int, float> timeframe_strengths { get; set; }
         public Dictionary<int, int> timeframe_state { get; set; }
+        public Dictionary<int, int> timeframe_phase { get; set; }
         public float total_strength { get; set; }
         public float last_price { get; set; }
         public float price60 { get; set; }

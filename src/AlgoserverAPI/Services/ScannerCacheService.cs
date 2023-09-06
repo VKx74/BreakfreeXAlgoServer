@@ -647,6 +647,15 @@ namespace Algoserver.API.Services
                     timeframeState.Add(TimeframeHelper.YEARLY_GRANULARITY, yearlyStrength);
                     timeframeState.Add(TimeframeHelper.YEAR10_GRANULARITY, year10Strength);
 
+                    var timeframePhase = new Dictionary<int, int>();
+                    timeframePhase.Add(TimeframeHelper.MIN1_GRANULARITY, CalculateTrendPhase(timeframeState, timeframeStrengths, TimeframeHelper.MIN1_GRANULARITY));
+                    timeframePhase.Add(TimeframeHelper.MIN5_GRANULARITY, CalculateTrendPhase(timeframeState, timeframeStrengths, TimeframeHelper.MIN5_GRANULARITY));
+                    timeframePhase.Add(TimeframeHelper.MIN15_GRANULARITY, CalculateTrendPhase(timeframeState, timeframeStrengths, TimeframeHelper.MIN15_GRANULARITY));
+                    timeframePhase.Add(TimeframeHelper.HOURLY_GRANULARITY, CalculateTrendPhase(timeframeState, timeframeStrengths, TimeframeHelper.HOURLY_GRANULARITY));
+                    timeframePhase.Add(TimeframeHelper.HOUR4_GRANULARITY, CalculateTrendPhase(timeframeState, timeframeStrengths, TimeframeHelper.HOUR4_GRANULARITY));
+                    timeframePhase.Add(TimeframeHelper.DAILY_GRANULARITY, CalculateTrendPhase(timeframeState, timeframeStrengths, TimeframeHelper.DAILY_GRANULARITY));
+                    timeframePhase.Add(TimeframeHelper.MONTHLY_GRANULARITY, CalculateTrendPhase(timeframeState, timeframeStrengths, TimeframeHelper.MONTHLY_GRANULARITY));
+
                     summary.Add(new MESADataSummary
                     {
                         Symbol = symbol,
@@ -657,6 +666,7 @@ namespace Algoserver.API.Services
                         TotalStrength = totalStrength,
                         Volatility = volatility,
                         Durations = durations,
+                        TimeframePhase = timeframePhase,
                         LastPrice = (float)calculation_input.LastOrDefault(),
                         Price60 = (float)calculation_input.ElementAt(length - 1),
                         Price300 = (float)calculation_input.ElementAt(length - 5),
@@ -694,6 +704,79 @@ namespace Algoserver.API.Services
                 MesaSummary = summary,
                 MesaDataPoints = mesaDataPoints
             };
+        }
+
+        private int CalculateTrendPhase(Dictionary<int, int> timeframeState, Dictionary<int, float> timeframeStrengths, int tf)
+        {
+            var higherTf = 0;
+            if (tf == TimeframeHelper.DRIVER_GRANULARITY)
+                higherTf = TimeframeHelper.MIN1_GRANULARITY;
+            if (tf == TimeframeHelper.MIN1_GRANULARITY)
+                higherTf = TimeframeHelper.MIN5_GRANULARITY;
+            if (tf == TimeframeHelper.MIN5_GRANULARITY)
+                higherTf = TimeframeHelper.MIN15_GRANULARITY;
+            if (tf == TimeframeHelper.MIN15_GRANULARITY)
+                higherTf = TimeframeHelper.HOURLY_GRANULARITY;
+            if (tf == TimeframeHelper.HOURLY_GRANULARITY)
+                higherTf = TimeframeHelper.HOUR4_GRANULARITY;
+            if (tf == TimeframeHelper.HOUR4_GRANULARITY)
+                higherTf = TimeframeHelper.DAILY_GRANULARITY;
+            if (tf == TimeframeHelper.HOUR4_GRANULARITY)
+                higherTf = TimeframeHelper.DAILY_GRANULARITY;
+            if (tf == TimeframeHelper.DAILY_GRANULARITY)
+                higherTf = TimeframeHelper.MONTHLY_GRANULARITY;
+            if (tf == TimeframeHelper.MONTHLY_GRANULARITY)
+                higherTf = TimeframeHelper.YEARLY_GRANULARITY;
+
+            int currentTFState;
+            if (!timeframeState.TryGetValue(tf, out currentTFState))
+            {
+                return 0;
+            }
+
+            float currentTFStrength;
+            if (!timeframeStrengths.TryGetValue(tf, out currentTFStrength))
+            {
+                return 0;
+            }
+
+            float higherTFStrength;
+            if (!timeframeStrengths.TryGetValue(higherTf, out higherTFStrength))
+            {
+                return 0;
+            }
+
+            if (Math.Abs(higherTFStrength * 100) < 5)
+            {
+                return 0;
+            }
+
+            var currentTFSide = currentTFStrength > 0 ? 1 : -1;
+            var higherTFSide = higherTFStrength > 0 ? 1 : -1;
+            if (currentTFState == 2)
+            {
+                if (currentTFSide == higherTFSide)
+                {
+                    // Drive
+                    return 3;
+                }
+
+                // Tail
+                return 2;
+            }
+
+            if (currentTFState == 1)
+            {
+                if (currentTFSide != higherTFSide)
+                {
+                    // Tail
+                    return 2;
+                }
+
+            }
+
+            // Capitulation
+            return 1;
         }
 
         private StateDuration CalculateStateDurationLeft(List<MESADataPoint> data, long existingAvg = 0)

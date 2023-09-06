@@ -297,6 +297,7 @@ namespace Algoserver.API.Controllers
                     timeframe_strengths = r.TimeframeStrengths,
                     volatility = r.Volatility,
                     durations = r.Durations,
+                    timeframe_phase = r.TimeframePhase,
                     total_strength = r.TotalStrength,
                     avg_strength = r.AvgStrength,
                     last_price = r.LastPrice,

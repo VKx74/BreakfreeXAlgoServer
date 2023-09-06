@@ -26,6 +26,7 @@ namespace Algoserver.API.Helpers
         public Dictionary<int, float> TimeframeStrengths { get; set; }
         public Dictionary<int, int> TimeframeState { get; set; }
         public Dictionary<int, long> Durations { get; set; }
+        public Dictionary<int, int> TimeframePhase { get; set; }
         public float TotalStrength { get; set; }
         public float LastPrice { get; set; }
         public float Price60 { get; set; }
