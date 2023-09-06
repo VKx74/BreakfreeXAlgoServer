@@ -772,6 +772,7 @@ namespace Algoserver.API.Services
             }
             var mesa_additional = await getMesaAsync(req.Instrument.Id, req.Instrument.Datafeed, mesaGranularity);
             var total_strength = 0f;
+            var trendDirection = 0;
 
             if (mesa_additional != null && mesa_additional.mesa != null && mesa_additional.mesa.Any())
             {
@@ -780,6 +781,10 @@ namespace Algoserver.API.Services
                 if (summaryForSymbol != null)
                 {
                     total_strength = summaryForSymbol.TotalStrength;
+                    if (summaryForSymbol.TimeframeStrengths.TryGetValue(TimeframeHelper.DAILY_GRANULARITY, out var daily_tf_str) && summaryForSymbol.TimeframeStrengths.TryGetValue(TimeframeHelper.MONTHLY_GRANULARITY, out var monthly_tf_str))
+                    {
+                        trendDirection = daily_tf_str + monthly_tf_str > 0 ? 1 : -1;
+                    }
                 }
 
                 foreach (var item in sar_additional)
@@ -876,12 +881,14 @@ namespace Algoserver.API.Services
                     result.Add(item.Key, levelsV3);
                 }
                 total_strength = total_strength / sar_additional.Count;
+                trendDirection = total_strength > 0 ? 1 : -1;
             }
 
             return new BandsDescriptionV3Data
             {
                 levels = result,
-                total_strength = total_strength
+                total_strength = total_strength,
+                trend_direction = trendDirection
             };
         }
 
