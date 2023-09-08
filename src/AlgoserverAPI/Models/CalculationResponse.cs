@@ -306,6 +306,15 @@ namespace Algoserver.API.Models.REST
         public long t { get; set; }
     }
 
+    [Serializable]
+    public class TrendPeriodDescriptionResponse
+    {
+        public float strength { get; set; }
+        public float volatility { get; set; }
+        public long duration { get; set; }
+        public int phase { get; set; }
+    }
+
     public class MesaResponse
     {
         // public List<BarResponse> bars { get; set; }
@@ -317,6 +326,7 @@ namespace Algoserver.API.Models.REST
         public string symbol { get; set; }
         public string datafeed { get; set; }
         public Dictionary<int, MesaLevelResponse> strength { get; set; }
+        public Dictionary<int, TrendPeriodDescriptionResponse> trend_period_descriptions { get; set; }
         public Dictionary<int, float> volatility { get; set; }
         public Dictionary<int, long> durations { get; set; }
         public Dictionary<int, float> avg_strength { get; set; }

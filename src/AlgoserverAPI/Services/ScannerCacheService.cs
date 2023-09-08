@@ -656,6 +656,29 @@ namespace Algoserver.API.Services
                     timeframePhase.Add(TimeframeHelper.DAILY_GRANULARITY, CalculateTrendPhase(timeframeState, timeframeStrengths, TimeframeHelper.DAILY_GRANULARITY));
                     timeframePhase.Add(TimeframeHelper.MONTHLY_GRANULARITY, CalculateTrendPhase(timeframeState, timeframeStrengths, TimeframeHelper.MONTHLY_GRANULARITY));
 
+                    var pStrength = timeframeStrengths.Where((_) => _.Key >= TimeframeHelper.MONTHLY_GRANULARITY && _.Key <= TimeframeHelper.YEAR10_GRANULARITY).ToDictionary((_) => _.Key, (_) => _.Value);
+                    var pVolatility = volatility.Where((_) => _.Key >= TimeframeHelper.MONTHLY_GRANULARITY && _.Key <= TimeframeHelper.YEAR10_GRANULARITY).ToDictionary((_) => _.Key, (_) => _.Value);
+                    var pDurations = durations.Where((_) => _.Key >= TimeframeHelper.MONTHLY_GRANULARITY && _.Key <= TimeframeHelper.YEAR10_GRANULARITY).ToDictionary((_) => _.Key, (_) => _.Value);
+                    var pPhase = timeframePhase.Where((_) => _.Key >= TimeframeHelper.MONTHLY_GRANULARITY && _.Key <= TimeframeHelper.YEAR10_GRANULARITY).ToDictionary((_) => _.Key, (_) => _.Value);
+                    var highTrendPeriodDescription = CalculateTrendPeriodDescription(pStrength, pVolatility, pDurations, pPhase, null);
+
+                    pStrength = timeframeStrengths.Where((_) => _.Key >= TimeframeHelper.HOURLY_GRANULARITY && _.Key <= TimeframeHelper.DAILY_GRANULARITY).ToDictionary((_) => _.Key, (_) => _.Value);
+                    pVolatility = volatility.Where((_) => _.Key >= TimeframeHelper.HOURLY_GRANULARITY && _.Key <= TimeframeHelper.DAILY_GRANULARITY).ToDictionary((_) => _.Key, (_) => _.Value);
+                    pDurations = durations.Where((_) => _.Key >= TimeframeHelper.HOURLY_GRANULARITY && _.Key <= TimeframeHelper.DAILY_GRANULARITY).ToDictionary((_) => _.Key, (_) => _.Value);
+                    pPhase = timeframePhase.Where((_) => _.Key >= TimeframeHelper.HOURLY_GRANULARITY && _.Key <= TimeframeHelper.DAILY_GRANULARITY).ToDictionary((_) => _.Key, (_) => _.Value);
+                    var midTrendPeriodDescription = CalculateTrendPeriodDescription(pStrength, pVolatility, pDurations, pPhase, highTrendPeriodDescription);
+
+                    pStrength = timeframeStrengths.Where((_) => _.Key >= TimeframeHelper.MIN1_GRANULARITY && _.Key <= TimeframeHelper.MIN15_GRANULARITY).ToDictionary((_) => _.Key, (_) => _.Value);
+                    pVolatility = volatility.Where((_) => _.Key >= TimeframeHelper.MIN1_GRANULARITY && _.Key <= TimeframeHelper.MIN15_GRANULARITY).ToDictionary((_) => _.Key, (_) => _.Value);
+                    pDurations = durations.Where((_) => _.Key >= TimeframeHelper.MIN1_GRANULARITY && _.Key <= TimeframeHelper.MIN15_GRANULARITY).ToDictionary((_) => _.Key, (_) => _.Value);
+                    pPhase = timeframePhase.Where((_) => _.Key >= TimeframeHelper.MIN1_GRANULARITY && _.Key <= TimeframeHelper.MIN15_GRANULARITY).ToDictionary((_) => _.Key, (_) => _.Value);
+                    var lowTrendPeriodDescription = CalculateTrendPeriodDescription(pStrength, pVolatility, pDurations, pPhase, midTrendPeriodDescription);
+
+                    var trendPeriodDescriptions = new Dictionary<int, TrendPeriodDescription>();
+                    trendPeriodDescriptions.Add(0, lowTrendPeriodDescription);
+                    trendPeriodDescriptions.Add(1, midTrendPeriodDescription);
+                    trendPeriodDescriptions.Add(2, highTrendPeriodDescription);
+
                     summary.Add(new MESADataSummary
                     {
                         Symbol = symbol,
@@ -674,7 +697,8 @@ namespace Algoserver.API.Services
                         Price3600 = (float)calculation_input.ElementAt(length - 60),
                         Price14400 = (float)calculation_input.ElementAt(length - 240),
                         Price86400 = (float)calculation_input.ElementAt(length - 1440),
-                        TimeframeState = timeframeState
+                        TimeframeState = timeframeState,
+                        TrendPeriodDescriptions = trendPeriodDescriptions
                     });
 
                 }
@@ -704,6 +728,125 @@ namespace Algoserver.API.Services
                 MesaSummary = summary,
                 MesaDataPoints = mesaDataPoints
             };
+        }
+
+        private TrendPeriodDescription CalculateTrendPeriodDescription(Dictionary<int, float> strength, Dictionary<int, float> volatility, Dictionary<int, long> durations, Dictionary<int, int> phase, TrendPeriodDescription prev)
+        {
+            var result = new TrendPeriodDescription();
+            var weights = new List<int> { 1, 3, 9 };
+
+            if (strength.Count != 3)
+            {
+                return result;
+            }
+            result.strength = (strength.ElementAt(0).Value / weights.Sum() * weights[0]) + (strength.ElementAt(1).Value / weights.Sum() * weights[1]) + (strength.ElementAt(2).Value / weights.Sum() * weights[2]);
+
+            if (volatility.Count != 3)
+            {
+                return result;
+            }
+            result.volatility = (volatility.ElementAt(0).Value / weights.Sum() * weights[0]) + (volatility.ElementAt(1).Value / weights.Sum() * weights[1]) + (volatility.ElementAt(2).Value / weights.Sum() * weights[2]);
+
+            // Calculate durations
+
+            if (durations.Count != 3)
+            {
+                return result;
+            }
+
+            var duration = durations.Last().Value;
+            if (duration <= 0)
+            {
+                duration = durations.ElementAt(durations.Count - 2).Value;
+                if (duration > 0)
+                {
+                    var hS = strength.Last();
+                    var lS = strength.ElementAt(strength.Count - 2);
+                    var coefValueDiff = lS.Value / hS.Value;
+                    var coefTimeDiff = hS.Key / lS.Key;
+                    duration = (long)(duration * Math.Abs(coefValueDiff) * coefTimeDiff);
+
+                    if (coefValueDiff < 0)
+                    {
+                        duration = duration / 2;
+                    }
+                }
+            }
+
+            result.duration = duration;
+
+            // Calculate durations end
+
+            if (phase.Count != 3)
+            {
+                return result;
+            }
+
+            // Check higher phase strength greater then minimum 5%
+            if (prev == null || Math.Abs(prev.strength * 100) < 5)
+            {
+                return result;
+            }
+            
+            if (Math.Abs(result.strength * 100) < 5)
+            {
+                return result;
+            }
+
+            var prevSide = prev.strength > 0 ? 1 : -1;
+            var side = result.strength > 0 ? 1 : -1;
+
+            // Check higher phase side same as current
+            if (prevSide != side)
+            {
+                return result;
+            }
+
+            // Calculate phase
+
+            var tfSides = strength.ToList().Select((_) => _.Value > 0 ? 1 : -1).ToList();
+
+            // if highest TF in drive and all other TF same side - Drive
+            if (phase.Last().Value == 3 && tfSides.All((_) => _ == side))
+            {
+                result.phase = 3; // Drive
+                return result;
+            }
+
+            // if lowest TF and next in drive and all other TF same side, and global strength greater then highest TF strength - Drive
+            if (phase.First().Value == 3 && phase.ElementAt(1).Value == 3 && tfSides.All((_) => _ == side))
+            {
+                if (result.strength > strength.Last().Value)
+                {
+                    result.phase = 3; // Drive
+                    return result;
+                }
+            }
+
+            // if highest and Prev TF in drive and same side - Drive
+            if (phase.Last().Value == 3 && phase.ElementAt(phase.Count - 2).Value == 3 && tfSides.Last() == side && tfSides[tfSides.Count - 2] == side)
+            {
+                result.phase = 3; // Drive
+                return result;
+            }
+
+            // if lowest TF opposite to highest and in drive - Tail
+            if (tfSides.First() != tfSides.Last() && phase.First().Value == 3)
+            {
+                result.phase = 2; // Tail
+                return result;
+            }
+
+            // if 2 of 3 TF in capitulation - Capitulation
+            if (phase.Count((_) => _.Value == 1) > phase.Count)
+            {
+                result.phase = 1; // Capitulation
+                return result;
+            }
+
+            // Calculate phase end
+
+            return result;
         }
 
         private int CalculateTrendPhase(Dictionary<int, int> timeframeState, Dictionary<int, float> timeframeStrengths, int tf)

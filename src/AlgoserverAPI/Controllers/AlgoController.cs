@@ -294,6 +294,13 @@ namespace Algoserver.API.Controllers
                         t = _.Value.t,
                         v = _.Value.v
                     }),
+                    trend_period_descriptions = r.TrendPeriodDescriptions.ToDictionary((_) => _.Key, (_) => new TrendPeriodDescriptionResponse
+                    {
+                        strength = _.Value.strength,
+                        volatility = _.Value.volatility,
+                        duration = _.Value.duration,
+                        phase = _.Value.phase
+                    }),
                     timeframe_strengths = r.TimeframeStrengths,
                     volatility = r.Volatility,
                     durations = r.Durations,

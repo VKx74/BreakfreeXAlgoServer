@@ -14,12 +14,22 @@ namespace Algoserver.API.Helpers
         public uint t { get; set; }
         public float v { get; set; }
     }
+    
+    [Serializable]
+    public class TrendPeriodDescription
+    {
+        public float strength { get; set; }
+        public float volatility { get; set; }
+        public long duration { get; set; }
+        public int phase { get; set; }
+    }
 
     [Serializable]
     public class MESADataSummary
     {
         public string Symbol { get; set; }
         public string Datafeed { get; set; }
+        public Dictionary<int, TrendPeriodDescription> TrendPeriodDescriptions { get; set; }
         public Dictionary<int, MESADataPoint> Strength { get; set; }
         public Dictionary<int, float> AvgStrength { get; set; }
         public Dictionary<int, float> Volatility { get; set; }
