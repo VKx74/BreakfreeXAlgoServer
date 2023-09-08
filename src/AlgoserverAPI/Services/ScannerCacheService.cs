@@ -838,7 +838,7 @@ namespace Algoserver.API.Services
             }
 
             // if 2 of 3 TF in capitulation - Capitulation
-            if (phase.Count((_) => _.Value == 1) > phase.Count)
+            if (phase.Count((_) => _.Value == 1) * 2 > phase.Count)
             {
                 result.phase = 1; // Capitulation
                 return result;
