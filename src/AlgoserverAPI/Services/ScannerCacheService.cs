@@ -782,15 +782,16 @@ namespace Algoserver.API.Services
                 return result;
             }
 
-            // Check higher phase strength greater then minimum 5%
-            if (prev == null || Math.Abs(prev.strength * 100) < 5)
+            if (prev == null)
             {
                 return result;
             }
-            
-            if (Math.Abs(result.strength * 100) < 5)
+
+            var canBeDrive = true;
+            // Check phase strength greater then minimum 5%
+            if (Math.Abs(prev.strength * 100) < 5 || Math.Abs(result.strength * 100) < 5)
             {
-                return result;
+                canBeDrive = false;
             }
 
             var prevSide = prev.strength > 0 ? 1 : -1;
@@ -799,7 +800,7 @@ namespace Algoserver.API.Services
             // Check higher phase side same as current
             if (prevSide != side)
             {
-                return result;
+                canBeDrive = false;
             }
 
             // Calculate phase
@@ -807,14 +808,14 @@ namespace Algoserver.API.Services
             var tfSides = strength.ToList().Select((_) => _.Value > 0 ? 1 : -1).ToList();
 
             // if highest TF in drive and all other TF same side - Drive
-            if (phase.Last().Value == 3 && tfSides.All((_) => _ == side))
+            if (canBeDrive && phase.Last().Value == 3 && tfSides.All((_) => _ == side))
             {
                 result.phase = 3; // Drive
                 return result;
             }
 
             // if lowest TF and next in drive and all other TF same side, and global strength greater then highest TF strength - Drive
-            if (phase.First().Value == 3 && phase.ElementAt(1).Value == 3 && tfSides.All((_) => _ == side))
+            if (canBeDrive && phase.First().Value == 3 && phase.ElementAt(1).Value == 3 && tfSides.All((_) => _ == side))
             {
                 if (result.strength > strength.Last().Value)
                 {
@@ -824,7 +825,7 @@ namespace Algoserver.API.Services
             }
 
             // if highest and Prev TF in drive and same side - Drive
-            if (phase.Last().Value == 3 && phase.ElementAt(phase.Count - 2).Value == 3 && tfSides.Last() == side && tfSides[tfSides.Count - 2] == side)
+            if (canBeDrive && phase.Last().Value == 3 && phase.ElementAt(phase.Count - 2).Value == 3 && tfSides.Last() == side && tfSides[tfSides.Count - 2] == side)
             {
                 result.phase = 3; // Drive
                 return result;
