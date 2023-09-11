@@ -1037,9 +1037,9 @@ namespace Algoserver.API.Helpers
             data = data.Select((_) => Math.Abs(_)).ToList();
             var max = data.Max();
             var percentage = max / 100 * deviation;
-            if (percentage < 3)
+            if (percentage < 1)
             {
-                percentage = 3;
+                percentage = 1;
             }
 
             var extremum = new List<float>();
@@ -1086,16 +1086,16 @@ namespace Algoserver.API.Helpers
             var lastExtremum = extremum.LastOrDefault();
             if (!isUpTrending)
             {
-                return 0;
+                return 0; // Tail
             }
 
-            var lvl = lastExtremum - (percentage / 4);
+            var lvl = lastExtremum - (percentage / 5);
             if (lastItem > lvl)
             {
-                return 2;
+                return 2; // Drive
             }
 
-            return 1;
+            return 1; // Capitulation
         }
     }
 }

@@ -655,6 +655,8 @@ namespace Algoserver.API.Services
                     timeframePhase.Add(TimeframeHelper.HOUR4_GRANULARITY, CalculateTrendPhase(timeframeState, timeframeStrengths, TimeframeHelper.HOUR4_GRANULARITY));
                     timeframePhase.Add(TimeframeHelper.DAILY_GRANULARITY, CalculateTrendPhase(timeframeState, timeframeStrengths, TimeframeHelper.DAILY_GRANULARITY));
                     timeframePhase.Add(TimeframeHelper.MONTHLY_GRANULARITY, CalculateTrendPhase(timeframeState, timeframeStrengths, TimeframeHelper.MONTHLY_GRANULARITY));
+                    timeframePhase.Add(TimeframeHelper.YEARLY_GRANULARITY, CalculateTrendPhase(timeframeState, timeframeStrengths, TimeframeHelper.YEARLY_GRANULARITY));
+                    timeframePhase.Add(TimeframeHelper.YEAR10_GRANULARITY, CalculateTrendPhase(timeframeState, timeframeStrengths, TimeframeHelper.YEAR10_GRANULARITY));
 
                     var pStrength = timeframeStrengths.Where((_) => _.Key >= TimeframeHelper.MONTHLY_GRANULARITY && _.Key <= TimeframeHelper.YEAR10_GRANULARITY).ToDictionary((_) => _.Key, (_) => _.Value);
                     var pVolatility = volatility.Where((_) => _.Key >= TimeframeHelper.MONTHLY_GRANULARITY && _.Key <= TimeframeHelper.YEAR10_GRANULARITY).ToDictionary((_) => _.Key, (_) => _.Value);
@@ -871,9 +873,19 @@ namespace Algoserver.API.Services
                 higherTf = TimeframeHelper.MONTHLY_GRANULARITY;
             if (tf == TimeframeHelper.MONTHLY_GRANULARITY)
                 higherTf = TimeframeHelper.YEARLY_GRANULARITY;
+            if (tf == TimeframeHelper.YEARLY_GRANULARITY)
+                higherTf = TimeframeHelper.YEAR10_GRANULARITY;
+            if (tf == TimeframeHelper.YEAR10_GRANULARITY)
+                higherTf = TimeframeHelper.YEAR10_GRANULARITY;
 
             int currentTFState;
             if (!timeframeState.TryGetValue(tf, out currentTFState))
+            {
+                return 0;
+            }
+
+            int higherTFState;
+            if (!timeframeState.TryGetValue(higherTf, out higherTFState))
             {
                 return 0;
             }
@@ -890,37 +902,28 @@ namespace Algoserver.API.Services
                 return 0;
             }
 
-            if (Math.Abs(higherTFStrength * 100) < 5)
-            {
-                return 0;
-            }
-
             var currentTFSide = currentTFStrength > 0 ? 1 : -1;
             var higherTFSide = higherTFStrength > 0 ? 1 : -1;
-            if (currentTFState == 2)
+            if (currentTFSide != higherTFSide)
             {
-                if (currentTFSide == higherTFSide)
-                {
-                    // Drive
-                    return 3;
-                }
+                // Counter Drive
+                return 4;
+            }
 
-                // Tail
-                return 2;
+            if (currentTFState == 2 && (higherTFState == 2 || higherTFState == 1))
+            {
+                // Drive
+                return 3;
             }
 
             if (currentTFState == 1)
             {
-                if (currentTFSide != higherTFSide)
-                {
-                    // Tail
-                    return 2;
-                }
-
+                // Capitulation
+                return 1;
             }
 
-            // Capitulation
-            return 1;
+            // Tail
+            return 2;
         }
 
         private StateDuration CalculateStateDurationLeft(List<MESADataPoint> data, long existingAvg = 0)
