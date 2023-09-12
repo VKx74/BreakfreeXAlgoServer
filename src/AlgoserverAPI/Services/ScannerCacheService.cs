@@ -741,41 +741,38 @@ namespace Algoserver.API.Services
             {
                 return result;
             }
+
             result.strength = (strength.ElementAt(0).Value / weights.Sum() * weights[0]) + (strength.ElementAt(1).Value / weights.Sum() * weights[1]) + (strength.ElementAt(2).Value / weights.Sum() * weights[2]);
 
-            if (volatility.Count != 3)
+            if (volatility.Count == 3)
             {
-                return result;
+                result.volatility = (volatility.ElementAt(0).Value / weights.Sum() * weights[0]) + (volatility.ElementAt(1).Value / weights.Sum() * weights[1]) + (volatility.ElementAt(2).Value / weights.Sum() * weights[2]);
             }
-            result.volatility = (volatility.ElementAt(0).Value / weights.Sum() * weights[0]) + (volatility.ElementAt(1).Value / weights.Sum() * weights[1]) + (volatility.ElementAt(2).Value / weights.Sum() * weights[2]);
 
             // Calculate durations
-
-            if (durations.Count != 3)
+            if (durations.Count == 3)
             {
-                return result;
-            }
-
-            var duration = durations.Last().Value;
-            if (duration <= 0)
-            {
-                duration = durations.ElementAt(durations.Count - 2).Value;
-                if (duration > 0)
+                var duration = durations.Last().Value;
+                if (duration <= 0)
                 {
-                    var hS = strength.Last();
-                    var lS = strength.ElementAt(strength.Count - 2);
-                    var coefValueDiff = lS.Value / hS.Value;
-                    var coefTimeDiff = hS.Key / lS.Key;
-                    duration = (long)(duration * Math.Abs(coefValueDiff) * coefTimeDiff);
-
-                    if (coefValueDiff < 0)
+                    duration = durations.ElementAt(durations.Count - 2).Value;
+                    if (duration > 0)
                     {
-                        duration = duration / 2;
+                        var hS = strength.Last();
+                        var lS = strength.ElementAt(strength.Count - 2);
+                        var coefValueDiff = lS.Value / hS.Value;
+                        var coefTimeDiff = hS.Key / lS.Key;
+                        duration = (long)(duration * Math.Abs(coefValueDiff) * coefTimeDiff);
+
+                        if (coefValueDiff < 0)
+                        {
+                            duration = duration / 2;
+                        }
                     }
                 }
-            }
 
-            result.duration = duration;
+                result.duration = duration;
+            }
 
             // Calculate durations end
 
@@ -784,71 +781,59 @@ namespace Algoserver.API.Services
                 return result;
             }
 
-            if (prev == null)
-            {
-                return result;
-            }
-
-            var canBeDrive = true;
-            // Check phase strength greater then minimum 5%
-            if (Math.Abs(prev.strength * 100) < 5 || Math.Abs(result.strength * 100) < 5)
-            {
-                canBeDrive = false;
-            }
-
-            var prevSide = prev.strength > 0 ? 1 : -1;
             var side = result.strength > 0 ? 1 : -1;
 
-            // Check higher phase side same as current
-            if (prevSide != side)
+            var counterDrive = false;
+            if (prev != null)
             {
-                canBeDrive = false;
+                var prevSide = prev.strength > 0 ? 1 : -1;
+                // Check highest phase side same as current
+                if (prevSide != side)
+                {
+                    counterDrive = true;
+                }
             }
 
             // Calculate phase
 
             var tfSides = strength.ToList().Select((_) => _.Value > 0 ? 1 : -1).ToList();
 
-            // if highest TF in drive and all other TF same side - Drive
-            if (canBeDrive && phase.Last().Value == 3 && tfSides.All((_) => _ == side))
+            // if highest TF in drive and opposite to highest phase - Counter Drive
+            if (counterDrive && (phase.Last().Value == 3 || phase.Last().Value == 4))
+            {
+                result.phase = 4; // Counter Drive
+                return result;
+            }
+
+            // if highest TF in drive and same as highest phase - Drive
+            if (!counterDrive && (phase.Last().Value == 3 || phase.Last().Value == 4))
             {
                 result.phase = 3; // Drive
                 return result;
             }
 
-            // if lowest TF and next in drive and all other TF same side, and global strength greater then highest TF strength - Drive
-            if (canBeDrive && phase.First().Value == 3 && phase.ElementAt(1).Value == 3 && tfSides.All((_) => _ == side))
-            {
-                if (result.strength > strength.Last().Value)
-                {
-                    result.phase = 3; // Drive
-                    return result;
-                }
-            }
-
-            // if highest and Prev TF in drive and same side - Drive
-            if (canBeDrive && phase.Last().Value == 3 && phase.ElementAt(phase.Count - 2).Value == 3 && tfSides.Last() == side && tfSides[tfSides.Count - 2] == side)
-            {
-                result.phase = 3; // Drive
-                return result;
-            }
-
-            // if lowest TF opposite to highest and in drive - Tail
-            if (tfSides.First() != tfSides.Last() && phase.First().Value == 3)
+            // if highest TF in tail - Tail
+            if (phase.Last().Value == 2)
             {
                 result.phase = 2; // Tail
                 return result;
             }
 
-            // if 2 of 3 TF in capitulation - Capitulation
-            if (phase.Count((_) => _.Value == 1) * 2 > phase.Count)
+            // if highest TF in capitulation - Capitulation or Drive depend to lower TF
+            if (phase.Last().Value == 1)
             {
-                result.phase = 1; // Capitulation
+                if (!counterDrive && phase.First().Value == 3 && phase.ElementAt(1).Value == 3 && tfSides.All((_) => _ == side))
+                {
+                    result.phase = 3; // Drive
+                }
+                else
+                {
+                    result.phase = 1; // Capitulation
+                }
                 return result;
             }
 
             // Calculate phase end
-
             return result;
         }
 
