@@ -798,6 +798,13 @@ namespace Algoserver.API.Services
 
             var tfSides = strength.ToList().Select((_) => _.Value > 0 ? 1 : -1).ToList();
 
+            // if highest TF in counter drive and same as highest phase - Tail
+            if (!counterDrive && phase.Last().Value == 4)
+            {
+                result.phase = 2; // Tail
+                return result;
+            }
+
             // if highest TF in drive and opposite to highest phase - Counter Drive
             if (counterDrive && (phase.Last().Value == 3 || phase.Last().Value == 4))
             {
@@ -806,7 +813,7 @@ namespace Algoserver.API.Services
             }
 
             // if highest TF in drive and same as highest phase - Drive
-            if (!counterDrive && (phase.Last().Value == 3 || phase.Last().Value == 4))
+            if (!counterDrive && phase.Last().Value == 3)
             {
                 result.phase = 3; // Drive
                 return result;
@@ -839,29 +846,14 @@ namespace Algoserver.API.Services
 
         private int CalculateTrendPhase(Dictionary<int, int> timeframeState, Dictionary<int, float> timeframeStrengths, int tf)
         {
-            var higherTf = 0;
-            if (tf == TimeframeHelper.DRIVER_GRANULARITY)
-                higherTf = TimeframeHelper.MIN1_GRANULARITY;
-            if (tf == TimeframeHelper.MIN1_GRANULARITY)
-                higherTf = TimeframeHelper.MIN5_GRANULARITY;
-            if (tf == TimeframeHelper.MIN5_GRANULARITY)
-                higherTf = TimeframeHelper.MIN15_GRANULARITY;
-            if (tf == TimeframeHelper.MIN15_GRANULARITY)
-                higherTf = TimeframeHelper.HOURLY_GRANULARITY;
-            if (tf == TimeframeHelper.HOURLY_GRANULARITY)
-                higherTf = TimeframeHelper.HOUR4_GRANULARITY;
-            if (tf == TimeframeHelper.HOUR4_GRANULARITY)
-                higherTf = TimeframeHelper.DAILY_GRANULARITY;
-            if (tf == TimeframeHelper.HOUR4_GRANULARITY)
-                higherTf = TimeframeHelper.DAILY_GRANULARITY;
-            if (tf == TimeframeHelper.DAILY_GRANULARITY)
-                higherTf = TimeframeHelper.MONTHLY_GRANULARITY;
+            var higherTf = TimeframeHelper.MONTHLY_GRANULARITY;
             if (tf == TimeframeHelper.MONTHLY_GRANULARITY)
                 higherTf = TimeframeHelper.YEARLY_GRANULARITY;
             if (tf == TimeframeHelper.YEARLY_GRANULARITY)
                 higherTf = TimeframeHelper.YEAR10_GRANULARITY;
             if (tf == TimeframeHelper.YEAR10_GRANULARITY)
                 higherTf = TimeframeHelper.YEAR10_GRANULARITY;
+
 
             int currentTFState;
             if (!timeframeState.TryGetValue(tf, out currentTFState))
@@ -895,7 +887,7 @@ namespace Algoserver.API.Services
                 return 4;
             }
 
-            if (currentTFState == 2 && (higherTFState == 2 || higherTFState == 1))
+            if (currentTFState == 2)
             {
                 // Drive
                 return 3;
