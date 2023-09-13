@@ -674,7 +674,7 @@ namespace Algoserver.API.Services
                     pVolatility = volatility.Where((_) => _.Key >= TimeframeHelper.MIN1_GRANULARITY && _.Key <= TimeframeHelper.MIN15_GRANULARITY).ToDictionary((_) => _.Key, (_) => _.Value);
                     pDurations = durations.Where((_) => _.Key >= TimeframeHelper.MIN1_GRANULARITY && _.Key <= TimeframeHelper.MIN15_GRANULARITY).ToDictionary((_) => _.Key, (_) => _.Value);
                     pPhase = timeframePhase.Where((_) => _.Key >= TimeframeHelper.MIN1_GRANULARITY && _.Key <= TimeframeHelper.MIN15_GRANULARITY).ToDictionary((_) => _.Key, (_) => _.Value);
-                    var lowTrendPeriodDescription = CalculateTrendPeriodDescription(pStrength, pVolatility, pDurations, pPhase, midTrendPeriodDescription);
+                    var lowTrendPeriodDescription = CalculateTrendPeriodDescription(pStrength, pVolatility, pDurations, pPhase, highTrendPeriodDescription);
 
                     var trendPeriodDescriptions = new Dictionary<int, TrendPeriodDescription>();
                     trendPeriodDescriptions.Add(0, lowTrendPeriodDescription);
@@ -847,13 +847,8 @@ namespace Algoserver.API.Services
         private int CalculateTrendPhase(Dictionary<int, int> timeframeState, Dictionary<int, float> timeframeStrengths, int tf)
         {
             var higherTf = TimeframeHelper.MONTHLY_GRANULARITY;
-            if (tf == TimeframeHelper.MONTHLY_GRANULARITY)
-                higherTf = TimeframeHelper.YEARLY_GRANULARITY;
-            if (tf == TimeframeHelper.YEARLY_GRANULARITY)
+            if (tf >= TimeframeHelper.MONTHLY_GRANULARITY)
                 higherTf = TimeframeHelper.YEAR10_GRANULARITY;
-            if (tf == TimeframeHelper.YEAR10_GRANULARITY)
-                higherTf = TimeframeHelper.YEAR10_GRANULARITY;
-
 
             int currentTFState;
             if (!timeframeState.TryGetValue(tf, out currentTFState))
