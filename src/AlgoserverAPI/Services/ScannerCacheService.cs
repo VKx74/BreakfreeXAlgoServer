@@ -210,7 +210,7 @@ namespace Algoserver.API.Services
                     }
 
                     var dailyHistory = _1Day.FirstOrDefault((_) => String.Equals(_.Symbol, minHistory.Symbol, StringComparison.InvariantCultureIgnoreCase) && String.Equals(_.Exchange, minHistory.Exchange, StringComparison.InvariantCultureIgnoreCase));
-                    if (dailyHistory == null || dailyHistory.Bars == null || dailyHistory.Bars.Count < 5000)
+                    if (dailyHistory == null || dailyHistory.Bars == null || dailyHistory.Bars.Count < 2000)
                     {
                         Console.WriteLine(">>> MESA Calculation Error (dailyHistory) - " + minHistory.Symbol);
                         continue;
