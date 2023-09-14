@@ -341,6 +341,8 @@ namespace Algoserver.API.Models.REST
         public float price3600 { get; set; }
         public float price14400 { get; set; }
         public float price86400 { get; set; }
+        public uint current_phase { get; set; }
+        public uint next_phase { get; set; }
     }
 
 }

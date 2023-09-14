@@ -45,6 +45,8 @@ namespace Algoserver.API.Helpers
         public float Price3600 { get; set; }
         public float Price14400 { get; set; }
         public float Price86400 { get; set; }
+        public uint CurrentPhase { get; set; }
+        public uint NextPhase { get; set; }
     }
 
     public class TradeZone

@@ -10,6 +10,17 @@ using Algoserver.API.Services.CacheServices;
 
 namespace Algoserver.API.Services
 {
+    static class PhaseState
+    {
+        public static int Capitulation = 1;
+        public static int Tail = 2;
+        public static int Drive = 3;
+        public static int CD = 4;
+        public static int CapitulationTransition = 5;
+        public static int TailTransition = 6;
+        public static int DriveTransition = 7;
+    }
+
     class StateDuration
     {
         public long Avg { get; set; }
@@ -681,6 +692,8 @@ namespace Algoserver.API.Services
                     trendPeriodDescriptions.Add(1, midTrendPeriodDescription);
                     trendPeriodDescriptions.Add(2, highTrendPeriodDescription);
 
+                    var globalMarketState = GetGlobalMarketState(trendPeriodDescriptions);
+
                     summary.Add(new MESADataSummary
                     {
                         Symbol = symbol,
@@ -700,7 +713,9 @@ namespace Algoserver.API.Services
                         Price14400 = (float)calculation_input.ElementAt(length - 240),
                         Price86400 = (float)calculation_input.ElementAt(length - 1440),
                         TimeframeState = timeframeState,
-                        TrendPeriodDescriptions = trendPeriodDescriptions
+                        TrendPeriodDescriptions = trendPeriodDescriptions,
+                        CurrentPhase = globalMarketState != null && globalMarketState.Count == 2 ? globalMarketState[0] : 0,
+                        NextPhase = globalMarketState != null && globalMarketState.Count == 2 ? globalMarketState[1] : 0
                     });
 
                 }
@@ -799,43 +814,43 @@ namespace Algoserver.API.Services
             var tfSides = strength.ToList().Select((_) => _.Value > 0 ? 1 : -1).ToList();
 
             // if highest TF in counter drive and same as highest phase - Tail
-            if (!counterDrive && phase.Last().Value == 4)
+            if (!counterDrive && phase.Last().Value == PhaseState.CD)
             {
-                result.phase = 2; // Tail
+                result.phase = PhaseState.Tail; // Tail
                 return result;
             }
 
             // if highest TF in drive and opposite to highest phase - Counter Drive
-            if (counterDrive && (phase.Last().Value == 3 || phase.Last().Value == 4))
+            if (counterDrive && (phase.Last().Value == PhaseState.Drive || phase.Last().Value == PhaseState.CD))
             {
-                result.phase = 4; // Counter Drive
+                result.phase = PhaseState.CD; // Counter Drive
                 return result;
             }
 
             // if highest TF in drive and same as highest phase - Drive
-            if (!counterDrive && phase.Last().Value == 3)
+            if (!counterDrive && phase.Last().Value == PhaseState.Drive)
             {
-                result.phase = 3; // Drive
+                result.phase = PhaseState.Drive; // Drive
                 return result;
             }
 
             // if highest TF in tail - Tail
-            if (phase.Last().Value == 2)
+            if (phase.Last().Value == PhaseState.Tail)
             {
-                result.phase = 2; // Tail
+                result.phase = PhaseState.Tail; // Tail
                 return result;
             }
 
             // if highest TF in capitulation - Capitulation or Drive depend to lower TF
-            if (phase.Last().Value == 1)
+            if (phase.Last().Value == PhaseState.Capitulation)
             {
-                if (!counterDrive && phase.First().Value == 3 && phase.ElementAt(1).Value == 3 && tfSides.All((_) => _ == side))
+                if (!counterDrive && phase.First().Value == PhaseState.Drive && phase.ElementAt(1).Value == PhaseState.Drive && tfSides.All((_) => _ == side))
                 {
-                    result.phase = 3; // Drive
+                    result.phase = PhaseState.Drive; // Drive
                 }
                 else
                 {
-                    result.phase = 1; // Capitulation
+                    result.phase = PhaseState.Capitulation; // Capitulation
                 }
                 return result;
             }
@@ -879,23 +894,23 @@ namespace Algoserver.API.Services
             if (currentTFSide != higherTFSide)
             {
                 // Counter Drive
-                return 4;
+                return PhaseState.CD;
             }
 
             if (currentTFState == 2)
             {
                 // Drive
-                return 3;
+                return PhaseState.Drive;
             }
 
             if (currentTFState == 1)
             {
                 // Capitulation
-                return 1;
+                return PhaseState.Capitulation;
             }
 
             // Tail
-            return 2;
+            return PhaseState.Tail;
         }
 
         private StateDuration CalculateStateDurationLeft(List<MESADataPoint> data, long existingAvg = 0)
@@ -976,6 +991,115 @@ namespace Algoserver.API.Services
                 _cache.Set(_mesaCachePrefix, key.ToLower(), mesa, TimeSpan.FromDays(1));
             }
             catch (Exception ex) { }
+        }
+
+        private List<uint> GetGlobalMarketState(Dictionary<int, TrendPeriodDescription> trend_period_descriptions)
+        {
+            var shortState = trend_period_descriptions.GetValueOrDefault(0, null);
+            var midState = trend_period_descriptions.GetValueOrDefault(1, null);
+            var longState = trend_period_descriptions.GetValueOrDefault(2, null);
+
+            if (shortState == null || midState == null || longState == null)
+            {
+                return null;
+            }
+
+            var shortPhase = shortState.phase;
+            var midPhase = midState.phase;
+            var longPhase = longState.phase;
+
+            var currentState = 0;
+            var expectedState = 0;
+
+            if (longPhase == PhaseState.Drive)
+            {
+                if (midPhase == PhaseState.Drive)
+                {
+                    currentState = PhaseState.Drive;
+                    if (shortPhase == PhaseState.Drive)
+                    {
+                        expectedState = PhaseState.Drive;
+                    }
+                    else
+                    {
+                        expectedState = PhaseState.Capitulation;
+                    }
+                }
+                else
+                {
+                    currentState = PhaseState.DriveTransition;
+                    if (midPhase == PhaseState.CD || shortPhase == PhaseState.CD)
+                    {
+                        expectedState = PhaseState.Capitulation;
+                    }
+                    else
+                    {
+                        if (shortPhase == PhaseState.Drive && midPhase == PhaseState.Capitulation)
+                        {
+                            expectedState = PhaseState.Drive;
+                        }
+                        else
+                        {
+                            expectedState = PhaseState.Capitulation;
+                        }
+                    }
+                }
+            }
+
+            if (longPhase == PhaseState.Capitulation)
+            {
+                if (midPhase == PhaseState.Capitulation || midPhase == PhaseState.Tail)
+                {
+                    currentState = PhaseState.Capitulation;
+                    expectedState = PhaseState.Tail;
+                }
+                else
+                {
+                    currentState = PhaseState.CapitulationTransition;
+                    if (midPhase == PhaseState.CD || shortPhase == PhaseState.CD)
+                    {
+                        expectedState = PhaseState.Tail;
+                    }
+                    else
+                    {
+                        expectedState = PhaseState.Drive;
+                    }
+                }
+            }
+
+            if (longPhase == PhaseState.Tail)
+            {
+                if (midPhase == PhaseState.Capitulation || midPhase == PhaseState.Tail)
+                {
+                    currentState = PhaseState.Tail;
+                    if (midPhase == PhaseState.Capitulation && shortPhase == PhaseState.Drive)
+                    {
+                        expectedState = PhaseState.Drive;
+                    }
+                    else if (midPhase == PhaseState.Tail && shortPhase == PhaseState.CD)
+                    {
+                        expectedState = PhaseState.Drive;
+                    }
+                    else
+                    {
+                        expectedState = PhaseState.Tail;
+                    }
+                }
+                else
+                {
+                    currentState = PhaseState.TailTransition;
+                    if (midPhase == PhaseState.Drive && shortPhase == PhaseState.Drive)
+                    {
+                        expectedState = PhaseState.Drive;
+                    }
+                    else
+                    {
+                        expectedState = PhaseState.Tail;
+                    }
+                }
+            }
+
+            return new List<uint> {(uint)currentState, (uint)expectedState};
         }
 
         private void SetMesaSummaryCache(List<MESADataSummary> mesa)

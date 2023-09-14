@@ -314,7 +314,9 @@ namespace Algoserver.API.Controllers
                     price3600 = r.Price3600,
                     price14400 = r.Price14400,
                     price86400 = r.Price86400,
-                    timeframe_state = r.TimeframeState
+                    timeframe_state = r.TimeframeState,
+                    current_phase = r.CurrentPhase,
+                    next_phase = r.NextPhase
                 });
             }
             return result;
