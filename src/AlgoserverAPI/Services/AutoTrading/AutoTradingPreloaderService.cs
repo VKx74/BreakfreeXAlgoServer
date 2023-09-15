@@ -12,14 +12,16 @@ namespace Algoserver.API.Services.CacheServices
         private readonly ICacheService _cache;
         private readonly AlgoService _algoService;
         private readonly AutoTradingUserInfoService _autoTradingUserInfoService;
+        private readonly AutoTradingAccountsService _autoTradingAccountsService;
         private readonly string _cachePrefix = "at_trading_info_";
         private readonly Dictionary<string, Dictionary<string, AutoTradingSymbolInfoResponse>> _data = new Dictionary<string, Dictionary<string, AutoTradingSymbolInfoResponse>>();
 
-        public AutoTradingPreloaderService(ICacheService cache, AlgoService algoService, AutoTradingUserInfoService autoTradingUserInfoService)
+        public AutoTradingPreloaderService(ICacheService cache, AlgoService algoService, AutoTradingUserInfoService autoTradingUserInfoService, AutoTradingAccountsService autoTradingAccountsService)
         {
             _cache = cache;
             _algoService = algoService;
             _autoTradingUserInfoService = autoTradingUserInfoService;
+            _autoTradingAccountsService = autoTradingAccountsService;
         }
 
         public async Task LoadInstruments(string type)
@@ -51,9 +53,11 @@ namespace Algoserver.API.Services.CacheServices
             var result = new List<AutoTradingInstrumentsResponse>();
             var symbols = new Dictionary<string, AutoTradingSymbolInfoResponse>();
             var userSettings = _autoTradingUserInfoService.GetUserInfo(account);
+            var maxAmount = _autoTradingAccountsService.GetMaxTradingInstrumentsCount(account);
 
             lock (_data)
             {
+                var hitlUsed = 0;
                 foreach (var types in _data)
                 {
                     foreach (var symbol in types.Value)
@@ -71,6 +75,7 @@ namespace Algoserver.API.Services.CacheServices
                             var marketConfig = userSettings.markets.FirstOrDefault((_) => !string.IsNullOrEmpty(_.symbol) && string.Equals(getNormalizedInstrument(_.symbol), s, StringComparison.InvariantCultureIgnoreCase));
                             if (marketConfig != null)
                             {
+                                hitlUsed++;
                                 var tradingConfig = symbol.Value;
                                 var minStrength = marketConfig.minStrength;
                                 var minStrength1h = marketConfig.minStrength1H;
@@ -97,7 +102,10 @@ namespace Algoserver.API.Services.CacheServices
                                     }
                                 }
 
-                                symbols.Add(instrument, tradingConfig);
+                                if (hitlUsed <= maxAmount)
+                                {
+                                    symbols.Add(instrument, tradingConfig);
+                                }
                             }
                         }
                     }
@@ -248,7 +256,7 @@ namespace Algoserver.API.Services.CacheServices
             if (btcusd.Any(_ => _.Equals(instrument, StringComparison.InvariantCultureIgnoreCase)))
             {
                 return "btcusdt";
-            } 
+            }
             var ethusdt = new List<string> { "ETHUSDT", "ETHUSD" };
             if (ethusdt.Any(_ => _.Equals(instrument, StringComparison.InvariantCultureIgnoreCase)))
             {

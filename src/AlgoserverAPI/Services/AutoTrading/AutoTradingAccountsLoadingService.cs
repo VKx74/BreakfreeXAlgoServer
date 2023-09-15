@@ -12,6 +12,13 @@ using Newtonsoft.Json;
 
 namespace Algoserver.API.Services
 {
+    [Serializable]
+    class UserAutoTradingAccountCacheItem
+    {
+        public string AccountId { get; set; }
+        public List<string> Subscriptions { get; set; }
+    }
+
     class UserAutoTradingAccountResponse
     {
         public string Id { get; set; }
@@ -19,6 +26,7 @@ namespace Algoserver.API.Services
         public string UserId { get; set; }
         public bool IsActive { get; set; }
         public string Name { get; set; }
+        public List<string> Subscriptions { get; set; }
         public DateTime Time { get; set; }
     }
 
@@ -60,7 +68,10 @@ namespace Algoserver.API.Services
                 }
 
                 var accounts = JsonConvert.DeserializeObject<List<UserAutoTradingAccountResponse>>(content);
-                var accountsList = accounts.Select((_) => _.AccountId).ToList();
+                var accountsList = accounts.Select((_) => new UserAutoTradingAccountCacheItem {
+                    AccountId = _.AccountId,
+                    Subscriptions = _.Subscriptions
+                }).ToList();
                 Console.WriteLine(">>> Loaded auto trading account: " + accountsList.Count);
                 _cache.Set(_cachePrefix, _cacheKey, accountsList, TimeSpan.FromDays(1));
             }
