@@ -61,17 +61,26 @@ namespace Algoserver.API.Services
             var pro = "Pro";
             var discovery = "Discovery";
             var starter = "Starter";
-            var neuralCut = "SomeId";
+            var wings = "Wings";
+            var ascension = "Ascension";
+            var god = "God";
 
             var isNeural = account.Subscriptions.Any((_) => _.IndexOf(neural) != -1);
             var isPro = account.Subscriptions.Any((_) => _.IndexOf(pro) != -1);
             var isDiscovery = account.Subscriptions.Any((_) => _.IndexOf(discovery) != -1);
             var isStarter = account.Subscriptions.Any((_) => _.IndexOf(starter) != -1);
-            var isNeuralCut = account.Subscriptions.Any((_) => _.IndexOf(neuralCut) != -1);
+            var isWings = account.Subscriptions.Any((_) => _.IndexOf(wings) != -1);
+            var isAscension = account.Subscriptions.Any((_) => _.IndexOf(ascension) != -1);
+            var isGod = account.Subscriptions.Any((_) => _.IndexOf(god) != -1);
 
-            if (isNeural || isPro || isDiscovery)
+            if (isGod || isNeural || isPro || isDiscovery)
             {
                 return int.MaxValue;
+            }  
+            
+            if (isAscension)
+            {
+                return 4;
             }
 
             return 2;

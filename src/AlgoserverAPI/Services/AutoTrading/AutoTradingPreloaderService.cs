@@ -54,10 +54,10 @@ namespace Algoserver.API.Services.CacheServices
             var symbols = new Dictionary<string, AutoTradingSymbolInfoResponse>();
             var userSettings = _autoTradingUserInfoService.GetUserInfo(account);
             var maxAmount = _autoTradingAccountsService.GetMaxTradingInstrumentsCount(account);
+            var isHITLOverride = maxAmount != int.MaxValue;
 
             lock (_data)
             {
-                var hitlUsed = 0;
                 foreach (var types in _data)
                 {
                     foreach (var symbol in types.Value)
@@ -65,7 +65,7 @@ namespace Algoserver.API.Services.CacheServices
                         var name = symbol.Key.Split("_");
                         name = name.TakeLast(name.Length - 1).ToArray();
                         var instrument = String.Join("_", name).ToUpper();
-                        if (symbol.Value.TrendState == 3)
+                        if (symbol.Value.TrendState == 3 && !isHITLOverride)
                         {
                             symbols.Add(instrument, symbol.Value);
                         }
@@ -75,7 +75,6 @@ namespace Algoserver.API.Services.CacheServices
                             var marketConfig = userSettings.markets.FirstOrDefault((_) => !string.IsNullOrEmpty(_.symbol) && string.Equals(getNormalizedInstrument(_.symbol), s, StringComparison.InvariantCultureIgnoreCase));
                             if (marketConfig != null)
                             {
-                                hitlUsed++;
                                 var tradingConfig = symbol.Value;
                                 var minStrength = marketConfig.minStrength;
                                 var minStrength1h = marketConfig.minStrength1H;
@@ -102,15 +101,14 @@ namespace Algoserver.API.Services.CacheServices
                                     }
                                 }
 
-                                if (hitlUsed <= maxAmount)
-                                {
-                                    symbols.Add(instrument, tradingConfig);
-                                }
+                                symbols.Add(instrument, tradingConfig);
                             }
                         }
                     }
                 }
             }
+
+            symbols = symbols.Take(maxAmount).ToDictionary((_) => _.Key, (_) => _.Value);
 
             var totalCount = 0m;
             foreach (var symbol in symbols)
