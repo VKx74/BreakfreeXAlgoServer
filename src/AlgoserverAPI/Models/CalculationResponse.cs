@@ -302,7 +302,17 @@ namespace Algoserver.API.Models.REST
     {
         public float f { get; set; }
         public float s { get; set; }
+        public float v { get; set; }
         public long t { get; set; }
+    }
+
+    [Serializable]
+    public class TrendPeriodDescriptionResponse
+    {
+        public float strength { get; set; }
+        public float volatility { get; set; }
+        public long duration { get; set; }
+        public int phase { get; set; }
     }
 
     public class MesaResponse
@@ -316,8 +326,13 @@ namespace Algoserver.API.Models.REST
         public string symbol { get; set; }
         public string datafeed { get; set; }
         public Dictionary<int, MesaLevelResponse> strength { get; set; }
+        public Dictionary<int, TrendPeriodDescriptionResponse> trend_period_descriptions { get; set; }
+        public Dictionary<int, float> volatility { get; set; }
+        public Dictionary<int, long> durations { get; set; }
         public Dictionary<int, float> avg_strength { get; set; }
         public Dictionary<int, float> timeframe_strengths { get; set; }
+        public Dictionary<int, int> timeframe_state { get; set; }
+        public Dictionary<int, int> timeframe_phase { get; set; }
         public float total_strength { get; set; }
         public float last_price { get; set; }
         public float price60 { get; set; }
@@ -326,10 +341,8 @@ namespace Algoserver.API.Models.REST
         public float price3600 { get; set; }
         public float price14400 { get; set; }
         public float price86400 { get; set; }
-        public int hour1State { get; set; }
-        public int hour4State { get; set; }
-        public int dailyState { get; set; }
-        public int monthlyState { get; set; }
+        public uint current_phase { get; set; }
+        public uint next_phase { get; set; }
     }
 
 }

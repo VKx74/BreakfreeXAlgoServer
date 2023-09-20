@@ -74,7 +74,7 @@ namespace Algoserver.API.HostedServices
                         var instruments = _scannerHistory.getInstrumentsForLongHistory();
                         await _autoTradingPrecalculationService.CalculateInstruments(instruments, "Forex");
                         Console.WriteLine(">>> Forex Auto Trading Precalculation ends");
-                        await Task.Delay(TimeSpan.FromSeconds(3), stoppingToken).ConfigureAwait(false);
+                        await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken).ConfigureAwait(false);
                         // Console.WriteLine(">>> Forex ScanMarkets start");
                         // _scannerCache.ScanMarkets();
                         // Console.WriteLine(">>> Forex ScanMarkets ends");
