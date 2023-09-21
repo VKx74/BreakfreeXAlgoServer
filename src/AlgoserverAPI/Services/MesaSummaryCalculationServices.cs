@@ -756,13 +756,21 @@ namespace Algoserver.API.Services
             var shortStrength = shortState.strength * 100;
             var midStrength = midState.strength * 100;
             var longStrength = longState.strength * 100;
+            var shortStrengthSide = shortStrength > 0 ? 1 : -1;
+            var midStrengthSide = midStrength > 0 ? 1 : -1;
+            var longStrengthSide = longStrength > 0 ? 1 : -1;
+
+            var shortStrengthAbs = Math.Abs(shortStrength);
+            var midStrengthAbs = Math.Abs(midStrength);
+            var longStrengthAbs = Math.Abs(longStrength);
 
             var currentState = 0;
             var expectedState = 0;
+            var isAligned = longStrengthSide == midStrengthSide && midStrengthSide == shortStrengthSide;
 
             if (longPhase == PhaseState.Drive)
             {
-                if (midPhase == PhaseState.Drive)
+                if (midPhase == PhaseState.Drive && isAligned)
                 {
                     currentState = PhaseState.Drive;
                     if (shortPhase == PhaseState.Drive)
@@ -781,7 +789,7 @@ namespace Algoserver.API.Services
                 else
                 {
                     currentState = PhaseState.DriveTransition;
-                    if (shortPhase == PhaseState.Drive && midPhase == PhaseState.Capitulation && shortStrength > 10 && midStrength > 10)
+                    if (isAligned && shortPhase == PhaseState.Drive && midPhase == PhaseState.Capitulation && shortStrengthAbs > 10 && midStrengthAbs > 10)
                     {
                         expectedState = PhaseState.Drive;
                     }
@@ -794,7 +802,7 @@ namespace Algoserver.API.Services
 
             if (longPhase == PhaseState.Capitulation)
             {
-                if (midPhase != PhaseState.Drive)
+                if (midPhase != PhaseState.Drive || !isAligned)
                 {
                     currentState = PhaseState.Capitulation;
                     expectedState = PhaseState.Tail;
@@ -802,7 +810,7 @@ namespace Algoserver.API.Services
                 else
                 {
                     currentState = PhaseState.CapitulationTransition;
-                    if (shortPhase == PhaseState.Drive && midPhase == PhaseState.Drive && shortStrength > 10 && midStrength > 10)
+                    if (isAligned && shortPhase == PhaseState.Drive && midPhase == PhaseState.Drive && shortStrengthAbs > 10 && midStrengthAbs > 10)
                     {
                         expectedState = PhaseState.Drive;
                     }
@@ -815,7 +823,7 @@ namespace Algoserver.API.Services
 
             if (longPhase == PhaseState.Tail)
             {
-                if (shortPhase == PhaseState.Drive && midPhase == PhaseState.Drive && shortStrength > 20 && midStrength > 20)
+                if (isAligned && shortPhase == PhaseState.Drive && midPhase == PhaseState.Drive && shortStrengthAbs > 20 && midStrengthAbs > 20)
                 {
                     currentState = PhaseState.TailTransition;
                     expectedState = PhaseState.Drive;
