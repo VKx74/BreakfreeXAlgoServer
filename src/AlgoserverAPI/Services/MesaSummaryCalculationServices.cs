@@ -779,10 +779,6 @@ namespace Algoserver.API.Services
                     }
                     else
                     {
-                        if (shortPhase == PhaseState.CD)
-                        {
-                            currentState = PhaseState.DriveTransition;
-                        }
                         expectedState = PhaseState.Capitulation;
                     }
                 }
