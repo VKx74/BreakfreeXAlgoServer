@@ -377,14 +377,15 @@ namespace Algoserver.API.Controllers
             }
 
             var result = await _autoTradingPreloaderService.GetAutoTradingSymbolInfo(mappedSymbol, request.Instrument.Datafeed, request.Instrument.Exchange, request.Instrument.Type);
-
+            return Ok(BuildBotStringResponse(result));
+        }
+        private string BuildBotStringResponse(AutoTradingSymbolInfoResponse result)
+        {
             var stringResult = new StringBuilder();
             stringResult.AppendLine($"strengthTotal={Math.Round(result.TotalStrength * 100, 2)}");
             stringResult.AppendLine($"generalStopLoss={Math.Round(result.SL, 5)}");
             stringResult.AppendLine($"trendDirection={result.TrendDirection}");
-            stringResult.AppendLine($"state={result.TrendState}");
-            stringResult.AppendLine($"avgOscillator={result.AvgOscillator}");
-
+            
             stringResult.AppendLine($"hbh1m={Math.Round(result.HalfBand1M, 5)}");
             stringResult.AppendLine($"hbh5m={Math.Round(result.HalfBand5M, 5)}");
             stringResult.AppendLine($"hbh15m={Math.Round(result.HalfBand15M, 5)}");
@@ -412,10 +413,19 @@ namespace Algoserver.API.Controllers
             stringResult.AppendLine($"strength1h={Math.Round(result.Strength1H * 100, 2)}");
             stringResult.AppendLine($"strength4h={Math.Round(result.Strength4H * 100, 2)}");
             stringResult.AppendLine($"strength1d={Math.Round(result.Strength1D * 100, 2)}");
-            stringResult.AppendLine($"monthlyTrend={result.MonthlyTrend}");
+
+            stringResult.AppendLine($"currentPhase={result.CurrentPhase}");
+            stringResult.AppendLine($"nextPhase={result.NextPhase}");
+            stringResult.AppendLine($"shortGroupPhase={result.ShortGroupPhase}");
+            stringResult.AppendLine($"midGroupPhase={result.MidGroupPhase}");
+            stringResult.AppendLine($"longGroupPhase={result.LongGroupPhase}");
+            stringResult.AppendLine($"shortGroupStrength={Math.Round(result.ShortGroupStrength * 100, 2)}");
+            stringResult.AppendLine($"midGroupStrength={Math.Round(result.MidGroupStrength * 100, 2)}");
+            stringResult.AppendLine($"longGroupStrength={Math.Round(result.LongGroupStrength * 100, 2)}");
+
             stringResult.AppendLine($"tt={result.Time}");
 
-            return Ok(stringResult.ToString());
+            return stringResult.ToString();
         }
 
         private string SymbolMapper(string symbol)

@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using Newtonsoft.Json;
 
 namespace Algoserver.API.Models.REST
 {
@@ -40,11 +38,15 @@ namespace Algoserver.API.Models.REST
         public decimal Strength1H { get; set; }
         public decimal Strength4H { get; set; }
         public decimal Strength1D { get; set; }
-        public decimal AvgOscillator { get; set; }
         public int TrendDirection { get; set; }
-        public int TrendState { get; set; }
-        public int DailyTrend { get; set; }
-        public int MonthlyTrend { get; set; }
+        public int ShortGroupPhase { get; set; }
+        public int MidGroupPhase { get; set; }
+        public int LongGroupPhase { get; set; }
+        public decimal ShortGroupStrength { get; set; }
+        public decimal MidGroupStrength { get; set; }
+        public decimal LongGroupStrength { get; set; }
+        public int CurrentPhase { get; set; }
+        public int NextPhase { get; set; }
         public long Time { get; set; }
     }
 }

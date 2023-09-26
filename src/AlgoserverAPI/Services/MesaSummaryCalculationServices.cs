@@ -630,6 +630,10 @@ namespace Algoserver.API.Services
         {
             var result = new TrendPeriodDescription();
             var weights = new List<int> { 1, 3, 9 };
+            if (prev == null)
+            {
+                weights = new List<int> { 1, 2, 3 };
+            }
 
             if (strength.Count != 3)
             {
