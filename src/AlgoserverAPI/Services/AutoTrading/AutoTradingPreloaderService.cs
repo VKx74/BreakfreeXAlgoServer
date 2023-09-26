@@ -76,29 +76,9 @@ namespace Algoserver.API.Services.CacheServices
                             if (marketConfig != null)
                             {
                                 var tradingConfig = symbol.Value;
-                                var minStrength = marketConfig.minStrength;
-                                var minStrength1h = marketConfig.minStrength1H;
-                                var minStrength4h = marketConfig.minStrength4H;
-                                var minStrength1d = marketConfig.minStrength1D;
-
-                                if (Math.Abs(tradingConfig.TotalStrength * 100) < minStrength)
+                                if (symbol.Value.MidGroupPhase == 4 || symbol.Value.ShortGroupPhase == 4)
                                 {
                                     continue;
-                                }
-
-                                if (tradingConfig.TrendDirection == 1)
-                                {
-                                    if ((tradingConfig.Strength1H * 100 < minStrength1h) || (tradingConfig.Strength4H * 100 < minStrength4h) || (tradingConfig.Strength1D * 100 < minStrength1d))
-                                    {
-                                        continue;
-                                    }
-                                }
-                                else if (tradingConfig.TrendDirection == -1)
-                                {
-                                    if ((tradingConfig.Strength1H * 100 > minStrength1h * -1) || (tradingConfig.Strength4H * 100 > minStrength4h * -1) || (tradingConfig.Strength1D * 100 > minStrength1d * -1))
-                                    {
-                                        continue;
-                                    }
                                 }
 
                                 symbols.Add(instrument, tradingConfig);
