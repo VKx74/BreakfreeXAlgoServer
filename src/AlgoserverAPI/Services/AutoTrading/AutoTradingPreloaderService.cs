@@ -289,12 +289,12 @@ namespace Algoserver.API.Services.CacheServices
             if (symbolInfo.TrendDirection == 1)
             {
                 // Uptrend
-                if (symbolInfo.ShortGroupStrength < 10 || symbolInfo.MidGroupStrength < 10 || symbolInfo.LongGroupStrength < 10 || strength5min < -30)
+                if (symbolInfo.ShortGroupStrength < 0 || symbolInfo.MidGroupStrength < 5 || symbolInfo.LongGroupStrength < 10 || strength5min < -30)
                 {
                     return false;
                 }
 
-                if (strength1month < 15)
+                if (strength1month < 20)
                 {
                     return false;
                 }
@@ -302,12 +302,12 @@ namespace Algoserver.API.Services.CacheServices
             else if (symbolInfo.TrendDirection == -1)
             {
                 // Downtrend
-                if (symbolInfo.ShortGroupStrength > -10 || symbolInfo.MidGroupStrength > -10 || symbolInfo.LongGroupStrength > -10 || strength5min > 30)
+                if (symbolInfo.ShortGroupStrength > 0 || symbolInfo.MidGroupStrength > -5 || symbolInfo.LongGroupStrength > -10 || strength5min > 30)
                 {
                     return false;
                 }
 
-                if (strength1month > -15)
+                if (strength1month > -20)
                 {
                     return false;
                 }
