@@ -285,11 +285,14 @@ namespace Algoserver.API.Services.CacheServices
 
             var strength1month = symbolInfo.Strength1Month * 100;
             var strength5min = symbolInfo.Strength5M * 100;
+            var shortGroupStrength = symbolInfo.ShortGroupStrength * 100;
+            var midGroupStrength = symbolInfo.MidGroupStrength * 100;
+            var longGroupStrength = symbolInfo.LongGroupStrength * 100;
 
             if (symbolInfo.TrendDirection == 1)
             {
                 // Uptrend
-                if (symbolInfo.ShortGroupStrength < 0 || symbolInfo.MidGroupStrength < 5 || symbolInfo.LongGroupStrength < 10 || strength5min < -30)
+                if (midGroupStrength < 5 || longGroupStrength < 10 || strength5min < -30)
                 {
                     return false;
                 }
@@ -302,7 +305,7 @@ namespace Algoserver.API.Services.CacheServices
             else if (symbolInfo.TrendDirection == -1)
             {
                 // Downtrend
-                if (symbolInfo.ShortGroupStrength > 0 || symbolInfo.MidGroupStrength > -5 || symbolInfo.LongGroupStrength > -10 || strength5min > 30)
+                if (midGroupStrength > -5 || longGroupStrength > -10 || strength5min > 30)
                 {
                     return false;
                 }
