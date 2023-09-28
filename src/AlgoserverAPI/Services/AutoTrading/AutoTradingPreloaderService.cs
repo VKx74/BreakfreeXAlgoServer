@@ -62,26 +62,34 @@ namespace Algoserver.API.Services.CacheServices
                 {
                     foreach (var symbol in types.Value)
                     {
+                        if (isInOverheatZone(symbol.Value))
+                        {
+                            continue;
+                        }
+
                         var name = symbol.Key.Split("_");
                         name = name.TakeLast(name.Length - 1).ToArray();
                         var instrument = String.Join("_", name).ToUpper();
-                        if ((symbol.Value.CurrentPhase == 3 || symbol.Value.NextPhase == 3) && !isHITLOverride)
+                        if (!isHITLOverride)
                         {
-                            symbols.Add(instrument, symbol.Value);
+                            var canAutoTrade = isAutoTradeModeEnabled(symbol.Value);
+                            if (canAutoTrade)
+                            {
+                                symbols.Add(instrument, symbol.Value);
+                            }
                         }
                         else if (userSettings != null && userSettings.useManualTrading && userSettings.markets != null)
                         {
+                            var canTradeInHITLMode = isHITLModeEnabled(symbol.Value);
+                            if (!canTradeInHITLMode)
+                            {
+                                continue;
+                            }
                             var s = getNormalizedInstrument(instrument);
                             var marketConfig = userSettings.markets.FirstOrDefault((_) => !string.IsNullOrEmpty(_.symbol) && string.Equals(getNormalizedInstrument(_.symbol), s, StringComparison.InvariantCultureIgnoreCase));
                             if (marketConfig != null)
                             {
-                                var tradingConfig = symbol.Value;
-                                if (symbol.Value.MidGroupPhase == 4 || symbol.Value.ShortGroupPhase == 4)
-                                {
-                                    continue;
-                                }
-
-                                symbols.Add(instrument, tradingConfig);
+                                symbols.Add(instrument, symbol.Value);
                             }
                         }
                     }
@@ -244,5 +252,119 @@ namespace Algoserver.API.Services.CacheServices
             return instrument;
         }
 
+        private bool isHITLModeEnabled(AutoTradingSymbolInfoResponse symbolInfo)
+        {
+            var strength1month = symbolInfo.Strength1Month * 100;
+
+            if (symbolInfo.TrendDirection == 1)
+            {
+                // Uptrend
+                if (strength1month < 10)
+                {
+                    return false;
+                }
+            }
+            else if (symbolInfo.TrendDirection == -1)
+            {
+                // Downtrend
+                if (strength1month > -10)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private bool isAutoTradeModeEnabled(AutoTradingSymbolInfoResponse symbolInfo)
+        {
+            if (symbolInfo.CurrentPhase != PhaseState.Drive && symbolInfo.NextPhase != PhaseState.Drive)
+            {
+                return false;
+            }
+
+            var strength1month = symbolInfo.Strength1Month * 100;
+            var strength5min = symbolInfo.Strength5M * 100;
+
+            if (symbolInfo.TrendDirection == 1)
+            {
+                // Uptrend
+                if (symbolInfo.ShortGroupStrength < 10 || symbolInfo.MidGroupStrength < 10 || symbolInfo.LongGroupStrength < 10 || strength5min < -30)
+                {
+                    return false;
+                }
+
+                if (strength1month < 15)
+                {
+                    return false;
+                }
+            }
+            else if (symbolInfo.TrendDirection == -1)
+            {
+                // Downtrend
+                if (symbolInfo.ShortGroupStrength > -10 || symbolInfo.MidGroupStrength > -10 || symbolInfo.LongGroupStrength > -10 || strength5min > 30)
+                {
+                    return false;
+                }
+
+                if (strength1month > -15)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public bool isInOverheatZone(AutoTradingSymbolInfoResponse symbolInfo)
+        {
+            var n1d = symbolInfo.TP1D;
+            var e1d = symbolInfo.Entry1D;
+            var n4h = symbolInfo.TP4H;
+            var e4h = symbolInfo.Entry4H;
+            var currentPrice = symbolInfo.CurrentPrice;
+
+            if (currentPrice <= 0)
+            {
+                return false;
+            }
+
+            var shift1d = Math.Abs(n1d - e1d);
+            var maxShift1d = shift1d * 0.8m;
+
+            var shift4h = Math.Abs(n4h - e4h);
+            var maxShift4h = shift4h * 0.8m;
+
+            if (symbolInfo.TrendDirection == 1)
+            {
+                // Uptrend
+                if (currentPrice > n1d + maxShift1d)
+                {
+                    return true;
+                }
+                if (currentPrice > n4h + maxShift4h)
+                {
+                    return true;
+                }
+            }
+            else if (symbolInfo.TrendDirection == -1)
+            {
+                // Downtrend
+                if (currentPrice < n1d - maxShift1d)
+                {
+                    return true;
+                }
+                if (currentPrice < n4h - maxShift4h)
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 }

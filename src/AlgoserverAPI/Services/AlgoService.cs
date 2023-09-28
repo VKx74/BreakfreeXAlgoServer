@@ -600,9 +600,9 @@ namespace Algoserver.API.Services
             var midGroupStrength = 0f;
             var longGroupStrength = 0f;
 
+            var summaryForSymbol = _mesaPreloaderService.GetMesaSummary(symbol, datafeed);
             if (mesa_additional != null && mesa_additional.mesa != null && mesa_additional.mesa.Any())
             {
-                var summaryForSymbol = _mesaPreloaderService.GetMesaSummary(symbol, datafeed);
                 if (summaryForSymbol != null)
                 {
                     total_strength = summaryForSymbol.TotalStrength;
@@ -677,6 +677,8 @@ namespace Algoserver.API.Services
                 }
             }
 
+            var lastPrice = await GetLastPrice(symbol, datafeed, exchange, type);
+
             var result = new AutoTradingSymbolInfoResponse
             {
                 TotalStrength = total_strength,
@@ -702,12 +704,15 @@ namespace Algoserver.API.Services
                 TP4H = GetTP(TimeframeHelper.HOUR4_GRANULARITY, levelsResponse),
                 TP1D = GetTP(TimeframeHelper.DAILY_GRANULARITY, levelsResponse),
 
-                Strength1M = GetStrength(TimeframeHelper.MIN1_GRANULARITY, levelsResponse),
-                Strength5M = GetStrength(TimeframeHelper.MIN5_GRANULARITY, levelsResponse),
-                Strength15M = GetStrength(TimeframeHelper.MIN15_GRANULARITY, levelsResponse),
-                Strength1H = GetStrength(TimeframeHelper.HOURLY_GRANULARITY, levelsResponse),
-                Strength4H = GetStrength(TimeframeHelper.HOUR4_GRANULARITY, levelsResponse),
-                Strength1D = GetStrength(TimeframeHelper.DAILY_GRANULARITY, levelsResponse),
+                Strength1M = GetStrength(TimeframeHelper.MIN1_GRANULARITY, summaryForSymbol),
+                Strength5M = GetStrength(TimeframeHelper.MIN5_GRANULARITY, summaryForSymbol),
+                Strength15M = GetStrength(TimeframeHelper.MIN15_GRANULARITY, summaryForSymbol),
+                Strength1H = GetStrength(TimeframeHelper.HOURLY_GRANULARITY, summaryForSymbol),
+                Strength4H = GetStrength(TimeframeHelper.HOUR4_GRANULARITY, summaryForSymbol),
+                Strength1D = GetStrength(TimeframeHelper.DAILY_GRANULARITY, summaryForSymbol),
+                Strength1Month = GetStrength(TimeframeHelper.MONTHLY_GRANULARITY, summaryForSymbol),
+                Strength1Y = GetStrength(TimeframeHelper.YEARLY_GRANULARITY, summaryForSymbol),
+                Strength10Y = GetStrength(TimeframeHelper.YEAR10_GRANULARITY, summaryForSymbol),
 
                 Time = AlgoHelper.UnixTimeNow(),
                 TrendDirection = trendDirection,
@@ -718,9 +723,10 @@ namespace Algoserver.API.Services
                 LongGroupPhase = longGroupPhase,
                 ShortGroupStrength = (decimal)shortGroupStrength,
                 MidGroupStrength = (decimal)midGroupStrength,
-                LongGroupStrength = (decimal)longGroupStrength
+                LongGroupStrength = (decimal)longGroupStrength,
+                CurrentPrice = lastPrice
             };
-            
+
             return result;
         }
 
@@ -1346,11 +1352,11 @@ namespace Algoserver.API.Services
             return 0;
         }
 
-        private decimal GetStrength(int granularity, Dictionary<int, LevelsV3Response> data)
+        private decimal GetStrength(int granularity, MESADataSummary mesaDataSummary)
         {
-            if (data.TryGetValue(granularity, out var item))
+            if (mesaDataSummary != null && mesaDataSummary.TimeframeStrengths.TryGetValue(granularity, out var item))
             {
-                return (decimal)item.strength;
+                return (decimal)item;
             }
             return 0;
         }
@@ -1380,5 +1386,19 @@ namespace Algoserver.API.Services
             return 0;
         }
 
+        private async Task<decimal> GetLastPrice(string symbol, string datafeed, string exchange, string type)
+        {
+            var task = await _historyService.GetHistory(symbol, TimeframeHelper.MIN1_GRANULARITY, datafeed, exchange, type);
+            if (task == null || task.Bars == null)
+            {
+                return -1;
+            }
+            var lastBar = task.Bars.LastOrDefault();
+            if (lastBar == null)
+            {
+                return -1;
+            }
+            return lastBar.Close;
+        }
     }
 }

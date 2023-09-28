@@ -413,6 +413,9 @@ namespace Algoserver.API.Controllers
             stringResult.AppendLine($"strength1h={Math.Round(result.Strength1H * 100, 2)}");
             stringResult.AppendLine($"strength4h={Math.Round(result.Strength4H * 100, 2)}");
             stringResult.AppendLine($"strength1d={Math.Round(result.Strength1D * 100, 2)}");
+            stringResult.AppendLine($"strength1month={Math.Round(result.Strength1Month * 100, 2)}");
+            stringResult.AppendLine($"strength1y={Math.Round(result.Strength1Y * 100, 2)}");
+            stringResult.AppendLine($"strength10y={Math.Round(result.Strength10Y * 100, 2)}");
 
             stringResult.AppendLine($"currentPhase={result.CurrentPhase}");
             stringResult.AppendLine($"nextPhase={result.NextPhase}");

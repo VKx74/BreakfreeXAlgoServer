@@ -38,6 +38,9 @@ namespace Algoserver.API.Models.REST
         public decimal Strength1H { get; set; }
         public decimal Strength4H { get; set; }
         public decimal Strength1D { get; set; }
+        public decimal Strength1Month { get; set; }
+        public decimal Strength1Y { get; set; }
+        public decimal Strength10Y { get; set; }
         public int TrendDirection { get; set; }
         public int ShortGroupPhase { get; set; }
         public int MidGroupPhase { get; set; }
@@ -47,6 +50,7 @@ namespace Algoserver.API.Models.REST
         public decimal LongGroupStrength { get; set; }
         public int CurrentPhase { get; set; }
         public int NextPhase { get; set; }
+        public decimal CurrentPrice { get; set; }
         public long Time { get; set; }
     }
 }
