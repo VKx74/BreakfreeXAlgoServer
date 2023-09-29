@@ -724,8 +724,21 @@ namespace Algoserver.API.Services
                 ShortGroupStrength = (decimal)shortGroupStrength,
                 MidGroupStrength = (decimal)midGroupStrength,
                 LongGroupStrength = (decimal)longGroupStrength,
-                CurrentPrice = lastPrice
+                CurrentPrice = lastPrice,
+                TradingState = 0
             };
+
+            if (!MesaSummaryCalculationServices.IsInOverheatZone(result))
+            {
+                if (MesaSummaryCalculationServices.IsAutoTradeModeEnabled(result))
+                {
+                    result.TradingState = 2;
+                }
+                else if (MesaSummaryCalculationServices.IsHITLModeEnabled(result))
+                {
+                    result.TradingState = 1;
+                }
+            }
 
             return result;
         }

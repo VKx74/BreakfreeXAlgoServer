@@ -52,5 +52,6 @@ namespace Algoserver.API.Models.REST
         public int NextPhase { get; set; }
         public decimal CurrentPrice { get; set; }
         public long Time { get; set; }
+        public uint TradingState { get; set; }
     }
 }

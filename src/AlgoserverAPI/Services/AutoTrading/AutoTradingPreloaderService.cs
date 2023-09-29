@@ -62,7 +62,7 @@ namespace Algoserver.API.Services.CacheServices
                 {
                     foreach (var symbol in types.Value)
                     {
-                        if (isInOverheatZone(symbol.Value))
+                        if (symbol.Value.TradingState == 0)
                         {
                             continue;
                         }
@@ -72,7 +72,7 @@ namespace Algoserver.API.Services.CacheServices
                         var instrument = String.Join("_", name).ToUpper();
                         if (!isHITLOverride)
                         {
-                            var canAutoTrade = isAutoTradeModeEnabled(symbol.Value);
+                            var canAutoTrade = symbol.Value.TradingState == 2;
                             if (canAutoTrade)
                             {
                                 symbols.Add(instrument, symbol.Value);
@@ -80,7 +80,7 @@ namespace Algoserver.API.Services.CacheServices
                         }
                         else if (userSettings != null && userSettings.useManualTrading && userSettings.markets != null)
                         {
-                            var canTradeInHITLMode = isHITLModeEnabled(symbol.Value);
+                            var canTradeInHITLMode = symbol.Value.TradingState == 1;
                             if (!canTradeInHITLMode)
                             {
                                 continue;
@@ -145,6 +145,18 @@ namespace Algoserver.API.Services.CacheServices
 
         public async Task<AutoTradingSymbolInfoResponse> GetAutoTradingSymbolInfo(string symbol, string datafeed, string exchange, string type)
         {
+            var existing = GetAutoTradingSymbolInfoFromCache(symbol, datafeed, type);
+            if (existing != null)
+            {
+                return existing;
+            }
+
+            var info = await _algoService.CalculateAutoTradingInfoAsync(symbol, datafeed, exchange, type);
+            return info;
+        }
+
+        public AutoTradingSymbolInfoResponse GetAutoTradingSymbolInfoFromCache(string symbol, string datafeed, string type)
+        {
             type = type.ToLower();
             try
             {
@@ -165,8 +177,31 @@ namespace Algoserver.API.Services.CacheServices
                 Console.WriteLine(ex);
             }
 
-            var info = await _algoService.CalculateAutoTradingInfoAsync(symbol, datafeed, exchange, type);
-            return info;
+            return null;
+        }
+
+        public AutoTradingSymbolInfoResponse GetAutoTradingSymbolInfoFromCache(string symbol, string datafeed)
+        {
+            try
+            {
+                lock (_data)
+                {
+                    foreach (var type in _data)
+                    {
+                        var key = (datafeed + "_" + symbol).ToLower();
+                        if (type.Value.ContainsKey(key))
+                        {
+                            return type.Value[key];
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+
+            return null;
         }
 
         private int relatedSymbolsCount(string symbol, Dictionary<string, AutoTradingSymbolInfoResponse> symbols)
@@ -250,124 +285,6 @@ namespace Algoserver.API.Services.CacheServices
             }
 
             return instrument;
-        }
-
-        private bool isHITLModeEnabled(AutoTradingSymbolInfoResponse symbolInfo)
-        {
-            var strength1month = symbolInfo.Strength1Month * 100;
-
-            if (symbolInfo.TrendDirection == 1)
-            {
-                // Uptrend
-                if (strength1month < 10)
-                {
-                    return false;
-                }
-            }
-            else if (symbolInfo.TrendDirection == -1)
-            {
-                // Downtrend
-                if (strength1month > -10)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        private bool isAutoTradeModeEnabled(AutoTradingSymbolInfoResponse symbolInfo)
-        {
-            if (symbolInfo.CurrentPhase != PhaseState.Drive && symbolInfo.NextPhase != PhaseState.Drive)
-            {
-                return false;
-            }
-
-            var strength1month = symbolInfo.Strength1Month * 100;
-            var strength5min = symbolInfo.Strength5M * 100;
-            var shortGroupStrength = symbolInfo.ShortGroupStrength * 100;
-            var midGroupStrength = symbolInfo.MidGroupStrength * 100;
-            var longGroupStrength = symbolInfo.LongGroupStrength * 100;
-
-            if (symbolInfo.TrendDirection == 1)
-            {
-                // Uptrend
-                if (midGroupStrength < 5 || longGroupStrength < 10 || strength5min < -30)
-                {
-                    return false;
-                }
-
-                if (strength1month < 20)
-                {
-                    return false;
-                }
-            }
-            else if (symbolInfo.TrendDirection == -1)
-            {
-                // Downtrend
-                if (midGroupStrength > -5 || longGroupStrength > -10 || strength5min > 30)
-                {
-                    return false;
-                }
-
-                if (strength1month > -20)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        public bool isInOverheatZone(AutoTradingSymbolInfoResponse symbolInfo)
-        {
-            var n1d = symbolInfo.TP1D;
-            var e1d = symbolInfo.Entry1D;
-            var n4h = symbolInfo.TP4H;
-            var e4h = symbolInfo.Entry4H;
-            var currentPrice = symbolInfo.CurrentPrice;
-
-            if (currentPrice <= 0)
-            {
-                return false;
-            }
-
-            var shift1d = Math.Abs(n1d - e1d);
-            var maxShift1d = shift1d * 0.8m;
-
-            var shift4h = Math.Abs(n4h - e4h);
-            var maxShift4h = shift4h * 0.8m;
-
-            if (symbolInfo.TrendDirection == 1)
-            {
-                // Uptrend
-                if (currentPrice > n1d + maxShift1d)
-                {
-                    return true;
-                }
-                if (currentPrice > n4h + maxShift4h)
-                {
-                    return true;
-                }
-            }
-            else if (symbolInfo.TrendDirection == -1)
-            {
-                // Downtrend
-                if (currentPrice < n1d - maxShift1d)
-                {
-                    return true;
-                }
-                if (currentPrice < n4h - maxShift4h)
-                {
-                    return true;
-                }
-            }
-            else
-            {
-                return true;
-            }
-
-            return false;
         }
     }
 }

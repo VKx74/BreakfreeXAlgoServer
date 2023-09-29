@@ -17,17 +17,19 @@ namespace Algoserver.API.Controllers
     {
         private ScannerResultService _scannerResultService;
         private MesaPreloaderService _mesaPreloaderService;
+        private AutoTradingPreloaderService _autoTradingPreloaderService;
         private AlgoService _algoService;
         private RTDService _rtdService;
         private ScannerService _scanerService;
 
-        public AlgoController(AlgoService algoService, RTDService rtdService, ScannerService scanerService, ScannerResultService scannerResultService, MesaPreloaderService mesaPreloaderService)
+        public AlgoController(AlgoService algoService, RTDService rtdService, ScannerService scanerService, ScannerResultService scannerResultService, MesaPreloaderService mesaPreloaderService, AutoTradingPreloaderService autoTradingPreloaderService)
         {
             _algoService = algoService;
             _rtdService = rtdService;
             _scanerService = scanerService;
             _scannerResultService = scannerResultService;
             _mesaPreloaderService = mesaPreloaderService;
+            _autoTradingPreloaderService = autoTradingPreloaderService;
         }
 
         [Authorize(Policy = "free_user_restriction")]
@@ -280,9 +282,11 @@ namespace Algoserver.API.Controllers
         private List<MesaSummaryResponse> getMesaSummaryResponse()
         {
             var res = _mesaPreloaderService.GetMesaSummary();
+
             var result = new List<MesaSummaryResponse>();
             foreach (var r in res)
             {
+                var autoTradingInfo = _autoTradingPreloaderService.GetAutoTradingSymbolInfoFromCache(r.Symbol, r.Datafeed);
                 result.Add(new MesaSummaryResponse
                 {
                     datafeed = r.Datafeed,
@@ -316,7 +320,7 @@ namespace Algoserver.API.Controllers
                     price86400 = r.Price86400,
                     timeframe_state = r.TimeframeState,
                     current_phase = r.CurrentPhase,
-                    next_phase = r.NextPhase
+                    trading_state = autoTradingInfo != null ? autoTradingInfo.TradingState : 0
                 });
             }
             return result;
