@@ -14,12 +14,13 @@ namespace Algoserver.API.Services
 
         public bool Validate(string id)
         {
+            return true;
             lock (_rates)
             {
                 if (_rates.ContainsKey(id))
                 {
                     _rates[id]++;
-                    return _rates[id] < 30;
+                    return _rates[id] < 15;
                 }
 
                 _rates.Add(id, 1);
@@ -35,7 +36,7 @@ namespace Algoserver.API.Services
                 var keys = _rates.Keys.Select((_) => _).ToList();
                 foreach (var key in keys)
                 {
-                    _rates[key] -= 3;
+                    _rates[key]--;
                     if (_rates[key] < 0)
                     {
                         _rates.Remove(key);
