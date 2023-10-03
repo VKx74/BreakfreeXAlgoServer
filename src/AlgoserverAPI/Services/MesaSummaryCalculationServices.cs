@@ -1004,7 +1004,7 @@ namespace Algoserver.API.Services
             var maxShift1d = shift1d * 0.88m;
 
             var shift4h = Math.Abs(n4h - e4h);
-            var maxShift4h = shift4h * 0.88m;
+            var maxShift4h = shift4h * 1.0m;
 
             if (symbolInfo.TrendDirection == 1)
             {
