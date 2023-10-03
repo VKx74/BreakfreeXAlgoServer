@@ -215,6 +215,16 @@ namespace Algoserver.API.Controllers
                 minStrength1D = _.MinStrength1D
             }).ToList();
 
+            var maxAmount = _autoTradingAccountsService.GetMaxTradingInstrumentsCount(request.Account);
+            var accountInfo = _autoTradingUserInfoService.GetUserInfo(request.Account);
+            var existingCount = accountInfo != null && accountInfo.markets != null ? accountInfo.markets.Count : 0;
+
+            if (existingCount >= maxAmount)
+            {
+                AutoTraderStatisticService.AddError("403");
+                return StatusCode(403, "Maximum amount of tradable instruments used");
+            }
+
             var result = _autoTradingUserInfoService.AddMarkets(request.Account, markets);
 
             return await ToResponse(result, CancellationToken.None);

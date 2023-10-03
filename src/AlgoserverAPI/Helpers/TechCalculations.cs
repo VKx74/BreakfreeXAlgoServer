@@ -12,6 +12,16 @@ namespace Algoserver.API.Helpers
         public float f { get; set; }
         public float s { get; set; }
         public uint t { get; set; }
+        public float v { get; set; }
+    }
+    
+    [Serializable]
+    public class TrendPeriodDescription
+    {
+        public float strength { get; set; }
+        public float volatility { get; set; }
+        public long duration { get; set; }
+        public int phase { get; set; }
     }
 
     [Serializable]
@@ -19,9 +29,14 @@ namespace Algoserver.API.Helpers
     {
         public string Symbol { get; set; }
         public string Datafeed { get; set; }
+        public Dictionary<int, TrendPeriodDescription> TrendPeriodDescriptions { get; set; }
         public Dictionary<int, MESADataPoint> Strength { get; set; }
         public Dictionary<int, float> AvgStrength { get; set; }
+        public Dictionary<int, float> Volatility { get; set; }
         public Dictionary<int, float> TimeframeStrengths { get; set; }
+        public Dictionary<int, int> TimeframeState { get; set; }
+        public Dictionary<int, long> Durations { get; set; }
+        public Dictionary<int, int> TimeframePhase { get; set; }
         public float TotalStrength { get; set; }
         public float LastPrice { get; set; }
         public float Price60 { get; set; }
@@ -30,10 +45,8 @@ namespace Algoserver.API.Helpers
         public float Price3600 { get; set; }
         public float Price14400 { get; set; }
         public float Price86400 { get; set; }
-        public int Hour1State { get; set; }
-        public int Hour4State { get; set; }
-        public int DailyState { get; set; }
-        public int MonthlyState { get; set; }
+        public uint CurrentPhase { get; set; }
+        public uint NextPhase { get; set; }
     }
 
     public class TradeZone
@@ -948,6 +961,55 @@ namespace Algoserver.API.Helpers
             return res;
         }
 
+        public static List<decimal> StdDev(IEnumerable<decimal> cPrice, int period)
+        {
+            var res = new List<decimal>();
+            var sumDataRows = new List<decimal>();
+            var globalSumDataRows = new List<decimal>();
+            var sum = 0m;
+            var input = cPrice.ToList();
+            for (var i = 0; i < input.Count; i++)
+            {
+                var stdDev = 0m;
+                if (i < 1)
+                {
+                    sumDataRows.Add(input[i]);
+                    stdDev = 0;
+                }
+                else
+                {
+                    var val = input[i] + sumDataRows.Last() -
+                                        (i >= period ? input[i - period] : 0);
+                    sumDataRows.Add(val);
+                    var avg = sumDataRows.Last() / Math.Min(i + 1, period);
+                    var currentSum = (decimal)Math.Pow((double)input[i] - (double)avg, 2);
+                    globalSumDataRows.Add(currentSum);
+                    sum += currentSum;
+                    if (globalSumDataRows.Count > period)
+                    {
+                        sum -= globalSumDataRows[globalSumDataRows.Count - period - 1];
+                    }
+                    stdDev = (decimal)Math.Sqrt((double)sum / Math.Min(i + 1, period));
+                }
+
+                res.Add(stdDev);
+            }
+
+            return res;
+        }
+
+        public static List<decimal> StdDevPercentage(IEnumerable<decimal> cPrice, int period)
+        {
+            var res = new List<decimal>();
+            var stddev = StdDev(cPrice, period);
+            var input = cPrice.ToList();
+            for (var i = 0; i < input.Count; i++)
+            {
+                res.Add(stddev[i] / input[i] * 100);
+            }
+            return res;
+        }
+
         public static int MeasureTrendState(List<float> values, float deviation)
         {
             if (!values.Any())
@@ -977,9 +1039,9 @@ namespace Algoserver.API.Helpers
             data = data.Select((_) => Math.Abs(_)).ToList();
             var max = data.Max();
             var percentage = max / 100 * deviation;
-            if (percentage < 3)
+            if (percentage < 1)
             {
-                percentage = 3;
+                percentage = 1;
             }
 
             var extremum = new List<float>();
@@ -1024,17 +1086,18 @@ namespace Algoserver.API.Helpers
 
             var lastItem = data.LastOrDefault();
             var lastExtremum = extremum.LastOrDefault();
-            if (!isUpTrending) {
-                return 0;
-            }
-            
-            var lvl = lastExtremum - (percentage / 4);
-            if (lastItem > lvl)
+            if (!isUpTrending)
             {
-                return 2;
+                return 0; // Tail
             }
 
-            return 1;
+            var lvl = lastExtremum - (percentage / 5);
+            if (lastItem > lvl)
+            {
+                return 2; // Drive
+            }
+
+            return 1; // Capitulation
         }
     }
 }

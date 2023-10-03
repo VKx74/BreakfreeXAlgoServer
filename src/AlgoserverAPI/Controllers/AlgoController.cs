@@ -291,9 +291,20 @@ namespace Algoserver.API.Controllers
                     {
                         f = _.Value.f,
                         s = _.Value.s,
-                        t = _.Value.t
+                        t = _.Value.t,
+                        v = _.Value.v
+                    }),
+                    trend_period_descriptions = r.TrendPeriodDescriptions.ToDictionary((_) => _.Key, (_) => new TrendPeriodDescriptionResponse
+                    {
+                        strength = _.Value.strength,
+                        volatility = _.Value.volatility,
+                        duration = _.Value.duration,
+                        phase = _.Value.phase
                     }),
                     timeframe_strengths = r.TimeframeStrengths,
+                    volatility = r.Volatility,
+                    durations = r.Durations,
+                    timeframe_phase = r.TimeframePhase,
                     total_strength = r.TotalStrength,
                     avg_strength = r.AvgStrength,
                     last_price = r.LastPrice,
@@ -303,10 +314,9 @@ namespace Algoserver.API.Controllers
                     price3600 = r.Price3600,
                     price14400 = r.Price14400,
                     price86400 = r.Price86400,
-                    hour1State = r.Hour1State,
-                    hour4State = r.Hour4State,
-                    dailyState = r.DailyState,
-                    monthlyState = r.MonthlyState
+                    timeframe_state = r.TimeframeState,
+                    current_phase = r.CurrentPhase,
+                    next_phase = r.NextPhase
                 });
             }
             return result;

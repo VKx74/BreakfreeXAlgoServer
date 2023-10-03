@@ -451,6 +451,7 @@ namespace Algoserver.API.Services
             // var extendedTrendData = TrendDetector.CalculateByMesaBy2TrendAdjusted(container.CloseD);
             // var trend = TrendDetector.MergeTrends(extendedTrendData);
             // var scanRes = _scanner.ScanExt(scanningHistory, dailyScanningHistory, trend, levels, sl_ratio);
+
             ScanResponse scanRes = null;
 
             var size = 0m;
@@ -1269,6 +1270,8 @@ namespace Algoserver.API.Services
                 granularityList.Add(TimeframeHelper.HOUR4_GRANULARITY);
                 granularityList.Add(TimeframeHelper.DAILY_GRANULARITY);
                 granularityList.Add(TimeframeHelper.MONTHLY_GRANULARITY);
+                granularityList.Add(TimeframeHelper.YEARLY_GRANULARITY);
+                granularityList.Add(TimeframeHelper.YEAR10_GRANULARITY);
             }
 
             var mesa = new Dictionary<int, List<MesaLevelResponse>>();
@@ -1286,7 +1289,8 @@ namespace Algoserver.API.Services
                     {
                         f = _.f,
                         s = _.s,
-                        t = _.t
+                        t = _.t,
+                        v = _.v
                     }).ToList());
                 }
             }
