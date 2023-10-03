@@ -846,7 +846,7 @@ namespace Algoserver.API.Services
             if (symbolInfo.TrendDirection == 1)
             {
                 // Uptrend
-                if (strength1month < 10)
+                if (strength1month < 21)
                 {
                     return false;
                 }
@@ -854,10 +854,14 @@ namespace Algoserver.API.Services
             else if (symbolInfo.TrendDirection == -1)
             {
                 // Downtrend
-                if (strength1month > -10)
+                if (strength1month > -21)
                 {
                     return false;
                 }
+            }
+            else
+            {
+                return false;
             }
 
             return true;
@@ -871,20 +875,14 @@ namespace Algoserver.API.Services
             }
 
             var strength1month = symbolInfo.Strength1Month * 100;
-            var strength5min = symbolInfo.Strength5M * 100;
-            var shortGroupStrength = symbolInfo.ShortGroupStrength * 100;
             var midGroupStrength = symbolInfo.MidGroupStrength * 100;
             var longGroupStrength = symbolInfo.LongGroupStrength * 100;
 
+            // if(longGroupStrength > -10 || midGroupStrength > -21 || strength1month > -21)
             if (symbolInfo.TrendDirection == 1)
             {
                 // Uptrend
-                if (midGroupStrength < 5 || longGroupStrength < 10 || strength5min < -30)
-                {
-                    return false;
-                }
-
-                if (strength1month < 20)
+                if (longGroupStrength < 10 || midGroupStrength < 10 || strength1month < 21)
                 {
                     return false;
                 }
@@ -892,17 +890,100 @@ namespace Algoserver.API.Services
             else if (symbolInfo.TrendDirection == -1)
             {
                 // Downtrend
-                if (midGroupStrength > -5 || longGroupStrength > -10 || strength5min > 30)
-                {
-                    return false;
-                }
-
-                if (strength1month > -20)
+                if (longGroupStrength > -10 || midGroupStrength > -10 || strength1month > -21)
                 {
                     return false;
                 }
             }
+            else
+            {
+                return false;
+            }
 
+            return true;
+        }
+
+        public static bool IsAutoTradeCapitulationConfirmed(AutoTradingSymbolInfoResponse symbolInfo)
+        {
+            if (symbolInfo.ShortGroupPhase != PhaseState.CD)
+            {
+                return false;
+            }
+
+            if (symbolInfo.MidGroupPhase == PhaseState.Drive || symbolInfo.MidGroupPhase == PhaseState.TailTransition)
+            {
+                return false;
+            }
+
+            if (symbolInfo.LongGroupPhase == PhaseState.Drive || symbolInfo.LongGroupPhase == PhaseState.TailTransition)
+            {
+                return false;
+            }
+
+            var strength1h = symbolInfo.Strength1H * 100;
+
+            if (symbolInfo.TrendDirection == 1)
+            {
+                // Uptrend
+                if (strength1h > 16)
+                {
+                    return false;
+                }
+            }
+            else if (symbolInfo.TrendDirection == -1)
+            {
+                // Downtrend
+                if (strength1h < -16)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+
+            return true;
+        }
+        public static bool IsHITLCapitulationConfirmed(AutoTradingSymbolInfoResponse symbolInfo)
+        {
+            //  if(
+            // ((int)midGroupPhase == TREND_COUNTER_DRIVE)
+            // && ((int)longGroupPhase == TREND_TAIL  || (int)longGroupPhase == TREND_DRIVE_TRANSITION)
+
+            if (symbolInfo.MidGroupPhase != PhaseState.CD)
+            {
+                return false;
+            }
+
+            if (symbolInfo.LongGroupPhase != PhaseState.Tail && symbolInfo.LongGroupPhase != PhaseState.DriveTransition)
+            {
+                return false;
+            }
+
+            var strength1h = symbolInfo.Strength1H * 100;
+
+            if (symbolInfo.TrendDirection == 1)
+            {
+                // Uptrend
+                if (strength1h > 1)
+                {
+                    return false;
+                }
+            }
+            else if (symbolInfo.TrendDirection == -1)
+            {
+                // Downtrend
+                if (strength1h < -1)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+            
             return true;
         }
 
@@ -920,10 +1001,10 @@ namespace Algoserver.API.Services
             }
 
             var shift1d = Math.Abs(n1d - e1d);
-            var maxShift1d = shift1d * 0.8m;
+            var maxShift1d = shift1d * 0.66m;
 
             var shift4h = Math.Abs(n4h - e4h);
-            var maxShift4h = shift4h * 0.8m;
+            var maxShift4h = shift4h * 0.66m;
 
             if (symbolInfo.TrendDirection == 1)
             {
@@ -956,6 +1037,6 @@ namespace Algoserver.API.Services
 
             return false;
         }
-   
+
     }
 }
