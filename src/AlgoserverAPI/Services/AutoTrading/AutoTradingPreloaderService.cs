@@ -57,7 +57,10 @@ namespace Algoserver.API.Services.CacheServices
                 {
                     foreach (var symbol in types.Value)
                     {
-                        var s = symbol.Key;
+                        var name = symbol.Key.Split("_");
+                        name = name.TakeLast(name.Length - 1).ToArray();
+                        var s = String.Join("_", name).ToUpper();
+
                         if (string.Equals(s, "BTC_USD", StringComparison.InvariantCultureIgnoreCase) ||
                             string.Equals(s, "BTCUSD", StringComparison.InvariantCultureIgnoreCase))
                         {
@@ -68,7 +71,8 @@ namespace Algoserver.API.Services.CacheServices
                         {
                             s = "ETH_USDT";
                         }
-                        result.Add(s);
+                        
+                        result.Add(s.ToUpper());
                     }
                 }
             }
