@@ -48,6 +48,33 @@ namespace Algoserver.API.Services.CacheServices
             }
         }
 
+        public List<string> GetAutoTradeAllInstruments()
+        {
+            var result = new List<string>();
+            lock (_data)
+            {
+                foreach (var types in _data)
+                {
+                    foreach (var symbol in types.Value)
+                    {
+                        var s = symbol.Key;
+                        if (string.Equals(s, "BTC_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                            string.Equals(s, "BTCUSD", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            s = "BTC_USDT";
+                        }
+                        if (string.Equals(s, "ETH_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                            string.Equals(s, "ETHUSD", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            s = "ETH_USDT";
+                        }
+                        result.Add(s);
+                    }
+                }
+            }
+            return result;
+        }
+
         public async Task<List<AutoTradingInstrumentsResponse>> GetAutoTradeInstruments(string account)
         {
             var result = new List<AutoTradingInstrumentsResponse>();

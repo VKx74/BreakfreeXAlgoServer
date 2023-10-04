@@ -368,6 +368,55 @@ namespace Algoserver.API.Controllers
             return Ok(stringResult.ToString());
         }
 
+        [HttpPost(Routes.ApexAllMarkets)]
+        [ProducesResponseType(typeof(Response<string>), 200)]
+        public async Task<IActionResult> GetAutoTradeAllInstrumentsAsync([FromBody] AutoTradeInstrumentsRequest request)
+        {
+            AutoTraderStatisticService.AddRequest(Routes.ApexAllMarkets);
+
+            if (!ModelState.IsValid)
+            {
+                AutoTraderStatisticService.AddError("500");
+                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
+            }
+
+            if (String.IsNullOrEmpty(request.Account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            AutoTraderStatisticService.AddAccount(request.Account);
+
+            if (!_autoTradingRateLimitsService.Validate(request.Account))
+            {
+                AutoTraderStatisticService.AddError("429");
+                return StatusCode(429);
+            }
+
+            if (!_autoTradingAccountsService.Validate(request.Account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            var items = await _autoTradingPreloaderService.GetAutoTradeInstruments(request.Account);
+            var allMarkets = _autoTradingPreloaderService.GetAutoTradeAllInstruments();
+            var stringResult = new StringBuilder();
+            foreach (var item in items)
+            {
+                stringResult.AppendLine($"{item.Symbol}={Math.Round(item.Risk, 2)}");
+            }
+            foreach (var symbol in allMarkets)
+            {
+                if (!items.Any((_) => string.Equals(_.Symbol, symbol, StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    stringResult.AppendLine($"{symbol}=0");
+                }
+            }
+            return Ok(stringResult.ToString());
+        }
+
         private async Task<IActionResult> CalculateSymbolInfoAsync(AutoTradingSymbolInfoRequest request)
         {
             var mappedSymbol = SymbolMapper(request.Instrument.Id);
@@ -385,7 +434,7 @@ namespace Algoserver.API.Controllers
             stringResult.AppendLine($"strengthTotal={Math.Round(result.TotalStrength * 100, 2)}");
             stringResult.AppendLine($"generalStopLoss={Math.Round(result.SL, 5)}");
             stringResult.AppendLine($"trendDirection={result.TrendDirection}");
-            
+
             stringResult.AppendLine($"hbh1m={Math.Round(result.HalfBand1M, 5)}");
             stringResult.AppendLine($"hbh5m={Math.Round(result.HalfBand5M, 5)}");
             stringResult.AppendLine($"hbh15m={Math.Round(result.HalfBand15M, 5)}");
