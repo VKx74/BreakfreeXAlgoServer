@@ -365,55 +365,19 @@ namespace Algoserver.API.Controllers
             {
                 stringResult.AppendLine($"{item.Symbol}={Math.Round(item.Risk, 2)}");
             }
-            return Ok(stringResult.ToString());
-        }
 
-        [HttpPost(Routes.ApexAllMarkets)]
-        [ProducesResponseType(typeof(Response<string>), 200)]
-        public async Task<IActionResult> GetAutoTradeAllInstrumentsAsync([FromBody] AutoTradeInstrumentsRequest request)
-        {
-            AutoTraderStatisticService.AddRequest(Routes.ApexAllMarkets);
-
-            if (!ModelState.IsValid)
+            if (request.Version == "2.0")
             {
-                AutoTraderStatisticService.AddError("500");
-                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
-            }
-
-            if (String.IsNullOrEmpty(request.Account))
-            {
-                AutoTraderStatisticService.AddError("401");
-                return Unauthorized("Invalid trading account");
-            }
-
-            AutoTraderStatisticService.AddAccount(request.Account);
-
-            if (!_autoTradingRateLimitsService.Validate(request.Account))
-            {
-                AutoTraderStatisticService.AddError("429");
-                return StatusCode(429);
-            }
-
-            if (!_autoTradingAccountsService.Validate(request.Account))
-            {
-                AutoTraderStatisticService.AddError("401");
-                return Unauthorized("Invalid trading account");
-            }
-
-            var items = await _autoTradingPreloaderService.GetAutoTradeInstruments(request.Account);
-            var allMarkets = _autoTradingPreloaderService.GetAutoTradeAllInstruments();
-            var stringResult = new StringBuilder();
-            foreach (var item in items)
-            {
-                stringResult.AppendLine($"{item.Symbol}={Math.Round(item.Risk, 2)}");
-            }
-            foreach (var symbol in allMarkets)
-            {
-                if (!items.Any((_) => string.Equals(_.Symbol, symbol, StringComparison.InvariantCultureIgnoreCase)))
+                var allMarkets = _autoTradingPreloaderService.GetAutoTradeAllInstruments();
+                foreach (var symbol in allMarkets)
                 {
-                    stringResult.AppendLine($"{symbol}=0");
+                    if (!items.Any((_) => string.Equals(_.Symbol, symbol, StringComparison.InvariantCultureIgnoreCase)))
+                    {
+                        stringResult.AppendLine($"{symbol}=0");
+                    }
                 }
             }
+
             return Ok(stringResult.ToString());
         }
 
