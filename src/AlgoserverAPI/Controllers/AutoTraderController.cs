@@ -439,6 +439,7 @@ namespace Algoserver.API.Controllers
             stringResult.AppendLine($"midGroupStrength={Math.Round(result.MidGroupStrength * 100, 2)}");
             stringResult.AppendLine($"longGroupStrength={Math.Round(result.LongGroupStrength * 100, 2)}");
 
+            stringResult.AppendLine($"tradingState={result.TradingState}");
             stringResult.AppendLine($"tt={result.Time}");
 
             return stringResult.ToString();
