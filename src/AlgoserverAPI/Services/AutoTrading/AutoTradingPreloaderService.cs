@@ -85,7 +85,7 @@ namespace Algoserver.API.Services.CacheServices
             var symbols = new Dictionary<string, AutoTradingSymbolInfoResponse>();
             var userSettings = _autoTradingUserInfoService.GetUserInfo(account);
             var maxAmount = _autoTradingAccountsService.GetMaxTradingInstrumentsCount(account);
-            var isHITLOverride = userSettings != null && userSettings.useManualTrading;
+            var isHITLOverride = maxAmount != int.MaxValue;
 
             lock (_data)
             {
@@ -101,13 +101,10 @@ namespace Algoserver.API.Services.CacheServices
                         var name = symbol.Key.Split("_");
                         name = name.TakeLast(name.Length - 1).ToArray();
                         var instrument = String.Join("_", name).ToUpper();
-                        if (!isHITLOverride)
+                        var canAutoTrade = symbol.Value.TradingState == 2;
+                        if (canAutoTrade && !isHITLOverride)
                         {
-                            var canAutoTrade = symbol.Value.TradingState == 2;
-                            if (canAutoTrade)
-                            {
-                                symbols.Add(instrument, symbol.Value);
-                            }
+                            symbols.Add(instrument, symbol.Value);
                         }
                         else if (userSettings != null && userSettings.useManualTrading && userSettings.markets != null)
                         {

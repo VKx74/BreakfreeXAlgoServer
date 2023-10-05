@@ -728,7 +728,15 @@ namespace Algoserver.API.Services
                 TradingState = 0
             };
 
-            if (!MesaSummaryCalculationServices.IsInOverheatZone(result))
+            if (MesaSummaryCalculationServices.IsHITLCapitulationConfirmed(result))
+            {
+                result.TradingState = 4;
+            }
+            else if (MesaSummaryCalculationServices.IsAutoTradeCapitulationConfirmed(result))
+            {
+                result.TradingState = 3;
+            }
+            else if (!MesaSummaryCalculationServices.IsInOverheatZone(result))
             {
                 if (MesaSummaryCalculationServices.IsAutoTradeModeEnabled(result))
                 {
