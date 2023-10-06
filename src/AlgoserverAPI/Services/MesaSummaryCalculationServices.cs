@@ -869,16 +869,20 @@ namespace Algoserver.API.Services
 
         public static bool IsAutoTradeModeEnabled(AutoTradingSymbolInfoResponse symbolInfo)
         {
-            if (symbolInfo.CurrentPhase != PhaseState.Drive && symbolInfo.NextPhase != PhaseState.Drive)
+            if (symbolInfo.CurrentPhase != PhaseState.Drive)
             {
                 return false;
-            }
+            }  
+            
+            // if (symbolInfo.CurrentPhase != PhaseState.Drive && symbolInfo.NextPhase != PhaseState.Drive)
+            // {
+            //     return false;
+            // }
 
             var strength1month = symbolInfo.Strength1Month * 100;
             var midGroupStrength = symbolInfo.MidGroupStrength * 100;
             var longGroupStrength = symbolInfo.LongGroupStrength * 100;
 
-            // if(longGroupStrength > -10 || midGroupStrength > -21 || strength1month > -21)
             if (symbolInfo.TrendDirection == 1)
             {
                 // Uptrend
