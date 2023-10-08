@@ -31,5 +31,28 @@ namespace Algoserver.API.Models
             accountRisk = 30;
             defaultMarketRisk = 25;
         }
+
+        public void Validate()
+        {
+            if (risksPerMarket == null)
+            {
+                risksPerMarket = new Dictionary<string, int>();
+            }
+
+            if (markets == null)
+            {
+                markets = new List<UserDefinedMarketData>();
+            }
+
+            if (accountRisk <= 0)
+            {
+                accountRisk = 30;
+            }
+
+            if (defaultMarketRisk <= 0)
+            {
+                defaultMarketRisk = 25;
+            }
+        }
     }
 }

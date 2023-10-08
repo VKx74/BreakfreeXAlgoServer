@@ -23,7 +23,13 @@ namespace Algoserver.API.Services
             {
                 if (_cache.TryGetValue<UserInfoData>(_cachePrefix, account, out var res))
                 {
-                    return res ?? new UserInfoData();
+                    if (res != null)
+                    {
+                       res.Validate();
+                       return res;
+                    }
+                    
+                    return new UserInfoData();
                 }
             }
             catch (Exception ex)
