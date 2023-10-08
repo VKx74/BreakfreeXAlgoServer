@@ -418,6 +418,23 @@ namespace Algoserver.API.Helpers
             return symbol.Replace("_", "").Replace("-", "").Replace("/", "").Replace("^", "").ToLower();
         }
 
+        public static string NormalizedInstrumentWithCrypto(string instrument)
+        {
+            instrument = NormalizeInstrument(instrument);
+            var btcusd = new List<string> { "BTCUSDT", "BTCUSD" };
+            if (btcusd.Any(_ => _.Equals(instrument, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return "btcusdt";
+            }
+            var ethusdt = new List<string> { "ETHUSDT", "ETHUSD" };
+            if (ethusdt.Any(_ => _.Equals(instrument, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return "ethusdt";
+            }
+
+            return instrument;
+        }
+
         public static string GetInstrumentType(string symbol)
         {
             var normalizedInstrument = NormalizeInstrument(symbol);

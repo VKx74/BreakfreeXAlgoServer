@@ -71,7 +71,7 @@ namespace Algoserver.API.Services.CacheServices
                         {
                             s = "ETH_USDT";
                         }
-                        
+
                         result.Add(s.ToUpper());
                     }
                 }
@@ -79,6 +79,7 @@ namespace Algoserver.API.Services.CacheServices
             return result;
         }
 
+        [Obsolete]
         public async Task<List<AutoTradingInstrumentsResponse>> GetAutoTradeInstruments(string account)
         {
             var result = new List<AutoTradingInstrumentsResponse>();
@@ -169,6 +170,106 @@ namespace Algoserver.API.Services.CacheServices
             }
 
             return result;
+        }
+
+        public async Task<AutoTradingInstrumentsDedicationResponse> GetAutoTradingInstrumentsDedication(string account)
+        {
+            var instruments = new List<AutoTradingInstrumentsResponse>();
+            var symbols = new Dictionary<string, AutoTradingSymbolInfoResponse>();
+            var userSettings = _autoTradingUserInfoService.GetUserInfo(account);
+            var maxAmount = _autoTradingAccountsService.GetMaxTradingInstrumentsCount(account);
+            var isHITLOverride = maxAmount != int.MaxValue;
+
+            lock (_data)
+            {
+                foreach (var types in _data)
+                {
+                    foreach (var symbol in types.Value)
+                    {
+                        if (symbol.Value.TradingState == 0)
+                        {
+                            continue;
+                        }
+
+                        var name = symbol.Key.Split("_");
+                        name = name.TakeLast(name.Length - 1).ToArray();
+                        var instrument = String.Join("_", name).ToUpper();
+                        var canAutoTrade = symbol.Value.TradingState == 2;
+                        if (canAutoTrade && !isHITLOverride)
+                        {
+                            symbols.Add(instrument, symbol.Value);
+                        }
+                        else if (userSettings != null && userSettings.useManualTrading && userSettings.markets != null)
+                        {
+                            var canTradeInHITLMode = symbol.Value.TradingState == 1;
+                            if (!canTradeInHITLMode)
+                            {
+                                continue;
+                            }
+                            var s = getNormalizedInstrument(instrument);
+                            var marketConfig = userSettings.markets.FirstOrDefault((_) => !string.IsNullOrEmpty(_.symbol) && string.Equals(getNormalizedInstrument(_.symbol), s, StringComparison.InvariantCultureIgnoreCase));
+                            if (marketConfig != null)
+                            {
+                                symbols.Add(instrument, symbol.Value);
+                            }
+                        }
+                    }
+                }
+            }
+
+            symbols = symbols.Take(maxAmount).ToDictionary((_) => _.Key, (_) => _.Value);
+
+            var totalCount = 0m;
+            foreach (var symbol in symbols)
+            {
+                var cnt = 1m / relatedSymbolsCount(symbol.Key, symbols);
+                totalCount += cnt;
+                instruments.Add(new AutoTradingInstrumentsResponse
+                {
+                    Symbol = symbol.Key,
+                    Risk = cnt
+                });
+            }
+
+            foreach (var r in instruments)
+            {
+                if (string.Equals(r.Symbol, "BTC_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                    string.Equals(r.Symbol, "BTCUSD", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    r.Symbol = "BTC_USDT";
+                }
+                if (string.Equals(r.Symbol, "ETH_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                    string.Equals(r.Symbol, "ETHUSD", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    r.Symbol = "ETH_USDT";
+                }
+            }
+
+            if (totalCount <= 0)
+            {
+                foreach (var r in instruments)
+                {
+                    r.Risk = 1m / symbols.Count;
+                }
+            }
+            else
+            {
+                var weight = 1m / totalCount;
+
+                foreach (var r in instruments)
+                {
+                    r.Risk = weight * r.Risk;
+                }
+            }
+
+            return new AutoTradingInstrumentsDedicationResponse
+            {
+                Instruments = instruments,
+                Risks = userSettings.risksPerMarket != null ? userSettings.risksPerMarket : new Dictionary<string, int>(),
+                AccountRisk = userSettings.accountRisk,
+                UseManualTrading = userSettings.useManualTrading,
+                DefaultMarketRisk = userSettings.defaultMarketRisk,
+            };
         }
 
         public async Task<AutoTradingSymbolInfoResponse> GetAutoTradingSymbolInfo(string symbol, string datafeed, string exchange, string type)
@@ -300,18 +401,7 @@ namespace Algoserver.API.Services.CacheServices
 
         private string getNormalizedInstrument(string instrument)
         {
-            instrument = InstrumentsHelper.NormalizeInstrument(instrument);
-            var btcusd = new List<string> { "BTCUSDT", "BTCUSD" };
-            if (btcusd.Any(_ => _.Equals(instrument, StringComparison.InvariantCultureIgnoreCase)))
-            {
-                return "btcusdt";
-            }
-            var ethusdt = new List<string> { "ETHUSDT", "ETHUSD" };
-            if (ethusdt.Any(_ => _.Equals(instrument, StringComparison.InvariantCultureIgnoreCase)))
-            {
-                return "ethusdt";
-            }
-
+            instrument = InstrumentsHelper.NormalizedInstrumentWithCrypto(instrument);
             return instrument;
         }
     }

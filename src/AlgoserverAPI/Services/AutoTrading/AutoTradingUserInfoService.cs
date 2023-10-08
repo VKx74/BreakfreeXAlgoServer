@@ -46,6 +46,68 @@ namespace Algoserver.API.Services
             }
         }
 
+        public UserInfoData ChangeMarketRisk(string account, string market, int risk)
+        {
+            var info = GetUserInfo(account);
+            market = InstrumentsHelper.NormalizedInstrumentWithCrypto(market);
+
+            if (risk > 100) {
+                return info;
+            }
+
+            if (info.risksPerMarket == null)
+            {
+                info.risksPerMarket = new Dictionary<string, int>();
+            }
+
+            if (info.risksPerMarket.ContainsKey(market))
+            {
+                if (risk > 0)
+                {
+                    info.risksPerMarket[market] = risk;
+                }
+                else 
+                {
+                    info.risksPerMarket.Remove(market);
+                }
+            } 
+            else if (risk > 0)
+            {
+                info.risksPerMarket.Add(market, risk);
+            }
+
+            UpdateUserInfo(account, info);
+            return info;
+        }
+        
+        public UserInfoData ChangeAccountRisk(string account, int risk)
+        {
+            var info = GetUserInfo(account);
+
+             if (risk > 100 || risk <= 0) {
+                return info;
+            }
+
+            info.accountRisk = risk;
+
+            UpdateUserInfo(account, info);
+            return info;
+        }
+        
+        public UserInfoData ChangeDefaultMarketRisk(string account, int risk)
+        {
+            var info = GetUserInfo(account);
+
+             if (risk > 100 || risk <= 0) {
+                return info;
+            }
+
+            info.defaultMarketRisk = risk;
+
+            UpdateUserInfo(account, info);
+            return info;
+        }
+
         public UserInfoData AddMarkets(string account, List<UserDefinedMarketData> markets)
         {
             var info = GetUserInfo(account);

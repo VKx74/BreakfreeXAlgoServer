@@ -17,7 +17,19 @@ namespace Algoserver.API.Models
     [Serializable]
     public class UserInfoData
     {
+        public Dictionary<string, int> risksPerMarket { get; set; }
         public List<UserDefinedMarketData> markets { get; set; }
+        public int accountRisk { get; set; }
+        public int defaultMarketRisk { get; set; }
         public bool useManualTrading { get; set; }
+
+        public UserInfoData()
+        {
+            risksPerMarket = new Dictionary<string, int>();
+            markets = new List<UserDefinedMarketData>();
+            useManualTrading = false;
+            accountRisk = 30;
+            defaultMarketRisk = 25;
+        }
     }
 }

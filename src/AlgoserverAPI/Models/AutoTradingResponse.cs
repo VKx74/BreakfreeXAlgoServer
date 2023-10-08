@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Algoserver.API.Models.REST
 {
@@ -7,6 +8,16 @@ namespace Algoserver.API.Models.REST
     {
         public string Symbol { get; set; }
         public decimal Risk { get; set; }
+    }
+    
+    [Serializable]
+    public class AutoTradingInstrumentsDedicationResponse
+    {
+        public List<AutoTradingInstrumentsResponse> Instruments { get; set; }
+        public Dictionary<string, int> Risks { get; set; }
+        public int AccountRisk { get; set; }
+        public int DefaultMarketRisk { get; set; }
+        public bool UseManualTrading { get; set; }
     }
 
     [Serializable]

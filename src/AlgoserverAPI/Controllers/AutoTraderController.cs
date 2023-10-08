@@ -292,6 +292,99 @@ namespace Algoserver.API.Controllers
             return await ToResponse(result, CancellationToken.None);
         }
 
+        [Authorize]
+        [HttpPost("config/change-market-risk")]
+        public async Task<IActionResult> ChangeMarketRiskAsync([FromBody] UserInfoChangeMarketRiskRequest request)
+        {
+            AutoTraderStatisticService.AddRequest("[POST]config/change-market-risk/" + request.Account);
+
+            if (String.IsNullOrEmpty(request.Account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            AutoTraderStatisticService.AddAccount(request.Account);
+
+            if (!_autoTradingRateLimitsService.Validate(request.Account))
+            {
+                AutoTraderStatisticService.AddError("429");
+                return StatusCode(429);
+            }
+
+            if (!_autoTradingAccountsService.Validate(request.Account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            var result = _autoTradingUserInfoService.ChangeMarketRisk(request.Account, request.Market, request.Risk);
+
+            return await ToResponse(result, CancellationToken.None);
+        }
+
+        [Authorize]
+        [HttpPost("config/change-account-risk")]
+        public async Task<IActionResult> ChangeAccountRiskAsync([FromBody] UserInfoChangeAccountRiskRequest request)
+        {
+            AutoTraderStatisticService.AddRequest("[POST]config/change-account-risk/" + request.Account);
+
+            if (String.IsNullOrEmpty(request.Account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            AutoTraderStatisticService.AddAccount(request.Account);
+
+            if (!_autoTradingRateLimitsService.Validate(request.Account))
+            {
+                AutoTraderStatisticService.AddError("429");
+                return StatusCode(429);
+            }
+
+            if (!_autoTradingAccountsService.Validate(request.Account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            var result = _autoTradingUserInfoService.ChangeAccountRisk(request.Account, request.Risk);
+
+            return await ToResponse(result, CancellationToken.None);
+        }
+
+        [Authorize]
+        [HttpPost("config/change-default-market-risk")]
+        public async Task<IActionResult> ChangeDefaultMarketRiskAsync([FromBody] UserInfoChangeDefaultMarketRiskRequest request)
+        {
+            AutoTraderStatisticService.AddRequest("[POST]config/change-default-market-risk/" + request.Account);
+
+            if (String.IsNullOrEmpty(request.Account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            AutoTraderStatisticService.AddAccount(request.Account);
+
+            if (!_autoTradingRateLimitsService.Validate(request.Account))
+            {
+                AutoTraderStatisticService.AddError("429");
+                return StatusCode(429);
+            }
+
+            if (!_autoTradingAccountsService.Validate(request.Account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            var result = _autoTradingUserInfoService.ChangeDefaultMarketRisk(request.Account, request.Risk);
+
+            return await ToResponse(result, CancellationToken.None);
+        }
+
         [HttpPost(Routes.ApexStream)]
         [ProducesResponseType(typeof(Response<string>), 200)]
         public async Task<IActionResult> GetAutoTradeInfoAsync([FromBody] AutoTradingSymbolInfoRequest request)
@@ -359,26 +452,73 @@ namespace Algoserver.API.Controllers
                 return Unauthorized("Invalid trading account");
             }
 
-            var items = await _autoTradingPreloaderService.GetAutoTradeInstruments(request.Account);
+           var result = string.Empty;
+
+            if (request.Version == "2.0")
+            {
+               result = await GetAutoTradeInstrumentsAsyncV2(request.Account);
+            }
+            else
+            {
+                result = await GetAutoTradeInstrumentsAsyncV1(request.Account);
+            }
+
+            return Ok(result);
+        }
+
+        [Obsolete]
+        [NonAction]
+        private async Task<string> GetAutoTradeInstrumentsAsyncV1(string account)
+        {
+            var items = await _autoTradingPreloaderService.GetAutoTradeInstruments(account);
             var stringResult = new StringBuilder();
             foreach (var item in items)
             {
                 stringResult.AppendLine($"{item.Symbol}={Math.Round(item.Risk, 2)}");
             }
 
-            if (request.Version == "2.0")
+            return stringResult.ToString();
+        }
+
+        [NonAction]
+        private async Task<string> GetAutoTradeInstrumentsAsyncV2(string account)
+        {
+            var dedications = await _autoTradingPreloaderService.GetAutoTradingInstrumentsDedication(account);
+            var stringResult = new StringBuilder();
+            var instruments = dedications.Instruments;
+
+            foreach (var item in instruments)
             {
-                var allMarkets = _autoTradingPreloaderService.GetAutoTradeAllInstruments();
-                foreach (var symbol in allMarkets)
+                var instrumentRisk = GetInstrumentRisk(dedications, item.Symbol);
+                stringResult.AppendLine($"{item.Symbol}={Math.Round(item.Risk, 2)};{instrumentRisk}");
+            }
+
+            var allMarkets = _autoTradingPreloaderService.GetAutoTradeAllInstruments();
+            foreach (var symbol in allMarkets)
+            {
+                if (!instruments.Any((_) => string.Equals(_.Symbol, symbol, StringComparison.InvariantCultureIgnoreCase)))
                 {
-                    if (!items.Any((_) => string.Equals(_.Symbol, symbol, StringComparison.InvariantCultureIgnoreCase)))
-                    {
-                        stringResult.AppendLine($"{symbol}=0");
-                    }
+                    var instrumentRisk = GetInstrumentRisk(dedications, symbol);
+                    stringResult.AppendLine($"{symbol}=0;{instrumentRisk}");
                 }
             }
 
-            return Ok(stringResult.ToString());
+            stringResult.AppendLine($"accountRisk={dedications.AccountRisk}");
+            stringResult.AppendLine($"useManualTrading={dedications.UseManualTrading}");
+
+            return stringResult.ToString();
+        }
+
+        [NonAction]
+        private int GetInstrumentRisk(AutoTradingInstrumentsDedicationResponse dedications, string instrument)
+        {
+            instrument = InstrumentsHelper.NormalizedInstrumentWithCrypto(instrument);
+            if (dedications.Risks.ContainsKey(instrument))
+            {
+                return dedications.Risks[instrument];
+            }
+
+            return dedications.DefaultMarketRisk;
         }
 
         private async Task<IActionResult> CalculateSymbolInfoAsync(AutoTradingSymbolInfoRequest request)

@@ -49,6 +49,45 @@ namespace Algoserver.API.Models.REST
         public List<UserDefinedMarketDataRequest> Markets { get; set; }
     }
 
+    public class UserInfoChangeMarketRiskRequest
+    {
+        [JsonProperty("userId")]
+        public string UserId { get; set; }
+        
+        [JsonProperty("account")]
+        public string Account { get; set; }
+
+        [JsonProperty("market")]
+        public string Market { get; set; }
+
+        [JsonProperty("risk")]
+        public int Risk { get; set; }
+    }
+
+    public class UserInfoChangeAccountRiskRequest
+    {
+        [JsonProperty("userId")]
+        public string UserId { get; set; }
+        
+        [JsonProperty("account")]
+        public string Account { get; set; }
+
+        [JsonProperty("risk")]
+        public int Risk { get; set; }
+    }
+
+    public class UserInfoChangeDefaultMarketRiskRequest
+    {
+        [JsonProperty("userId")]
+        public string UserId { get; set; }
+        
+        [JsonProperty("account")]
+        public string Account { get; set; }
+
+        [JsonProperty("risk")]
+        public int Risk { get; set; }
+    }
+
     public class UserInfoRemoveMarketsRequest
     {
         [JsonProperty("userId")]
