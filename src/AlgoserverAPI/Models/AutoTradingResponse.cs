@@ -8,16 +8,19 @@ namespace Algoserver.API.Models.REST
     {
         public string Symbol { get; set; }
         public decimal Risk { get; set; }
+        public bool IsDisabled { get; set; }
     }
     
     [Serializable]
     public class AutoTradingInstrumentsDedicationResponse
     {
         public List<AutoTradingInstrumentsResponse> Instruments { get; set; }
+        public List<string> DisabledInstruments { get; set; }
         public Dictionary<string, int> Risks { get; set; }
         public int AccountRisk { get; set; }
         public int DefaultMarketRisk { get; set; }
         public bool UseManualTrading { get; set; }
+        public bool BotShutDown { get; set; }
     }
 
     [Serializable]
@@ -64,5 +67,15 @@ namespace Algoserver.API.Models.REST
         public decimal CurrentPrice { get; set; }
         public long Time { get; set; }
         public uint TradingState { get; set; }
+    }
+
+    [Serializable]
+    public class AutoTradingInstrumentConfigResponse
+    {
+        public string Symbol { get; set; }
+        public double Risks { get; set; }
+        public double MaxRisks { get; set; }
+        public bool IsTradable { get; set; }
+        public bool IsDisabled { get; set; }
     }
 }

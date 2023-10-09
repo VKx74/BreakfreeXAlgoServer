@@ -19,15 +19,19 @@ namespace Algoserver.API.Models
     {
         public Dictionary<string, int> risksPerMarket { get; set; }
         public List<UserDefinedMarketData> markets { get; set; }
+        public List<string> disabledMarkets { get; set; }
         public int accountRisk { get; set; }
         public int defaultMarketRisk { get; set; }
         public bool useManualTrading { get; set; }
+        public bool botShutDown { get; set; }
 
         public UserInfoData()
         {
             risksPerMarket = new Dictionary<string, int>();
             markets = new List<UserDefinedMarketData>();
+            disabledMarkets = new List<string>();
             useManualTrading = false;
+            botShutDown = false;
             accountRisk = 30;
             defaultMarketRisk = 25;
         }
@@ -42,6 +46,11 @@ namespace Algoserver.API.Models
             if (markets == null)
             {
                 markets = new List<UserDefinedMarketData>();
+            }
+            
+            if (disabledMarkets == null)
+            {
+                disabledMarkets = new List<string>();
             }
 
             if (accountRisk <= 0)

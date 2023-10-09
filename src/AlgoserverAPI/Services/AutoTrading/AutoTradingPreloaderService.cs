@@ -179,6 +179,7 @@ namespace Algoserver.API.Services.CacheServices
             var userSettings = _autoTradingUserInfoService.GetUserInfo(account);
             var maxAmount = _autoTradingAccountsService.GetMaxTradingInstrumentsCount(account);
             var isHITLOverride = maxAmount != int.MaxValue;
+            var disabledMarkets = userSettings.disabledMarkets != null ? userSettings.disabledMarkets : new List<string>();
 
             lock (_data)
             {
@@ -193,7 +194,7 @@ namespace Algoserver.API.Services.CacheServices
 
                         var name = symbol.Key.Split("_");
                         name = name.TakeLast(name.Length - 1).ToArray();
-                        var instrument = String.Join("_", name).ToUpper();
+                        var instrument = string.Join("_", name).ToUpper();
                         var canAutoTrade = symbol.Value.TradingState == 2;
                         if (canAutoTrade && !isHITLOverride)
                         {
@@ -222,12 +223,22 @@ namespace Algoserver.API.Services.CacheServices
             var totalCount = 0m;
             foreach (var symbol in symbols)
             {
+                var isDisabled = false;
+                if (userSettings.botShutDown || disabledMarkets.Any((_) => string.Equals(getNormalizedInstrument(_), getNormalizedInstrument(symbol.Key), StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    isDisabled = true;
+                }
                 var cnt = 1m / relatedSymbolsCount(symbol.Key, symbols);
+                if (isDisabled)
+                {
+                    cnt = 0;
+                }
                 totalCount += cnt;
                 instruments.Add(new AutoTradingInstrumentsResponse
                 {
                     Symbol = symbol.Key,
-                    Risk = cnt
+                    Risk = cnt,
+                    IsDisabled = isDisabled
                 });
             }
 
@@ -268,7 +279,9 @@ namespace Algoserver.API.Services.CacheServices
                 Risks = userSettings.risksPerMarket != null ? userSettings.risksPerMarket : new Dictionary<string, int>(),
                 AccountRisk = userSettings.accountRisk,
                 UseManualTrading = userSettings.useManualTrading,
+                BotShutDown = userSettings.botShutDown,
                 DefaultMarketRisk = userSettings.defaultMarketRisk,
+                DisabledInstruments = disabledMarkets
             };
         }
 

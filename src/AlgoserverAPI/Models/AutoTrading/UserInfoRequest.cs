@@ -48,6 +48,18 @@ namespace Algoserver.API.Models.REST
         [JsonProperty("markets")]
         public List<UserDefinedMarketDataRequest> Markets { get; set; }
     }
+    
+    public class UserInfoAddDisabledMarketsRequest
+    {
+        [JsonProperty("userId")]
+        public string UserId { get; set; }
+        
+        [JsonProperty("account")]
+        public string Account { get; set; }
+
+        [JsonProperty("markets")]
+        public List<string> Markets { get; set; }
+    }
 
     public class UserInfoChangeMarketRiskRequest
     {
@@ -100,6 +112,18 @@ namespace Algoserver.API.Models.REST
         public List<string> Markets { get; set; }
     }
 
+    public class UserInfoRemoveDisabledMarketsRequest
+    {
+        [JsonProperty("userId")]
+        public string UserId { get; set; }
+        
+        [JsonProperty("account")]
+        public string Account { get; set; }
+
+        [JsonProperty("markets")]
+        public List<string> Markets { get; set; }
+    }
+
     public class UserInfoChangeUseManualTradingRequest
     {
         [JsonProperty("userId")]
@@ -110,5 +134,17 @@ namespace Algoserver.API.Models.REST
 
         [JsonProperty("useManualTrading")]
         public bool UseManualTrading { get; set; }
+    }
+
+    public class UserInfoChangeBotStateRequest
+    {
+        [JsonProperty("userId")]
+        public string UserId { get; set; }
+        
+        [JsonProperty("account")]
+        public string Account { get; set; }
+
+        [JsonProperty("switchedOff")]
+        public bool SwitchedOff { get; set; }
     }
 }
