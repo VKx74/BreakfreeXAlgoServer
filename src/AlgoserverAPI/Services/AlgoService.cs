@@ -728,11 +728,7 @@ namespace Algoserver.API.Services
                 TradingState = 0
             };
 
-            if (MesaSummaryCalculationServices.IsHITLCapitulationConfirmed(result))
-            {
-                result.TradingState = 4;
-            }
-            else if (MesaSummaryCalculationServices.IsAutoTradeCapitulationConfirmed(result))
+            if (MesaSummaryCalculationServices.IsAutoTradeCapitulationConfirmed(result))
             {
                 result.TradingState = 3;
             }

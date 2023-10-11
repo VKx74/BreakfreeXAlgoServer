@@ -919,7 +919,7 @@ namespace Algoserver.API.Services
                 return false;
             }
 
-            if (symbolInfo.LongGroupPhase == PhaseState.Drive || symbolInfo.LongGroupPhase == PhaseState.TailTransition)
+            if (symbolInfo.LongGroupPhase == PhaseState.Drive)
             {
                 return false;
             }
@@ -951,10 +951,6 @@ namespace Algoserver.API.Services
         }
         public static bool IsHITLCapitulationConfirmed(AutoTradingSymbolInfoResponse symbolInfo)
         {
-            //  if(
-            // ((int)midGroupPhase == TREND_COUNTER_DRIVE)
-            // && ((int)longGroupPhase == TREND_TAIL  || (int)longGroupPhase == TREND_DRIVE_TRANSITION)
-
             if (symbolInfo.MidGroupPhase != PhaseState.CD)
             {
                 return false;

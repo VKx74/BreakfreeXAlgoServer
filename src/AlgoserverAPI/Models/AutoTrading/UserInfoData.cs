@@ -33,7 +33,7 @@ namespace Algoserver.API.Models
             useManualTrading = false;
             botShutDown = false;
             accountRisk = 30;
-            defaultMarketRisk = 25;
+            defaultMarketRisk = 5;
         }
 
         public void Validate()
@@ -60,7 +60,7 @@ namespace Algoserver.API.Models
 
             if (defaultMarketRisk <= 0)
             {
-                defaultMarketRisk = 25;
+                defaultMarketRisk = 5;
             }
         }
     }
