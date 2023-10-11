@@ -772,9 +772,9 @@ namespace Algoserver.API.Services
                     total_strength = summaryForSymbol.TotalStrength;
                 }
 
-                if (summaryForSymbol.TimeframeStrengths.TryGetValue(TimeframeHelper.DAILY_GRANULARITY, out var daily_tf_str) && summaryForSymbol.TimeframeStrengths.TryGetValue(TimeframeHelper.MONTHLY_GRANULARITY, out var monthly_tf_str))
+                if (summaryForSymbol.TrendPeriodDescriptions.TryGetValue(2, out var longTrendDescription))
                 {
-                    trendDirection = daily_tf_str + monthly_tf_str > 0 ? 1 : -1;
+                    trendDirection = longTrendDescription.strength > 0 ? 1 : -1;
                 }
 
                 foreach (var item in sar_additional)

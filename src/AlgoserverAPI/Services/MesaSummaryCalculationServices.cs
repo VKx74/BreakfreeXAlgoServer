@@ -629,11 +629,7 @@ namespace Algoserver.API.Services
         private static TrendPeriodDescription CalculateTrendPeriodDescription(Dictionary<int, float> strength, Dictionary<int, float> volatility, Dictionary<int, long> durations, Dictionary<int, int> phase, TrendPeriodDescription prev)
         {
             var result = new TrendPeriodDescription();
-            var weights = new List<int> { 1, 2, 4 };
-            if (prev == null)
-            {
-                weights = new List<int> { 1, 2, 3 };
-            }
+            var weights = new List<int> { 1, 2, 5 };
 
             if (strength.Count != 3)
             {
