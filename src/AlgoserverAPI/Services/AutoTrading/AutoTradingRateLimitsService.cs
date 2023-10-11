@@ -14,6 +14,7 @@ namespace Algoserver.API.Services
 
         public bool Validate(string id)
         {
+            return true;
             lock (_rates)
             {
                 if (_rates.ContainsKey(id))
