@@ -48,6 +48,38 @@ namespace Algoserver.API.Services.CacheServices
             }
         }
 
+        public List<string> GetAutoTradeAllInstruments()
+        {
+            var result = new List<string>();
+            lock (_data)
+            {
+                foreach (var types in _data)
+                {
+                    foreach (var symbol in types.Value)
+                    {
+                        var name = symbol.Key.Split("_");
+                        name = name.TakeLast(name.Length - 1).ToArray();
+                        var s = String.Join("_", name).ToUpper();
+
+                        if (string.Equals(s, "BTC_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                            string.Equals(s, "BTCUSD", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            s = "BTC_USDT";
+                        }
+                        if (string.Equals(s, "ETH_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                            string.Equals(s, "ETHUSD", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            s = "ETH_USDT";
+                        }
+
+                        result.Add(s.ToUpper());
+                    }
+                }
+            }
+            return result;
+        }
+
+        [Obsolete]
         public async Task<List<AutoTradingInstrumentsResponse>> GetAutoTradeInstruments(string account)
         {
             var result = new List<AutoTradingInstrumentsResponse>();
@@ -62,46 +94,31 @@ namespace Algoserver.API.Services.CacheServices
                 {
                     foreach (var symbol in types.Value)
                     {
+                        if (symbol.Value.TradingState == 0)
+                        {
+                            continue;
+                        }
+
                         var name = symbol.Key.Split("_");
                         name = name.TakeLast(name.Length - 1).ToArray();
                         var instrument = String.Join("_", name).ToUpper();
-                        if (symbol.Value.TrendState == 3 && !isHITLOverride)
+                        var canAutoTrade = symbol.Value.TradingState == 2;
+                        if (canAutoTrade && !isHITLOverride)
                         {
                             symbols.Add(instrument, symbol.Value);
                         }
                         else if (userSettings != null && userSettings.useManualTrading && userSettings.markets != null)
                         {
+                            var canTradeInHITLMode = symbol.Value.TradingState == 1;
+                            if (!canTradeInHITLMode)
+                            {
+                                continue;
+                            }
                             var s = getNormalizedInstrument(instrument);
                             var marketConfig = userSettings.markets.FirstOrDefault((_) => !string.IsNullOrEmpty(_.symbol) && string.Equals(getNormalizedInstrument(_.symbol), s, StringComparison.InvariantCultureIgnoreCase));
                             if (marketConfig != null)
                             {
-                                var tradingConfig = symbol.Value;
-                                var minStrength = marketConfig.minStrength;
-                                var minStrength1h = marketConfig.minStrength1H;
-                                var minStrength4h = marketConfig.minStrength4H;
-                                var minStrength1d = marketConfig.minStrength1D;
-
-                                if (Math.Abs(tradingConfig.TotalStrength * 100) < minStrength)
-                                {
-                                    continue;
-                                }
-
-                                if (tradingConfig.TrendDirection == 1)
-                                {
-                                    if ((tradingConfig.Strength1H * 100 < minStrength1h) || (tradingConfig.Strength4H * 100 < minStrength4h) || (tradingConfig.Strength1D * 100 < minStrength1d))
-                                    {
-                                        continue;
-                                    }
-                                }
-                                else if (tradingConfig.TrendDirection == -1)
-                                {
-                                    if ((tradingConfig.Strength1H * 100 > minStrength1h * -1) || (tradingConfig.Strength4H * 100 > minStrength4h * -1) || (tradingConfig.Strength1D * 100 > minStrength1d * -1))
-                                    {
-                                        continue;
-                                    }
-                                }
-
-                                symbols.Add(instrument, tradingConfig);
+                                symbols.Add(instrument, symbol.Value);
                             }
                         }
                     }
@@ -155,7 +172,132 @@ namespace Algoserver.API.Services.CacheServices
             return result;
         }
 
+        public async Task<AutoTradingInstrumentsDedicationResponse> GetAutoTradingInstrumentsDedication(string account)
+        {
+            var instruments = new List<AutoTradingInstrumentsResponse>();
+            var symbols = new Dictionary<string, AutoTradingSymbolInfoResponse>();
+            var userSettings = _autoTradingUserInfoService.GetUserInfo(account);
+            var maxAmount = _autoTradingAccountsService.GetMaxTradingInstrumentsCount(account);
+            var isHITLOverride = maxAmount != int.MaxValue;
+            var disabledMarkets = userSettings.disabledMarkets != null ? userSettings.disabledMarkets : new List<string>();
+
+            lock (_data)
+            {
+                foreach (var types in _data)
+                {
+                    foreach (var symbol in types.Value)
+                    {
+                        if (symbol.Value.TradingState == 0)
+                        {
+                            continue;
+                        }
+
+                        var name = symbol.Key.Split("_");
+                        name = name.TakeLast(name.Length - 1).ToArray();
+                        var instrument = string.Join("_", name).ToUpper();
+                        var canAutoTrade = symbol.Value.TradingState == 2;
+                        if (canAutoTrade && !isHITLOverride)
+                        {
+                            symbols.Add(instrument, symbol.Value);
+                        }
+                        else if (userSettings != null && userSettings.useManualTrading && userSettings.markets != null)
+                        {
+                            var canTradeInHITLMode = symbol.Value.TradingState == 1;
+                            if (!canTradeInHITLMode)
+                            {
+                                continue;
+                            }
+                            var s = getNormalizedInstrument(instrument);
+                            var marketConfig = userSettings.markets.FirstOrDefault((_) => !string.IsNullOrEmpty(_.symbol) && string.Equals(getNormalizedInstrument(_.symbol), s, StringComparison.InvariantCultureIgnoreCase));
+                            if (marketConfig != null)
+                            {
+                                symbols.Add(instrument, symbol.Value);
+                            }
+                        }
+                    }
+                }
+            }
+
+            symbols = symbols.Take(maxAmount).ToDictionary((_) => _.Key, (_) => _.Value);
+
+            var totalCount = 0m;
+            foreach (var symbol in symbols)
+            {
+                var isDisabled = false;
+                if (userSettings.botShutDown || disabledMarkets.Any((_) => string.Equals(getNormalizedInstrument(_), getNormalizedInstrument(symbol.Key), StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    isDisabled = true;
+                }
+                var cnt = 1m / relatedSymbolsCount(symbol.Key, symbols);
+                if (isDisabled)
+                {
+                    cnt = 0;
+                }
+                totalCount += cnt;
+                instruments.Add(new AutoTradingInstrumentsResponse
+                {
+                    Symbol = symbol.Key,
+                    Risk = cnt,
+                    IsDisabled = isDisabled
+                });
+            }
+
+            foreach (var r in instruments)
+            {
+                if (string.Equals(r.Symbol, "BTC_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                    string.Equals(r.Symbol, "BTCUSD", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    r.Symbol = "BTC_USDT";
+                }
+                if (string.Equals(r.Symbol, "ETH_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                    string.Equals(r.Symbol, "ETHUSD", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    r.Symbol = "ETH_USDT";
+                }
+            }
+
+            if (totalCount <= 0)
+            {
+                foreach (var r in instruments)
+                {
+                    r.Risk = 1m / symbols.Count;
+                }
+            }
+            else
+            {
+                var weight = 1m / totalCount;
+
+                foreach (var r in instruments)
+                {
+                    r.Risk = weight * r.Risk;
+                }
+            }
+
+            return new AutoTradingInstrumentsDedicationResponse
+            {
+                Instruments = instruments,
+                Risks = userSettings.risksPerMarket != null ? userSettings.risksPerMarket : new Dictionary<string, int>(),
+                AccountRisk = userSettings.accountRisk,
+                UseManualTrading = userSettings.useManualTrading,
+                BotShutDown = userSettings.botShutDown,
+                DefaultMarketRisk = userSettings.defaultMarketRisk,
+                DisabledInstruments = disabledMarkets
+            };
+        }
+
         public async Task<AutoTradingSymbolInfoResponse> GetAutoTradingSymbolInfo(string symbol, string datafeed, string exchange, string type)
+        {
+            var existing = GetAutoTradingSymbolInfoFromCache(symbol, datafeed, type);
+            if (existing != null)
+            {
+                return existing;
+            }
+
+            var info = await _algoService.CalculateAutoTradingInfoAsync(symbol, datafeed, exchange, type);
+            return info;
+        }
+
+        public AutoTradingSymbolInfoResponse GetAutoTradingSymbolInfoFromCache(string symbol, string datafeed, string type)
         {
             type = type.ToLower();
             try
@@ -177,8 +319,31 @@ namespace Algoserver.API.Services.CacheServices
                 Console.WriteLine(ex);
             }
 
-            var info = await _algoService.CalculateAutoTradingInfoAsync(symbol, datafeed, exchange, type);
-            return info;
+            return null;
+        }
+
+        public AutoTradingSymbolInfoResponse GetAutoTradingSymbolInfoFromCache(string symbol, string datafeed)
+        {
+            try
+            {
+                lock (_data)
+                {
+                    foreach (var type in _data)
+                    {
+                        var key = (datafeed + "_" + symbol).ToLower();
+                        if (type.Value.ContainsKey(key))
+                        {
+                            return type.Value[key];
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+
+            return null;
         }
 
         private int relatedSymbolsCount(string symbol, Dictionary<string, AutoTradingSymbolInfoResponse> symbols)
@@ -249,20 +414,8 @@ namespace Algoserver.API.Services.CacheServices
 
         private string getNormalizedInstrument(string instrument)
         {
-            instrument = InstrumentsHelper.NormalizeInstrument(instrument);
-            var btcusd = new List<string> { "BTCUSDT", "BTCUSD" };
-            if (btcusd.Any(_ => _.Equals(instrument, StringComparison.InvariantCultureIgnoreCase)))
-            {
-                return "btcusdt";
-            }
-            var ethusdt = new List<string> { "ETHUSDT", "ETHUSD" };
-            if (ethusdt.Any(_ => _.Equals(instrument, StringComparison.InvariantCultureIgnoreCase)))
-            {
-                return "ethusdt";
-            }
-
+            instrument = InstrumentsHelper.NormalizedInstrumentWithCrypto(instrument);
             return instrument;
         }
-
     }
 }

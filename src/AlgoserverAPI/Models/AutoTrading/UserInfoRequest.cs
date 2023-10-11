@@ -48,8 +48,71 @@ namespace Algoserver.API.Models.REST
         [JsonProperty("markets")]
         public List<UserDefinedMarketDataRequest> Markets { get; set; }
     }
+    
+    public class UserInfoAddDisabledMarketsRequest
+    {
+        [JsonProperty("userId")]
+        public string UserId { get; set; }
+        
+        [JsonProperty("account")]
+        public string Account { get; set; }
+
+        [JsonProperty("markets")]
+        public List<string> Markets { get; set; }
+    }
+
+    public class UserInfoChangeMarketRiskRequest
+    {
+        [JsonProperty("userId")]
+        public string UserId { get; set; }
+        
+        [JsonProperty("account")]
+        public string Account { get; set; }
+
+        [JsonProperty("market")]
+        public string Market { get; set; }
+
+        [JsonProperty("risk")]
+        public int Risk { get; set; }
+    }
+
+    public class UserInfoChangeAccountRiskRequest
+    {
+        [JsonProperty("userId")]
+        public string UserId { get; set; }
+        
+        [JsonProperty("account")]
+        public string Account { get; set; }
+
+        [JsonProperty("risk")]
+        public int Risk { get; set; }
+    }
+
+    public class UserInfoChangeDefaultMarketRiskRequest
+    {
+        [JsonProperty("userId")]
+        public string UserId { get; set; }
+        
+        [JsonProperty("account")]
+        public string Account { get; set; }
+
+        [JsonProperty("risk")]
+        public int Risk { get; set; }
+    }
 
     public class UserInfoRemoveMarketsRequest
+    {
+        [JsonProperty("userId")]
+        public string UserId { get; set; }
+        
+        [JsonProperty("account")]
+        public string Account { get; set; }
+
+        [JsonProperty("markets")]
+        public List<string> Markets { get; set; }
+    }
+
+    public class UserInfoRemoveDisabledMarketsRequest
     {
         [JsonProperty("userId")]
         public string UserId { get; set; }
@@ -71,5 +134,17 @@ namespace Algoserver.API.Models.REST
 
         [JsonProperty("useManualTrading")]
         public bool UseManualTrading { get; set; }
+    }
+
+    public class UserInfoChangeBotStateRequest
+    {
+        [JsonProperty("userId")]
+        public string UserId { get; set; }
+        
+        [JsonProperty("account")]
+        public string Account { get; set; }
+
+        [JsonProperty("switchedOff")]
+        public bool SwitchedOff { get; set; }
     }
 }

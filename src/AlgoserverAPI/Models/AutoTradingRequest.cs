@@ -34,4 +34,10 @@ namespace Algoserver.API.Models.REST
         [JsonProperty("version")]
         public string Version { get; set; }
     }
+    
+    public class AutoTradeMarketsConfigRequest
+    {
+        [JsonProperty("account")]
+        public string Account { get; set; }
+    }
 }

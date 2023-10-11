@@ -30,6 +30,7 @@
         public const string NeuralAlgoGlobal = "neural-algo-global";
         public const string ApexStream = "stream";
         public const string ApexMarkets = "markets";
+        public const string MarketsConfig = "markets-config";
         public const string Version = "version";
     }
 }

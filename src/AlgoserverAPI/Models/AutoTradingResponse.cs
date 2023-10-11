@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Newtonsoft.Json;
 
 namespace Algoserver.API.Models.REST
 {
@@ -9,6 +8,19 @@ namespace Algoserver.API.Models.REST
     {
         public string Symbol { get; set; }
         public decimal Risk { get; set; }
+        public bool IsDisabled { get; set; }
+    }
+    
+    [Serializable]
+    public class AutoTradingInstrumentsDedicationResponse
+    {
+        public List<AutoTradingInstrumentsResponse> Instruments { get; set; }
+        public List<string> DisabledInstruments { get; set; }
+        public Dictionary<string, int> Risks { get; set; }
+        public int AccountRisk { get; set; }
+        public int DefaultMarketRisk { get; set; }
+        public bool UseManualTrading { get; set; }
+        public bool BotShutDown { get; set; }
     }
 
     [Serializable]
@@ -40,11 +52,30 @@ namespace Algoserver.API.Models.REST
         public decimal Strength1H { get; set; }
         public decimal Strength4H { get; set; }
         public decimal Strength1D { get; set; }
-        public decimal AvgOscillator { get; set; }
+        public decimal Strength1Month { get; set; }
+        public decimal Strength1Y { get; set; }
+        public decimal Strength10Y { get; set; }
         public int TrendDirection { get; set; }
-        public int TrendState { get; set; }
-        public int DailyTrend { get; set; }
-        public int MonthlyTrend { get; set; }
+        public int ShortGroupPhase { get; set; }
+        public int MidGroupPhase { get; set; }
+        public int LongGroupPhase { get; set; }
+        public decimal ShortGroupStrength { get; set; }
+        public decimal MidGroupStrength { get; set; }
+        public decimal LongGroupStrength { get; set; }
+        public int CurrentPhase { get; set; }
+        public int NextPhase { get; set; }
+        public decimal CurrentPrice { get; set; }
         public long Time { get; set; }
+        public uint TradingState { get; set; }
+    }
+
+    [Serializable]
+    public class AutoTradingInstrumentConfigResponse
+    {
+        public string Symbol { get; set; }
+        public double Risks { get; set; }
+        public double MaxRisks { get; set; }
+        public bool IsTradable { get; set; }
+        public bool IsDisabled { get; set; }
     }
 }

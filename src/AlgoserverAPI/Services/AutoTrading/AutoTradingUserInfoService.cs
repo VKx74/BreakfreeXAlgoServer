@@ -23,7 +23,13 @@ namespace Algoserver.API.Services
             {
                 if (_cache.TryGetValue<UserInfoData>(_cachePrefix, account, out var res))
                 {
-                    return res ?? new UserInfoData();
+                    if (res != null)
+                    {
+                       res.Validate();
+                       return res;
+                    }
+                    
+                    return new UserInfoData();
                 }
             }
             catch (Exception ex)
@@ -44,6 +50,68 @@ namespace Algoserver.API.Services
             {
                 Console.WriteLine(ex);
             }
+        }
+
+        public UserInfoData ChangeMarketRisk(string account, string market, int risk)
+        {
+            var info = GetUserInfo(account);
+            market = InstrumentsHelper.NormalizedInstrumentWithCrypto(market);
+
+            if (risk > 100) {
+                return info;
+            }
+
+            if (info.risksPerMarket == null)
+            {
+                info.risksPerMarket = new Dictionary<string, int>();
+            }
+
+            if (info.risksPerMarket.ContainsKey(market))
+            {
+                if (risk > 0)
+                {
+                    info.risksPerMarket[market] = risk;
+                }
+                else 
+                {
+                    info.risksPerMarket.Remove(market);
+                }
+            } 
+            else if (risk > 0)
+            {
+                info.risksPerMarket.Add(market, risk);
+            }
+
+            UpdateUserInfo(account, info);
+            return info;
+        }
+        
+        public UserInfoData ChangeAccountRisk(string account, int risk)
+        {
+            var info = GetUserInfo(account);
+
+             if (risk > 100 || risk <= 0) {
+                return info;
+            }
+
+            info.accountRisk = risk;
+
+            UpdateUserInfo(account, info);
+            return info;
+        }
+        
+        public UserInfoData ChangeDefaultMarketRisk(string account, int risk)
+        {
+            var info = GetUserInfo(account);
+
+             if (risk > 100 || risk <= 0) {
+                return info;
+            }
+
+            info.defaultMarketRisk = risk;
+
+            UpdateUserInfo(account, info);
+            return info;
         }
 
         public UserInfoData AddMarkets(string account, List<UserDefinedMarketData> markets)
@@ -70,6 +138,30 @@ namespace Algoserver.API.Services
             return info;
         }
 
+        public UserInfoData AddDisabledMarkets(string account, List<string> markets)
+        {
+            var info = GetUserInfo(account);
+
+            if (info.disabledMarkets == null)
+            {
+                info.disabledMarkets = new List<string>();
+            }
+
+            foreach (var market in markets)
+            {
+                var normalizedMarket = InstrumentsHelper.NormalizeInstrument(market);
+                if (info.disabledMarkets.Any((_) => string.Equals(InstrumentsHelper.NormalizeInstrument(_), normalizedMarket, StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    continue;
+                }
+
+                info.disabledMarkets.Add(market);
+            }
+
+            UpdateUserInfo(account, info);
+            return info;
+        }
+
         public UserInfoData RemoveMarkets(string account, List<string> markets)
         {
             var info = GetUserInfo(account);
@@ -89,10 +181,37 @@ namespace Algoserver.API.Services
             return info;
         }
 
+        public UserInfoData RemoveDisabledMarkets(string account, List<string> markets)
+        {
+            var info = GetUserInfo(account);
+
+            if (info.disabledMarkets == null)
+            {
+                info.disabledMarkets = new List<string>();
+            }
+
+            foreach (var market in markets)
+            {
+                var normalizedMarket = InstrumentsHelper.NormalizeInstrument(market);
+                info.disabledMarkets.RemoveAll((_) => string.Equals(InstrumentsHelper.NormalizeInstrument(_), normalizedMarket, StringComparison.InvariantCultureIgnoreCase));
+            }
+
+            UpdateUserInfo(account, info);
+            return info;
+        }
+
         public UserInfoData UpdateUseManualTrading(string account, bool useManualTrading)
         {
             var info = GetUserInfo(account);
             info.useManualTrading = useManualTrading;
+            UpdateUserInfo(account, info);
+            return info;
+        }
+
+        public UserInfoData UpdateBotState(string account, bool botShutDown)
+        {
+            var info = GetUserInfo(account);
+            info.botShutDown = botShutDown;
             UpdateUserInfo(account, info);
             return info;
         }

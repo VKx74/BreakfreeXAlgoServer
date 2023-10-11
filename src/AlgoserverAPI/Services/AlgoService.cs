@@ -588,29 +588,43 @@ namespace Algoserver.API.Services
             granularity_list.Add(TimeframeHelper.DAILY_GRANULARITY);
             var sar_additional = await CalculateTradeZoneLevels(granularity, granularity_list, symbol, datafeed, exchange, type, 0, 100);
 
-            // var mesaGranularity = new List<int>();
-            // foreach (var item in sar_additional)
-            // {
-            //     var mesaRequiredTf = GetTrendIndexGranularity(item.Key);
-            //     mesaGranularity.Add(mesaRequiredTf);
-            // }
             var mesa_additional = await getMesaAsync(symbol, datafeed, null);
             var total_strength = 0f;
-            var monthlyTrend = 0;
-            var dailyTrend = 0;
             var trendDirection = 0;
 
+            var currentPhase = 0;
+            var nextPhase = 0;
+            var shortGroupPhase = 0;
+            var midGroupPhase = 0;
+            var longGroupPhase = 0;
+            var shortGroupStrength = 0f;
+            var midGroupStrength = 0f;
+            var longGroupStrength = 0f;
+
+            var summaryForSymbol = _mesaPreloaderService.GetMesaSummary(symbol, datafeed);
             if (mesa_additional != null && mesa_additional.mesa != null && mesa_additional.mesa.Any())
             {
-                var summaryForSymbol = _mesaPreloaderService.GetMesaSummary(symbol, datafeed);
                 if (summaryForSymbol != null)
                 {
                     total_strength = summaryForSymbol.TotalStrength;
-                    if (summaryForSymbol.TimeframeStrengths.TryGetValue(TimeframeHelper.DAILY_GRANULARITY, out var daily_tf_str) && summaryForSymbol.TimeframeStrengths.TryGetValue(TimeframeHelper.MONTHLY_GRANULARITY, out var monthly_tf_str))
+                    currentPhase = (int)summaryForSymbol.CurrentPhase;
+                    nextPhase = (int)summaryForSymbol.NextPhase;
+
+                    if (summaryForSymbol.TrendPeriodDescriptions.TryGetValue(0, out var shortTrendDescription))
                     {
-                        dailyTrend = daily_tf_str > 0 ? 1 : -1;
-                        monthlyTrend = monthly_tf_str > 0 ? 1 : -1;
-                        trendDirection = daily_tf_str + monthly_tf_str > 0 ? 1 : -1;
+                        shortGroupPhase = shortTrendDescription.phase;
+                        shortGroupStrength = shortTrendDescription.strength;
+                    }
+                    if (summaryForSymbol.TrendPeriodDescriptions.TryGetValue(1, out var midTrendDescription))
+                    {
+                        midGroupPhase = midTrendDescription.phase;
+                        midGroupStrength = midTrendDescription.strength;
+                    }
+                    if (summaryForSymbol.TrendPeriodDescriptions.TryGetValue(2, out var longTrendDescription))
+                    {
+                        longGroupPhase = longTrendDescription.phase;
+                        longGroupStrength = longTrendDescription.strength;
+                        trendDirection = longTrendDescription.strength > 0 ? 1 : -1;
                     }
                 }
 
@@ -664,6 +678,8 @@ namespace Algoserver.API.Services
                 }
             }
 
+            var lastPrice = await GetLastPrice(symbol, datafeed, exchange, type);
+
             var result = new AutoTradingSymbolInfoResponse
             {
                 TotalStrength = total_strength,
@@ -689,70 +705,43 @@ namespace Algoserver.API.Services
                 TP4H = GetTP(TimeframeHelper.HOUR4_GRANULARITY, levelsResponse),
                 TP1D = GetTP(TimeframeHelper.DAILY_GRANULARITY, levelsResponse),
 
-                Strength1M = GetStrength(TimeframeHelper.MIN1_GRANULARITY, levelsResponse),
-                Strength5M = GetStrength(TimeframeHelper.MIN5_GRANULARITY, levelsResponse),
-                Strength15M = GetStrength(TimeframeHelper.MIN15_GRANULARITY, levelsResponse),
-                Strength1H = GetStrength(TimeframeHelper.HOURLY_GRANULARITY, levelsResponse),
-                Strength4H = GetStrength(TimeframeHelper.HOUR4_GRANULARITY, levelsResponse),
-                Strength1D = GetStrength(TimeframeHelper.DAILY_GRANULARITY, levelsResponse),
+                Strength1M = GetStrength(TimeframeHelper.MIN1_GRANULARITY, summaryForSymbol),
+                Strength5M = GetStrength(TimeframeHelper.MIN5_GRANULARITY, summaryForSymbol),
+                Strength15M = GetStrength(TimeframeHelper.MIN15_GRANULARITY, summaryForSymbol),
+                Strength1H = GetStrength(TimeframeHelper.HOURLY_GRANULARITY, summaryForSymbol),
+                Strength4H = GetStrength(TimeframeHelper.HOUR4_GRANULARITY, summaryForSymbol),
+                Strength1D = GetStrength(TimeframeHelper.DAILY_GRANULARITY, summaryForSymbol),
+                Strength1Month = GetStrength(TimeframeHelper.MONTHLY_GRANULARITY, summaryForSymbol),
+                Strength1Y = GetStrength(TimeframeHelper.YEARLY_GRANULARITY, summaryForSymbol),
+                Strength10Y = GetStrength(TimeframeHelper.YEAR10_GRANULARITY, summaryForSymbol),
 
                 Time = AlgoHelper.UnixTimeNow(),
                 TrendDirection = trendDirection,
-                DailyTrend = monthlyTrend,
-                MonthlyTrend = monthlyTrend
+                CurrentPhase = currentPhase,
+                NextPhase = nextPhase,
+                ShortGroupPhase = shortGroupPhase,
+                MidGroupPhase = midGroupPhase,
+                LongGroupPhase = longGroupPhase,
+                ShortGroupStrength = (decimal)shortGroupStrength,
+                MidGroupStrength = (decimal)midGroupStrength,
+                LongGroupStrength = (decimal)longGroupStrength,
+                CurrentPrice = lastPrice,
+                TradingState = 0
             };
 
-            var filteredTrend = 0;
-            var minStrength1h = AutoTradingParametersHelper.GetStrength1H(symbol);
-            var minStrength4h = AutoTradingParametersHelper.GetStrength4H(symbol);
-            var minStrength1d = AutoTradingParametersHelper.GetStrength1D(symbol);
-
-            if (result.TrendDirection == 1)
+            if (MesaSummaryCalculationServices.IsAutoTradeCapitulationConfirmed(result))
             {
-                if ((result.Strength1H * 100 >= minStrength1h) && (result.Strength4H * 100 >= minStrength4h) && (result.Strength1D * 100 >= minStrength1d))
-                {
-                    filteredTrend = 1;
-                }
+                result.TradingState = 3;
             }
-            else if (result.TrendDirection == -1)
+            else if (!MesaSummaryCalculationServices.IsInOverheatZone(result))
             {
-                if ((result.Strength1H * 100 <= minStrength1h * -1) && (result.Strength4H * 100 <= minStrength4h * -1) && (result.Strength1D * 100 <= minStrength1d * -1))
+                if (MesaSummaryCalculationServices.IsAutoTradeModeEnabled(result))
                 {
-                    filteredTrend = -1;
+                    result.TradingState = 2;
                 }
-            }
-
-            var stateHistory = levelsResponse.GetValueOrDefault(TimeframeHelper.HOUR4_GRANULARITY);
-            if (stateHistory != null && filteredTrend != 0)
-            {
-                var sh = stateHistory.mesa.Select((_) => (decimal)(_.f - _.s) / (decimal)stateHistory.mesa_avg * 100).ToList();
-                sh.Reverse();
-                sh = sh.TakeWhile((_) => filteredTrend > 0 ? _ > 0 : _ < 0).ToList();
-                sh = sh.Select((_) => Math.Abs(_)).ToList();
-                sh.Reverse();
-                var period = AutoTradingParametersHelper.GetAroonPeriod(symbol);
-                var count = AutoTradingParametersHelper.GetAroonCount(symbol);
-                var aroon = TechCalculations.AroonOscillator(sh, period);
-                var aroonLast = aroon.TakeLast(count).ToList();
-                var sum = aroonLast.Sum();
-                var avg = sum / count;
-                result.AvgOscillator = avg;
-                if (avg < -30)
+                else if (MesaSummaryCalculationServices.IsHITLModeEnabled(result))
                 {
-                    result.TrendState = 1; // Tail
-                }
-                else if (avg < 5)
-                {
-                    result.TrendState = 2; // Capitulation
-                }
-                else
-                {
-                    result.TrendState = 3; // Drive
-                }
-
-                if (result.MonthlyTrend != result.TrendDirection)
-                {
-                    result.TrendState = 0;
+                    result.TradingState = 1;
                 }
             }
 
@@ -1380,11 +1369,11 @@ namespace Algoserver.API.Services
             return 0;
         }
 
-        private decimal GetStrength(int granularity, Dictionary<int, LevelsV3Response> data)
+        private decimal GetStrength(int granularity, MESADataSummary mesaDataSummary)
         {
-            if (data.TryGetValue(granularity, out var item))
+            if (mesaDataSummary != null && mesaDataSummary.TimeframeStrengths.TryGetValue(granularity, out var item))
             {
-                return (decimal)item.strength;
+                return (decimal)item;
             }
             return 0;
         }
@@ -1414,5 +1403,19 @@ namespace Algoserver.API.Services
             return 0;
         }
 
+        private async Task<decimal> GetLastPrice(string symbol, string datafeed, string exchange, string type)
+        {
+            var task = await _historyService.GetHistory(symbol, TimeframeHelper.MIN1_GRANULARITY, datafeed, exchange, type);
+            if (task == null || task.Bars == null)
+            {
+                return -1;
+            }
+            var lastBar = task.Bars.LastOrDefault();
+            if (lastBar == null)
+            {
+                return -1;
+            }
+            return lastBar.Close;
+        }
     }
 }
