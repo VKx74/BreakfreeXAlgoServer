@@ -448,10 +448,9 @@ namespace Algoserver.API.Services
             var sl_ratio = container.InputStoplossRatio;
             var granularity = AlgoHelper.ConvertTimeframeToGranularity(container.TimeframeInterval, container.TimeframePeriod);
 
-            // var extendedTrendData = TrendDetector.CalculateByMesaBy2TrendAdjusted(container.CloseD);
-            // var trend = TrendDetector.MergeTrends(extendedTrendData);
-            // var scanRes = _scanner.ScanExt(scanningHistory, dailyScanningHistory, trend, levels, sl_ratio);
-
+            var extendedTrendData = TrendDetector.CalculateByMesaBy2TrendAdjusted(container.CloseD);
+            var trend = TrendDetector.MergeTrends(extendedTrendData);
+            // ScanResponse scanRes = _scanner.ScanExt(scanningHistory, dailyScanningHistory, trend, levels, sl_ratio);
             ScanResponse scanRes = null;
 
             var size = 0m;
@@ -771,10 +770,11 @@ namespace Algoserver.API.Services
                 if (summaryForSymbol != null)
                 {
                     total_strength = summaryForSymbol.TotalStrength;
-                    if (summaryForSymbol.TimeframeStrengths.TryGetValue(TimeframeHelper.DAILY_GRANULARITY, out var daily_tf_str) && summaryForSymbol.TimeframeStrengths.TryGetValue(TimeframeHelper.MONTHLY_GRANULARITY, out var monthly_tf_str))
-                    {
-                        trendDirection = daily_tf_str + monthly_tf_str > 0 ? 1 : -1;
-                    }
+                }
+
+                if (summaryForSymbol.TrendPeriodDescriptions.TryGetValue(2, out var longTrendDescription))
+                {
+                    trendDirection = longTrendDescription.strength > 0 ? 1 : -1;
                 }
 
                 foreach (var item in sar_additional)
