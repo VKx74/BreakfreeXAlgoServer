@@ -882,7 +882,7 @@ namespace Algoserver.API.Services
             if (symbolInfo.TrendDirection == 1)
             {
                 // Uptrend
-                if (longGroupStrength < 10 || midGroupStrength < 10 || strength1month < 21)
+                if (longGroupStrength < 10 || midGroupStrength < 10)
                 {
                     return false;
                 }
@@ -890,7 +890,7 @@ namespace Algoserver.API.Services
             else if (symbolInfo.TrendDirection == -1)
             {
                 // Downtrend
-                if (longGroupStrength > -10 || midGroupStrength > -10 || strength1month > -21)
+                if (longGroupStrength > -10 || midGroupStrength > -10)
                 {
                     return false;
                 }
