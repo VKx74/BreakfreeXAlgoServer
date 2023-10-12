@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Algoserver.API.Helpers;
 using Algoserver.API.Services.CacheServices;
 
 namespace Algoserver.API.Models
@@ -62,6 +64,16 @@ namespace Algoserver.API.Models
             {
                 defaultMarketRisk = 12;
             }
+
+            var excludeInstruments = InstrumentsHelper.ExcludeListForLongHistory.Select((_) => InstrumentsHelper.NormalizedInstrumentWithCrypto(_));
+            markets.RemoveAll((_) => {
+                var normalizedInstrument = InstrumentsHelper.NormalizedInstrumentWithCrypto(_.symbol);
+                return excludeInstruments.Any((ex) => string.Equals(ex, normalizedInstrument, StringComparison.InvariantCultureIgnoreCase));
+            }); 
+            disabledMarkets.RemoveAll((_) => {
+                var normalizedInstrument = InstrumentsHelper.NormalizedInstrumentWithCrypto(_);
+                return excludeInstruments.Any((ex) => string.Equals(ex, normalizedInstrument, StringComparison.InvariantCultureIgnoreCase));
+            });
         }
     }
 }
