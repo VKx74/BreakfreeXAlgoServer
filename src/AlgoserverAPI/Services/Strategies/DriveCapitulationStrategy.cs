@@ -44,7 +44,7 @@ namespace Algoserver.API.Services
         public static bool IsAutoTradeModeEnabled(AutoTradingSymbolInfoResponse symbolInfo, MESADataSummary mesaResponse, string symbol, ICacheService cacheService)
         {
             var state = getState(symbol, cacheService);
-            if (symbolInfo.CurrentPhase == PhaseState.Drive)
+            if (symbolInfo.CurrentPhase == PhaseState.Drive && IsEnoughStrength(symbolInfo, 20))
             {
                 if (state.State != 2)
                 {
@@ -89,13 +89,8 @@ namespace Algoserver.API.Services
             return false;
         }
 
-        public static bool IsEnoughStrength(AutoTradingSymbolInfoResponse symbolInfo)
+        public static bool IsEnoughStrength(AutoTradingSymbolInfoResponse symbolInfo, decimal value)
         {
-            if (symbolInfo.ShortGroupPhase == PhaseState.CD)
-            {
-                return false;
-            }
-
             var shortGroupStrength = symbolInfo.ShortGroupStrength * 100;
             var midGroupStrength = symbolInfo.MidGroupStrength * 100;
             var longGroupStrength = symbolInfo.LongGroupStrength * 100;
@@ -103,7 +98,7 @@ namespace Algoserver.API.Services
             if (symbolInfo.TrendDirection == 1)
             {
                 // Uptrend
-                if (longGroupStrength < 10 || midGroupStrength < 10 || shortGroupStrength < 10)
+                if (longGroupStrength < value || midGroupStrength < value || shortGroupStrength < value)
                 {
                     return false;
                 }
@@ -111,7 +106,7 @@ namespace Algoserver.API.Services
             else if (symbolInfo.TrendDirection == -1)
             {
                 // Downtrend
-                if (longGroupStrength > -10 || midGroupStrength > -10 || shortGroupStrength > -10)
+                if (longGroupStrength > value * -1 || midGroupStrength > value * -1 || shortGroupStrength > value * -1)
                 {
                     return false;
                 }
@@ -182,7 +177,7 @@ namespace Algoserver.API.Services
                 return 3;
             }
 
-            if (!IsInOverheatZone(symbolInfo) && IsEnoughStrength(symbolInfo))
+            if (!IsInOverheatZone(symbolInfo) && IsEnoughStrength(symbolInfo, 10))
             {
                 if (IsAutoTradeModeEnabled(symbolInfo, mesaResponse, symbol, cacheService))
                 {
