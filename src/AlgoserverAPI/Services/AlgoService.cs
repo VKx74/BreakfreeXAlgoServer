@@ -728,21 +728,8 @@ namespace Algoserver.API.Services
                 TradingState = 0
             };
 
-            if (MesaSummaryCalculationServices.IsAutoTradeCapitulationConfirmed(result))
-            {
-                result.TradingState = 3;
-            }
-            else if (!MesaSummaryCalculationServices.IsInOverheatZone(result))
-            {
-                if (MesaSummaryCalculationServices.IsAutoTradeModeEnabled(result))
-                {
-                    result.TradingState = 2;
-                }
-                else if (MesaSummaryCalculationServices.IsHITLModeEnabled(result))
-                {
-                    result.TradingState = 1;
-                }
-            }
+            // result.TradingState = GlobalDriveStrategy.GetState(result);
+            result.TradingState = DriveCapitulationStrategy.GetState(result, summaryForSymbol, symbol.ToUpper(), _cache);
 
             return result;
         }
