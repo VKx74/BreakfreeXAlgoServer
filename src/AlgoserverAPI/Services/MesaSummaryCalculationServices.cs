@@ -574,10 +574,7 @@ namespace Algoserver.API.Services
 
         private static int CalculateTrendPhase(Dictionary<int, int> timeframeState, Dictionary<int, float> timeframeStrengths, int tf)
         {
-            var higherTf = TimeframeHelper.MONTHLY_GRANULARITY;
-            if (tf >= TimeframeHelper.MONTHLY_GRANULARITY)
-                higherTf = TimeframeHelper.YEAR10_GRANULARITY;
-
+            var higherTf = TimeframeHelper.YEAR10_GRANULARITY;
             int currentTFState;
             if (!timeframeState.TryGetValue(tf, out currentTFState))
             {
