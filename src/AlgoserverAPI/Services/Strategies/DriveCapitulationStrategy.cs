@@ -133,7 +133,7 @@ namespace Algoserver.API.Services
             }
 
             var shift1d = Math.Abs(n1d - e1d);
-            var maxShift1d = shift1d - symbolInfo.HalfBand1D;
+            var maxShift1d = shift1d - (symbolInfo.HalfBand1D * 2);
 
             var shift4h = Math.Abs(n4h - e4h);
             var maxShift4h = shift4h - symbolInfo.HalfBand4H;
@@ -145,10 +145,10 @@ namespace Algoserver.API.Services
                 {
                     return true;
                 }
-                if (currentPrice > n4h + maxShift4h)
-                {
-                    return true;
-                }
+                // if (currentPrice > n4h + maxShift4h)
+                // {
+                //     return true;
+                // }
             }
             else if (symbolInfo.TrendDirection == -1)
             {
@@ -157,10 +157,10 @@ namespace Algoserver.API.Services
                 {
                     return true;
                 }
-                if (currentPrice < n4h - maxShift4h)
-                {
-                    return true;
-                }
+                // if (currentPrice < n4h - maxShift4h)
+                // {
+                //     return true;
+                // }
             }
             else
             {
@@ -174,20 +174,21 @@ namespace Algoserver.API.Services
         {
             if (IsAutoTradeCapitulationConfirmed(symbolInfo, symbol, cacheService))
             {
-                return 3;
+                return 3; // Capitulation
             }
 
+            // Validating support/resistance and min strength across all phases
             if (!IsInOverheatZone(symbolInfo) && IsEnoughStrength(symbolInfo, 10))
             {
                 if (IsAutoTradeModeEnabled(symbolInfo, mesaResponse, symbol, cacheService))
                 {
-                    return 2;
+                    return 2; // Auto trading allowed
                 }
                 
-                return 1;
+                return 1; // HITL allowed
             }
 
-            return 0;
+            return 0; // Nothing
         }
 
         private static DriveCapitulationStrategyState getState(string symbol, ICacheService cacheService)
