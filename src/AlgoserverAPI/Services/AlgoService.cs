@@ -485,11 +485,11 @@ namespace Algoserver.API.Services
                         {
                             if (isUp)
                             {
-                                result.sl_price = lastHour4Sar.s_m18;
+                                result.sl_price = lastHour4Sar.s_m28;
                             }
                             else
                             {
-                                result.sl_price = lastHour4Sar.r_p18;
+                                result.sl_price = lastHour4Sar.r_p28;
                             }
                         }
                     }
@@ -668,11 +668,11 @@ namespace Algoserver.API.Services
                 {
                     if (trendDirection > 0)
                     {
-                        sl_price = lastHour4Sar.s_m18;
+                        sl_price = lastHour4Sar.s_m28;
                     }
                     if (trendDirection < 0)
                     {
-                        sl_price = lastHour4Sar.r_p18;
+                        sl_price = lastHour4Sar.r_p28;
                     }
                 }
             }
