@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Algoserver.API.Helpers;
 using Algoserver.API.Models.REST;
 using Algoserver.API.Services.CacheServices;
@@ -57,7 +59,7 @@ namespace Algoserver.API.Services
             {
                 return false;
             }
-            
+
             if (mesaResponse.TimeframePhase.TryGetValue(TimeframeHelper.HOUR4_GRANULARITY, out var h4Phase))
             {
                 if (h4Phase != PhaseState.Drive)
@@ -184,7 +186,7 @@ namespace Algoserver.API.Services
                 {
                     return 2; // Auto trading allowed
                 }
-                
+
                 return 1; // HITL allowed
             }
 
@@ -199,6 +201,24 @@ namespace Algoserver.API.Services
                 {
                     return driveCapitulationStrategyState;
                 }
+
+                var initialSymbols = new List<string>() {
+                    "EUR_CHF",
+                    "EUR_NZD",
+                    "USD_CHF",
+                    "EUR_CAD"
+                };
+
+                if (initialSymbols.Any((_) => string.Equals(_, symbol, StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    var presetState = new DriveCapitulationStrategyState 
+                    {
+                        State = 2
+                    };
+                    setState(symbol, presetState, cacheService);
+                    return presetState;
+                }
+
                 return new DriveCapitulationStrategyState();
             }
             catch (Exception ex)
