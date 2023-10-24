@@ -46,7 +46,7 @@ namespace Algoserver.API.Services
         public static bool IsAutoTradeModeEnabled(AutoTradingSymbolInfoResponse symbolInfo, MESADataSummary mesaResponse, string symbol, ICacheService cacheService)
         {
             var state = getState(symbol, cacheService);
-            if (symbolInfo.CurrentPhase == PhaseState.Drive && IsEnoughStrength(symbolInfo, 20))
+            if (symbolInfo.CurrentPhase == PhaseState.Drive && (IsEnoughStrength(symbolInfo, 20, 20) || IsEnoughStrength(symbolInfo, 15, 25)))
             {
                 if (state.State != 2)
                 {
@@ -91,7 +91,7 @@ namespace Algoserver.API.Services
             return false;
         }
 
-        public static bool IsEnoughStrength(AutoTradingSymbolInfoResponse symbolInfo, decimal value)
+        public static bool IsEnoughStrength(AutoTradingSymbolInfoResponse symbolInfo, decimal lowStrength, decimal highStrength)
         {
             var shortGroupStrength = symbolInfo.ShortGroupStrength * 100;
             var midGroupStrength = symbolInfo.MidGroupStrength * 100;
@@ -100,7 +100,7 @@ namespace Algoserver.API.Services
             if (symbolInfo.TrendDirection == 1)
             {
                 // Uptrend
-                if (longGroupStrength < value || midGroupStrength < value || shortGroupStrength < value)
+                if (longGroupStrength < highStrength || midGroupStrength < highStrength || shortGroupStrength < lowStrength)
                 {
                     return false;
                 }
@@ -108,7 +108,7 @@ namespace Algoserver.API.Services
             else if (symbolInfo.TrendDirection == -1)
             {
                 // Downtrend
-                if (longGroupStrength > value * -1 || midGroupStrength > value * -1 || shortGroupStrength > value * -1)
+                if (longGroupStrength > highStrength * -1 || midGroupStrength > highStrength * -1 || shortGroupStrength > lowStrength * -1)
                 {
                     return false;
                 }
@@ -180,14 +180,17 @@ namespace Algoserver.API.Services
             }
 
             // Validating support/resistance and min strength across all phases
-            if (!IsInOverheatZone(symbolInfo) && IsEnoughStrength(symbolInfo, 10))
+            if (!IsInOverheatZone(symbolInfo))
             {
-                if (IsAutoTradeModeEnabled(symbolInfo, mesaResponse, symbol, cacheService))
+                if ((IsEnoughStrength(symbolInfo, 10, 10) || IsEnoughStrength(symbolInfo, 5, 20)) && IsAutoTradeModeEnabled(symbolInfo, mesaResponse, symbol, cacheService))
                 {
                     return 2; // Auto trading allowed
                 }
 
-                return 1; // HITL allowed
+                if (IsEnoughStrength(symbolInfo, 10, 10) || IsEnoughStrength(symbolInfo, 5, 15))
+                {
+                    return 1; // HITL allowed
+                }
             }
 
             return 0; // Nothing
@@ -202,22 +205,22 @@ namespace Algoserver.API.Services
                     return driveCapitulationStrategyState;
                 }
 
-                var initialSymbols = new List<string>() {
-                    "EUR_CHF",
-                    "EUR_NZD",
-                    "USD_CHF",
-                    "EUR_CAD"
-                };
+                // var initialSymbols = new List<string>() {
+                //     "EUR_CHF",
+                //     "EUR_NZD",
+                //     "USD_CHF",
+                //     "EUR_CAD"
+                // };
 
-                if (initialSymbols.Any((_) => string.Equals(_, symbol, StringComparison.InvariantCultureIgnoreCase)))
-                {
-                    var presetState = new DriveCapitulationStrategyState 
-                    {
-                        State = 2
-                    };
-                    setState(symbol, presetState, cacheService);
-                    return presetState;
-                }
+                // if (initialSymbols.Any((_) => string.Equals(_, symbol, StringComparison.InvariantCultureIgnoreCase)))
+                // {
+                //     var presetState = new DriveCapitulationStrategyState 
+                //     {
+                //         State = 2
+                //     };
+                //     setState(symbol, presetState, cacheService);
+                //     return presetState;
+                // }
 
                 return new DriveCapitulationStrategyState();
             }
