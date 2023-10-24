@@ -52,7 +52,7 @@ namespace Algoserver.API.Services
                 {
                     setState(symbol, new DriveCapitulationStrategyState { State = 2 }, cacheService);
                 }
-                return true;
+                // return true;
             }
 
             if (state.State != 2)
