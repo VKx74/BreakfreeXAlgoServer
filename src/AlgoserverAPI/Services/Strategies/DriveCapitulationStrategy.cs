@@ -205,22 +205,22 @@ namespace Algoserver.API.Services
                     return driveCapitulationStrategyState;
                 }
 
-                var initialSymbols = new List<string>() {
-                    "EUR_CHF",
-                    "EUR_NZD",
-                    "USD_CHF",
-                    "EUR_CAD"
-                };
+                // var initialSymbols = new List<string>() {
+                //     "EUR_CHF",
+                //     "EUR_NZD",
+                //     "USD_CHF",
+                //     "EUR_CAD"
+                // };
 
-                if (initialSymbols.Any((_) => string.Equals(_, symbol, StringComparison.InvariantCultureIgnoreCase)))
-                {
-                    var presetState = new DriveCapitulationStrategyState 
-                    {
-                        State = 2
-                    };
-                    setState(symbol, presetState, cacheService);
-                    return presetState;
-                }
+                // if (initialSymbols.Any((_) => string.Equals(_, symbol, StringComparison.InvariantCultureIgnoreCase)))
+                // {
+                //     var presetState = new DriveCapitulationStrategyState 
+                //     {
+                //         State = 2
+                //     };
+                //     setState(symbol, presetState, cacheService);
+                //     return presetState;
+                // }
 
                 return new DriveCapitulationStrategyState();
             }
