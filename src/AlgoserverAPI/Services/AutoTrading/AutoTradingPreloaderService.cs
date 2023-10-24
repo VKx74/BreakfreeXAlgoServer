@@ -220,7 +220,11 @@ namespace Algoserver.API.Services.CacheServices
                 }
             }
 
-            symbols = symbols.Take(maxAmount).ToDictionary((_) => _.Key, (_) => _.Value);
+            if (maxAmount != int.MaxValue)
+            {
+                var filteredSymbols = symbols.Where((_) => !disabledMarkets.Any((disabledMarket) => string.Equals(getNormalizedInstrument(_.Key), getNormalizedInstrument(disabledMarket), StringComparison.InvariantCultureIgnoreCase)));
+                symbols = filteredSymbols.Take(maxAmount).ToDictionary((_) => _.Key, (_) => _.Value);
+            }
 
             var totalCount = 0m;
             foreach (var symbol in symbols)
