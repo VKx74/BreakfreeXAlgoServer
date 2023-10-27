@@ -125,7 +125,8 @@ namespace Algoserver.API.Services
         {
             if (mesaResponse.Volatility.TryGetValue(granularity, out var volatility))
             {
-                return volatility > 0;
+                var relativeVolatility = volatility - 100f;
+                return relativeVolatility > 0;
             }
 
             return true;
