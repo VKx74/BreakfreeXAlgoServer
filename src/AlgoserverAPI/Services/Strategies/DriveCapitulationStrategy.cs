@@ -204,7 +204,7 @@ namespace Algoserver.API.Services
 
                 if (IsEnoughStrength(symbolInfo, 10, 10) || IsEnoughStrength(symbolInfo, 5, 15))
                 {
-                    if (IsTooMatchVolatility(mesaResponse, TimeframeHelper.DAILY_GRANULARITY))
+                    if (IsTooMatchVolatility(mesaResponse, TimeframeHelper.HOURLY_GRANULARITY))
                     {
                         return 0; // Nothing
                     }
