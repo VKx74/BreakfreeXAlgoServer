@@ -60,11 +60,28 @@ namespace Algoserver.API.Services
                 return false;
             }
 
+            if (symbolInfo.MidGroupPhase == PhaseState.CD)
+            {
+                return false;
+            }
+
             if (mesaResponse.TimeframePhase.TryGetValue(TimeframeHelper.MIN15_GRANULARITY, out var m15Phase))
             {
-                if (m15Phase != PhaseState.Drive)
+                if (m15Phase == PhaseState.Drive)
                 {
-                    return false;
+                    return true;
+                }
+            }
+            else
+            {
+                return false;
+            } 
+            
+            if (mesaResponse.TimeframePhase.TryGetValue(TimeframeHelper.MIN5_GRANULARITY, out var m5Phase))
+            {
+                if (m5Phase == PhaseState.Drive)
+                {
+                    return true;
                 }
             }
             else
@@ -72,19 +89,18 @@ namespace Algoserver.API.Services
                 return false;
             }
 
-            if (symbolInfo.MidGroupPhase != PhaseState.Drive)
-            {
-                return false;
-            }
-
-            return true;
+            return false;
         }
 
         public static bool IsAutoTradeCapitulationConfirmed(AutoTradingSymbolInfoResponse symbolInfo, string symbol, ICacheService cacheService)
         {
-            if (symbolInfo.MidGroupPhase == PhaseState.CD && symbolInfo.LongGroupPhase != PhaseState.Drive)
+            if (symbolInfo.MidGroupPhase == PhaseState.CD)
             {
                 setState(symbol, new DriveCapitulationStrategyState { State = 1 }, cacheService);
+            } 
+            
+            if (symbolInfo.MidGroupPhase == PhaseState.CD && symbolInfo.LongGroupPhase != PhaseState.Drive)
+            {
                 return true;
             }
 
