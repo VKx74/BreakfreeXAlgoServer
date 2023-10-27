@@ -46,7 +46,7 @@ namespace Algoserver.API.Services
         public static bool IsAutoTradeModeEnabled(AutoTradingSymbolInfoResponse symbolInfo, MESADataSummary mesaResponse, string symbol, ICacheService cacheService)
         {
             var state = getState(symbol, cacheService);
-            if (symbolInfo.CurrentPhase == PhaseState.Drive && (IsEnoughStrength(symbolInfo, 20, 20) || IsEnoughStrength(symbolInfo, 15, 25) || IsEnoughStrength(symbolInfo, 25, 15)))
+            if (symbolInfo.CurrentPhase == PhaseState.Drive && (IsEnoughStrength(symbolInfo, 10, 20) || IsEnoughStrength(symbolInfo, 5, 25) || IsEnoughStrength(symbolInfo, 30, 10)))
             {
                 if (state.State != 2)
                 {
@@ -60,33 +60,29 @@ namespace Algoserver.API.Services
                 return false;
             }
 
-            if (symbolInfo.MidGroupPhase == PhaseState.CD)
+            if (symbolInfo.MidGroupPhase != PhaseState.Drive)
             {
                 return false;
             }
 
-            if (mesaResponse.TimeframePhase.TryGetValue(TimeframeHelper.MIN15_GRANULARITY, out var m15Phase))
-            {
-                if (m15Phase == PhaseState.Drive)
-                {
-                    return true;
-                }
-            }
-            else
+            if (!mesaResponse.TimeframePhase.TryGetValue(TimeframeHelper.MIN15_GRANULARITY, out var m15Phase))
             {
                 return false;
             } 
             
-            if (mesaResponse.TimeframePhase.TryGetValue(TimeframeHelper.MIN5_GRANULARITY, out var m5Phase))
-            {
-                if (m5Phase == PhaseState.Drive)
-                {
-                    return true;
-                }
-            }
-            else
+            if (!mesaResponse.TimeframePhase.TryGetValue(TimeframeHelper.MIN5_GRANULARITY, out var m5Phase))
             {
                 return false;
+            }
+
+            if (m5Phase == PhaseState.CD)
+            {
+                return false;
+            }
+            
+            if (m5Phase == PhaseState.Drive || m15Phase == PhaseState.Drive)
+            {
+                return true;
             }
 
             return false;
@@ -125,6 +121,35 @@ namespace Algoserver.API.Services
             {
                 // Downtrend
                 if (longGroupStrength > highStrength * -1 || midGroupStrength > highStrength * -1 || shortGroupStrength > lowStrength * -1)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+
+            return true;
+        } 
+        
+        public static bool IsEnoughStrength(AutoTradingSymbolInfoResponse symbolInfo, decimal highStrength)
+        {
+            var midGroupStrength = symbolInfo.MidGroupStrength * 100;
+            var longGroupStrength = symbolInfo.LongGroupStrength * 100;
+
+            if (symbolInfo.TrendDirection == 1)
+            {
+                // Uptrend
+                if (longGroupStrength < highStrength || midGroupStrength < highStrength)
+                {
+                    return false;
+                }
+            }
+            else if (symbolInfo.TrendDirection == -1)
+            {
+                // Downtrend
+                if (longGroupStrength > highStrength * -1 || midGroupStrength > highStrength * -1)
                 {
                     return false;
                 }
@@ -209,13 +234,12 @@ namespace Algoserver.API.Services
             // Validating support/resistance and min strength across all phases
             if (!IsInOverheatZone(symbolInfo))
             {
-                if ((IsEnoughStrength(symbolInfo, 10, 10) || IsEnoughStrength(symbolInfo, 5, 15)) && IsAutoTradeModeEnabled(symbolInfo, mesaResponse, symbol, cacheService))
+                if (IsEnoughStrength(symbolInfo, 15) && IsAutoTradeModeEnabled(symbolInfo, mesaResponse, symbol, cacheService))
                 {
                     if (IsTooMatchVolatility(mesaResponse, TimeframeHelper.MIN15_GRANULARITY))
                     {
                         return 1; // HITL allowed
                     }
-                    return 2; // Auto trading allowed
                 }
 
                 if (IsEnoughStrength(symbolInfo, 10, 10) || IsEnoughStrength(symbolInfo, 5, 15))
