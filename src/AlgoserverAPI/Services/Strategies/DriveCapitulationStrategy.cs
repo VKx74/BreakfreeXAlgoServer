@@ -46,7 +46,7 @@ namespace Algoserver.API.Services
         public static bool IsAutoTradeModeEnabled(AutoTradingSymbolInfoResponse symbolInfo, MESADataSummary mesaResponse, string symbol, ICacheService cacheService)
         {
             var state = getState(symbol, cacheService);
-            if (symbolInfo.CurrentPhase == PhaseState.Drive && (IsEnoughStrength(symbolInfo, 20, 20) || IsEnoughStrength(symbolInfo, 15, 25)))
+            if (symbolInfo.CurrentPhase == PhaseState.Drive && (IsEnoughStrength(symbolInfo, 20, 20) || IsEnoughStrength(symbolInfo, 15, 25) || IsEnoughStrength(symbolInfo, 25, 15)))
             {
                 if (state.State != 2)
                 {
@@ -60,9 +60,9 @@ namespace Algoserver.API.Services
                 return false;
             }
 
-            if (mesaResponse.TimeframePhase.TryGetValue(TimeframeHelper.HOUR4_GRANULARITY, out var h4Phase))
+            if (mesaResponse.TimeframePhase.TryGetValue(TimeframeHelper.MIN15_GRANULARITY, out var m15Phase))
             {
-                if (h4Phase != PhaseState.Drive)
+                if (m15Phase != PhaseState.Drive)
                 {
                     return false;
                 }
@@ -82,7 +82,7 @@ namespace Algoserver.API.Services
 
         public static bool IsAutoTradeCapitulationConfirmed(AutoTradingSymbolInfoResponse symbolInfo, string symbol, ICacheService cacheService)
         {
-            if (symbolInfo.MidGroupPhase == PhaseState.CD)
+            if (symbolInfo.MidGroupPhase == PhaseState.CD && symbolInfo.LongGroupPhase != PhaseState.Drive)
             {
                 setState(symbol, new DriveCapitulationStrategyState { State = 1 }, cacheService);
                 return true;
@@ -116,6 +116,16 @@ namespace Algoserver.API.Services
             else
             {
                 return false;
+            }
+
+            return true;
+        } 
+        
+        public static bool IsTooMatchVolatility(MESADataSummary mesaResponse, int granularity)
+        {
+            if (mesaResponse.Volatility.TryGetValue(granularity, out var volatility))
+            {
+                return volatility > 0;
             }
 
             return true;
@@ -182,13 +192,21 @@ namespace Algoserver.API.Services
             // Validating support/resistance and min strength across all phases
             if (!IsInOverheatZone(symbolInfo))
             {
-                if ((IsEnoughStrength(symbolInfo, 10, 10) || IsEnoughStrength(symbolInfo, 5, 20)) && IsAutoTradeModeEnabled(symbolInfo, mesaResponse, symbol, cacheService))
+                if ((IsEnoughStrength(symbolInfo, 10, 10) || IsEnoughStrength(symbolInfo, 5, 15)) && IsAutoTradeModeEnabled(symbolInfo, mesaResponse, symbol, cacheService))
                 {
+                    if (IsTooMatchVolatility(mesaResponse, TimeframeHelper.MIN15_GRANULARITY))
+                    {
+                        return 1; // HITL allowed
+                    }
                     return 2; // Auto trading allowed
                 }
 
                 if (IsEnoughStrength(symbolInfo, 10, 10) || IsEnoughStrength(symbolInfo, 5, 15))
                 {
+                    if (IsTooMatchVolatility(mesaResponse, TimeframeHelper.DAILY_GRANULARITY))
+                    {
+                        return 0; // Nothing
+                    }
                     return 1; // HITL allowed
                 }
             }
