@@ -85,6 +85,10 @@ namespace Algoserver.API.Services
             if (symbolInfo.MidGroupPhase == PhaseState.CD)
             {
                 setState(symbol, new DriveCapitulationStrategyState { State = 1 }, cacheService);
+            }
+
+            if (symbolInfo.MidGroupPhase == PhaseState.CD && symbolInfo.LongGroupPhase != PhaseState.Drive)
+            {
                 return true;
             }
 
