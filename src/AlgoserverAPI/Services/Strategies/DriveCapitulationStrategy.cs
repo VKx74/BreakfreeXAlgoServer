@@ -265,21 +265,21 @@ namespace Algoserver.API.Services
                 }
 
 
-                var initialSymbols = new List<string>() {
-                    "GBP_USD",
-                    "EUR_USD",
-                    "USD_CAD"
-                };
+                // var initialSymbols = new List<string>() {
+                //     "GBP_USD",
+                //     "EUR_USD",
+                //     "USD_CAD"
+                // };
 
-                if (initialSymbols.Any((_) => string.Equals(_, symbol, StringComparison.InvariantCultureIgnoreCase)))
-                {
-                    var presetState = new DriveCapitulationStrategyState
-                    {
-                        State = 2
-                    };
-                    setState(symbol, presetState, cacheService);
-                    return presetState;
-                }
+                // if (initialSymbols.Any((_) => string.Equals(_, symbol, StringComparison.InvariantCultureIgnoreCase)))
+                // {
+                //     var presetState = new DriveCapitulationStrategyState
+                //     {
+                //         State = 2
+                //     };
+                //     setState(symbol, presetState, cacheService);
+                //     return presetState;
+                // }
 
                 return new DriveCapitulationStrategyState();
             }
