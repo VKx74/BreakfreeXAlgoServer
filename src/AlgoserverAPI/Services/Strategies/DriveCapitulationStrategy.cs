@@ -68,8 +68,8 @@ namespace Algoserver.API.Services
             if (!mesaResponse.TimeframePhase.TryGetValue(TimeframeHelper.MIN15_GRANULARITY, out var m15Phase))
             {
                 return false;
-            } 
-            
+            }
+
             if (!mesaResponse.TimeframePhase.TryGetValue(TimeframeHelper.MIN5_GRANULARITY, out var m5Phase))
             {
                 return false;
@@ -79,7 +79,7 @@ namespace Algoserver.API.Services
             {
                 return false;
             }
-            
+
             if (m5Phase == PhaseState.Drive || m15Phase == PhaseState.Drive)
             {
                 return true;
@@ -93,8 +93,8 @@ namespace Algoserver.API.Services
             if (symbolInfo.MidGroupPhase == PhaseState.CD)
             {
                 setState(symbol, new DriveCapitulationStrategyState { State = 1 }, cacheService);
-            } 
-            
+            }
+
             if (symbolInfo.MidGroupPhase == PhaseState.CD && symbolInfo.LongGroupPhase != PhaseState.Drive)
             {
                 return true;
@@ -131,8 +131,8 @@ namespace Algoserver.API.Services
             }
 
             return true;
-        } 
-        
+        }
+
         public static bool IsEnoughStrength(AutoTradingSymbolInfoResponse symbolInfo, decimal highStrength)
         {
             var midGroupStrength = symbolInfo.MidGroupStrength * 100;
@@ -160,8 +160,8 @@ namespace Algoserver.API.Services
             }
 
             return true;
-        } 
-        
+        }
+
         public static bool IsTooMatchVolatility(MESADataSummary mesaResponse, int granularity)
         {
             if (mesaResponse.Volatility.TryGetValue(granularity, out var volatility))
@@ -264,22 +264,22 @@ namespace Algoserver.API.Services
                     return driveCapitulationStrategyState;
                 }
 
-                // var initialSymbols = new List<string>() {
-                //     "EUR_CHF",
-                //     "EUR_NZD",
-                //     "USD_CHF",
-                //     "EUR_CAD"
-                // };
 
-                // if (initialSymbols.Any((_) => string.Equals(_, symbol, StringComparison.InvariantCultureIgnoreCase)))
-                // {
-                //     var presetState = new DriveCapitulationStrategyState 
-                //     {
-                //         State = 2
-                //     };
-                //     setState(symbol, presetState, cacheService);
-                //     return presetState;
-                // }
+                var initialSymbols = new List<string>() {
+                    "GBP_USD",
+                    "EUR_USD",
+                    "USD_CAD"
+                };
+
+                if (initialSymbols.Any((_) => string.Equals(_, symbol, StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    var presetState = new DriveCapitulationStrategyState
+                    {
+                        State = 2
+                    };
+                    setState(symbol, presetState, cacheService);
+                    return presetState;
+                }
 
                 return new DriveCapitulationStrategyState();
             }
