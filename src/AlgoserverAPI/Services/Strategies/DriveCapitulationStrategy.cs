@@ -209,22 +209,22 @@ namespace Algoserver.API.Services
                     return driveCapitulationStrategyState;
                 }
 
-                var initialSymbols = new List<string>() {
-                    "GBP_USD",
-                    "EUR_USD",
-                    "USD_CAD",
-                    "EUR_CAD"
-                };
+                // var initialSymbols = new List<string>() {
+                //     "GBP_USD",
+                //     "EUR_USD",
+                //     "USD_CAD",
+                //     "EUR_CAD"
+                // };
 
-                if (initialSymbols.Any((_) => string.Equals(_, symbol, StringComparison.InvariantCultureIgnoreCase)))
-                {
-                    var presetState = new DriveCapitulationStrategyState 
-                    {
-                        State = 2
-                    };
-                    setState(symbol, presetState, cacheService);
-                    return presetState;
-                }
+                // if (initialSymbols.Any((_) => string.Equals(_, symbol, StringComparison.InvariantCultureIgnoreCase)))
+                // {
+                //     var presetState = new DriveCapitulationStrategyState 
+                //     {
+                //         State = 2
+                //     };
+                //     setState(symbol, presetState, cacheService);
+                //     return presetState;
+                // }
 
                 return new DriveCapitulationStrategyState();
             }
