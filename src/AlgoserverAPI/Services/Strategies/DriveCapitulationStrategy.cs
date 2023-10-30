@@ -46,7 +46,7 @@ namespace Algoserver.API.Services
         public static bool IsAutoTradeModeEnabled(AutoTradingSymbolInfoResponse symbolInfo, MESADataSummary mesaResponse, string symbol, ICacheService cacheService)
         {
             var state = getState(symbol, cacheService);
-            if (symbolInfo.CurrentPhase == PhaseState.Drive && (IsEnoughStrength(symbolInfo, 20, 20) || IsEnoughStrength(symbolInfo, 15, 25)))
+            if (symbolInfo.CurrentPhase == PhaseState.Drive && (IsEnoughStrength(symbolInfo, 10, 20) || IsEnoughStrength(symbolInfo, 5, 25) || IsEnoughStrength(symbolInfo, 30, 10)))
             {
                 if (state.State != 2)
                 {
@@ -186,7 +186,7 @@ namespace Algoserver.API.Services
             // Validating support/resistance and min strength across all phases
             if (!IsInOverheatZone(symbolInfo))
             {
-                if ((IsEnoughStrength(symbolInfo, 10, 10) || IsEnoughStrength(symbolInfo, 5, 20)) && IsAutoTradeModeEnabled(symbolInfo, mesaResponse, symbol, cacheService))
+                if ((IsEnoughStrength(symbolInfo, 10, 10) || IsEnoughStrength(symbolInfo, 5, 15)) && IsAutoTradeModeEnabled(symbolInfo, mesaResponse, symbol, cacheService))
                 {
                     return 2; // Auto trading allowed
                 }
