@@ -240,6 +240,8 @@ namespace Algoserver.API.Services
                     {
                         return 1; // HITL allowed
                     }
+
+                    return 2; // Auto allowed
                 }
 
                 if (IsEnoughStrength(symbolInfo, 10, 10) || IsEnoughStrength(symbolInfo, 5, 15))
