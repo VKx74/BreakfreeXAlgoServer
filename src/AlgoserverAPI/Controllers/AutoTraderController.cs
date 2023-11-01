@@ -510,6 +510,8 @@ namespace Algoserver.API.Controllers
                 result = await GetAutoTradeInstrumentsAsyncV1(request.Account);
             }
 
+            Console.WriteLine($">>> #{request.Account}, balance: {request.Balance}, pnl: {request.PNL}, currency: {request.Currency}, mode: {request.Mode}, logs: {request.Logs}, errors: {request.Errors}");
+
             return Ok(result);
         }
 
