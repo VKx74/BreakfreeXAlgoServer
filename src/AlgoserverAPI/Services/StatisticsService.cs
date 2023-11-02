@@ -61,7 +61,11 @@ namespace Algoserver.API.Services
         {
             try
             {
-                _balances.Add(acct);
+                lock (_balances)
+                {
+                    _balances.RemoveAll((_) => _.Account == acct.Account);
+                    _balances.Add(acct);
+                }
             }
             catch (Exception ex)
             {
