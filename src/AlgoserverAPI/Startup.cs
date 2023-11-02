@@ -113,10 +113,14 @@ namespace Algoserver.API
             services.AddSingleton<AutoTradingRateLimitsService>();
             services.AddSingleton<AutoTradingUserInfoService>();
 
+            // Initialize DB context
+            services.AddDbContext(Program.Configuration);
+
             if (scanInstruments)
             {
                 // services.AddHostedService<StockHistoryLoaderHostedService>();
                 // services.AddHostedService<CryptoHistoryLoaderHostedService>();
+                services.InitializeDbContext();
                 services.AddHostedService<ForexHistoryLoaderHostedService>();
                 services.AddHostedService<EconomicCalendarLoaderHostedService>();
                 services.AddHostedService<AutoTradingAccountsLoaderHostedService>();
@@ -143,8 +147,6 @@ namespace Algoserver.API
                 });
             });
 
-            // Initialize DB context
-            services.AddDbContext(Program.Configuration);
             services.AddOptions();
 
             services.AddSwaggerGen(options =>

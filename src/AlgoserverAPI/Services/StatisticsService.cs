@@ -11,38 +11,111 @@ namespace Algoserver.API.Services
 {
     public class StatisticsService
     {
-        private readonly List<Statistic> _statisticsCache;
+        private readonly List<NALogs> _logs;
+        private readonly List<NAAccountBalances> _balances;
         private readonly ILogger<StatisticsService> _logger;
         private readonly StatisticsRepository _repo = new StatisticsRepository();
-        private readonly Timer _dbBatchTimer = new Timer(1000 * 10);
 
         public StatisticsService(ILogger<StatisticsService> logger)
         {
             _logger = logger;
-            _statisticsCache = new List<Statistic>();
-            _dbBatchTimer.Elapsed += async (sender, e) => await DbSaveAndClearCacheAsync();
-            _dbBatchTimer.Start();
+            _balances = new List<NAAccountBalances>();
+            _logs = new List<NALogs>();
+
+            var _logsBatchTimer = new Timer(TimeSpan.FromMinutes(1).TotalMilliseconds);
+            _logsBatchTimer.Elapsed += async (sender, e) => await SaveLogsAndClearCacheAsync();
+            _logsBatchTimer.Start();
+
+            var random = new Random();
+            var randomInterval = random.Next(0, 60) + 60;
+            var _accountsBatchTimer = new Timer(TimeSpan.FromMinutes(randomInterval).TotalMilliseconds);
+            _accountsBatchTimer.Elapsed += async (sender, e) => await SaveAccountsAndClearCacheAsync();
+            _accountsBatchTimer.Start();
         }
 
-        public void AddToCache(Statistic item)
-        {
-            _statisticsCache.Add(item);
-        }
-
-        private async Task DbSaveAndClearCacheAsync()
+        public void AddLogToCache(NALogs log)
         {
             try
             {
-                if (_statisticsCache.Any())
+                _logs.Add(log);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error during add NA Logs to cache. {ex.Message}");
+            }
+        } 
+        
+        public void AddLogsToCache(IEnumerable<NALogs> logs)
+        {
+            try
+            {
+                _logs.AddRange(logs);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error during add NA Logs to cache. {ex.Message}");
+            }
+        }
+
+        public void AddAccountToCache(NAAccountBalances acct)
+        {
+            try
+            {
+                _balances.Add(acct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error during add NA Balances to cache. {ex.Message}");
+            }
+        }
+
+        private async Task SaveLogsAndClearCacheAsync()
+        {
+            try
+            {
+                if (_logs.Any())
                 {
-                    var buffer = _statisticsCache.ToArray();
-                    _statisticsCache.Clear();
-                    await _repo.AddRangeAsync(buffer);
+                    var buffer = _logs.ToArray();
+                    _logs.Clear();
+                    await _repo.AddNALogs(buffer);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error during save statistics to db. {ex.Message}");
+                _logger.LogError($"Error during save NA Logs to db. {ex.Message}");
+            }
+        }
+
+        private async Task SaveAccountsAndClearCacheAsync()
+        {
+            try
+            {
+                if (!_balances.Any())
+                {
+                    return;
+                }
+
+                var lastAccount = await _repo.GetLastAccountSaved();
+
+                var buffer = _balances.ToArray();
+                _balances.Clear();
+
+                if (lastAccount == null)
+                {
+                    await _repo.AddNAAccountBalances(buffer);
+                } 
+                else
+                {
+                    var diff = DateTime.UtcNow - lastAccount.Date;
+                    if (diff.TotalHours > 12)
+                    {
+                        await _repo.AddNAAccountBalances(buffer);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error during save NA Accounts to db. {ex.Message}");
             }
         }
     }

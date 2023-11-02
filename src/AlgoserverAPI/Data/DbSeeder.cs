@@ -7,14 +7,15 @@ namespace Algoserver.API.Data
 {
     public static class DbSeeder
     {
-        public static void InitializeDbContext(IServiceProvider serviceProvider)
+        public static void InitializeDbContext(this IServiceCollection services)
         {
-            // var options = serviceProvider.GetRequiredService<DbContextOptions<AppDbContext>>();
-            // using (var context = new AppDbContext(options))
-            // {
-            //     context.Database.Migrate();
-            //     context.AddTriggers();
-            // }
+            var serviceProvider = services.BuildServiceProvider();
+            var options = serviceProvider.GetRequiredService<DbContextOptions<AppDbContext>>();
+            using (var context = new AppDbContext(options))
+            {
+                context.Database.Migrate();
+                context.AddTriggers();
+            }
         }
 
         public static void AddDbContext(this IServiceCollection services, IConfigurationRoot configuration)
@@ -23,7 +24,6 @@ namespace Algoserver.API.Data
             {
                 options.UseMySql(configuration.GetConnectionString("DefaultConnection"));
             });
-            InitializeDbContext(services.BuildServiceProvider());
         }
     }
 }
