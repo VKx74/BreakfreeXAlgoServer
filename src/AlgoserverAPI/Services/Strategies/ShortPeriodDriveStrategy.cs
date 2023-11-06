@@ -21,12 +21,12 @@ namespace Algoserver.API.Services
                 return false;
             }
 
-            if (IsEnoughStrength(symbolInfo, 20))
+            if (!IsEnoughStrength(symbolInfo, 20))
             {
                 return false;
             }
 
-            if (symbolInfo.MidGroupPhase != PhaseState.Drive || symbolInfo.LongGroupPhase != PhaseState.Drive)
+            if (symbolInfo.MidGroupPhase != PhaseState.Drive)
             {
                 return false;
             }
@@ -66,7 +66,7 @@ namespace Algoserver.API.Services
                 return false;
             }
 
-            if (IsEnoughStrength(symbolInfo, 10))
+            if (!IsEnoughStrength(symbolInfo, 10))
             {
                 return false;
             }
