@@ -28,6 +28,12 @@ namespace Algoserver.API.Helpers
             return (long)timeSpan.TotalSeconds;
         }
 
+        public static long GetUnixTime(DateTime time)
+        {
+            var timeSpan = (time - new DateTime(1970, 1, 1, 0, 0, 0));
+            return (long)timeSpan.TotalSeconds;
+        }
+
         public static DateTime UnixTimeStampToDateTime(long unixTimeStamp)
         {
             DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);

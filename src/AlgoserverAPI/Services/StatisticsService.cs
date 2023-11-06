@@ -4,11 +4,27 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
 using Algoserver.API.Data.Repositories;
+using Algoserver.API.Helpers;
 using Algoserver.API.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Algoserver.API.Services
 {
+    [Serializable]
+    public class NALog
+    {
+        public string Data { get; set; }
+        public int Type { get; set; }
+        public long Date { get; set; }
+    }
+
+    [Serializable]
+    public class NALogResponse
+    {
+        public List<NALog> Logs { get; set; }
+        public long LastOnlineDate { get; set; }
+    }
+
     public class StatisticsService
     {
         private readonly List<NALogs> _logs;
@@ -43,8 +59,8 @@ namespace Algoserver.API.Services
             {
                 _logger.LogError($"Error during add NA Logs to cache. {ex.Message}");
             }
-        } 
-        
+        }
+
         public void AddLogsToCache(IEnumerable<NALogs> logs)
         {
             try
@@ -55,6 +71,33 @@ namespace Algoserver.API.Services
             {
                 _logger.LogError($"Error during add NA Logs to cache. {ex.Message}");
             }
+        }
+
+        public async Task<NALogResponse> GetLogs(string account)
+        {
+            try
+            {
+                var result = await _repo.GetNALogs(account);
+                result = result.OrderByDescending((_) => _.Date).ToList();
+                var lastOnlineDateRecord = result.FirstOrDefault((_) => _.Type == 3);
+                var logsAndErrors = result.Where((_) => _.Type != 3).Take(100).Select((_) => new NALog {
+                    Type = _.Type,
+                    Data = _.Data,
+                    Date = AlgoHelper.GetUnixTime(_.Date)
+                }).ToList();
+
+                return new NALogResponse
+                {
+                    Logs = logsAndErrors,
+                    LastOnlineDate = lastOnlineDateRecord != null ? AlgoHelper.GetUnixTime(lastOnlineDateRecord.Date) : 0
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error during getting NA logs. {ex.Message}");
+            }
+
+            return new NALogResponse();
         }
 
         public void AddAccountToCache(NAAccountBalances acct)
@@ -107,7 +150,7 @@ namespace Algoserver.API.Services
                 if (lastAccount == null)
                 {
                     await _repo.AddNAAccountBalances(buffer);
-                } 
+                }
                 else
                 {
                     var diff = DateTime.UtcNow - lastAccount.Date;

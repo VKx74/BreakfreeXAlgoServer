@@ -648,6 +648,37 @@ namespace Algoserver.API.Controllers
             return Ok(result);
         }
 
+        [Authorize]
+        [HttpGet("runtime/logs")]
+        public async Task<IActionResult> GetRuntimeLogsAsync([FromQuery] string account)
+        {
+            AutoTraderStatisticService.AddRequest("[GET]runtime/logs/" + account);
+
+            if (String.IsNullOrEmpty(account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            AutoTraderStatisticService.AddAccount(account);
+
+            if (!_autoTradingRateLimitsService.Validate(account))
+            {
+                AutoTraderStatisticService.AddError("429");
+                return StatusCode(429);
+            }
+
+            if (!_autoTradingAccountsService.Validate(account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            var result = await _statisticsService.GetLogs(account);
+
+            return await ToResponse(result, CancellationToken.None);
+        }
+
         [Obsolete]
         [NonAction]
         private async Task<string> GetAutoTradeInstrumentsAsyncV1(string account)
