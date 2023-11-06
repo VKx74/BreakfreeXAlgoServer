@@ -79,8 +79,8 @@ namespace Algoserver.API.Services
             {
                 var result = await _repo.GetNALogs(account);
                 result = result.OrderByDescending((_) => _.Date).ToList();
-                var lastOnlineDateRecord = result.FirstOrDefault((_) => _.Type == 3);
-                var logsAndErrors = result.Where((_) => _.Type != 3).Take(100).Select((_) => new NALog {
+                var lastOnlineDateRecord = result.FirstOrDefault((_) => _.Type == 2);
+                var logsAndErrors = result.Where((_) => _.Type != 2).Take(100).Select((_) => new NALog {
                     Type = _.Type,
                     Data = _.Data,
                     Date = AlgoHelper.GetUnixTime(_.Date)
