@@ -13,16 +13,16 @@ namespace Algoserver.API.Services
     [Serializable]
     public class NALog
     {
-        public string Data { get; set; }
-        public int Type { get; set; }
-        public long Date { get; set; }
+        public string data { get; set; }
+        public int type { get; set; }
+        public long date { get; set; }
     }
 
     [Serializable]
     public class NALogResponse
     {
-        public List<NALog> Logs { get; set; }
-        public long LastOnlineDate { get; set; }
+        public List<NALog> logs { get; set; }
+        public long lastOnlineDate { get; set; }
     }
 
     public class StatisticsService
@@ -81,15 +81,15 @@ namespace Algoserver.API.Services
                 result = result.OrderByDescending((_) => _.Date).ToList();
                 var lastOnlineDateRecord = result.FirstOrDefault((_) => _.Type == 2);
                 var logsAndErrors = result.Where((_) => _.Type != 2).Take(100).Select((_) => new NALog {
-                    Type = _.Type,
-                    Data = _.Data,
-                    Date = AlgoHelper.GetUnixTime(_.Date)
+                    type = _.Type,
+                    data = _.Data,
+                    date = AlgoHelper.GetUnixTime(_.Date)
                 }).ToList();
 
                 return new NALogResponse
                 {
-                    Logs = logsAndErrors,
-                    LastOnlineDate = lastOnlineDateRecord != null ? AlgoHelper.GetUnixTime(lastOnlineDateRecord.Date) : 0
+                    logs = logsAndErrors,
+                    lastOnlineDate = lastOnlineDateRecord != null ? AlgoHelper.GetUnixTime(lastOnlineDateRecord.Date) : 0
                 };
             }
             catch (Exception ex)
