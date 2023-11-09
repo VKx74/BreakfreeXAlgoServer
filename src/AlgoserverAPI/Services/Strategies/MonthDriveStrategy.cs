@@ -1,29 +1,13 @@
-using System;
 using Algoserver.API.Helpers;
 using Algoserver.API.Models.REST;
 
 namespace Algoserver.API.Services
 {
-    public static class ShortPeriodDriveStrategy
+    public static class MonthDriveStrategy
     {
         public static bool IsAutoTradeModeEnabled(AutoTradingSymbolInfoResponse symbolInfo, MESADataSummary mesaResponse)
         {
-            if (IsTooMatchVolatility(mesaResponse, TimeframeHelper.MIN15_GRANULARITY))
-            {
-                return false;
-            }
-
-            if (IsInOverheatZone(symbolInfo))
-            {
-                return false;
-            }
-
-            if (!IsEnoughStrength(symbolInfo, 20))
-            {
-                return false;
-            }
-
-            if (symbolInfo.MidGroupPhase != PhaseState.Drive)
+            if (IsTooMatchVolatility(mesaResponse) || IsAutoTradeCapitulationConfirmed(symbolInfo))
             {
                 return false;
             }
@@ -33,42 +17,60 @@ namespace Algoserver.API.Services
                 return false;
             }
 
-            if (!mesaResponse.TimeframePhase.TryGetValue(TimeframeHelper.MIN5_GRANULARITY, out var m5Phase))
+            if (!mesaResponse.TimeframePhase.TryGetValue(TimeframeHelper.MONTHLY_GRANULARITY, out var monthPhase))
             {
                 return false;
             }
 
-            if (m5Phase == PhaseState.CD)
+            if (m15Phase == PhaseState.CD)
             {
                 return false;
             }
 
-            if (m5Phase == PhaseState.Drive || m15Phase == PhaseState.Drive)
+            var minStrength = 15;
+
+            if (monthPhase == PhaseState.Drive && symbolInfo.MidGroupPhase == PhaseState.Drive && IsEnoughStrength(symbolInfo, minStrength))
+            {
+                return true;
+            }
+
+            if (IsInGoodZoneOn4H(symbolInfo) && IsEnoughStrength(symbolInfo, minStrength))
             {
                 return true;
             }
 
             return false;
-        } 
-        
+
+        }
+
         public static bool IsHITLModeEnabled(AutoTradingSymbolInfoResponse symbolInfo, MESADataSummary mesaResponse)
         {
-            if (IsTooMatchVolatility(mesaResponse, TimeframeHelper.HOURLY_GRANULARITY))
+            if (IsAutoTradeCapitulationConfirmed(symbolInfo))
             {
                 return false;
             }
 
-            if (IsInOverheatZone(symbolInfo))
+            if (symbolInfo.LongGroupPhase == PhaseState.Drive && symbolInfo.MidGroupPhase == PhaseState.Drive && IsEnoughStrength(symbolInfo, 10))
+            {
+                return true;
+            }
+
+            if (symbolInfo.ShortGroupPhase == PhaseState.Drive && symbolInfo.LongGroupPhase == PhaseState.Drive && symbolInfo.MidGroupPhase == PhaseState.Drive && IsEnoughStrength(symbolInfo, 8))
+            {
+                return true;
+            }
+
+            if (symbolInfo.CurrentPhase == PhaseState.Drive && IsEnoughStrength(symbolInfo, 10))
+            {
+                return true;
+            }
+
+            if (!mesaResponse.TimeframePhase.TryGetValue(TimeframeHelper.MONTHLY_GRANULARITY, out var monthPhase))
             {
                 return false;
             }
 
-            if (!IsEnoughStrength(symbolInfo, 10))
-            {
-                return false;
-            }
-
-            if (symbolInfo.CurrentPhase == PhaseState.Drive || symbolInfo.NextPhase == PhaseState.Drive)
+            if (monthPhase == PhaseState.Drive && symbolInfo.MidGroupPhase == PhaseState.Drive && IsEnoughStrength(symbolInfo, 10))
             {
                 return true;
             }
@@ -145,23 +147,21 @@ namespace Algoserver.API.Services
             return true;
         }
 
-        public static bool IsTooMatchVolatility(MESADataSummary mesaResponse, int granularity)
+        public static bool IsTooMatchVolatility(MESADataSummary mesaResponse)
         {
-            if (mesaResponse.Volatility.TryGetValue(granularity, out var volatility))
+            if (mesaResponse.Volatility.TryGetValue(TimeframeHelper.HOURLY_GRANULARITY, out var volatility1h) && mesaResponse.Volatility.TryGetValue(TimeframeHelper.HOURLY_GRANULARITY, out var volatility1d))
             {
-                var relativeVolatility = volatility - 100f;
-                return relativeVolatility > 30;
+                var relativeVolatility1h = volatility1h - 100f;
+                var relativeVolatility1d = volatility1d - 100f;
+                return relativeVolatility1h > 50 || relativeVolatility1d > 50;
             }
 
             return true;
         }
 
-        public static bool IsInOverheatZone(AutoTradingSymbolInfoResponse symbolInfo)
+        public static bool IsInGoodZoneOn4H(AutoTradingSymbolInfoResponse symbolInfo)
         {
-            var n1d = symbolInfo.TP1D;
-            var e1d = symbolInfo.Entry1D;
             var n4h = symbolInfo.TP4H;
-            var e4h = symbolInfo.Entry4H;
             var currentPrice = symbolInfo.CurrentPrice;
 
             if (currentPrice <= 0)
@@ -169,35 +169,21 @@ namespace Algoserver.API.Services
                 return false;
             }
 
-            var shift1d = Math.Abs(n1d - e1d);
-            var maxShift1d = shift1d - (symbolInfo.HalfBand1D * 2);
-
-            var shift4h = Math.Abs(n4h - e4h);
-            var maxShift4h = shift4h - symbolInfo.HalfBand4H;
-
             if (symbolInfo.TrendDirection == 1)
             {
                 // Uptrend
-                if (currentPrice > n1d + maxShift1d)
+                if (currentPrice < n4h)
                 {
                     return true;
                 }
-                // if (currentPrice > n4h + maxShift4h)
-                // {
-                //     return true;
-                // }
             }
             else if (symbolInfo.TrendDirection == -1)
             {
                 // Downtrend
-                if (currentPrice < n1d - maxShift1d)
+                if (currentPrice > n4h)
                 {
                     return true;
                 }
-                // if (currentPrice < n4h - maxShift4h)
-                // {
-                //     return true;
-                // }
             }
             else
             {
@@ -218,7 +204,7 @@ namespace Algoserver.API.Services
             {
                 return 2; // Auto allowed
             }
-            
+
             if (IsHITLModeEnabled(symbolInfo, mesaResponse))
             {
                 return 1; // HITL allowed

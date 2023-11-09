@@ -730,7 +730,8 @@ namespace Algoserver.API.Services
 
             // result.TradingState = GlobalDriveStrategy.GetState(result);
             // result.TradingState = DriveCapitulationStrategy.GetState(result, summaryForSymbol, symbol.ToUpper(), _cache);
-            result.TradingState = ShortPeriodDriveStrategy.GetState(result, summaryForSymbol, symbol.ToUpper());
+            // result.TradingState = ShortPeriodDriveStrategy.GetState(result, summaryForSymbol, symbol.ToUpper());
+            result.TradingState = MonthDriveStrategy.GetState(result, summaryForSymbol, symbol.ToUpper());
 
             return result;
         }
