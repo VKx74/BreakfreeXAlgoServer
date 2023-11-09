@@ -33,6 +33,8 @@ namespace Algoserver.API.Data.Repositories
             {
                 using (var context = _dbContextFactory.CreateDbContext())
                 {
+                    var accounts = logs.Where((_) => _.Type == 2).Select((_) => _.Account).Distinct().ToList();
+                    context.NALogs.RemoveRange(context.NALogs.Where((_) => _.Type == 2 && accounts.Contains(_.Account)));
                     context.NALogs.AddRange(logs);
                     await context.SaveChangesAsync();
                 }
