@@ -6,5 +6,5 @@ ON SCHEDULE EVERY 1 DAY
 DO
 BEGIN
  DELETE FROM algostatistics.NALogs
- WHERE (`Date` < date_sub(curdate(), INTERVAL 5 DAY) AND Id != '');
+ WHERE (`Date` < date_sub(curdate(), INTERVAL 1 DAY) AND Id != '');
 END
