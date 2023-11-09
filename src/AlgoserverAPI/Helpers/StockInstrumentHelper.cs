@@ -491,7 +491,7 @@ namespace Algoserver.API.Helpers
         {
             get
             {
-                return new List<string> { "EUR_SEK", "USD_SEK", "USD_NOK", "USD_HUF", "CAD_SGD", "EUR_NOK", "USD_MXN", "SGD_CHF", "NZD_SGD", "AU200_AUD", "DE10YB_EUR", "CORN_USD", "CN50_USD", "EU50_EUR", "FR40_EUR", "HK33_HKD", "IN50_USD", "NL25_EUR", "SG30_SGD", "SUGAR_USD", "UK10YB_GBP", "USB02Y_USD", "USB05Y_USD", "USB10Y_USD", "USB30Y_USD", "NATGAS_USD", "SOYBN_USD", "WHEAT_USD", "DE30_EUR" };
+                return new List<string> { "EUR_SEK", "USD_SEK", "USD_NOK", "USD_HUF", "CAD_SGD", "EUR_NOK", "USD_MXN", "SGD_CHF", "NZD_SGD", "AU200_AUD", "DE10YB_EUR", "CORN_USD", "CN50_USD", "EU50_EUR", "FR40_EUR", "HK33_HKD", "IN50_USD", "NL25_EUR", "SG30_SGD", "SUGAR_USD", "UK10YB_GBP", "USB02Y_USD", "USB05Y_USD", "USB10Y_USD", "USB30Y_USD", "NATGAS_USD", "SOYBN_USD", "WHEAT_USD", "DE30_EUR", "UK100_GBP" };
             }
         }
     }
