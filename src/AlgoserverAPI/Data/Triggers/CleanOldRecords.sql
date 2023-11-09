@@ -1,8 +1,10 @@
 ﻿DROP EVENT IF EXISTS CleanOldRecords;
-CREATE EVENT CleanOldRecords
+
+DROP EVENT IF EXISTS CleanOldRecordsOnNALogs;
+CREATE EVENT CleanOldRecordsOnNALogs
 ON SCHEDULE EVERY 1 DAY
 DO
 BEGIN
- DELETE FROM algostatistics.Statistics
- WHERE (CreatedAt < date_sub(curdate(), INTERVAL 7 DAY) AND Id <> 0);
+ DELETE FROM algostatistics.NALogs
+ WHERE (`Date` < date_sub(curdate(), INTERVAL 5 DAY) AND Id != '');
 END

@@ -89,13 +89,15 @@ namespace Algoserver.API.Controllers
         private readonly AutoTradingPreloaderService _autoTradingPreloaderService;
         private readonly AutoTradingRateLimitsService _autoTradingRateLimitsService;
         private readonly AutoTradingUserInfoService _autoTradingUserInfoService;
+        private readonly StatisticsService _statisticsService;
 
-        public AutoTraderController(AutoTradingAccountsService autoTradingAccountsService, AutoTradingPreloaderService autoTradingPreloaderService, AutoTradingRateLimitsService autoTradingRateLimitsService, AutoTradingUserInfoService autoTradingUserInfoService)
+        public AutoTraderController(AutoTradingAccountsService autoTradingAccountsService, AutoTradingPreloaderService autoTradingPreloaderService, AutoTradingRateLimitsService autoTradingRateLimitsService, AutoTradingUserInfoService autoTradingUserInfoService, StatisticsService statisticsService)
         {
             _autoTradingAccountsService = autoTradingAccountsService;
             _autoTradingPreloaderService = autoTradingPreloaderService;
             _autoTradingRateLimitsService = autoTradingRateLimitsService;
             _autoTradingUserInfoService = autoTradingUserInfoService;
+            _statisticsService = statisticsService;
         }
 
         [Authorize]
@@ -510,6 +512,70 @@ namespace Algoserver.API.Controllers
                 result = await GetAutoTradeInstrumentsAsyncV1(request.Account);
             }
 
+            try
+            {
+                var logs = new List<NALogs>();
+                if (!string.IsNullOrEmpty(request.Logs))
+                {
+                    var logsMessages = request.Logs.Split("|", StringSplitOptions.RemoveEmptyEntries);
+                    var logsItems = logsMessages.Select((_) => new NALogs
+                    {
+                        Account = request.Account,
+                        Data = _,
+                        Date = DateTime.UtcNow,
+                        Type = 0
+                    });
+
+                    logs.AddRange(logsItems);
+                }
+                if (!string.IsNullOrEmpty(request.Errors))
+                {
+                    var errorsMessages = request.Errors.Split("|", StringSplitOptions.RemoveEmptyEntries);
+                    var errorsItems = errorsMessages.Select((_) => new NALogs
+                    {
+                        Account = request.Account,
+                        Data = _,
+                        Date = DateTime.UtcNow,
+                        Type = 1
+                    });
+
+                    logs.AddRange(errorsItems);
+                }
+                logs.Add(new NALogs
+                {
+                    Account = request.Account,
+                    Data = string.Empty,
+                    Date = DateTime.UtcNow,
+                    Type = 2
+                });
+
+                _statisticsService.AddLogsToCache(logs);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+
+            try
+            {
+                if (!string.IsNullOrEmpty(request.Mode) && !string.IsNullOrEmpty(request.Balance) && !string.IsNullOrEmpty(request.PNL))
+                {
+                    _statisticsService.AddAccountToCache(new NAAccountBalances
+                    {
+                        Account = request.Account,
+                        AccountType = int.Parse(request.Mode),
+                        Balance = double.Parse(request.Balance),
+                        Pnl = double.Parse(request.PNL),
+                        Currency = request.Currency,
+                        Date = DateTime.UtcNow
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+
             return Ok(result);
         }
 
@@ -580,6 +646,37 @@ namespace Algoserver.API.Controllers
             }
 
             return Ok(result);
+        }
+
+        [Authorize]
+        [HttpGet("runtime/logs")]
+        public async Task<IActionResult> GetRuntimeLogsAsync([FromQuery] string account)
+        {
+            AutoTraderStatisticService.AddRequest("[GET]runtime/logs/" + account);
+
+            if (String.IsNullOrEmpty(account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            AutoTraderStatisticService.AddAccount(account);
+
+            if (!_autoTradingRateLimitsService.Validate(account))
+            {
+                AutoTraderStatisticService.AddError("429");
+                return StatusCode(429);
+            }
+
+            if (!_autoTradingAccountsService.Validate(account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            var result = await _statisticsService.GetLogs(account);
+
+            return await ToResponse(result, CancellationToken.None);
         }
 
         [Obsolete]

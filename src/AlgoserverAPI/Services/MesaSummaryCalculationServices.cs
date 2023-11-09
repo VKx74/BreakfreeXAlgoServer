@@ -28,12 +28,12 @@ namespace Algoserver.API.Services
             var mesa10year = TechCalculations.MESA(daily_calculation_input.TakeLast(5000).ToList(), 0.0012, 0.0012);
 
             var volatilityCalculationData = minHistory.TakeLast(28000);
-            var volDriver = CalculateVolatility(volatilityCalculationData, 14);
-            var vol1min = CalculateVolatility(volatilityCalculationData, 33);
-            var vol5min = CalculateVolatility(volatilityCalculationData, 33 * 3);
-            var vol15min = CalculateVolatility(volatilityCalculationData, 33 * 9);
-            var vol1h = CalculateVolatility(volatilityCalculationData, 33 * 25);
-            var vol4h = CalculateVolatility(volatilityCalculationData, 33 * 50);
+            var volDriver = CalculateVolatility(volatilityCalculationData, 7);
+            var vol1min = CalculateVolatility(volatilityCalculationData, 10);
+            var vol5min = CalculateVolatility(volatilityCalculationData, 10 * 5);
+            var vol15min = CalculateVolatility(volatilityCalculationData, 10 * 15);
+            var vol1h = CalculateVolatility(volatilityCalculationData, 10 * 45);
+            var vol4h = CalculateVolatility(volatilityCalculationData, 10 * 45 * 3);
             var vol1d = CalculateVolatility(hourlyHistory, 66);
             var vol1month = CalculateVolatility(dailyHistory, 33);
 

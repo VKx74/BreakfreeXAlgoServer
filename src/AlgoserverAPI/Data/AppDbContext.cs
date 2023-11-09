@@ -4,14 +4,14 @@ using Algoserver.API.Models;
 
 namespace Algoserver.API.Data
 {
-    public class AppDbContext: DbContext
+    public class AppDbContext : DbContext
     {
-        public DbSet<Statistic> Statistics { get; set; }
-        // public DbSet<Backtest> Backtests { get; set; }
+        public DbSet<NAAccountBalances> NAAccountBalances { get; set; }
+        public DbSet<NALogs> NALogs { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options)
             : base(options)
-        {}
+        { }
 
         public void AddTriggers()
         {
@@ -19,6 +19,11 @@ namespace Algoserver.API.Data
             {
                 base.Database.ExecuteSqlCommand(File.ReadAllText(file), new object[0]);
             }
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
         }
 
     }

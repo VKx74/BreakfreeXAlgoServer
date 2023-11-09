@@ -1,61 +1,24 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Algoserver.API.Helpers;
 using Algoserver.API.Models.REST;
-using Algoserver.API.Services.CacheServices;
 
 namespace Algoserver.API.Services
 {
-    [Serializable]
-    public class DriveCapitulationStrategyState
+    public static class ShortPeriodDriveStrategy
     {
-        public uint State { get; set; } // 1 - capitulated, 2 - drive
-    }
-
-    public static class DriveCapitulationStrategy
-    {
-        public static bool IsHITLModeEnabled(AutoTradingSymbolInfoResponse symbolInfo)
+        public static bool IsAutoTradeModeEnabled(AutoTradingSymbolInfoResponse symbolInfo, MESADataSummary mesaResponse)
         {
-            var strength1month = symbolInfo.Strength1Month * 100;
-
-            if (symbolInfo.TrendDirection == 1)
-            {
-                // Uptrend
-                if (strength1month < 42)
-                {
-                    return false;
-                }
-            }
-            else if (symbolInfo.TrendDirection == -1)
-            {
-                // Downtrend
-                if (strength1month > -42)
-                {
-                    return false;
-                }
-            }
-            else
+            if (IsTooMatchVolatility(mesaResponse, TimeframeHelper.MIN15_GRANULARITY))
             {
                 return false;
             }
 
-            return true;
-        }
-
-        public static bool IsAutoTradeModeEnabled(AutoTradingSymbolInfoResponse symbolInfo, MESADataSummary mesaResponse, string symbol, ICacheService cacheService)
-        {
-            var state = getState(symbol, cacheService);
-            if (symbolInfo.CurrentPhase == PhaseState.Drive && (IsEnoughStrength(symbolInfo, 10, 20) || IsEnoughStrength(symbolInfo, 5, 25) || IsEnoughStrength(symbolInfo, 30, 10)))
+            if (IsInOverheatZone(symbolInfo))
             {
-                if (state.State != 2)
-                {
-                    setState(symbol, new DriveCapitulationStrategyState { State = 2 }, cacheService);
-                }
-                // return true;
+                return false;
             }
 
-            if (state.State != 2)
+            if (!IsEnoughStrength(symbolInfo, 20))
             {
                 return false;
             }
@@ -86,15 +49,35 @@ namespace Algoserver.API.Services
             }
 
             return false;
-        }
-
-        public static bool IsAutoTradeCapitulationConfirmed(AutoTradingSymbolInfoResponse symbolInfo, string symbol, ICacheService cacheService)
+        } 
+        
+        public static bool IsHITLModeEnabled(AutoTradingSymbolInfoResponse symbolInfo, MESADataSummary mesaResponse)
         {
-            if (symbolInfo.MidGroupPhase == PhaseState.CD)
+            if (IsTooMatchVolatility(mesaResponse, TimeframeHelper.HOURLY_GRANULARITY))
             {
-                setState(symbol, new DriveCapitulationStrategyState { State = 1 }, cacheService);
+                return false;
             }
 
+            if (IsInOverheatZone(symbolInfo))
+            {
+                return false;
+            }
+
+            if (!IsEnoughStrength(symbolInfo, 10))
+            {
+                return false;
+            }
+
+            if (symbolInfo.CurrentPhase == PhaseState.Drive || symbolInfo.NextPhase == PhaseState.Drive)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool IsAutoTradeCapitulationConfirmed(AutoTradingSymbolInfoResponse symbolInfo)
+        {
             if (symbolInfo.MidGroupPhase == PhaseState.CD && symbolInfo.LongGroupPhase != PhaseState.Drive)
             {
                 return true;
@@ -224,84 +207,24 @@ namespace Algoserver.API.Services
             return false;
         }
 
-        public static uint GetState(AutoTradingSymbolInfoResponse symbolInfo, MESADataSummary mesaResponse, string symbol, ICacheService cacheService)
+        public static uint GetState(AutoTradingSymbolInfoResponse symbolInfo, MESADataSummary mesaResponse, string symbol)
         {
-            if (IsAutoTradeCapitulationConfirmed(symbolInfo, symbol, cacheService))
+            if (IsAutoTradeCapitulationConfirmed(symbolInfo))
             {
                 return 3; // Capitulation
             }
 
-            // Validating support/resistance and min strength across all phases
-            if (!IsInOverheatZone(symbolInfo))
+            if (IsAutoTradeModeEnabled(symbolInfo, mesaResponse))
             {
-                if (IsEnoughStrength(symbolInfo, 15) && IsAutoTradeModeEnabled(symbolInfo, mesaResponse, symbol, cacheService))
-                {
-                    if (IsTooMatchVolatility(mesaResponse, TimeframeHelper.MIN15_GRANULARITY))
-                    {
-                        return 1; // HITL allowed
-                    }
-
-                    return 2; // Auto allowed
-                }
-
-                if (IsEnoughStrength(symbolInfo, 10, 10) || IsEnoughStrength(symbolInfo, 5, 15))
-                {
-                    if (IsTooMatchVolatility(mesaResponse, TimeframeHelper.HOURLY_GRANULARITY))
-                    {
-                        return 0; // Nothing
-                    }
-                    return 1; // HITL allowed
-                }
+                return 2; // Auto allowed
+            }
+            
+            if (IsHITLModeEnabled(symbolInfo, mesaResponse))
+            {
+                return 1; // HITL allowed
             }
 
             return 0; // Nothing
         }
-
-        private static DriveCapitulationStrategyState getState(string symbol, ICacheService cacheService)
-        {
-            try
-            {
-                if (cacheService.TryGetValue<DriveCapitulationStrategyState>("DriveCapitulationStrategyState_", symbol, out var driveCapitulationStrategyState))
-                {
-                    return driveCapitulationStrategyState;
-                }
-
-
-                var initialSymbols = new List<string>() {
-                    "EUR_CAD"
-                };
-
-                if (initialSymbols.Any((_) => string.Equals(_, symbol, StringComparison.InvariantCultureIgnoreCase)))
-                {
-                    var presetState = new DriveCapitulationStrategyState
-                    {
-                        State = 2
-                    };
-                    setState(symbol, presetState, cacheService);
-                    return presetState;
-                }
-
-                return new DriveCapitulationStrategyState();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(">>> FAILED to get DriveCapitulationStrategyState, " + symbol);
-                return new DriveCapitulationStrategyState();
-            }
-        }
-
-
-        private static void setState(string symbol, DriveCapitulationStrategyState state, ICacheService cacheService)
-        {
-            try
-            {
-                cacheService.Set("DriveCapitulationStrategyState_", symbol, state, TimeSpan.FromDays(3));
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(">>> FAILED to set DriveCapitulationStrategyState, " + symbol);
-            }
-        }
-
     }
 }

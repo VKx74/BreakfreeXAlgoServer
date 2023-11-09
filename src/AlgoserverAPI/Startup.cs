@@ -20,6 +20,7 @@ using Algoserver.API.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi.Models;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Algoserver.API
 {
@@ -113,10 +114,16 @@ namespace Algoserver.API
             services.AddSingleton<AutoTradingRateLimitsService>();
             services.AddSingleton<AutoTradingUserInfoService>();
 
+            services.AddMemoryCache(o => o.SizeLimit = null);
+
+            // Initialize DB context
+            services.AddDbContext(Program.Configuration);
+
             if (scanInstruments)
             {
                 // services.AddHostedService<StockHistoryLoaderHostedService>();
                 // services.AddHostedService<CryptoHistoryLoaderHostedService>();
+                services.InitializeDbContext();
                 services.AddHostedService<ForexHistoryLoaderHostedService>();
                 services.AddHostedService<EconomicCalendarLoaderHostedService>();
                 services.AddHostedService<AutoTradingAccountsLoaderHostedService>();
@@ -143,8 +150,6 @@ namespace Algoserver.API
                 });
             });
 
-            // Initialize DB context
-            services.AddDbContext(Program.Configuration);
             services.AddOptions();
 
             services.AddSwaggerGen(options =>
@@ -197,8 +202,6 @@ namespace Algoserver.API
                 });
 
             services.AddTokenProvider();
-
-            services.AddMemoryCache();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, InstrumentService instrumentService)
