@@ -343,6 +343,15 @@ namespace Algoserver.API.Services.CacheServices
 
         public AutoTradingSymbolInfoResponse GetAutoTradingSymbolInfoFromCache(string symbol, string datafeed)
         {
+            if (string.Equals(symbol, "ETH_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(symbol, "ETH_USDT", StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(symbol, "ETHUSD", StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(symbol, "ETHUSDT", StringComparison.InvariantCultureIgnoreCase))
+            {
+                symbol = "ETH_USD";
+                datafeed = "OANDA";
+            }
+            
             try
             {
                 lock (_data)
