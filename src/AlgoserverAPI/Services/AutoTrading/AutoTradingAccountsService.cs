@@ -82,8 +82,13 @@ namespace Algoserver.API.Services
             {
                 return 4;
             }
+            
+            if (isWings)
+            {
+                return 2;
+            }
 
-            return 2;
+            return 1;
         }
     }
 }
