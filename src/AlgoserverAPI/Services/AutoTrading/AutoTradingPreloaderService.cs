@@ -176,7 +176,8 @@ namespace Algoserver.API.Services.CacheServices
         public async Task<AutoTradingInstrumentsDedicationResponse> GetAutoTradingInstrumentsDedication(string account)
         {
             var instruments = new List<AutoTradingInstrumentsResponse>();
-            var symbols = new Dictionary<string, AutoTradingSymbolInfoResponse>();
+            var autoSymbols = new Dictionary<string, AutoTradingSymbolInfoResponse>();
+            var hitlSymbols = new Dictionary<string, AutoTradingSymbolInfoResponse>();
             var userSettings = _autoTradingUserInfoService.GetUserInfo(account);
             var maxAmount = _autoTradingAccountsService.GetMaxTradingInstrumentsCount(account);
             var disabledMarkets = userSettings.disabledMarkets != null ? userSettings.disabledMarkets : new List<string>();
@@ -198,9 +199,9 @@ namespace Algoserver.API.Services.CacheServices
                         name = name.TakeLast(name.Length - 1).ToArray();
                         var instrument = string.Join("_", name).ToUpper();
                         var canAutoTrade = symbol.Value.TradingState == 2;
-                        if (canAutoTrade && !isHITLOverride)
+                        if (canAutoTrade)
                         {
-                            symbols.Add(instrument, symbol.Value);
+                            autoSymbols.Add(instrument, symbol.Value);
                         }
                         else if (isHITLEnabled)
                         {
@@ -213,11 +214,23 @@ namespace Algoserver.API.Services.CacheServices
                             var marketConfig = userSettings.markets.FirstOrDefault((_) => !string.IsNullOrEmpty(_.symbol) && string.Equals(getNormalizedInstrument(_.symbol), s, StringComparison.InvariantCultureIgnoreCase));
                             if (marketConfig != null)
                             {
-                                symbols.Add(instrument, symbol.Value);
+                                hitlSymbols.Add(instrument, symbol.Value);
                             }
                         }
                     }
                 }
+            }
+
+            var symbols = new Dictionary<string, AutoTradingSymbolInfoResponse>();
+
+            foreach (var i in hitlSymbols)
+            {
+                symbols.Add(i.Key, i.Value);
+            }
+
+            foreach (var i in autoSymbols)
+            {
+                symbols.Add(i.Key, i.Value);
             }
 
             if (maxAmount != int.MaxValue)
@@ -330,6 +343,15 @@ namespace Algoserver.API.Services.CacheServices
 
         public AutoTradingSymbolInfoResponse GetAutoTradingSymbolInfoFromCache(string symbol, string datafeed)
         {
+            if (string.Equals(symbol, "ETH_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(symbol, "ETH_USDT", StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(symbol, "ETHUSD", StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(symbol, "ETHUSDT", StringComparison.InvariantCultureIgnoreCase))
+            {
+                symbol = "ETH_USD";
+                datafeed = "OANDA";
+            }
+            
             try
             {
                 lock (_data)
