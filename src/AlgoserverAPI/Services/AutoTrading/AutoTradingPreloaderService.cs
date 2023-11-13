@@ -352,6 +352,15 @@ namespace Algoserver.API.Services.CacheServices
                 datafeed = "OANDA";
             }
             
+            if (string.Equals(symbol, "BTC_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(symbol, "BTC_USDT", StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(symbol, "BTCUSD", StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(symbol, "BTCUSDT", StringComparison.InvariantCultureIgnoreCase))
+            {
+                symbol = "BTC_USD";
+                datafeed = "OANDA";
+            }
+            
             try
             {
                 lock (_data)
