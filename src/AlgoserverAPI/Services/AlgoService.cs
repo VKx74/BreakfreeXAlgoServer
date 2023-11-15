@@ -988,11 +988,11 @@ namespace Algoserver.API.Services
 
                 if (isUp)
                 {
-                    return lastSar.Minus18;
+                    return lastSar.Minus28;
                 }
                 else
                 {
-                    return lastSar.Plus18;
+                    return lastSar.Plus28;
                 }
             }
             catch (Exception ex)
