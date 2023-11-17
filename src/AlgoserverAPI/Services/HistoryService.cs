@@ -294,7 +294,11 @@ namespace Algoserver.API.Services
             var existing_count = data.Bars.Count();
             var endDate = this.getEndDate(data, AlgoHelper.UnixTimeNow());
             var mult = 2;
-            long startDate = endDate - ((bars_count - existing_count) * data.Granularity * mult);
+            var bars_difference = (bars_count - existing_count);
+            if (bars_difference < 300) {
+                bars_difference = 300;
+            }
+            long startDate = endDate - (bars_difference * data.Granularity * mult);
 
             if (string.Equals(data.Datafeed, "Twelvedata", StringComparison.InvariantCultureIgnoreCase))
             {

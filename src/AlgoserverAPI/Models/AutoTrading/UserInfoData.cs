@@ -24,6 +24,7 @@ namespace Algoserver.API.Models
         public List<string> disabledMarkets { get; set; }
         public int accountRisk { get; set; }
         public int defaultMarketRisk { get; set; }
+        public int? maxInstrumentCount { get; set; }
         public bool useManualTrading { get; set; }
         public bool botShutDown { get; set; }
 
