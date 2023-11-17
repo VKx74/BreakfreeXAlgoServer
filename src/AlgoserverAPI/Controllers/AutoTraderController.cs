@@ -133,8 +133,8 @@ namespace Algoserver.API.Controllers
                 return Unauthorized("Invalid trading account");
             }
 
-            var maxAmount = _autoTradingAccountsService.GetMaxTradingInstrumentsCount(account);
             var infoResponse = _autoTradingUserInfoService.GetUserInfo(account);
+            var maxAmount = _autoTradingAccountsService.GetMaxTradingInstrumentsCount(account);
             infoResponse.maxInstrumentCount = maxAmount;
 
             return await ToResponse(infoResponse, CancellationToken.None);
