@@ -154,7 +154,7 @@ namespace Algoserver.API.Services
                 else
                 {
                     var diff = DateTime.UtcNow - lastAccount.Date;
-                    if (diff.TotalHours > 12)
+                    if (diff.TotalHours > 24)
                     {
                         await _repo.AddNAAccountBalances(buffer);
                     }
