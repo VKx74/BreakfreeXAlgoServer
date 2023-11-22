@@ -64,7 +64,7 @@ namespace Algoserver.API.Data.Repositories
         {
             using (var context = _dbContextFactory.CreateDbContext())
             {
-                var result = await context.NALogs.Where((_) => _.Account == account).ToListAsync();
+                var result = await context.NALogs.Where((_) => _.Account == account).OrderByDescending((_) => _.Date).Take(100).ToListAsync();
                 return result;
             }
         }
