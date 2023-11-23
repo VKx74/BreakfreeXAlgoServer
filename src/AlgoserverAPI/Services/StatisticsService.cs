@@ -23,6 +23,7 @@ namespace Algoserver.API.Services
     {
         public List<NALog> logs { get; set; }
         public long lastOnlineDate { get; set; }
+        public string naVersion { get; set; }
     }
 
     public class StatisticsService
@@ -89,7 +90,8 @@ namespace Algoserver.API.Services
                 return new NALogResponse
                 {
                     logs = logsAndErrors,
-                    lastOnlineDate = lastOnlineDateRecord != null ? AlgoHelper.GetUnixTime(lastOnlineDateRecord.Date) : 0
+                    lastOnlineDate = lastOnlineDateRecord != null ? AlgoHelper.GetUnixTime(lastOnlineDateRecord.Date) : 0,
+                    naVersion = lastOnlineDateRecord != null ? lastOnlineDateRecord.Data : string.Empty
                 };
             }
             catch (Exception ex)

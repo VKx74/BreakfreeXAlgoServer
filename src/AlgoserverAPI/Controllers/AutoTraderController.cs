@@ -548,7 +548,7 @@ namespace Algoserver.API.Controllers
                 logs.Add(new NALogs
                 {
                     Account = request.Account,
-                    Data = string.Empty,
+                    Data = string.IsNullOrEmpty(request.NNVersion) ? string.Empty : request.NNVersion,
                     Date = DateTime.UtcNow,
                     Type = 2
                 });
