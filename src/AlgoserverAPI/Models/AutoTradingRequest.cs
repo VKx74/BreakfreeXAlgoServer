@@ -12,7 +12,7 @@ namespace Algoserver.API.Models.REST
 
         [JsonProperty("version")]
         public string Version { get; set; }
-        
+
         [JsonProperty("mode")]
         public string Mode { get; set; }
 
@@ -47,7 +47,7 @@ namespace Algoserver.API.Models.REST
         public string Mode { get; set; }
 
         [JsonProperty("naversion")]
-        public string NNVersion { get; set; }
+        public string Naversion { get; set; }
     }
     
     public class AutoTradeMarketsConfigRequest
