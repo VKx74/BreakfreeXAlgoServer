@@ -7,23 +7,17 @@ namespace Algoserver.API.Models.REST
         [JsonProperty("instrument")]
         public Instrument Instrument { get; set; }
 
-        [JsonProperty("minStrength1h")]
-        public decimal MinStrength1h { get; set; } = 15m;
-
-        [JsonProperty("minStrength4h")]
-        public decimal MinStrength4h { get; set; }
-
-        [JsonProperty("minStrength1d")]
-        public decimal MinStrength1d { get; set; }
-
-        [JsonProperty("minStrength")]
-        public decimal MinStrength { get; set; }
-
         [JsonProperty("account")]
         public string Account { get; set; }
 
         [JsonProperty("version")]
         public string Version { get; set; }
+
+        [JsonProperty("mode")]
+        public string Mode { get; set; }
+
+        [JsonProperty("naversion")]
+        public string NNVersion { get; set; }
     }
     
     public class AutoTradeInstrumentsRequest
@@ -51,6 +45,9 @@ namespace Algoserver.API.Models.REST
 
         [JsonProperty("mode")]
         public string Mode { get; set; }
+
+        [JsonProperty("naversion")]
+        public string Naversion { get; set; }
     }
     
     public class AutoTradeMarketsConfigRequest
