@@ -193,14 +193,15 @@ namespace Algoserver.API.Services
 
             var requestCount = 0;
             repeatCount = (int)(bars_count / 3000) + repeatCount;
+            var endDate = AlgoHelper.UnixTimeNow();
 
             do
             {
-                var endDate = this.getEndDate(result, AlgoHelper.UnixTimeNow());
-                var startDate = this.getStartDate(result, bars_count);
+                var startDate = this.getStartDate(result, endDate, bars_count);
 
                 var bars = await SendHistoricalRequest(datafeed, symbol, granularity, exchange, startDate, endDate);
 
+                endDate = startDate + 1;
                 var prevCount = result.Bars.Count();
                 result.Bars = this.mergeBars(result.Bars, bars);
                 var afterCount = result.Bars.Count();
@@ -289,10 +290,9 @@ namespace Algoserver.API.Services
             return firstBar.Timestamp + 1;
         }
 
-        private long getStartDate(HistoryData data, long bars_count)
+        private long getStartDate(HistoryData data, long endDate, long bars_count)
         {
             var existing_count = data.Bars.Count();
-            var endDate = this.getEndDate(data, AlgoHelper.UnixTimeNow());
             var mult = 2;
             var bars_difference = (bars_count - existing_count);
             if (bars_difference < 300) {
