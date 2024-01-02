@@ -194,6 +194,7 @@ namespace Algoserver.API.Services
             var requestCount = 0;
             repeatCount = (int)(bars_count / 3000) + repeatCount;
             var endDate = AlgoHelper.UnixTimeNow();
+            var emptyResponseRepeatCount = 0;
 
             do
             {
@@ -208,7 +209,16 @@ namespace Algoserver.API.Services
 
                 if (prevCount == afterCount)
                 {
-                    return result;
+                    if (emptyResponseRepeatCount > 0)
+                    {
+                        return result;
+                    }
+                    emptyResponseRepeatCount++;
+                    repeatCount++;
+                }
+                else
+                {
+                    emptyResponseRepeatCount = 0;
                 }
 
                 if (requestCount > 0)
@@ -295,7 +305,8 @@ namespace Algoserver.API.Services
             var existing_count = data.Bars.Count();
             var mult = 2;
             var bars_difference = (bars_count - existing_count);
-            if (bars_difference < 300) {
+            if (bars_difference < 300)
+            {
                 bars_difference = 300;
             }
             long startDate = endDate - (bars_difference * data.Granularity * mult);
