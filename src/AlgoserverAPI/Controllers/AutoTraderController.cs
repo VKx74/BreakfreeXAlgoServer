@@ -507,7 +507,11 @@ namespace Algoserver.API.Controllers
 
             var result = string.Empty;
 
-            if (request.Version == "2.0")
+            if (request.Version == "2.1")
+            {
+                result = await GetAutoTradeInstrumentsAsyncV2_1(request.Account);
+            }
+            else if (request.Version == "2.0")
             {
                 result = await GetAutoTradeInstrumentsAsyncV2(request.Account);
             }
@@ -729,6 +733,44 @@ namespace Algoserver.API.Controllers
 
             stringResult.AppendLine($"accountRisk={dedications.AccountRisk}");
             stringResult.AppendLine($"useManualTrading={dedications.UseManualTrading}");
+
+            return stringResult.ToString();
+        }
+
+        [NonAction]
+        private async Task<string> GetAutoTradeInstrumentsAsyncV2_1(string account)
+        {
+            var dedications = await _autoTradingPreloaderService.GetAutoTradingInstrumentsDedication(account);
+            var stringResult = new StringBuilder();
+            var instruments = dedications.Instruments;
+
+            foreach (var item in instruments)
+            {
+                var instrumentRisk = GetInstrumentRisk(dedications, item.Symbol);
+                if (!item.IsDisabled)
+                {
+                    stringResult.AppendLine($"{item.Symbol}={Math.Round(item.Risk, 2)};{instrumentRisk}");
+                }
+                else
+                {
+                    stringResult.AppendLine($"{item.Symbol}=0;{instrumentRisk}");
+                }
+            }
+
+            var allMarkets = _autoTradingPreloaderService.GetAutoTradeAllInstruments();
+            foreach (var symbol in allMarkets)
+            {
+                if (!instruments.Any((_) => string.Equals(_.Symbol, symbol, StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    var instrumentRisk = GetInstrumentRisk(dedications, symbol);
+                    stringResult.AppendLine($"{symbol}=0;{instrumentRisk}");
+                }
+            }
+
+            stringResult.AppendLine($"accountRisk={dedications.AccountRisk}");
+            stringResult.AppendLine($"useManualTrading={dedications.UseManualTrading}");
+            stringResult.AppendLine($"botShutDown={dedications.BotShutDown}");
+            stringResult.AppendLine($"disabled={String.Join(",", dedications.DisabledInstruments)}");
 
             return stringResult.ToString();
         }
