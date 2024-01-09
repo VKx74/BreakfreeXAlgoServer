@@ -55,6 +55,28 @@ namespace Algoserver.API.Models.REST
         public decimal Strength1Month { get; set; }
         public decimal Strength1Y { get; set; }
         public decimal Strength10Y { get; set; }
+        public int Phase1M { get; set; }
+        public int Phase5M { get; set; }
+        public int Phase15M { get; set; }
+        public int Phase1H { get; set; }
+        public int Phase4H { get; set; }
+        public int Phase1D { get; set; }
+        public int Phase1Month { get; set; }
+        public int Phase1Y { get; set; }
+        public int Phase10Y { get; set; }
+        public int State1M { get; set; }
+        public int State5M { get; set; }
+        public int State15M { get; set; }
+        public int State1H { get; set; }
+        public int State4H { get; set; }
+        public int State1D { get; set; }
+        public int State1Month { get; set; }
+        public int State1Y { get; set; }
+        public int State10Y { get; set; }
+        public decimal Volatility1M { get; set; }
+        public decimal Volatility15M { get; set; }
+        public decimal Volatility1H { get; set; }
+        public decimal Volatility1D { get; set; }
         public int TrendDirection { get; set; }
         public int ShortGroupPhase { get; set; }
         public int MidGroupPhase { get; set; }

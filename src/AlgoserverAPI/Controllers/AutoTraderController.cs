@@ -836,6 +836,31 @@ namespace Algoserver.API.Controllers
             stringResult.AppendLine($"strength1y={Math.Round(result.Strength1Y * 100, 2)}");
             stringResult.AppendLine($"strength10y={Math.Round(result.Strength10Y * 100, 2)}");
 
+            stringResult.AppendLine($"ph1m={result.Phase1M}");
+            stringResult.AppendLine($"ph5m={result.Phase5M}");
+            stringResult.AppendLine($"ph15m={result.Phase15M}");
+            stringResult.AppendLine($"ph1h={result.Phase1H}");
+            stringResult.AppendLine($"ph4h={result.Phase4H}");
+            stringResult.AppendLine($"ph1d={result.Phase1D}");
+            // stringResult.AppendLine($"ph1month={result.Phase1Month}");
+            // stringResult.AppendLine($"ph1y={result.Phase1Y}");
+            // stringResult.AppendLine($"ph10y={result.Phase10Y}");
+
+            stringResult.AppendLine($"st1m={result.State1M}");
+            stringResult.AppendLine($"st5m={result.State5M}");
+            stringResult.AppendLine($"st15m={result.State15M}");
+            stringResult.AppendLine($"st1h={result.State1H}");
+            stringResult.AppendLine($"st4h={result.State4H}");
+            stringResult.AppendLine($"st1d={result.State1D}");
+            // stringResult.AppendLine($"st1month={result.State1Month}");
+            // stringResult.AppendLine($"st1y={result.State1Y}");
+            // stringResult.AppendLine($"st10y={result.State10Y}");
+
+            stringResult.AppendLine($"vol1m={result.Volatility1M}");
+            stringResult.AppendLine($"vol15m={result.Volatility15M}");
+            stringResult.AppendLine($"vol1h={result.Volatility1H}");
+            stringResult.AppendLine($"vol1d={result.Volatility1D}");
+
             stringResult.AppendLine($"currentPhase={result.CurrentPhase}");
             stringResult.AppendLine($"nextPhase={result.NextPhase}");
             stringResult.AppendLine($"shortGroupPhase={result.ShortGroupPhase}");
