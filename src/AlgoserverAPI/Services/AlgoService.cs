@@ -714,6 +714,31 @@ namespace Algoserver.API.Services
                 Strength1Y = GetStrength(TimeframeHelper.YEARLY_GRANULARITY, summaryForSymbol),
                 Strength10Y = GetStrength(TimeframeHelper.YEAR10_GRANULARITY, summaryForSymbol),
 
+                Phase1M = GetTimeframePhase(TimeframeHelper.MIN1_GRANULARITY, summaryForSymbol),
+                Phase5M = GetTimeframePhase(TimeframeHelper.MIN5_GRANULARITY, summaryForSymbol),
+                Phase15M = GetTimeframePhase(TimeframeHelper.MIN15_GRANULARITY, summaryForSymbol),
+                Phase1H = GetTimeframePhase(TimeframeHelper.HOURLY_GRANULARITY, summaryForSymbol),
+                Phase4H = GetTimeframePhase(TimeframeHelper.HOUR4_GRANULARITY, summaryForSymbol),
+                Phase1D = GetTimeframePhase(TimeframeHelper.DAILY_GRANULARITY, summaryForSymbol),
+                Phase1Month = GetTimeframePhase(TimeframeHelper.MONTHLY_GRANULARITY, summaryForSymbol),
+                Phase1Y = GetTimeframePhase(TimeframeHelper.YEARLY_GRANULARITY, summaryForSymbol),
+                Phase10Y = GetTimeframePhase(TimeframeHelper.YEAR10_GRANULARITY, summaryForSymbol),
+
+                State1M = GetTimeframeState(TimeframeHelper.MIN1_GRANULARITY, summaryForSymbol),
+                State5M = GetTimeframeState(TimeframeHelper.MIN5_GRANULARITY, summaryForSymbol),
+                State15M = GetTimeframeState(TimeframeHelper.MIN15_GRANULARITY, summaryForSymbol),
+                State1H = GetTimeframeState(TimeframeHelper.HOURLY_GRANULARITY, summaryForSymbol),
+                State4H = GetTimeframeState(TimeframeHelper.HOUR4_GRANULARITY, summaryForSymbol),
+                State1D = GetTimeframeState(TimeframeHelper.DAILY_GRANULARITY, summaryForSymbol),
+                State1Month = GetTimeframeState(TimeframeHelper.MONTHLY_GRANULARITY, summaryForSymbol),
+                State1Y = GetTimeframeState(TimeframeHelper.YEARLY_GRANULARITY, summaryForSymbol),
+                State10Y = GetTimeframeState(TimeframeHelper.YEAR10_GRANULARITY, summaryForSymbol),
+
+                Volatility1M = GetVolatility(TimeframeHelper.MIN1_GRANULARITY, summaryForSymbol),
+                Volatility15M = GetVolatility(TimeframeHelper.MIN15_GRANULARITY, summaryForSymbol),
+                Volatility1H = GetVolatility(TimeframeHelper.HOURLY_GRANULARITY, summaryForSymbol),
+                Volatility1D = GetVolatility(TimeframeHelper.DAILY_GRANULARITY, summaryForSymbol),
+
                 Time = AlgoHelper.UnixTimeNow(),
                 TrendDirection = trendDirection,
                 CurrentPhase = currentPhase,
@@ -1363,6 +1388,34 @@ namespace Algoserver.API.Services
             if (mesaDataSummary != null && mesaDataSummary.TimeframeStrengths.TryGetValue(granularity, out var item))
             {
                 return (decimal)item;
+            }
+            return 0;
+        }
+        
+        private decimal GetVolatility(int granularity, MESADataSummary mesaDataSummary)
+        {
+            if (mesaDataSummary != null && mesaDataSummary.Volatility.TryGetValue(granularity, out var item))
+            {
+                return (decimal)item;
+            }
+            return 0;
+        }
+
+        private int GetTimeframePhase(int granularity, MESADataSummary mesaDataSummary)
+        {
+            if (mesaDataSummary != null && mesaDataSummary.TimeframePhase.TryGetValue(granularity, out var item))
+            {
+                return item;
+            }
+            return 0;
+        }
+
+
+        private int GetTimeframeState(int granularity, MESADataSummary mesaDataSummary)
+        {
+            if (mesaDataSummary != null && mesaDataSummary.TimeframeState.TryGetValue(granularity, out var item))
+            {
+                return item;
             }
             return 0;
         }
