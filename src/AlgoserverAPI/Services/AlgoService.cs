@@ -683,12 +683,12 @@ namespace Algoserver.API.Services
             {
                 TotalStrength = total_strength,
                 SL = sl_price,
-                Entry1M = GetEntry(TimeframeHelper.MIN1_GRANULARITY, total_strength, levelsResponse),
-                Entry5M = GetEntry(TimeframeHelper.MIN5_GRANULARITY, total_strength, levelsResponse),
-                Entry15M = GetEntry(TimeframeHelper.MIN15_GRANULARITY, total_strength, levelsResponse),
-                Entry1H = GetEntry(TimeframeHelper.HOURLY_GRANULARITY, total_strength, levelsResponse),
-                Entry4H = GetEntry(TimeframeHelper.HOUR4_GRANULARITY, total_strength, levelsResponse),
-                Entry1D = GetEntry(TimeframeHelper.DAILY_GRANULARITY, total_strength, levelsResponse),
+                Entry1M = GetEntry(TimeframeHelper.MIN1_GRANULARITY, total_strength, levelsResponse, trendDirection),
+                Entry5M = GetEntry(TimeframeHelper.MIN5_GRANULARITY, total_strength, levelsResponse, trendDirection),
+                Entry15M = GetEntry(TimeframeHelper.MIN15_GRANULARITY, total_strength, levelsResponse, trendDirection),
+                Entry1H = GetEntry(TimeframeHelper.HOURLY_GRANULARITY, total_strength, levelsResponse, trendDirection),
+                Entry4H = GetEntry(TimeframeHelper.HOUR4_GRANULARITY, total_strength, levelsResponse, trendDirection),
+                Entry1D = GetEntry(TimeframeHelper.DAILY_GRANULARITY, total_strength, levelsResponse, trendDirection),
 
                 HalfBand1M = GetHalfBand(TimeframeHelper.MIN1_GRANULARITY, total_strength, levelsResponse),
                 HalfBand5M = GetHalfBand(TimeframeHelper.MIN5_GRANULARITY, total_strength, levelsResponse),
@@ -1346,7 +1346,7 @@ namespace Algoserver.API.Services
             return res;
         }
 
-        private decimal GetEntry(int granularity, float strength, Dictionary<int, LevelsV3Response> data)
+        private decimal GetEntry(int granularity, float strength, Dictionary<int, LevelsV3Response> data, int trendDirection)
         {
             if (data.TryGetValue(granularity, out var item))
             {
@@ -1356,11 +1356,11 @@ namespace Algoserver.API.Services
                     return 0;
                 }
 
-                if (strength > 0)
+                if (trendDirection > 0)
                 {
                     return lastSar.s;
                 }
-                if (strength < 0)
+                if (trendDirection < 0)
                 {
                     return lastSar.r;
                 }
