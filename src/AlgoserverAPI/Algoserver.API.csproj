@@ -5,8 +5,8 @@
     <AssemblyName>Algoserver.API</AssemblyName>
     <RootNamespace>Algoserver.API</RootNamespace>
     <LangVersion>7.3</LangVersion>
-    <AssemblyVersion>1.0.0.4</AssemblyVersion>
-    <FileVersion>1.0.0.4</FileVersion>
+    <AssemblyVersion>1.0.0.5</AssemblyVersion>
+    <FileVersion>1.0.0.5</FileVersion>
   </PropertyGroup>
 
   <!--<ItemGroup>
