@@ -66,19 +66,19 @@ namespace Algoserver.API
             //    option.ConfigurationOptions.EndPoints.Add(redisSettings.Host, redisSettings.Port);
             //});
 
-            services.AddStackExchangeRedisCache(options =>
-            {
-                var redisSettings = Configuration.GetSection("RedisSettings").Get<RedisSettings>();
-                options.InstanceName = redisSettings.InstanceName;
-                options.ConfigurationOptions = new StackExchange.Redis.ConfigurationOptions();
-                options.ConfigurationOptions.CertificateValidation += (a, b, c, d) => true; //WARNING! not for production
-                options.ConfigurationOptions.AbortOnConnectFail = false;
-                options.ConfigurationOptions.Ssl = redisSettings.UseSSL;
-                options.ConfigurationOptions.Password = redisSettings.Password;
-                options.ConfigurationOptions.DefaultDatabase = redisSettings.DefaultDatabase;
-                options.ConfigurationOptions.ConnectRetry = redisSettings.ConnectRetry;
-                options.ConfigurationOptions.EndPoints.Add(redisSettings.Host, redisSettings.Port);
-            });
+            // services.AddStackExchangeRedisCache(options =>
+            // {
+            //     var redisSettings = Configuration.GetSection("RedisSettings").Get<RedisSettings>();
+            //     options.InstanceName = redisSettings.InstanceName;
+            //     options.ConfigurationOptions = new StackExchange.Redis.ConfigurationOptions();
+            //     options.ConfigurationOptions.CertificateValidation += (a, b, c, d) => true; //WARNING! not for production
+            //     options.ConfigurationOptions.AbortOnConnectFail = false;
+            //     options.ConfigurationOptions.Ssl = redisSettings.UseSSL;
+            //     options.ConfigurationOptions.Password = redisSettings.Password;
+            //     options.ConfigurationOptions.DefaultDatabase = redisSettings.DefaultDatabase;
+            //     options.ConfigurationOptions.ConnectRetry = redisSettings.ConnectRetry;
+            //     options.ConfigurationOptions.EndPoints.Add(redisSettings.Host, redisSettings.Port);
+            // });
 
             services.AddSingleton<ICacheService, MemoryCacheService>();
             // services.AddSingleton<ICacheService, RedisCacheService>();
