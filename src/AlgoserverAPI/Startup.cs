@@ -80,8 +80,8 @@ namespace Algoserver.API
                 options.ConfigurationOptions.EndPoints.Add(redisSettings.Host, redisSettings.Port);
             });
 
-            // services.AddSingleton<ICacheService, MemoryCacheService>();
-            services.AddSingleton<ICacheService, RedisCacheService>();
+            services.AddSingleton<ICacheService, MemoryCacheService>();
+            // services.AddSingleton<ICacheService, RedisCacheService>();
             services.AddSingleton<IInMemoryCache, MemoryCacheService>();
             services.AddSingleton<IAuthorizationHandler, GuestRightProtectionHandler>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
