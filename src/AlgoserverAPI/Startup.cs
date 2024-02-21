@@ -74,7 +74,6 @@ namespace Algoserver.API
                 options.ConfigurationOptions.CertificateValidation += (a, b, c, d) => true; //WARNING! not for production
                 options.ConfigurationOptions.AbortOnConnectFail = false;
                 options.ConfigurationOptions.Ssl = redisSettings.UseSSL;
-                options.ConfigurationOptions.SslProtocols = System.Security.Authentication.SslProtocols.Tls12;
                 options.ConfigurationOptions.Password = redisSettings.Password;
                 options.ConfigurationOptions.DefaultDatabase = redisSettings.DefaultDatabase;
                 options.ConfigurationOptions.ConnectRetry = redisSettings.ConnectRetry;
