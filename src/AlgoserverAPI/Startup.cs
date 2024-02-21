@@ -127,10 +127,10 @@ namespace Algoserver.API
                 services.AddHostedService<ForexHistoryLoaderHostedService>();
                 services.AddHostedService<EconomicCalendarLoaderHostedService>();
                 services.AddHostedService<AutoTradingAccountsLoaderHostedService>();
-                // for local debugging
-                // services.AddHostedService<MesaPreloaderHostedService>();
-                // services.AddHostedService<AutoTradingAccountsPreloaderHostedService>();
-                // services.AddHostedService<AutoTradingRateLimitsHostedService>();
+                // for local debugging or run as single instance
+                services.AddHostedService<MesaPreloaderHostedService>();
+                services.AddHostedService<AutoTradingAccountsPreloaderHostedService>();
+                services.AddHostedService<AutoTradingRateLimitsHostedService>();
             }
             else
             {
