@@ -80,8 +80,8 @@ namespace Algoserver.API
             //     options.ConfigurationOptions.EndPoints.Add(redisSettings.Host, redisSettings.Port);
             // });
 
-            services.AddSingleton<ICacheService, MemoryCacheService>();
-            // services.AddSingleton<ICacheService, RedisCacheService>();
+            // services.AddSingleton<ICacheService, MemoryCacheService>();
+            services.AddSingleton<ICacheService, RedisCacheService>();
             services.AddSingleton<IInMemoryCache, MemoryCacheService>();
             services.AddSingleton<IAuthorizationHandler, GuestRightProtectionHandler>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
@@ -128,9 +128,9 @@ namespace Algoserver.API
                 services.AddHostedService<EconomicCalendarLoaderHostedService>();
                 services.AddHostedService<AutoTradingAccountsLoaderHostedService>();
                 // for local debugging or run as single instance
-                services.AddHostedService<MesaPreloaderHostedService>();
-                services.AddHostedService<AutoTradingAccountsPreloaderHostedService>();
-                services.AddHostedService<AutoTradingRateLimitsHostedService>();
+                // services.AddHostedService<MesaPreloaderHostedService>();
+                // services.AddHostedService<AutoTradingAccountsPreloaderHostedService>();
+                // services.AddHostedService<AutoTradingRateLimitsHostedService>();
             }
             else
             {
