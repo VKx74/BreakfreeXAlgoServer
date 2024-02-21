@@ -27,7 +27,7 @@ namespace Algoserver.API.Services
                         _accounts.Clear();
                         _accounts.AddRange(cachedResponse);
                     }
-                    Console.WriteLine(">>> Loaded auto trading account: " + _accounts.Count);
+                    Console.WriteLine(">>> Loaded auto trading account from cache: " + _accounts.Count);
                 }
             }
             catch (Exception e)

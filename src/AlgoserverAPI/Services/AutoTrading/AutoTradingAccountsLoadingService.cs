@@ -72,7 +72,7 @@ namespace Algoserver.API.Services
                     AccountId = _.AccountId,
                     Subscriptions = _.Subscriptions
                 }).ToList();
-                Console.WriteLine(">>> Loaded auto trading account: " + accountsList.Count);
+                Console.WriteLine(">>> Loaded auto trading account from identity: " + accountsList.Count);
                 _cache.Set(_cachePrefix, _cacheKey, accountsList, TimeSpan.FromDays(1));
             }
             catch (Exception e)
