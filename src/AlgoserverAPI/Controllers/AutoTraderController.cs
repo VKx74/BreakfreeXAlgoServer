@@ -933,15 +933,17 @@ namespace Algoserver.API.Controllers
                 return false;
             }
 
-            var version = Regex.Replace(naversion, @"[^\d]", String.Empty);
-            version = version.Replace("-", string.Empty);
-            var versions = version.Split(".");
+            var versions = naversion.Split(".");
             if (versions.Length != 3)
             {
                 return false;
             }
 
-            if (int.TryParse(versions[0], out var major))
+            var majorVersionString = Regex.Replace(versions[0], @"[^\d]", String.Empty);
+            var minorVersionString = Regex.Replace(versions[1], @"[^\d]", String.Empty);
+            var buildVersionString = Regex.Replace(versions[2], @"[^\d]", String.Empty);
+
+            if (int.TryParse(majorVersionString, out var major))
             {
                 if (major < 2)
                 {
@@ -953,7 +955,7 @@ namespace Algoserver.API.Controllers
                 return false;
             }
 
-            if (int.TryParse(versions[1], out var minor))
+            if (int.TryParse(minorVersionString, out var minor))
             {
                 if (minor < 17)
                 {
@@ -965,7 +967,7 @@ namespace Algoserver.API.Controllers
                 return false;
             }
 
-            if (int.TryParse(versions[2], out var build))
+            if (int.TryParse(buildVersionString, out var build))
             {
                 if (build < 3)
                 {
