@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Threading;
 using Algoserver.API.Models;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Algoserver.API.Controllers
 {
@@ -505,6 +506,11 @@ namespace Algoserver.API.Controllers
                 return Unauthorized("Invalid trading account");
             }
 
+            if (!validateNAVersion(request.Naversion))
+            {
+                return StatusCode(403, "Old NA Version. Pleas update you NA client.");
+            }
+
             var result = string.Empty;
 
             if (request.Version == "2.1")
@@ -916,6 +922,62 @@ namespace Algoserver.API.Controllers
             }
 
             return string.Empty;
+        }
+
+        private bool validateNAVersion(string naversion)
+        {
+            // "AK-2.17.4a";
+            // "AK-2.17.3";
+            if (string.IsNullOrEmpty(naversion))
+            {
+                return false;
+            }
+
+            var version = Regex.Replace(naversion, @"[^\d]", String.Empty);
+            version = version.Replace("-", string.Empty);
+            var versions = version.Split(".");
+            if (versions.Length != 3)
+            {
+                return false;
+            }
+
+            if (int.TryParse(versions[0], out var major))
+            {
+                if (major < 2)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+
+            if (int.TryParse(versions[1], out var minor))
+            {
+                if (minor < 17)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+
+            if (int.TryParse(versions[2], out var build))
+            {
+                if (build < 3)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }
