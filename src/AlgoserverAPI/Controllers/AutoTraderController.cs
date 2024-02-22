@@ -506,26 +506,6 @@ namespace Algoserver.API.Controllers
                 return Unauthorized("Invalid trading account");
             }
 
-            if (!validateNAVersion(request.Naversion))
-            {
-                return StatusCode(403, "Old NA Version. Pleas update you NA client.");
-            }
-
-            var result = string.Empty;
-
-            if (request.Version == "2.1")
-            {
-                result = await GetAutoTradeInstrumentsAsyncV2_1(request.Account);
-            }
-            else if (request.Version == "2.0")
-            {
-                result = await GetAutoTradeInstrumentsAsyncV2(request.Account);
-            }
-            else
-            {
-                result = await GetAutoTradeInstrumentsAsyncV1(request.Account);
-            }
-
             try
             {
                 var logs = new List<NALogs>();
@@ -588,6 +568,26 @@ namespace Algoserver.API.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
+            }
+
+            if (!validateNAVersion(request.Naversion))
+            {
+                return StatusCode(403, "Old NA Version. Pleas update you NA client.");
+            }
+
+            var result = string.Empty;
+
+            if (request.Version == "2.1")
+            {
+                result = await GetAutoTradeInstrumentsAsyncV2_1(request.Account);
+            }
+            else if (request.Version == "2.0")
+            {
+                result = await GetAutoTradeInstrumentsAsyncV2(request.Account);
+            }
+            else
+            {
+                result = await GetAutoTradeInstrumentsAsyncV1(request.Account);
             }
 
             return Ok(result);
