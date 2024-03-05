@@ -61,7 +61,7 @@ namespace Algoserver.API.Services
             }
 
             stopWatch.Start();
-            var min1history = await this._loadPack(tasks1min, 10);
+            var min1history = await this._loadPack(tasks1min);
             stopWatch.Stop();
             TimeSpan ts1 = stopWatch.Elapsed;
 
@@ -115,7 +115,7 @@ namespace Algoserver.API.Services
             }
 
             stopWatch.Start();
-            var min1history = await this._loadPack(tasks1min, 1);
+            var min1history = await this._loadPack(tasks1min);
             stopWatch.Stop();
             TimeSpan ts1 = stopWatch.Elapsed;
 
@@ -162,14 +162,14 @@ namespace Algoserver.API.Services
                 //     Count = 300,
                 //     Granularity = TimeframeHelper.MIN5_GRANULARITY
                 // });
-                tasks15min.Add(new HistoryRequest
-                {
-                    Symbol = Symbol,
-                    Datafeed = Datafeed,
-                    Exchange = Exchange,
-                    Count = 1000,
-                    Granularity = TimeframeHelper.MIN15_GRANULARITY
-                });
+                // tasks15min.Add(new HistoryRequest
+                // {
+                //     Symbol = Symbol,
+                //     Datafeed = Datafeed,
+                //     Exchange = Exchange,
+                //     Count = 1000,
+                //     Granularity = TimeframeHelper.MIN15_GRANULARITY
+                // });
                 // tasks30min.Add(new HistoryRequest {
                 //     Symbol = Symbol,
                 //     Datafeed = Datafeed,
@@ -185,14 +185,14 @@ namespace Algoserver.API.Services
                     Count = 3000,
                     Granularity = TimeframeHelper.HOURLY_GRANULARITY
                 });
-                tasks4h.Add(new HistoryRequest
-                {
-                    Symbol = Symbol,
-                    Datafeed = Datafeed,
-                    Exchange = Exchange,
-                    Count = 1000,
-                    Granularity = TimeframeHelper.HOUR4_GRANULARITY
-                });
+                // tasks4h.Add(new HistoryRequest
+                // {
+                //     Symbol = Symbol,
+                //     Datafeed = Datafeed,
+                //     Exchange = Exchange,
+                //     Count = 1000,
+                //     Granularity = TimeframeHelper.HOUR4_GRANULARITY
+                // });
                 tasks1d.Add(new HistoryRequest
                 {
                     Symbol = Symbol,
@@ -222,6 +222,7 @@ namespace Algoserver.API.Services
                 });
             }
 
+            stopWatch.Reset();
             stopWatch.Start();
             var min15history = await this._loadPack(tasks15min);
             stopWatch.Stop();
@@ -240,6 +241,7 @@ namespace Algoserver.API.Services
                     Bars = combinedData
                 });
             }
+
             stopWatch.Reset();
             stopWatch.Start();
             var hourlyhistory = await this._loadPack(tasks1h);
@@ -312,7 +314,11 @@ namespace Algoserver.API.Services
             string elapsedTime1h = String.Format(" * 1 h {0:00}:{1:00} - data loaded " + hourlyhistory.Count, ts1h.Minutes, ts1h.Seconds);
             string elapsedTime4h = String.Format(" * 4 h {0:00}:{1:00} - data loaded " + hour4history.Count, ts4h.Minutes, ts4h.Seconds);
             string elapsedTime1d = String.Format(" * 1 d {0:00}:{1:00} - data loaded " + dailyhistory.Count, ts1d.Minutes, ts1d.Seconds);
-            Console.WriteLine(">>> " + elapsedTime1 + " - " + elapsedTime15 + " - " + elapsedTime1h + " - " + elapsedTime4h + " - " + elapsedTime1d);
+            Console.WriteLine(">>> " + elapsedTime1);
+            Console.WriteLine(">>> " + elapsedTime15);
+            Console.WriteLine(">>> " + elapsedTime1h);
+            Console.WriteLine(">>> " + elapsedTime4h);
+            Console.WriteLine(">>> "  + elapsedTime1d);
             return elapsedTime1 + " - " + elapsedTime15 + " - " + elapsedTime1h + " - " + elapsedTime4h + " - " + elapsedTime1d;
 
         }
@@ -506,8 +512,17 @@ namespace Algoserver.API.Services
                         continue;
                     }
 
-                    var firstBar = history1Min.Bars.FirstOrDefault();
+                    var barsToUpdate = history1Min.Bars.TakeLast(100);
+                    var firstBar = barsToUpdate.FirstOrDefault();
                     if (firstBar == null)
+                    {
+                        continue;
+                    }
+
+                    var lastBarMinHistory = barsToUpdate.LastOrDefault();
+                    var lastBarLongMinHistory = history1MinLongData.Bars.LastOrDefault();
+
+                    if (lastBarLongMinHistory.Timestamp > lastBarMinHistory.Timestamp)
                     {
                         continue;
                     }
@@ -519,7 +534,7 @@ namespace Algoserver.API.Services
                     }
 
                     history1MinLongData.Bars.RemoveRange(indexOfStart, history1MinLongData.Bars.Count - indexOfStart);
-                    history1MinLongData.Bars.AddRange(history1Min.Bars);
+                    history1MinLongData.Bars.AddRange(barsToUpdate);
 
                     // tryAddHistoryInCache(history1MinLongData);
                 }

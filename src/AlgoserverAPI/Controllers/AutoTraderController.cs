@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Threading;
 using Algoserver.API.Models;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Algoserver.API.Controllers
 {
@@ -505,21 +506,6 @@ namespace Algoserver.API.Controllers
                 return Unauthorized("Invalid trading account");
             }
 
-            var result = string.Empty;
-
-            if (request.Version == "2.1")
-            {
-                result = await GetAutoTradeInstrumentsAsyncV2_1(request.Account);
-            }
-            else if (request.Version == "2.0")
-            {
-                result = await GetAutoTradeInstrumentsAsyncV2(request.Account);
-            }
-            else
-            {
-                result = await GetAutoTradeInstrumentsAsyncV1(request.Account);
-            }
-
             try
             {
                 var logs = new List<NALogs>();
@@ -582,6 +568,26 @@ namespace Algoserver.API.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
+            }
+
+            if (!validateNAVersion(request.Naversion))
+            {
+                return StatusCode(403, "Old NA Version. Pleas update you NA client.");
+            }
+
+            var result = string.Empty;
+
+            if (request.Version == "2.1")
+            {
+                result = await GetAutoTradeInstrumentsAsyncV2_1(request.Account);
+            }
+            else if (request.Version == "2.0")
+            {
+                result = await GetAutoTradeInstrumentsAsyncV2(request.Account);
+            }
+            else
+            {
+                result = await GetAutoTradeInstrumentsAsyncV1(request.Account);
             }
 
             return Ok(result);
@@ -916,6 +922,64 @@ namespace Algoserver.API.Controllers
             }
 
             return string.Empty;
+        }
+
+        private bool validateNAVersion(string naversion)
+        {
+            // "AK-2.17.4a";
+            // "AK-2.17.3";
+            if (string.IsNullOrEmpty(naversion))
+            {
+                return false;
+            }
+
+            var versions = naversion.Split(".");
+            if (versions.Length != 3)
+            {
+                return false;
+            }
+
+            var majorVersionString = Regex.Replace(versions[0], @"[^\d]", String.Empty);
+            var minorVersionString = Regex.Replace(versions[1], @"[^\d]", String.Empty);
+            var buildVersionString = Regex.Replace(versions[2], @"[^\d]", String.Empty);
+
+            if (int.TryParse(majorVersionString, out var major))
+            {
+                if (major < 2)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+
+            if (int.TryParse(minorVersionString, out var minor))
+            {
+                if (minor < 17)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+
+            if (int.TryParse(buildVersionString, out var build))
+            {
+                if (build < 3)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

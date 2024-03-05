@@ -141,7 +141,6 @@ namespace Algoserver.API.Services
 
         private async Task<List<BarMessage>> SendHistoricalRequest(string datafeed, string symbol, int granularity, string exchange, long start, long end)
         {
-
             var bearerdatafeed = datafeed.ToLowerInvariant();
             var uri = $"{_serverUrl}/{bearerdatafeed}/history?" +
                         $"kind=daterange&symbol={symbol}&granularity={granularity}&from={start}&to={end}";
@@ -305,9 +304,9 @@ namespace Algoserver.API.Services
             var existing_count = data.Bars.Count();
             var mult = 2;
             var bars_difference = (bars_count - existing_count);
-            if (bars_difference < 300)
+            if (bars_difference < 1000)
             {
-                bars_difference = 300;
+                bars_difference = 1000;
             }
             long startDate = endDate - (bars_difference * data.Granularity * mult);
 
@@ -353,9 +352,9 @@ namespace Algoserver.API.Services
             if (string.Equals(data.Datafeed, "oanda", StringComparison.InvariantCultureIgnoreCase))
             {
                 var count = (endDate - startDate) / data.Granularity;
-                if (count > 5000)
+                if (count > 10000)
                 {
-                    startDate = endDate - (data.Granularity * 5000);
+                    startDate = endDate - (data.Granularity * 10000);
                 }
             }
 
