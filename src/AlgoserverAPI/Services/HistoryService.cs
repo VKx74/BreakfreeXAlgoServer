@@ -158,6 +158,8 @@ namespace Algoserver.API.Services
             }
             };
 
+            Console.WriteLine(">>> SendHistoryRequest: " + uri);
+
             var response = await _httpClient.SendAsync(request);
             var content = await response.Content.ReadAsStringAsync();
 
