@@ -141,7 +141,6 @@ namespace Algoserver.API.Services
 
         private async Task<List<BarMessage>> SendHistoricalRequest(string datafeed, string symbol, int granularity, string exchange, long start, long end)
         {
-
             var bearerdatafeed = datafeed.ToLowerInvariant();
             var uri = $"{_serverUrl}/{bearerdatafeed}/history?" +
                         $"kind=daterange&symbol={symbol}&granularity={granularity}&from={start}&to={end}";

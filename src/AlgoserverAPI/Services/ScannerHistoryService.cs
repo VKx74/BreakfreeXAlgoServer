@@ -222,6 +222,7 @@ namespace Algoserver.API.Services
                 });
             }
 
+            stopWatch.Reset();
             stopWatch.Start();
             var min15history = await this._loadPack(tasks15min);
             stopWatch.Stop();
@@ -240,6 +241,7 @@ namespace Algoserver.API.Services
                     Bars = combinedData
                 });
             }
+
             stopWatch.Reset();
             stopWatch.Start();
             var hourlyhistory = await this._loadPack(tasks1h);
@@ -312,7 +314,11 @@ namespace Algoserver.API.Services
             string elapsedTime1h = String.Format(" * 1 h {0:00}:{1:00} - data loaded " + hourlyhistory.Count, ts1h.Minutes, ts1h.Seconds);
             string elapsedTime4h = String.Format(" * 4 h {0:00}:{1:00} - data loaded " + hour4history.Count, ts4h.Minutes, ts4h.Seconds);
             string elapsedTime1d = String.Format(" * 1 d {0:00}:{1:00} - data loaded " + dailyhistory.Count, ts1d.Minutes, ts1d.Seconds);
-            Console.WriteLine(">>> " + elapsedTime1 + " - " + elapsedTime15 + " - " + elapsedTime1h + " - " + elapsedTime4h + " - " + elapsedTime1d);
+            Console.WriteLine(">>> " + elapsedTime1);
+            Console.WriteLine(">>> " + elapsedTime15);
+            Console.WriteLine(">>> " + elapsedTime1h);
+            Console.WriteLine(">>> " + elapsedTime4h);
+            Console.WriteLine(">>> "  + elapsedTime1d);
             return elapsedTime1 + " - " + elapsedTime15 + " - " + elapsedTime1h + " - " + elapsedTime4h + " - " + elapsedTime1d;
 
         }
@@ -506,7 +512,7 @@ namespace Algoserver.API.Services
                         continue;
                     }
 
-                    var barsToUpdate = history1Min.Bars.TakeLast(60);
+                    var barsToUpdate = history1Min.Bars.TakeLast(100);
                     var firstBar = barsToUpdate.FirstOrDefault();
                     if (firstBar == null)
                     {
