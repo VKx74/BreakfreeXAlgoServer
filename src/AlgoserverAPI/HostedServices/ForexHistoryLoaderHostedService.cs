@@ -49,7 +49,7 @@ namespace Algoserver.API.HostedServices
                     {
                         var result = await _scannerHistory.RefreshAll();
                         _scannerCache.RefreshAllMarketsTime = result;
-                        await Task.Delay(TimeSpan.FromSeconds(20), stoppingToken).ConfigureAwait(false);
+                        // await Task.Delay(TimeSpan.FromSeconds(20), stoppingToken).ConfigureAwait(false);
                         // scanRequired = true;
                     }
                     else if (currentMinute != _prevMin)

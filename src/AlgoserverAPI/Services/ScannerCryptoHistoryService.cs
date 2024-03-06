@@ -9,7 +9,7 @@ namespace Algoserver.API.Services
 {
     public class ScannerCryptoHistoryService : ScannerHistoryService
     {
-        public ScannerCryptoHistoryService(HistoryService historyService, InstrumentService instrumentService, ICacheService cache): base(historyService, instrumentService, cache)
+        public ScannerCryptoHistoryService(HistoryService historyService, InstrumentService instrumentService, IInMemoryCache cache): base(historyService, instrumentService, cache)
         {
         }
 
@@ -28,7 +28,7 @@ namespace Algoserver.API.Services
                 }
             }
 
-            // return instruments.Take(1).ToList();
+            // return instruments.Take(5).ToList();
             return instruments;
         }
 

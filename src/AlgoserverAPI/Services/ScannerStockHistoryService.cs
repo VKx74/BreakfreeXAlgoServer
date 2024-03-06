@@ -9,7 +9,7 @@ namespace Algoserver.API.Services
 {
     public class ScannerStockHistoryService : ScannerHistoryService
     {
-        public ScannerStockHistoryService(HistoryService historyService, InstrumentService instrumentService, ICacheService cache): base(historyService, instrumentService, cache)
+        public ScannerStockHistoryService(HistoryService historyService, InstrumentService instrumentService, IInMemoryCache cache): base(historyService, instrumentService, cache)
         {
         }
 
@@ -27,7 +27,7 @@ namespace Algoserver.API.Services
                 }
             }
 
-            // return instruments.Take(1).ToList();
+            // return instruments.Take(5).ToList();
             return instruments;
         }  
         public override List<IInstrument> getInstrumentsForLongHistory() 

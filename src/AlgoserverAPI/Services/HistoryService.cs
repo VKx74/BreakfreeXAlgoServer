@@ -65,34 +65,33 @@ namespace Algoserver.API.Services
 
             var result = await LoadHistoricalData(datafeed, symbol, granularity, barsBack, exchange);
 
-            try
-            {
-                if (result != null && result != null && result.Bars != null && result.Bars.Any())
-                {
-                    if (granularity > 60 * 15)
-                    {
-                        _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(15));
-                    }
-                    else if (granularity > 60 * 5)
-                    {
-                        _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(5));
-                    }
-                    else if (granularity > 60)
-                    {
-                        _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(3));
-                    }
-                    else
-                    {
-                        _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(1));
-                    }
-                    // _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(30));
-                }
-            }
-            catch (Exception e)
-            {
-                _logger.LogError("Failed to set cached response");
-                _logger.LogError(e.Message);
-            }
+            // try
+            // {
+            //     if (result != null && result != null && result.Bars != null && result.Bars.Any())
+            //     {
+            //         if (granularity > 60 * 15)
+            //         {
+            //             _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(15));
+            //         }
+            //         else if (granularity > 60 * 5)
+            //         {
+            //             _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(5));
+            //         }
+            //         else if (granularity > 60)
+            //         {
+            //             _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(3));
+            //         }
+            //         else
+            //         {
+            //             _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(1));
+            //         }
+            //     }
+            // }
+            // catch (Exception e)
+            // {
+            //     _logger.LogError("Failed to set cached response");
+            //     _logger.LogError(e.Message);
+            // }
 
             return result;
         }
@@ -123,18 +122,18 @@ namespace Algoserver.API.Services
                 Symbol = symbol
             };
 
-            try
-            {
-                if (result.Bars != null && result.Bars.Any())
-                {
-                    _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(60));
-                }
-            }
-            catch (Exception e)
-            {
-                _logger.LogError("Failed to set cached response");
-                _logger.LogError(e.Message);
-            }
+            // try
+            // {
+            //     if (result.Bars != null && result.Bars.Any())
+            //     {
+            //         _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(60));
+            //     }
+            // }
+            // catch (Exception e)
+            // {
+            //     _logger.LogError("Failed to set cached response");
+            //     _logger.LogError(e.Message);
+            // }
 
             return result;
         }
@@ -306,9 +305,9 @@ namespace Algoserver.API.Services
             var existing_count = data.Bars.Count();
             var mult = 2;
             var bars_difference = (bars_count - existing_count);
-            if (bars_difference < 1000)
+            if (bars_difference < 500)
             {
-                bars_difference = 1000;
+                bars_difference = 500;
             }
             long startDate = endDate - (bars_difference * data.Granularity * mult);
 

@@ -9,7 +9,7 @@ namespace Algoserver.API.Services
 {
     public class ScannerForexHistoryService : ScannerHistoryService
     {
-        public ScannerForexHistoryService(HistoryService historyService, InstrumentService instrumentService, ICacheService cache) : base(historyService, instrumentService, cache)
+        public ScannerForexHistoryService(HistoryService historyService, InstrumentService instrumentService, IInMemoryCache cache) : base(historyService, instrumentService, cache)
         {
         }
 
@@ -48,7 +48,7 @@ namespace Algoserver.API.Services
                 PricePrecision = 0.00000001m
             });
 
-            // return instruments.Take(1).ToList();
+            // return instruments.Take(5).ToList();
             return instruments;
         }
 
@@ -90,7 +90,7 @@ namespace Algoserver.API.Services
                 PricePrecision = 0.00000001m
             });
 
-            // return instruments.Take(1).ToList();
+            // return instruments.Take(5).ToList();
             return instruments;
         }
     }

@@ -19,9 +19,7 @@ namespace Algoserver.API.Services
 
     public abstract class ScannerHistoryService
     {
-        private static int longMinHistoryCount = 21600;
-        private string _cachePrefix = "HistoryCache_";
-        private readonly ICacheService _cache;
+        private readonly IInMemoryCache _cache;
         protected readonly HistoryService _historyService;
         protected readonly InstrumentService _instrumentService;
         protected readonly List<HistoryData> _1MinLongHistory = new List<HistoryData>();
@@ -33,7 +31,7 @@ namespace Algoserver.API.Services
         protected readonly List<HistoryData> _4hHistory = new List<HistoryData>();
         protected readonly List<HistoryData> _dailyHistory = new List<HistoryData>();
 
-        public ScannerHistoryService(HistoryService historyService, InstrumentService instrumentService, ICacheService cache)
+        public ScannerHistoryService(HistoryService historyService, InstrumentService instrumentService, IInMemoryCache cache)
         {
             _historyService = historyService;
             _instrumentService = instrumentService;
@@ -88,6 +86,8 @@ namespace Algoserver.API.Services
             {
                 Console.WriteLine(ex.ToString());
             }
+
+            updateCache();
 
             string elapsedTime1 = String.Format(" * 1 min {0:00}:{1:00} - data loaded " + min1history.Count, ts1.Minutes, ts1.Seconds);
             Console.WriteLine(">>> " + elapsedTime1);
@@ -152,24 +152,24 @@ namespace Algoserver.API.Services
                     Symbol = Symbol,
                     Datafeed = Datafeed,
                     Exchange = Exchange,
-                    Count = 1000,
+                    Count = 3000,
                     Granularity = TimeframeHelper.MIN1_GRANULARITY
                 });
                 // tasks5min.Add(new HistoryRequest {
                 //     Symbol = Symbol,
                 //     Datafeed = Datafeed,
                 //     Exchange = Exchange,
-                //     Count = 300,
+                //     Count = 1000,
                 //     Granularity = TimeframeHelper.MIN5_GRANULARITY
                 // });
-                // tasks15min.Add(new HistoryRequest
-                // {
-                //     Symbol = Symbol,
-                //     Datafeed = Datafeed,
-                //     Exchange = Exchange,
-                //     Count = 1000,
-                //     Granularity = TimeframeHelper.MIN15_GRANULARITY
-                // });
+                tasks15min.Add(new HistoryRequest
+                {
+                    Symbol = Symbol,
+                    Datafeed = Datafeed,
+                    Exchange = Exchange,
+                    Count = 1000,
+                    Granularity = TimeframeHelper.MIN15_GRANULARITY
+                });
                 // tasks30min.Add(new HistoryRequest {
                 //     Symbol = Symbol,
                 //     Datafeed = Datafeed,
@@ -185,20 +185,20 @@ namespace Algoserver.API.Services
                     Count = 3000,
                     Granularity = TimeframeHelper.HOURLY_GRANULARITY
                 });
-                // tasks4h.Add(new HistoryRequest
-                // {
-                //     Symbol = Symbol,
-                //     Datafeed = Datafeed,
-                //     Exchange = Exchange,
-                //     Count = 1000,
-                //     Granularity = TimeframeHelper.HOUR4_GRANULARITY
-                // });
+                tasks4h.Add(new HistoryRequest
+                {
+                    Symbol = Symbol,
+                    Datafeed = Datafeed,
+                    Exchange = Exchange,
+                    Count = 1000,
+                    Granularity = TimeframeHelper.HOUR4_GRANULARITY
+                });
                 tasks1d.Add(new HistoryRequest
                 {
                     Symbol = Symbol,
                     Datafeed = Datafeed,
                     Exchange = Exchange,
-                    Count = 5000,
+                    Count = 3000,
                     Granularity = TimeframeHelper.DAILY_GRANULARITY
                 });
             }
@@ -216,7 +216,7 @@ namespace Algoserver.API.Services
                 {
                     Datafeed = history.Datafeed,
                     Exchange = history.Exchange,
-                    Granularity = history.Granularity,
+                    Granularity = TimeframeHelper.MIN5_GRANULARITY,
                     Symbol = history.Symbol,
                     Bars = combinedData
                 });
@@ -236,7 +236,7 @@ namespace Algoserver.API.Services
                 {
                     Datafeed = history.Datafeed,
                     Exchange = history.Exchange,
-                    Granularity = history.Granularity,
+                    Granularity = TimeframeHelper.MIN30_GRANULARITY,
                     Symbol = history.Symbol,
                     Bars = combinedData
                 });
@@ -308,7 +308,8 @@ namespace Algoserver.API.Services
             }
             catch (Exception ex) { }
 
-            // string elapsedTime = String.Format("Total {0:00}:{1:00}", ts.Minutes, ts.Seconds);
+            updateCache();
+
             string elapsedTime1 = String.Format(" * 1 min {0:00}:{1:00} - data loaded " + min1history.Count, ts1.Minutes, ts1.Seconds);
             string elapsedTime15 = String.Format(" * 15 min {0:00}:{1:00} - data loaded " + min15history.Count, ts15.Minutes, ts15.Seconds);
             string elapsedTime1h = String.Format(" * 1 h {0:00}:{1:00} - data loaded " + hourlyhistory.Count, ts1h.Minutes, ts1h.Seconds);
@@ -318,9 +319,8 @@ namespace Algoserver.API.Services
             Console.WriteLine(">>> " + elapsedTime15);
             Console.WriteLine(">>> " + elapsedTime1h);
             Console.WriteLine(">>> " + elapsedTime4h);
-            Console.WriteLine(">>> "  + elapsedTime1d);
+            Console.WriteLine(">>> " + elapsedTime1d);
             return elapsedTime1 + " - " + elapsedTime15 + " - " + elapsedTime1h + " - " + elapsedTime4h + " - " + elapsedTime1d;
-
         }
 
         public List<HistoryData> Get1MinData()
@@ -450,7 +450,7 @@ namespace Algoserver.API.Services
             }
         }
 
-        protected async Task<List<HistoryData>> _loadPack(List<HistoryRequest> tasks, int defaultPackCount = 1)
+        protected async Task<List<HistoryData>> _loadPack(List<HistoryRequest> tasks, int defaultPackCount = 3)
         {
             var result = new List<HistoryData>();
             var count = defaultPackCount;
@@ -512,7 +512,7 @@ namespace Algoserver.API.Services
                         continue;
                     }
 
-                    var barsToUpdate = history1Min.Bars.TakeLast(100);
+                    var barsToUpdate = history1Min.Bars.TakeLast(120);
                     var firstBar = barsToUpdate.FirstOrDefault();
                     if (firstBar == null)
                     {
@@ -685,16 +685,63 @@ namespace Algoserver.API.Services
             return res;
         }
 
-        protected void tryAddHistoryInCache(HistoryData history1MinLongData)
+        protected void updateCache()
         {
-            var hash = history1MinLongData.Datafeed + "_" + history1MinLongData.Symbol + "_" + history1MinLongData.Granularity.ToString();
+            var minHistory = Get1MinData();
+            updateCache(minHistory, 5);
+
+            var min5History = Get5MinData();
+            updateCache(min5History, 15);
+
+            var min15History = Get15MinData();
+            updateCache(min15History, 15);
+
+            var min30History = Get30MinData();
+            updateCache(min30History, 30);
+
+            var h1History = Get1HData();
+            updateCache(h1History, 30);
+
+            var h4History = Get4HData();
+            updateCache(h4History, 30);
+
+            var d1History = Get1DData();
+            updateCache(d1History, 30);
+        }
+
+        protected void updateCache(List<HistoryData> minHistory, int saveTime)
+        {
             try
             {
-                _cache.Set(_cachePrefix, hash.ToLower(), history1MinLongData.Bars.TakeLast(longMinHistoryCount).ToList(), TimeSpan.FromDays(2));
+                var prefix = "History_";
+                foreach (var h in minHistory)
+                {
+                    var hash = getHash(h.Symbol, h.Granularity, h.Datafeed, h.Exchange);
+                    _cache.Set(prefix, hash, h, TimeSpan.FromMinutes(saveTime));
+                }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
+                Console.WriteLine("Failed to set cached");
+                Console.WriteLine(ex);
             }
+        }
+
+        protected string getHash(string symbol, long granularity, string datafeed, string exchange = "")
+        {
+            if (!String.IsNullOrEmpty(symbol))
+            {
+                symbol = symbol.ToLowerInvariant();
+            }
+            if (!String.IsNullOrEmpty(datafeed))
+            {
+                datafeed = datafeed.ToLowerInvariant();
+            }
+            if (!String.IsNullOrEmpty(exchange))
+            {
+                exchange = exchange.ToLowerInvariant();
+            }
+            return $"{symbol}{granularity}{datafeed}{exchange}";
         }
 
         public abstract List<IInstrument> getInstruments();
