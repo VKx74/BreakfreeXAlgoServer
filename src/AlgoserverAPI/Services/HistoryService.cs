@@ -65,33 +65,33 @@ namespace Algoserver.API.Services
 
             var result = await LoadHistoricalData(datafeed, symbol, granularity, barsBack, exchange);
 
-            // try
-            // {
-            //     if (result != null && result != null && result.Bars != null && result.Bars.Any())
-            //     {
-            //         if (granularity > 60 * 15)
-            //         {
-            //             _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(15));
-            //         }
-            //         else if (granularity > 60 * 5)
-            //         {
-            //             _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(5));
-            //         }
-            //         else if (granularity > 60)
-            //         {
-            //             _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(3));
-            //         }
-            //         else
-            //         {
-            //             _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(1));
-            //         }
-            //     }
-            // }
-            // catch (Exception e)
-            // {
-            //     _logger.LogError("Failed to set cached response");
-            //     _logger.LogError(e.Message);
-            // }
+            try
+            {
+                if (result != null && result != null && result.Bars != null && result.Bars.Any())
+                {
+                    if (granularity > 60 * 15)
+                    {
+                        _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(15));
+                    }
+                    else if (granularity > 60 * 5)
+                    {
+                        _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(5));
+                    }
+                    else if (granularity > 60)
+                    {
+                        _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(3));
+                    }
+                    else
+                    {
+                        _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(1));
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Failed to set cached response");
+                _logger.LogError(e.Message);
+            }
 
             return result;
         }
@@ -126,7 +126,7 @@ namespace Algoserver.API.Services
             // {
             //     if (result.Bars != null && result.Bars.Any())
             //     {
-            //         _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(60));
+            //         _cache.Set(_ _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(60));
             //     }
             // }
             // catch (Exception e)
