@@ -54,7 +54,7 @@ namespace Algoserver.API.Services
 
             if (account.Subscriptions == null || !account.Subscriptions.Any())
             {
-                return 1;
+                return 0;
             }
 
             var neural = "Neural";
