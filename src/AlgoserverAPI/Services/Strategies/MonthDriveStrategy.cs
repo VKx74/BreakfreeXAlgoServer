@@ -207,6 +207,7 @@ namespace Algoserver.API.Services
 
             if (IsHITLModeEnabled(symbolInfo, mesaResponse))
             {
+                return 2; // Auto allowed
                 return 1; // HITL allowed
             }
 

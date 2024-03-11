@@ -181,8 +181,8 @@ namespace Algoserver.API.Services.CacheServices
             var userSettings = _autoTradingUserInfoService.GetUserInfo(account);
             var maxAmount = _autoTradingAccountsService.GetMaxTradingInstrumentsCount(account);
             var disabledMarkets = userSettings.disabledMarkets != null ? userSettings.disabledMarkets : new List<string>();
-            var isHITLEnabled = userSettings != null && userSettings.useManualTrading && userSettings.markets != null;
-            var isHITLOverride = maxAmount != int.MaxValue && isHITLEnabled;
+            // var isHITLEnabled = userSettings != null && userSettings.useManualTrading && userSettings.markets != null;
+            // var isHITLOverride = maxAmount != int.MaxValue && isHITLEnabled;
 
             lock (_data)
             {
@@ -203,13 +203,13 @@ namespace Algoserver.API.Services.CacheServices
                         {
                             autoSymbols.Add(instrument, symbol.Value);
                         }
-                        else if (isHITLEnabled)
+                        else //if (isHITLEnabled)
                         {
-                            var canTradeInHITLMode = symbol.Value.TradingState == 1;
-                            if (!canTradeInHITLMode)
-                            {
-                                continue;
-                            }
+                            // var canTradeInHITLMode = symbol.Value.TradingState == 1;
+                            // if (!canTradeInHITLMode)
+                            // {
+                            //     continue;
+                            // }
                             var s = getNormalizedInstrument(instrument);
                             var marketConfig = userSettings.markets.FirstOrDefault((_) => !string.IsNullOrEmpty(_.symbol) && string.Equals(getNormalizedInstrument(_.symbol), s, StringComparison.InvariantCultureIgnoreCase));
                             if (marketConfig != null)
