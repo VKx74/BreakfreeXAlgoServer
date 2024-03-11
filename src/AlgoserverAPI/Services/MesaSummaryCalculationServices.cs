@@ -513,7 +513,7 @@ namespace Algoserver.API.Services
             {
                 var val = rawStdDev[i];
                 var t = dates[i];
-                res.Add(t, (float)val / (float)avgSpread * 100);
+                res.TryAdd(t, (float)val / (float)avgSpread * 100);
             }
             return res;
         }
