@@ -190,10 +190,10 @@ namespace Algoserver.API.Services.CacheServices
                 {
                     foreach (var symbol in types.Value)
                     {
-                        if (symbol.Value.TradingState == 0)
-                        {
-                            continue;
-                        }
+                        // if (symbol.Value.TradingState == 0)
+                        // {
+                        //     continue;
+                        // }
 
                         var name = symbol.Key.Split("_");
                         name = name.TakeLast(name.Length - 1).ToArray();
