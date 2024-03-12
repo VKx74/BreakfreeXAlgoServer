@@ -195,10 +195,10 @@ namespace Algoserver.API.Services
 
         public static uint GetState(AutoTradingSymbolInfoResponse symbolInfo, MESADataSummary mesaResponse, string symbol)
         {
-            if (IsAutoTradeCapitulationConfirmed(symbolInfo))
-            {
-                return 3; // Capitulation
-            }
+            // if (IsAutoTradeCapitulationConfirmed(symbolInfo))
+            // {
+            //     return 3; // Capitulation
+            // }
 
             if (IsAutoTradeModeEnabled(symbolInfo, mesaResponse))
             {
@@ -211,6 +211,7 @@ namespace Algoserver.API.Services
                 return 1; // HITL allowed
             }
 
+            return 1; // HITL allowed
             return 0; // Nothing
         }
     }

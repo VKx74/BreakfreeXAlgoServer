@@ -491,7 +491,9 @@ namespace Algoserver.API.Helpers
         {
             get
             {
-                return new List<string> { "EUR_SEK", "USD_SEK", "USD_NOK", "USD_HUF", "CAD_SGD", "EUR_NOK", "USD_MXN", "SGD_CHF", "NZD_SGD", "AU200_AUD", "DE10YB_EUR", "CORN_USD", "CN50_USD", "EU50_EUR", "FR40_EUR", "HK33_HKD", "IN50_USD", "NL25_EUR", "SG30_SGD", "SUGAR_USD", "UK10YB_GBP", "USB02Y_USD", "USB05Y_USD", "USB10Y_USD", "USB30Y_USD", "NATGAS_USD", "SOYBN_USD", "WHEAT_USD"};
+                return new List<string> { "EUR_SEK", "USD_SEK", "USD_NOK", "USD_HUF", "CAD_SGD", "EUR_NOK", "USD_MXN", "SGD_CHF", "NZD_SGD", "AU200_AUD", "DE10YB_EUR", "CORN_USD", "CN50_USD", "EU50_EUR", "FR40_EUR", "HK33_HKD", "IN50_USD", "NL25_EUR", "SG30_SGD", "SUGAR_USD", "UK10YB_GBP", "USB02Y_USD", "USB05Y_USD", "USB10Y_USD", "USB30Y_USD", "NATGAS_USD", "SOYBN_USD", "WHEAT_USD",
+                "AUD_SGD", "BCO_USD", "EUR_SGD", "GBP_SGD","SGD_JPY", "USD_SGD", "WTICO_USD", "XAG_EUR", "XAU_EUR", "XAU_XAG", "XCU_USD", "UK100_GBP" // New OANDA not support this instruments
+                };
             }
         }
     }

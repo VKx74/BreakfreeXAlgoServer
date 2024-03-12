@@ -205,11 +205,11 @@ namespace Algoserver.API.Services.CacheServices
                         }
                         else if (isHITLEnabled)
                         {
-                            // var canTradeInHITLMode = symbol.Value.TradingState == 1;
-                            // if (!canTradeInHITLMode)
-                            // {
-                            //     continue;
-                            // }
+                            var canTradeInHITLMode = symbol.Value.TradingState == 1;
+                            if (!canTradeInHITLMode)
+                            {
+                                continue;
+                            }
                             if (userSettings != null && userSettings.markets != null)
                             {
                                 var s = getNormalizedInstrument(instrument);
