@@ -58,7 +58,7 @@ namespace Algoserver.API.HostedServices
                 _prevHour = currentHour;
                 _prevDay = currentDay;
 
-                await Task.Delay(TimeSpan.FromSeconds(3), stoppingToken).ConfigureAwait(false);
+                await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken).ConfigureAwait(false);
             }
         }
     }
