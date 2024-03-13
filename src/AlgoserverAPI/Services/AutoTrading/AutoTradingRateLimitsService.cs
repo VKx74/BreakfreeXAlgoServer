@@ -19,7 +19,7 @@ namespace Algoserver.API.Services
                 if (_rates.ContainsKey(id))
                 {
                     _rates[id]++;
-                    return _rates[id] < 15;
+                    return _rates[id] < 30;
                 }
 
                 _rates.Add(id, 1);
