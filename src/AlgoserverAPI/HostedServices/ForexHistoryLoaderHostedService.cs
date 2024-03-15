@@ -49,7 +49,7 @@ namespace Algoserver.API.HostedServices
                     {
                         var result = await _scannerHistory.RefreshAll();
                         _scannerCache.RefreshAllMarketsTime = result;
-                        await Task.Delay(TimeSpan.FromSeconds(20), stoppingToken).ConfigureAwait(false);
+                        await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken).ConfigureAwait(false);
                         // scanRequired = true;
                     }
                     else if (currentMinute != _prevMin)
@@ -61,7 +61,7 @@ namespace Algoserver.API.HostedServices
 
                     if (scanRequired)
                     {
-                        // await Task.Delay(TimeSpan.FromSeconds(3), stoppingToken).ConfigureAwait(false);
+                        await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken).ConfigureAwait(false);
                         Console.WriteLine(">>> Forex Calculate Minute Mesa start");
                         var mesaInfo = _scannerCache.CalculateMinuteMesa();
                         if (mesaInfo != null)

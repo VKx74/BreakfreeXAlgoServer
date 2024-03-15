@@ -181,8 +181,8 @@ namespace Algoserver.API.Services.CacheServices
             var userSettings = _autoTradingUserInfoService.GetUserInfo(account);
             var maxAmount = _autoTradingAccountsService.GetMaxTradingInstrumentsCount(account);
             var disabledMarkets = userSettings.disabledMarkets != null ? userSettings.disabledMarkets : new List<string>();
-            var isHITLEnabled = userSettings != null && userSettings.useManualTrading && userSettings.markets != null;
-            var isHITLOverride = maxAmount != int.MaxValue && isHITLEnabled;
+            var isHITLEnabled = userSettings != null && userSettings.useManualTrading;
+            // var isHITLOverride = maxAmount != int.MaxValue && isHITLEnabled;
 
             lock (_data)
             {
@@ -190,10 +190,10 @@ namespace Algoserver.API.Services.CacheServices
                 {
                     foreach (var symbol in types.Value)
                     {
-                        if (symbol.Value.TradingState == 0)
-                        {
-                            continue;
-                        }
+                        // if (symbol.Value.TradingState == 0)
+                        // {
+                        //     continue;
+                        // }
 
                         var name = symbol.Key.Split("_");
                         name = name.TakeLast(name.Length - 1).ToArray();
@@ -210,11 +210,14 @@ namespace Algoserver.API.Services.CacheServices
                             {
                                 continue;
                             }
-                            var s = getNormalizedInstrument(instrument);
-                            var marketConfig = userSettings.markets.FirstOrDefault((_) => !string.IsNullOrEmpty(_.symbol) && string.Equals(getNormalizedInstrument(_.symbol), s, StringComparison.InvariantCultureIgnoreCase));
-                            if (marketConfig != null)
+                            if (userSettings != null && userSettings.markets != null)
                             {
-                                hitlSymbols.Add(instrument, symbol.Value);
+                                var s = getNormalizedInstrument(instrument);
+                                var marketConfig = userSettings.markets.FirstOrDefault((_) => !string.IsNullOrEmpty(_.symbol) && string.Equals(getNormalizedInstrument(_.symbol), s, StringComparison.InvariantCultureIgnoreCase));
+                                if (marketConfig != null)
+                                {
+                                    hitlSymbols.Add(instrument, symbol.Value);
+                                }
                             }
                         }
                     }
@@ -351,7 +354,7 @@ namespace Algoserver.API.Services.CacheServices
                 symbol = "ETH_USD";
                 datafeed = "OANDA";
             }
-            
+
             if (string.Equals(symbol, "BTC_USD", StringComparison.InvariantCultureIgnoreCase) ||
                 string.Equals(symbol, "BTC_USDT", StringComparison.InvariantCultureIgnoreCase) ||
                 string.Equals(symbol, "BTCUSD", StringComparison.InvariantCultureIgnoreCase) ||
@@ -360,7 +363,7 @@ namespace Algoserver.API.Services.CacheServices
                 symbol = "BTC_USD";
                 datafeed = "OANDA";
             }
-            
+
             try
             {
                 lock (_data)

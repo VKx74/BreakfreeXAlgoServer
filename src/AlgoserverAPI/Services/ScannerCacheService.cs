@@ -223,7 +223,7 @@ namespace Algoserver.API.Services
                         continue;
                     }
 
-                    if (dailyHistory == null || dailyHistory.Bars == null || dailyHistory.Bars.Count < 1000)
+                    if (dailyHistory == null || dailyHistory.Bars == null || dailyHistory.Bars.Count < 900)
                     {
                         Console.WriteLine(">>> MESA Calculation Error (dailyHistory) - " + minHistory.Symbol);
                         continue;

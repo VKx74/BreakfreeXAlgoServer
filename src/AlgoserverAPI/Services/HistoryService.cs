@@ -85,7 +85,6 @@ namespace Algoserver.API.Services
                     {
                         _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(1));
                     }
-                    // _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(30));
                 }
             }
             catch (Exception e)
@@ -123,25 +122,24 @@ namespace Algoserver.API.Services
                 Symbol = symbol
             };
 
-            try
-            {
-                if (result.Bars != null && result.Bars.Any())
-                {
-                    _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(60));
-                }
-            }
-            catch (Exception e)
-            {
-                _logger.LogError("Failed to set cached response");
-                _logger.LogError(e.Message);
-            }
+            // try
+            // {
+            //     if (result.Bars != null && result.Bars.Any())
+            //     {
+            //         _cache.Set(_ _cache.Set(_cachePrefix, hash, result, TimeSpan.FromMinutes(60));
+            //     }
+            // }
+            // catch (Exception e)
+            // {
+            //     _logger.LogError("Failed to set cached response");
+            //     _logger.LogError(e.Message);
+            // }
 
             return result;
         }
 
         private async Task<List<BarMessage>> SendHistoricalRequest(string datafeed, string symbol, int granularity, string exchange, long start, long end)
         {
-
             var bearerdatafeed = datafeed.ToLowerInvariant();
             var uri = $"{_serverUrl}/{bearerdatafeed}/history?" +
                         $"kind=daterange&symbol={symbol}&granularity={granularity}&from={start}&to={end}";
@@ -158,6 +156,8 @@ namespace Algoserver.API.Services
                 { HttpRequestHeader.Authorization.ToString(), token }
             }
             };
+
+            // Console.WriteLine(">>> SendHistoryRequest: " + uri);
 
             var response = await _httpClient.SendAsync(request);
             var content = await response.Content.ReadAsStringAsync();
