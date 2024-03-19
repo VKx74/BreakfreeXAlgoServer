@@ -927,63 +927,8 @@ namespace Algoserver.API.Controllers
         private bool validateNAVersion(string naversion)
         {
             return true;
-            /*
-            // "AK-2.17.4a";
-            // "AK-2.17.3";
-            if (string.IsNullOrEmpty(naversion))
-            {
-                return false;
-            }
 
-            var versions = naversion.Split(".");
-            if (versions.Length != 3)
-            {
-                return false;
-            }
-
-            var majorVersionString = Regex.Replace(versions[0], @"[^\d]", String.Empty);
-            var minorVersionString = Regex.Replace(versions[1], @"[^\d]", String.Empty);
-            var buildVersionString = Regex.Replace(versions[2], @"[^\d]", String.Empty);
-
-            if (int.TryParse(majorVersionString, out var major))
-            {
-                if (major < 2)
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                return false;
-            }
-
-            if (int.TryParse(minorVersionString, out var minor))
-            {
-                if (minor < 17)
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                return false;
-            }
-
-            if (int.TryParse(buildVersionString, out var build))
-            {
-                if (build < 3)
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                return false;
-            }
-
-            return true;
-
-            */
+            
         }
     }
 }
