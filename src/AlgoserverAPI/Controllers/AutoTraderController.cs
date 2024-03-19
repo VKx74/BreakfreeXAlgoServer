@@ -926,7 +926,8 @@ namespace Algoserver.API.Controllers
 
         private bool validateNAVersion(string naversion)
         {
-            return true:
+            return true;
+            /*
             // "AK-2.17.4a";
             // "AK-2.17.3";
             if (string.IsNullOrEmpty(naversion))
@@ -981,6 +982,8 @@ namespace Algoserver.API.Controllers
             }
 
             return true;
+
+            */
         }
     }
 }
