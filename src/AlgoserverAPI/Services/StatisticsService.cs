@@ -89,7 +89,7 @@ namespace Algoserver.API.Services
 
                 return new NALogResponse
                 {
-                    logs = logsAndErrors,
+                    logs = NormalizeLogs(logsAndErrors),
                     lastOnlineDate = lastOnlineDateRecord != null ? AlgoHelper.GetUnixTime(lastOnlineDateRecord.Date) : 0,
                     naVersion = lastOnlineDateRecord != null ? lastOnlineDateRecord.Data : string.Empty
                 };
@@ -100,6 +100,16 @@ namespace Algoserver.API.Services
             }
 
             return new NALogResponse();
+        }
+
+        private List<NALog> NormalizeLogs(List<NALog> logsAndErrors)
+        {
+            var filtered = logsAndErrors.Where((_) => !MT5ErrorCodeMapper.SkipMessage(_.data));
+            foreach (var i in filtered)
+            {
+                i.data = MT5ErrorCodeMapper.ReplaceErrorCodeWithMessage(i.data);
+            }
+            return filtered.ToList();
         }
 
         public void AddAccountToCache(NAAccountBalances acct)
