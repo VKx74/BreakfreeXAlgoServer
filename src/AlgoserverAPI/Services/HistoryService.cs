@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using System.Timers;
 using Algoserver.API.Helpers;
 using Algoserver.API.Models.Algo;
 using Algoserver.API.Models.REST;
@@ -27,6 +28,7 @@ namespace Algoserver.API.Services
         private readonly IInMemoryCache _cache;
         private string _cachePrefix = "History_";
         private readonly Dictionary<string, Task<HistoryData>> _requestCache = new Dictionary<string, Task<HistoryData>>();
+        private long totalRequestCount = 0;
 
         public HistoryService(ILogger<HistoryService> logger, IConfiguration configuration, IInMemoryCache cache, AuthService auth)
         {
@@ -36,7 +38,19 @@ namespace Algoserver.API.Services
             _serverUrl = configuration["DatafeedEndpoint"];
             _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+
+            var _accountsBatchTimer = new Timer(TimeSpan.FromMinutes(10).TotalMilliseconds);
+            _accountsBatchTimer.Elapsed += (sender, e) => WriteLogs();
+            _accountsBatchTimer.Start();
         }
+
+        private void WriteLogs()
+        {
+            Console.WriteLine(">>> Total history requests count: " + totalRequestCount);
+            totalRequestCount = 0;
+        }
+
         public async Task<HistoryData> GetHistoryWithCount(string symbol, int granularity, string datafeed, string exchange, int count, int repeatCount = 2)
         {
             var result = await LoadHistoricalData(datafeed, symbol, granularity, count, exchange, repeatCount);
@@ -158,6 +172,7 @@ namespace Algoserver.API.Services
             };
 
             // Console.WriteLine(">>> SendHistoryRequest: " + uri);
+            totalRequestCount++;
 
             var response = await _httpClient.SendAsync(request);
             var content = await response.Content.ReadAsStringAsync();
