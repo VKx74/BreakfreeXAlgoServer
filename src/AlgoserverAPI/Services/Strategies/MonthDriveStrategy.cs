@@ -6,7 +6,7 @@ namespace Algoserver.API.Services
 {
     public static class MonthDriveStrategy
     {
-        private static bool ShowLogs = true;
+        private static bool ShowLogs = false;
 
         private static void WriteLog(string str)
         {
