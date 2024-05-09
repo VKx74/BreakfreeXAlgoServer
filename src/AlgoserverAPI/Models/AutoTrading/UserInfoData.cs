@@ -27,14 +27,16 @@ namespace Algoserver.API.Models
         public int? maxInstrumentCount { get; set; }
         public bool useManualTrading { get; set; }
         public bool botShutDown { get; set; }
+        public int version { get; set; }
 
         public UserInfoData()
         {
             risksPerMarket = new Dictionary<string, int>();
             markets = new List<UserDefinedMarketData>();
             disabledMarkets = new List<string>();
-            useManualTrading = false;
+            useManualTrading = true;
             botShutDown = false;
+            version = 1;
             accountRisk = 30;
             defaultMarketRisk = 12;
         }
@@ -64,6 +66,12 @@ namespace Algoserver.API.Models
             if (defaultMarketRisk <= 0)
             {
                 defaultMarketRisk = 12;
+            } 
+            
+            if (version == 0)
+            {
+                version = 1;
+                useManualTrading = true;
             }
 
             var excludeInstruments = InstrumentsHelper.ExcludeListForLongHistory.Select((_) => InstrumentsHelper.NormalizedInstrumentWithCrypto(_));
