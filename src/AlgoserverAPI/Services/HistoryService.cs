@@ -171,7 +171,7 @@ namespace Algoserver.API.Services
             }
             };
 
-            // Console.WriteLine(">>> SendHistoryRequest: " + uri);
+            Console.WriteLine(">>> SendHistoryRequest: " + uri);
             totalRequestCount++;
 
             var response = await _httpClient.SendAsync(request);

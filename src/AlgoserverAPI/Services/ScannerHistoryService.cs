@@ -450,7 +450,7 @@ namespace Algoserver.API.Services
             }
         }
 
-        protected async Task<List<HistoryData>> _loadPack(List<HistoryRequest> tasks, int defaultPackCount = 5)
+        protected async Task<List<HistoryData>> _loadPack(List<HistoryRequest> tasks, int defaultPackCount = 2)
         {
             var result = new List<HistoryData>();
             var count = defaultPackCount;
