@@ -245,10 +245,10 @@ namespace Algoserver.API.Services
 
         public static uint GetState(AutoTradingSymbolInfoResponse symbolInfo, MESADataSummary mesaResponse, string symbol)
         {
-            // if (IsAutoTradeCapitulationConfirmed(symbolInfo))
-            // {
-            //     return 3; // Capitulation
-            // }
+            if (IsAutoTradeCapitulationConfirmed(symbolInfo))
+            {
+                return 3; // Capitulation
+            }
 
             if (IsAutoTradeModeEnabled(symbolInfo, mesaResponse))
             {
