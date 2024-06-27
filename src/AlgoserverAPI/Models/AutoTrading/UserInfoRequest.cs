@@ -143,8 +143,17 @@ namespace Algoserver.API.Models.REST
         
         [JsonProperty("account")]
         public string Account { get; set; }
-
+        
         [JsonProperty("switchedOff")]
         public bool SwitchedOff { get; set; }
+    }
+
+    public class ResetBotSettingsRequest
+    {
+        [JsonProperty("userId")]
+        public string UserId { get; set; }
+        
+        [JsonProperty("account")]
+        public string Account { get; set; }
     }
 }

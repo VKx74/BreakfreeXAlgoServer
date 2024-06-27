@@ -17,6 +17,11 @@ namespace Algoserver.API.Services
             _cache = cache;
         }
 
+        public UserInfoData GetDefaultUserInfo(string account)
+        {
+            return new UserInfoData();
+        }
+
         public UserInfoData GetUserInfo(string account)
         {
             try
@@ -212,6 +217,13 @@ namespace Algoserver.API.Services
         {
             var info = GetUserInfo(account);
             info.botShutDown = botShutDown;
+            UpdateUserInfo(account, info);
+            return info;
+        }
+        
+        public UserInfoData ResetSettings(string account)
+        {
+            var info = GetDefaultUserInfo(account);
             UpdateUserInfo(account, info);
             return info;
         }
