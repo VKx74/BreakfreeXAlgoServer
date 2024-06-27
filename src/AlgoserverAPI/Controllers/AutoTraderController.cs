@@ -345,6 +345,36 @@ namespace Algoserver.API.Controllers
 
             return await ToResponse(result, CancellationToken.None);
         }
+        
+        [Authorize]
+        [HttpPost("config/reset-bot-settings")]
+        public async Task<IActionResult> ResetBotSettingsAsync([FromBody] ResetBotSettingsRequest request)
+        {
+            AutoTraderStatisticService.AddRequest("[POST]config/change-bot-state/" + request.Account);
+
+            if (String.IsNullOrEmpty(request.Account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            AutoTraderStatisticService.AddAccount(request.Account);
+
+            if (!_autoTradingRateLimitsService.Validate(request.Account))
+            {
+                AutoTraderStatisticService.AddError("429");
+                return StatusCode(429);
+            }
+
+            if (!_autoTradingAccountsService.Validate(request.Account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            var result = _autoTradingUserInfoService.ResetSettings(request.Account);
+            return await ToResponse(result, CancellationToken.None);
+        }
 
         [Authorize]
         [HttpPost("config/change-market-risk")]
