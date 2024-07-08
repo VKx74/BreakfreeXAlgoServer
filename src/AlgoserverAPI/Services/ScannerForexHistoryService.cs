@@ -57,7 +57,7 @@ namespace Algoserver.API.Services
             var instruments = new List<IInstrument>();
             var forexInstruments = _instrumentService.GetOandaInstruments();
             var allowedForex = InstrumentsHelper.ForexInstrumentList;
-            var excludeInstruments =InstrumentsHelper.ExcludeListForLongHistory;
+            var excludeInstruments = InstrumentsHelper.ExcludeListForLongHistory;
 
             foreach (var instrument in forexInstruments)
             {
