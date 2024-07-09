@@ -65,7 +65,6 @@ namespace Algoserver.API.Services
                 PricePrecision = 0.00000001m
             });
 
-            return instruments.TakeLast(0).ToList();
             return instruments;
         }
 
@@ -124,7 +123,6 @@ namespace Algoserver.API.Services
                 PricePrecision = 0.00000001m
             });
 
-            return instruments.TakeLast(0).ToList();
             return instruments;
         }
     }
