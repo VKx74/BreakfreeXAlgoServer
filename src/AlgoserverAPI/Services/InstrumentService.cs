@@ -119,7 +119,7 @@ namespace Algoserver.API.Services
             // TODO: Move out to config file
             var datafeed = "twelvedata";
 
-            var uri = $"{_serverUrl}/{datafeed.ToLowerInvariant()}/instruments/extended?Skip=0&Take=100000";
+            var uri = $"{_serverUrl}/{datafeed.ToLowerInvariant()}/instruments/extended?Skip=0&Take=1000000";
 
             var request = new HttpRequestMessage(HttpMethod.Get, uri);            
             var response = await _httpClient.SendAsync(request);

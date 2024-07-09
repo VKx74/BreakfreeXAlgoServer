@@ -70,6 +70,16 @@ namespace Algoserver.API.Services.CacheServices
                             string.Equals(s, "ETHUSD", StringComparison.InvariantCultureIgnoreCase))
                         {
                             s = "ETH_USDT";
+                        } 
+                        if (string.Equals(s, "SOL_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                            string.Equals(s, "SOLUSD", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            s = "SOL_USDT";
+                        }
+                        if (string.Equals(s, "LTC_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                            string.Equals(s, "LTCUSD", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            s = "LTC_USDT";
                         }
 
                         result.Add(s.ToUpper());
@@ -151,6 +161,16 @@ namespace Algoserver.API.Services.CacheServices
                     string.Equals(r.Symbol, "ETHUSD", StringComparison.InvariantCultureIgnoreCase))
                 {
                     r.Symbol = "ETH_USDT";
+                }
+                if (string.Equals(r.Symbol, "SOL_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                    string.Equals(r.Symbol, "SOLUSD", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    r.Symbol = "SOL_USDT";
+                }
+                if (string.Equals(r.Symbol, "LTC_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                    string.Equals(r.Symbol, "LTCUSD", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    r.Symbol = "LTC_USDT";
                 }
             }
 
@@ -276,6 +296,16 @@ namespace Algoserver.API.Services.CacheServices
                 {
                     r.Symbol = "ETH_USDT";
                 }
+                if (string.Equals(r.Symbol, "SOL_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                    string.Equals(r.Symbol, "SOLUSD", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    r.Symbol = "SOL_USDT";
+                }
+                if (string.Equals(r.Symbol, "LTC_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                    string.Equals(r.Symbol, "LTCUSD", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    r.Symbol = "LTC_USDT";
+                }
             }
 
             if (totalCount <= 0)
@@ -361,6 +391,24 @@ namespace Algoserver.API.Services.CacheServices
                 string.Equals(symbol, "BTCUSDT", StringComparison.InvariantCultureIgnoreCase))
             {
                 symbol = "BTC_USD";
+                datafeed = "OANDA";
+            }
+            
+            if (string.Equals(symbol, "SOL_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(symbol, "SOL_USDT", StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(symbol, "SOLUSD", StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(symbol, "SOLUSDT", StringComparison.InvariantCultureIgnoreCase))
+            {
+                symbol = "SOL_USD";
+                datafeed = "OANDA";
+            }
+
+            if (string.Equals(symbol, "LTC_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(symbol, "LTC_USDT", StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(symbol, "LTCUSD", StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(symbol, "LTCUSDT", StringComparison.InvariantCultureIgnoreCase))
+            {
+                symbol = "LTC_USD";
                 datafeed = "OANDA";
             }
 

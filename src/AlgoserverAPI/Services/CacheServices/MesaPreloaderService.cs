@@ -22,6 +22,16 @@ namespace Algoserver.API.Services.CacheServices
                 {
                     ms.Datafeed = "Binance";
                     ms.Symbol = "ETHUSDT";
+                } 
+                if (ms.Symbol == "SOL_USD" && ms.Datafeed == "Oanda")
+                {
+                    ms.Datafeed = "Binance";
+                    ms.Symbol = "SOLUSDT";
+                }
+                if (ms.Symbol == "LTC_USD" && ms.Datafeed == "Oanda")
+                {
+                    ms.Datafeed = "Binance";
+                    ms.Symbol = "LTCUSDT";
                 }
             }
             lock (mesaSummary)

@@ -925,6 +925,18 @@ namespace Algoserver.API.Controllers
                 {"BTC_USDT", "BTCUSDT"},
                 {"ETHUSDT", "ETHUSDT"},
                 {"ETH_USDT", "ETHUSDT"},
+
+                {"SOLUSD", "SOLUSDT"},
+                {"LTCUSD", "LTCUSDT"},
+                {"SOL/USD", "SOLUSDT"},
+                {"LTC/USD", "LTCUSDT"},
+                {"SOL_USD", "SOLUSDT"},
+                {"LTC_USD", "LTCUSDT"},
+                {"SOLUSDT", "SOLUSDT"},
+                {"SOL_USDT", "SOLUSDT"},
+                {"LTCUSDT", "LTCUSDT"},
+                {"LTC_USDT", "LTCUSDT"},
+
                 {"US30", "US30_USD"},
                 {"US100", "NAS100_USD"},
                 {"NAS100", "NAS100_USD"},
