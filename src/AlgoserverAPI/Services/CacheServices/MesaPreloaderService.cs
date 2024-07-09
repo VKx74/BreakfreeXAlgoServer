@@ -22,7 +22,7 @@ namespace Algoserver.API.Services.CacheServices
                 {
                     ms.Datafeed = "Binance";
                     ms.Symbol = "ETHUSDT";
-                } 
+                }
                 if (ms.Symbol == "SOL_USD" && ms.Datafeed == "Oanda")
                 {
                     ms.Datafeed = "Binance";
@@ -74,6 +74,16 @@ namespace Algoserver.API.Services.CacheServices
                 datafeed = "Binance";
                 symbol = "ETHUSDT";
             }
+            else if (string.Equals(normalizedSymbol, "solusdt", System.StringComparison.InvariantCultureIgnoreCase) || string.Equals(normalizedSymbol, "solusd", System.StringComparison.InvariantCultureIgnoreCase))
+            {
+                datafeed = "Binance";
+                symbol = "SOLUSDT";
+            }
+            else if (string.Equals(normalizedSymbol, "ltcusdt", System.StringComparison.InvariantCultureIgnoreCase) || string.Equals(normalizedSymbol, "ltcusd", System.StringComparison.InvariantCultureIgnoreCase))
+            {
+                datafeed = "Binance";
+                symbol = "LTCUSDT";
+            }
 
             lock (mesaSummary)
             {
@@ -100,6 +110,16 @@ namespace Algoserver.API.Services.CacheServices
             {
                 datafeed = "Oanda";
                 symbol = "ETH_USD";
+            }
+            else if (string.Equals(normalizedSymbol, "solusdt", System.StringComparison.InvariantCultureIgnoreCase) || string.Equals(normalizedSymbol, "solusd", System.StringComparison.InvariantCultureIgnoreCase))
+            {
+                datafeed = "Oanda";
+                symbol = "SOL_USD";
+            }
+            else if (string.Equals(normalizedSymbol, "ltcusdt", System.StringComparison.InvariantCultureIgnoreCase) || string.Equals(normalizedSymbol, "ltcusd", System.StringComparison.InvariantCultureIgnoreCase))
+            {
+                datafeed = "Oanda";
+                symbol = "LTC_USD";
             }
 
             var key = (datafeed + "_" + symbol).ToLower();
