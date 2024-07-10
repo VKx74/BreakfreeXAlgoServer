@@ -76,6 +76,21 @@ namespace Algoserver.API.Models.REST
         public int Risk { get; set; }
     }
 
+    public class UserInfoChangeGroupRiskRequest
+    {
+        [JsonProperty("userId")]
+        public string UserId { get; set; }
+        
+        [JsonProperty("account")]
+        public string Account { get; set; }
+
+        [JsonProperty("group")]
+        public string Group { get; set; }
+
+        [JsonProperty("risk")]
+        public int Risk { get; set; }
+    }
+
     public class UserInfoChangeAccountRiskRequest
     {
         [JsonProperty("userId")]
@@ -88,7 +103,7 @@ namespace Algoserver.API.Models.REST
         public int Risk { get; set; }
     }
 
-    public class UserInfoChangeDefaultMarketRiskRequest
+    public class UserInfoChangeDefaultRiskRequest
     {
         [JsonProperty("userId")]
         public string UserId { get; set; }

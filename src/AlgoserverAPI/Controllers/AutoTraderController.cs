@@ -408,6 +408,37 @@ namespace Algoserver.API.Controllers
         }
 
         [Authorize]
+        [HttpPost("config/change-group-risk")]
+        public async Task<IActionResult> ChangeGroupRiskAsync([FromBody] UserInfoChangeGroupRiskRequest request)
+        {
+            AutoTraderStatisticService.AddRequest("[POST]config/change-group-risk/" + request.Account);
+
+            if (String.IsNullOrEmpty(request.Account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            AutoTraderStatisticService.AddAccount(request.Account);
+
+            if (!_autoTradingRateLimitsService.Validate(request.Account))
+            {
+                AutoTraderStatisticService.AddError("429");
+                return StatusCode(429);
+            }
+
+            if (!_autoTradingAccountsService.Validate(request.Account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            var result = _autoTradingUserInfoService.ChangeGroupRisk(request.Account, request.Group, request.Risk);
+
+            return await ToResponse(result, CancellationToken.None);
+        }
+
+        [Authorize]
         [HttpPost("config/change-account-risk")]
         public async Task<IActionResult> ChangeAccountRiskAsync([FromBody] UserInfoChangeAccountRiskRequest request)
         {
@@ -440,7 +471,7 @@ namespace Algoserver.API.Controllers
 
         [Authorize]
         [HttpPost("config/change-default-market-risk")]
-        public async Task<IActionResult> ChangeDefaultMarketRiskAsync([FromBody] UserInfoChangeDefaultMarketRiskRequest request)
+        public async Task<IActionResult> ChangeDefaultMarketRiskAsync([FromBody] UserInfoChangeDefaultRiskRequest request)
         {
             AutoTraderStatisticService.AddRequest("[POST]config/change-default-market-risk/" + request.Account);
 
@@ -465,6 +496,37 @@ namespace Algoserver.API.Controllers
             }
 
             var result = _autoTradingUserInfoService.ChangeDefaultMarketRisk(request.Account, request.Risk);
+
+            return await ToResponse(result, CancellationToken.None);
+        }
+
+        [Authorize]
+        [HttpPost("config/change-default-group-risk")]
+        public async Task<IActionResult> ChangeDefaultGroupRiskAsync([FromBody] UserInfoChangeDefaultRiskRequest request)
+        {
+            AutoTraderStatisticService.AddRequest("[POST]config/change-default-group-risk/" + request.Account);
+
+            if (String.IsNullOrEmpty(request.Account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            AutoTraderStatisticService.AddAccount(request.Account);
+
+            if (!_autoTradingRateLimitsService.Validate(request.Account))
+            {
+                AutoTraderStatisticService.AddError("429");
+                return StatusCode(429);
+            }
+
+            if (!_autoTradingAccountsService.Validate(request.Account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            var result = _autoTradingUserInfoService.ChangeDefaultGroupRisk(request.Account, request.Risk);
 
             return await ToResponse(result, CancellationToken.None);
         }

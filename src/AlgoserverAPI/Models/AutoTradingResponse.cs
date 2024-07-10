@@ -17,8 +17,10 @@ namespace Algoserver.API.Models.REST
         public List<AutoTradingInstrumentsResponse> Instruments { get; set; }
         public List<string> DisabledInstruments { get; set; }
         public Dictionary<string, int> Risks { get; set; }
+        public Dictionary<string, int> GroupRisks { get; set; }
         public int AccountRisk { get; set; }
         public int DefaultMarketRisk { get; set; }
+        public int DefaultGroupRisk { get; set; }
         public bool UseManualTrading { get; set; }
         public bool BotShutDown { get; set; }
     }

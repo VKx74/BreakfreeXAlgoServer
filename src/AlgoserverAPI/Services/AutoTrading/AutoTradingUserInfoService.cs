@@ -30,10 +30,10 @@ namespace Algoserver.API.Services
                 {
                     if (res != null)
                     {
-                       res.Validate();
-                       return res;
+                        res.Validate();
+                        return res;
                     }
-                    
+
                     return new UserInfoData();
                 }
             }
@@ -62,7 +62,8 @@ namespace Algoserver.API.Services
             var info = GetUserInfo(account);
             market = InstrumentsHelper.NormalizedInstrumentWithCrypto(market);
 
-            if (risk > 100) {
+            if (risk > 100)
+            {
                 return info;
             }
 
@@ -77,11 +78,11 @@ namespace Algoserver.API.Services
                 {
                     info.risksPerMarket[market] = risk;
                 }
-                else 
+                else
                 {
                     info.risksPerMarket.Remove(market);
                 }
-            } 
+            }
             else if (risk > 0)
             {
                 info.risksPerMarket.Add(market, risk);
@@ -90,12 +91,47 @@ namespace Algoserver.API.Services
             UpdateUserInfo(account, info);
             return info;
         }
-        
+
+        public UserInfoData ChangeGroupRisk(string account, string group, int risk)
+        {
+            var info = GetUserInfo(account);
+
+            if (risk > 100)
+            {
+                return info;
+            }
+
+            if (info.risksPerGroup == null)
+            {
+                info.risksPerGroup = new Dictionary<string, int>();
+            }
+
+            if (info.risksPerGroup.ContainsKey(group))
+            {
+                if (risk > 0)
+                {
+                    info.risksPerGroup[group] = risk;
+                }
+                else
+                {
+                    info.risksPerGroup.Remove(group);
+                }
+            }
+            else if (risk > 0)
+            {
+                info.risksPerGroup.Add(group, risk);
+            }
+
+            UpdateUserInfo(account, info);
+            return info;
+        }
+
         public UserInfoData ChangeAccountRisk(string account, int risk)
         {
             var info = GetUserInfo(account);
 
-             if (risk > 100 || risk <= 0) {
+            if (risk > 100 || risk <= 0)
+            {
                 return info;
             }
 
@@ -104,16 +140,42 @@ namespace Algoserver.API.Services
             UpdateUserInfo(account, info);
             return info;
         }
-        
+
         public UserInfoData ChangeDefaultMarketRisk(string account, int risk)
         {
             var info = GetUserInfo(account);
 
-             if (risk > 100 || risk <= 0) {
+            if (risk > 100)
+            {
                 return info;
             }
 
+            if (risk < 0)
+            {
+                risk = 12;
+            }
+
             info.defaultMarketRisk = risk;
+
+            UpdateUserInfo(account, info);
+            return info;
+        }
+
+        public UserInfoData ChangeDefaultGroupRisk(string account, int risk)
+        {
+            var info = GetUserInfo(account);
+
+            if (risk > 100)
+            {
+                return info;
+            }
+
+            if (risk < 0)
+            {
+                risk = 30;
+            }
+
+            info.defaultGroupRisk = risk;
 
             UpdateUserInfo(account, info);
             return info;
@@ -220,7 +282,7 @@ namespace Algoserver.API.Services
             UpdateUserInfo(account, info);
             return info;
         }
-        
+
         public UserInfoData ResetSettings(string account)
         {
             var info = GetDefaultUserInfo(account);
