@@ -91,6 +91,15 @@ namespace Algoserver.API.Models.REST
         public decimal CurrentPrice { get; set; }
         public long Time { get; set; }
         public uint TradingState { get; set; }
+        
+        public decimal OppositeSL { get; set; }
+        public decimal OppositeEntry1M { get; set; }
+        public decimal OppositeEntry5M { get; set; }
+        public decimal OppositeEntry15M { get; set; }
+        public decimal OppositeEntry1H { get; set; }
+        public decimal OppositeEntry4H { get; set; }
+        public decimal OppositeEntry1D { get; set; }
+        public int OppositeTrendDirection { get; set; }
     }
 
     [Serializable]

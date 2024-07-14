@@ -387,7 +387,7 @@ namespace Algoserver.API.Controllers
 
             return await ToResponse(result, CancellationToken.None);
         }
-        
+
         [Authorize]
         [HttpPost("config/reset-bot-settings")]
         public async Task<IActionResult> ResetBotSettingsAsync([FromBody] ResetBotSettingsRequest request)
@@ -936,14 +936,32 @@ namespace Algoserver.API.Controllers
             }
 
             var result = await _autoTradingPreloaderService.GetAutoTradingSymbolInfo(mappedSymbol, request.Instrument.Datafeed, request.Instrument.Exchange, request.Instrument.Type);
-            return Ok(BuildBotStringResponse(result));
+            var userSettings = _autoTradingUserInfoService.GetUserInfo(request.Account);
+            return Ok(BuildBotStringResponse(result, mappedSymbol, userSettings));
         }
-        private string BuildBotStringResponse(AutoTradingSymbolInfoResponse result)
+        private string BuildBotStringResponse(AutoTradingSymbolInfoResponse result, string symbol, UserInfoData userSettings)
         {
+            var normalizedMarket = InstrumentsHelper.NormalizeInstrument(symbol);
+            var existingMarket = userSettings.markets.FirstOrDefault((_) => string.Equals(InstrumentsHelper.NormalizeInstrument(_.symbol), normalizedMarket, StringComparison.InvariantCultureIgnoreCase));
+            var useOpposite = false;
+
+            if (existingMarket != null && existingMarket.tradingDirection != TradingDirection.Auto)
+            {
+                if (result.TradingState > 0 && existingMarket.tradingDirection == TradingDirection.Short)
+                {
+                    useOpposite = true;
+                }
+                if (result.TradingState < 0 && existingMarket.tradingDirection == TradingDirection.Long)
+                {
+                    useOpposite = true;
+                }
+            }
+
+            var trendDirection = useOpposite ? result.OppositeTrendDirection : result.TrendDirection;
             var stringResult = new StringBuilder();
             stringResult.AppendLine($"strengthTotal={Math.Round(result.TotalStrength * 100, 2)}");
-            stringResult.AppendLine($"generalStopLoss={Math.Round(result.SL, 5)}");
-            stringResult.AppendLine($"trendDirection={result.TrendDirection}");
+            stringResult.AppendLine($"generalStopLoss={Math.Round(useOpposite ? result.OppositeSL : result.SL, 5)}");
+            stringResult.AppendLine($"trendDirection={trendDirection}");
 
             stringResult.AppendLine($"hbh1m={Math.Round(result.HalfBand1M, 5)}");
             stringResult.AppendLine($"hbh5m={Math.Round(result.HalfBand5M, 5)}");
@@ -959,12 +977,12 @@ namespace Algoserver.API.Controllers
             stringResult.AppendLine($"n4h={Math.Round(result.TP4H, 5)}");
             stringResult.AppendLine($"n1d={Math.Round(result.TP1D, 5)}");
 
-            stringResult.AppendLine($"1m={Math.Round(result.Entry1M, 5)}");
-            stringResult.AppendLine($"5m={Math.Round(result.Entry5M, 5)}");
-            stringResult.AppendLine($"15m={Math.Round(result.Entry15M, 5)}");
-            stringResult.AppendLine($"1h={Math.Round(result.Entry1H, 5)}");
-            stringResult.AppendLine($"4h={Math.Round(result.Entry4H, 5)}");
-            stringResult.AppendLine($"1d={Math.Round(result.Entry1D, 5)}");
+            stringResult.AppendLine($"1m={Math.Round(useOpposite ? result.OppositeEntry1M : result.Entry1M, 5)}");
+            stringResult.AppendLine($"5m={Math.Round(useOpposite ? result.OppositeEntry5M : result.Entry5M, 5)}");
+            stringResult.AppendLine($"15m={Math.Round(useOpposite ? result.OppositeEntry15M : result.Entry15M, 5)}");
+            stringResult.AppendLine($"1h={Math.Round(useOpposite ? result.OppositeEntry1H : result.Entry1H, 5)}");
+            stringResult.AppendLine($"4h={Math.Round(useOpposite ? result.OppositeEntry4H : result.Entry4H, 5)}");
+            stringResult.AppendLine($"1d={Math.Round(useOpposite ? result.OppositeEntry1D : result.Entry1D, 5)}");
 
             stringResult.AppendLine($"strength1m={Math.Round(result.Strength1M * 100, 2)}");
             stringResult.AppendLine($"strength5m={Math.Round(result.Strength5M * 100, 2)}");
