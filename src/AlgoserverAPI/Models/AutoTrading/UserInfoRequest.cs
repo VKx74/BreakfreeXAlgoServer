@@ -4,10 +4,20 @@ using Newtonsoft.Json;
 
 namespace Algoserver.API.Models.REST
 {
+    public enum TradingDirectionData
+    {
+        Auto = 0,
+        Short = 1,
+        Long = 2
+    }
+
     public class UserDefinedMarketDataRequest
     {
         [JsonProperty("symbol")]
         public string Symbol { get; set; }
+
+        [JsonProperty("tradingDirection")]
+        public TradingDirectionData TradingDirection { get; set; }
 
         [JsonProperty("minStrength")]
         public int MinStrength { get; set; }

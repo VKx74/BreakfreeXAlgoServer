@@ -205,6 +205,35 @@ namespace Algoserver.API.Services
             return info;
         }
 
+        public UserInfoData UpdateMarkets(string account, List<UserDefinedMarketData> markets)
+        {
+            var info = GetUserInfo(account);
+
+            if (info.markets == null)
+            {
+                info.markets = new List<UserDefinedMarketData>();
+            }
+
+            foreach (var market in markets)
+            {
+                var normalizedMarket = InstrumentsHelper.NormalizeInstrument(market.symbol);
+                var existingMarket = info.markets.FirstOrDefault((_) => string.Equals(InstrumentsHelper.NormalizeInstrument(_.symbol), normalizedMarket, StringComparison.InvariantCultureIgnoreCase));
+                if (existingMarket == null)
+                {
+                    continue;
+                }
+
+                existingMarket.minStrength = market.minStrength;
+                existingMarket.minStrength1D = market.minStrength1D;
+                existingMarket.minStrength4H = market.minStrength4H;
+                existingMarket.minStrength1H = market.minStrength1H;
+                existingMarket.tradingDirection = market.tradingDirection;
+            }
+
+            UpdateUserInfo(account, info);
+            return info;
+        }
+
         public UserInfoData AddDisabledMarkets(string account, List<string> markets)
         {
             var info = GetUserInfo(account);

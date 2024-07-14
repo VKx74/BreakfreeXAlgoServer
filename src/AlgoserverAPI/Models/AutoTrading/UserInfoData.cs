@@ -7,9 +7,18 @@ using Algoserver.API.Services.CacheServices;
 namespace Algoserver.API.Models
 {
     [Serializable]
+    public enum TradingDirection
+    {
+        Auto = 0,
+        Short = 1,
+        Long = 2
+    }
+
+    [Serializable]
     public class UserDefinedMarketData
     {
         public string symbol { get; set; }
+        public TradingDirection tradingDirection { get; set; }
         public int minStrength { get; set; }
         public int minStrength1H { get; set; }
         public int minStrength4H { get; set; }

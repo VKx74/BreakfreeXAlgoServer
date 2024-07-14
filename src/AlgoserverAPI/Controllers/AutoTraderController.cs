@@ -170,6 +170,7 @@ namespace Algoserver.API.Controllers
             var markets = request.Markets.Select((_) => new UserDefinedMarketData
             {
                 symbol = _.Symbol,
+                tradingDirection = (TradingDirection)_.TradingDirection,
                 minStrength = _.MinStrength,
                 minStrength1H = _.MinStrength1H,
                 minStrength4H = _.MinStrength4H,
@@ -187,6 +188,47 @@ namespace Algoserver.API.Controllers
             }
 
             var result = _autoTradingUserInfoService.AddMarkets(request.Account, markets);
+
+            return await ToResponse(result, CancellationToken.None);
+        }
+
+        [Authorize]
+        [HttpPost("config/update-markets")]
+        public async Task<IActionResult> UserInfoUpdateMarketsAsync([FromBody] UserInfoAddMarketsRequest request)
+        {
+            AutoTraderStatisticService.AddRequest("[POST]config/update-markets/" + request.Account);
+
+            if (String.IsNullOrEmpty(request.Account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            AutoTraderStatisticService.AddAccount(request.Account);
+
+            if (!_autoTradingRateLimitsService.Validate(request.Account))
+            {
+                AutoTraderStatisticService.AddError("429");
+                return StatusCode(429);
+            }
+
+            if (!_autoTradingAccountsService.Validate(request.Account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            var markets = request.Markets.Select((_) => new UserDefinedMarketData
+            {
+                symbol = _.Symbol,
+                tradingDirection = (TradingDirection)_.TradingDirection,
+                minStrength = _.MinStrength,
+                minStrength1H = _.MinStrength1H,
+                minStrength4H = _.MinStrength4H,
+                minStrength1D = _.MinStrength1D
+            }).ToList();
+
+            var result = _autoTradingUserInfoService.UpdateMarkets(request.Account, markets);
 
             return await ToResponse(result, CancellationToken.None);
         }
