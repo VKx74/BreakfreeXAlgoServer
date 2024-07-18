@@ -13,15 +13,16 @@ using System.Threading;
 using Algoserver.API.Models;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Collections.Concurrent;
 
 namespace Algoserver.API.Controllers
 {
     [Serializable]
     public class AutoTraderStatistic
     {
-        public Dictionary<string, DateTime> Accounts { get; set; }
-        public Dictionary<string, int> Requests { get; set; }
-        public Dictionary<string, int> Errors { get; set; }
+        public ConcurrentDictionary<string, DateTime> Accounts { get; set; }
+        public ConcurrentDictionary<string, int> Requests { get; set; }
+        public ConcurrentDictionary<string, int> Errors { get; set; }
         public string Id { get; set; }
         public DateTime Date { get; set; }
     }
@@ -42,9 +43,9 @@ namespace Algoserver.API.Controllers
             info = new AutoTraderStatistic();
             info.Id = id;
             info.Date = DateTime.UtcNow;
-            info.Accounts = new Dictionary<string, DateTime>();
-            info.Requests = new Dictionary<string, int>();
-            info.Errors = new Dictionary<string, int>();
+            info.Accounts = new ConcurrentDictionary<string, DateTime>();
+            info.Requests = new ConcurrentDictionary<string, int>();
+            info.Errors = new ConcurrentDictionary<string, int>();
         }
 
         public static void AddAccount(string account)
@@ -55,7 +56,7 @@ namespace Algoserver.API.Controllers
             }
             else
             {
-                info.Accounts.Add(account, DateTime.UtcNow);
+                info.Accounts.TryAdd(account, DateTime.UtcNow);
             }
         }
 
@@ -63,7 +64,7 @@ namespace Algoserver.API.Controllers
         {
             if (!info.Requests.ContainsKey(request))
             {
-                info.Requests.Add(request, 0);
+                info.Requests.TryAdd(request, 0);
             }
             info.Requests[request] = info.Requests[request] + 1;
         }
@@ -72,7 +73,7 @@ namespace Algoserver.API.Controllers
         {
             if (!info.Errors.ContainsKey(error))
             {
-                info.Errors.Add(error, 0);
+                info.Errors.TryAdd(error, 0);
             }
             info.Errors[error] = info.Errors[error] + 1;
         }
