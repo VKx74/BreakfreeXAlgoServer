@@ -10,6 +10,7 @@ using Algoserver.API.Services;
 using System;
 using Algoserver.API.Services.CacheServices;
 using System.Linq;
+using Algoserver.API.Helpers;
 
 namespace Algoserver.API.Controllers
 {
@@ -290,6 +291,7 @@ namespace Algoserver.API.Controllers
                 result.Add(new MesaSummaryResponse
                 {
                     datafeed = r.Datafeed,
+                    group = InstrumentsHelper.GetInstrumentGroup(r.Symbol),
                     symbol = r.Symbol,
                     strength = r.Strength.ToDictionary((_) => _.Key, (_) => new MesaLevelResponse
                     {

@@ -590,6 +590,7 @@ namespace Algoserver.API.Services
             var mesa_additional = await getMesaAsync(symbol, datafeed, null);
             var total_strength = 0f;
             var trendDirection = 0;
+            var oppositeTrendDirection = 0;
 
             var currentPhase = 0;
             var nextPhase = 0;
@@ -624,6 +625,7 @@ namespace Algoserver.API.Services
                         longGroupPhase = longTrendDescription.phase;
                         longGroupStrength = longTrendDescription.strength;
                         trendDirection = longTrendDescription.strength > 0 ? 1 : -1;
+                        oppositeTrendDirection = longTrendDescription.strength > 0 ? -1 : 1;
                     }
                 }
 
@@ -661,6 +663,7 @@ namespace Algoserver.API.Services
             }
 
             var sl_price = 0m;
+            var opposite_sl_price = 0m;
             if (levelsResponse.TryGetValue(TimeframeHelper.HOUR4_GRANULARITY, out var item4HData))
             {
                 var lastHour4Sar = item4HData.sar.LastOrDefault();
@@ -669,10 +672,12 @@ namespace Algoserver.API.Services
                     if (trendDirection > 0)
                     {
                         sl_price = lastHour4Sar.s_m28;
+                        opposite_sl_price = lastHour4Sar.r_p28;
                     }
                     if (trendDirection < 0)
                     {
                         sl_price = lastHour4Sar.r_p28;
+                        opposite_sl_price = lastHour4Sar.s_m28;
                     }
                 }
             }
@@ -689,6 +694,14 @@ namespace Algoserver.API.Services
                 Entry1H = GetEntry(TimeframeHelper.HOURLY_GRANULARITY, total_strength, levelsResponse, trendDirection),
                 Entry4H = GetEntry(TimeframeHelper.HOUR4_GRANULARITY, total_strength, levelsResponse, trendDirection),
                 Entry1D = GetEntry(TimeframeHelper.DAILY_GRANULARITY, total_strength, levelsResponse, trendDirection),
+
+                OppositeSL = opposite_sl_price,
+                OppositeEntry1M = GetEntry(TimeframeHelper.MIN1_GRANULARITY, total_strength, levelsResponse, oppositeTrendDirection),
+                OppositeEntry5M = GetEntry(TimeframeHelper.MIN5_GRANULARITY, total_strength, levelsResponse, oppositeTrendDirection),
+                OppositeEntry15M = GetEntry(TimeframeHelper.MIN15_GRANULARITY, total_strength, levelsResponse, oppositeTrendDirection),
+                OppositeEntry1H = GetEntry(TimeframeHelper.HOURLY_GRANULARITY, total_strength, levelsResponse, oppositeTrendDirection),
+                OppositeEntry4H = GetEntry(TimeframeHelper.HOUR4_GRANULARITY, total_strength, levelsResponse, oppositeTrendDirection),
+                OppositeEntry1D = GetEntry(TimeframeHelper.DAILY_GRANULARITY, total_strength, levelsResponse, oppositeTrendDirection),
 
                 HalfBand1M = GetHalfBand(TimeframeHelper.MIN1_GRANULARITY, total_strength, levelsResponse),
                 HalfBand5M = GetHalfBand(TimeframeHelper.MIN5_GRANULARITY, total_strength, levelsResponse),
@@ -741,6 +754,7 @@ namespace Algoserver.API.Services
 
                 Time = AlgoHelper.UnixTimeNow(),
                 TrendDirection = trendDirection,
+                OppositeTrendDirection = oppositeTrendDirection,
                 CurrentPhase = currentPhase,
                 NextPhase = nextPhase,
                 ShortGroupPhase = shortGroupPhase,

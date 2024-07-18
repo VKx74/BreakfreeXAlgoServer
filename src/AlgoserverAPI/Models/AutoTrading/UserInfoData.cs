@@ -7,9 +7,18 @@ using Algoserver.API.Services.CacheServices;
 namespace Algoserver.API.Models
 {
     [Serializable]
+    public enum TradingDirection
+    {
+        Auto = 0,
+        Short = 1,
+        Long = 2
+    }
+
+    [Serializable]
     public class UserDefinedMarketData
     {
         public string symbol { get; set; }
+        public TradingDirection tradingDirection { get; set; }
         public int minStrength { get; set; }
         public int minStrength1H { get; set; }
         public int minStrength4H { get; set; }
@@ -20,10 +29,12 @@ namespace Algoserver.API.Models
     public class UserInfoData
     {
         public Dictionary<string, int> risksPerMarket { get; set; }
+        public Dictionary<string, int> risksPerGroup { get; set; }
         public List<UserDefinedMarketData> markets { get; set; }
         public List<string> disabledMarkets { get; set; }
         public int accountRisk { get; set; }
         public int defaultMarketRisk { get; set; }
+        public int defaultGroupRisk { get; set; }
         public int? maxInstrumentCount { get; set; }
         public bool useManualTrading { get; set; }
         public bool botShutDown { get; set; }
@@ -32,12 +43,14 @@ namespace Algoserver.API.Models
         public UserInfoData()
         {
             risksPerMarket = new Dictionary<string, int>();
+            risksPerGroup = new Dictionary<string, int>();
             markets = new List<UserDefinedMarketData>();
             disabledMarkets = new List<string>();
             useManualTrading = true;
             botShutDown = false;
             version = 1;
             accountRisk = 30;
+            defaultGroupRisk = 30;
             defaultMarketRisk = 12;
         }
 
@@ -46,6 +59,11 @@ namespace Algoserver.API.Models
             if (risksPerMarket == null)
             {
                 risksPerMarket = new Dictionary<string, int>();
+            }
+
+            if (risksPerGroup == null)
+            {
+                risksPerGroup = new Dictionary<string, int>();
             }
 
             if (markets == null)
@@ -61,6 +79,11 @@ namespace Algoserver.API.Models
             if (accountRisk <= 0)
             {
                 accountRisk = 30;
+            }
+
+            if (defaultGroupRisk <= 0)
+            {
+                defaultGroupRisk = 30;
             }
 
             if (defaultMarketRisk <= 0)

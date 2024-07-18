@@ -425,11 +425,21 @@ namespace Algoserver.API.Helpers
             if (btcusd.Any(_ => _.Equals(instrument, StringComparison.InvariantCultureIgnoreCase)))
             {
                 return "btcusdt";
-            }
+            }   
             var ethusdt = new List<string> { "ETHUSDT", "ETHUSD" };
             if (ethusdt.Any(_ => _.Equals(instrument, StringComparison.InvariantCultureIgnoreCase)))
             {
                 return "ethusdt";
+            }
+            var ltcusd = new List<string> { "LTCUSDT", "LTCUSD" };
+            if (ltcusd.Any(_ => _.Equals(instrument, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return "ltcusdt";
+            }
+            var solusd = new List<string> { "SOLUSDT", "SOLUSD" };
+            if (solusd.Any(_ => _.Equals(instrument, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return "solusdt";
             }
 
             return instrument;
@@ -485,6 +495,46 @@ namespace Algoserver.API.Helpers
             }
 
             return InstrumentTypes.Other;
+        }
+
+        public static string GetInstrumentGroup(string instrument)
+        {
+            var type = GetInstrumentType(instrument);
+            if (type == InstrumentTypes.Equities)
+            {
+                return "Stocks";
+            }
+            if (type == InstrumentTypes.Crypto)
+            {
+                return "Crypto";
+            }
+            if (type == InstrumentTypes.Metals)
+            {
+                return "Metals";
+            }
+            if (type == InstrumentTypes.Indices || type == InstrumentTypes.Bonds)
+            {
+                return "Indices";
+            }
+            if (type == InstrumentTypes.Commodities)
+            {
+                return "Commodities";
+            }
+
+            var otherMarkets = "Unaligned Markets";
+
+            var pairs = instrument.Split("_");
+            if (pairs.Length != 2)
+            {
+                pairs = instrument.Split("/");
+            }
+            
+            if (pairs.Length != 2)
+            {
+                return otherMarkets;
+            }
+
+            return pairs[1].ToUpper();
         }
 
         public static List<string> ExcludeListForLongHistory

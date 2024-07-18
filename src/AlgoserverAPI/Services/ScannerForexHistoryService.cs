@@ -48,7 +48,23 @@ namespace Algoserver.API.Services
                 PricePrecision = 0.00000001m
             });
 
-            // return instruments.Take(5).ToList();
+            instruments.Add(new OandaInstruments
+            {
+                Datafeed = "Oanda",
+                Exchange = "Oanda",
+                Symbol = "SOL_USD",
+                Type = "Crypto",
+                PricePrecision = 0.00000001m
+            });
+            instruments.Add(new OandaInstruments
+            {
+                Datafeed = "Oanda",
+                Exchange = "Oanda",
+                Symbol = "LTC_USD",
+                Type = "Crypto",
+                PricePrecision = 0.00000001m
+            });
+
             return instruments;
         }
 
@@ -57,7 +73,7 @@ namespace Algoserver.API.Services
             var instruments = new List<IInstrument>();
             var forexInstruments = _instrumentService.GetOandaInstruments();
             var allowedForex = InstrumentsHelper.ForexInstrumentList;
-            var excludeInstruments =InstrumentsHelper.ExcludeListForLongHistory;
+            var excludeInstruments = InstrumentsHelper.ExcludeListForLongHistory;
 
             foreach (var instrument in forexInstruments)
             {
@@ -90,7 +106,23 @@ namespace Algoserver.API.Services
                 PricePrecision = 0.00000001m
             });
 
-            // return instruments.Take(5).ToList();
+            instruments.Add(new OandaInstruments
+            {
+                Datafeed = "Oanda",
+                Exchange = "Oanda",
+                Symbol = "SOL_USD",
+                Type = "Crypto",
+                PricePrecision = 0.00000001m
+            });
+            instruments.Add(new OandaInstruments
+            {
+                Datafeed = "Oanda",
+                Exchange = "Oanda",
+                Symbol = "LTC_USD",
+                Type = "Crypto",
+                PricePrecision = 0.00000001m
+            });
+
             return instruments;
         }
     }

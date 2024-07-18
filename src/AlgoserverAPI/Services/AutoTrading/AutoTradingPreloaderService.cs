@@ -71,6 +71,16 @@ namespace Algoserver.API.Services.CacheServices
                         {
                             s = "ETH_USDT";
                         }
+                        if (string.Equals(s, "SOL_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                            string.Equals(s, "SOLUSD", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            s = "SOL_USDT";
+                        }
+                        if (string.Equals(s, "LTC_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                            string.Equals(s, "LTCUSD", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            s = "LTC_USDT";
+                        }
 
                         result.Add(s.ToUpper());
                     }
@@ -128,15 +138,26 @@ namespace Algoserver.API.Services.CacheServices
 
             symbols = symbols.Take(maxAmount).ToDictionary((_) => _.Key, (_) => _.Value);
 
-            var totalCount = 0m;
             foreach (var symbol in symbols)
             {
-                var cnt = 1m / relatedSymbolsCount(symbol.Key, symbols);
-                totalCount += cnt;
+                var cnt = relatedSymbolsCount(symbol.Key, symbols);
+                var group = InstrumentsHelper.GetInstrumentGroup(symbol.Key);
+                var groupRisk = userSettings.risksPerGroup != null && userSettings.risksPerGroup.ContainsKey(group) ? userSettings.risksPerGroup[group] : -1;
+                if (groupRisk < 0)
+                {
+                    groupRisk = userSettings.defaultGroupRisk;
+                    if (groupRisk <= 0)
+                    {
+                        groupRisk = 30;
+                    }
+                }
+
+                var risk = groupRisk / cnt;
+
                 result.Add(new AutoTradingInstrumentsResponse
                 {
                     Symbol = symbol.Key,
-                    Risk = cnt
+                    Risk = risk
                 });
             }
 
@@ -152,22 +173,16 @@ namespace Algoserver.API.Services.CacheServices
                 {
                     r.Symbol = "ETH_USDT";
                 }
-            }
-
-            if (totalCount <= 0)
-            {
-                foreach (var r in result)
+                if (string.Equals(r.Symbol, "SOL_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                    string.Equals(r.Symbol, "SOLUSD", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    r.Risk = 1m / symbols.Count;
+                    r.Symbol = "SOL_USDT";
                 }
-                return result;
-            }
-
-            var weight = 1m / totalCount;
-
-            foreach (var r in result)
-            {
-                r.Risk = weight * r.Risk;
+                if (string.Equals(r.Symbol, "LTC_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                    string.Equals(r.Symbol, "LTCUSD", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    r.Symbol = "LTC_USDT";
+                }
             }
 
             return result;
@@ -242,7 +257,6 @@ namespace Algoserver.API.Services.CacheServices
                 symbols = filteredSymbols.Take(maxAmount).ToDictionary((_) => _.Key, (_) => _.Value);
             }
 
-            var totalCount = 0m;
             foreach (var symbol in symbols)
             {
                 var isDisabled = false;
@@ -250,16 +264,25 @@ namespace Algoserver.API.Services.CacheServices
                 {
                     isDisabled = true;
                 }
-                var cnt = 1m / relatedSymbolsCount(symbol.Key, symbols);
-                if (isDisabled)
+
+                var cnt = relatedSymbolsCount(symbol.Key, symbols);
+                var group = InstrumentsHelper.GetInstrumentGroup(symbol.Key);
+                var groupRisk = userSettings.risksPerGroup != null && userSettings.risksPerGroup.ContainsKey(group) ? userSettings.risksPerGroup[group] : -1;
+                if (groupRisk < 0)
                 {
-                    cnt = 0;
+                    groupRisk = userSettings.defaultGroupRisk;
+                    if (groupRisk <= 0)
+                    {
+                        groupRisk = 30;
+                    }
                 }
-                totalCount += cnt;
+
+                var risk = groupRisk / cnt;
+
                 instruments.Add(new AutoTradingInstrumentsResponse
                 {
                     Symbol = symbol.Key,
-                    Risk = cnt,
+                    Risk = isDisabled ? 0 : risk,
                     IsDisabled = isDisabled
                 });
             }
@@ -276,33 +299,45 @@ namespace Algoserver.API.Services.CacheServices
                 {
                     r.Symbol = "ETH_USDT";
                 }
-            }
-
-            if (totalCount <= 0)
-            {
-                foreach (var r in instruments)
+                if (string.Equals(r.Symbol, "SOL_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                    string.Equals(r.Symbol, "SOLUSD", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    r.Risk = 1m / symbols.Count;
+                    r.Symbol = "SOL_USDT";
+                }
+                if (string.Equals(r.Symbol, "LTC_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                    string.Equals(r.Symbol, "LTCUSD", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    r.Symbol = "LTC_USDT";
                 }
             }
-            else
-            {
-                var weight = 1m / totalCount;
 
-                foreach (var r in instruments)
-                {
-                    r.Risk = weight * r.Risk;
-                }
-            }
+            // if (totalCount <= 0)
+            // {
+            //     foreach (var r in instruments)
+            //     {
+            //         r.Risk = 1m / symbols.Count;
+            //     }
+            // }
+            // else
+            // {
+            //     var weight = 1m / totalCount;
+
+            //     foreach (var r in instruments)
+            //     {
+            //         r.Risk = weight * r.Risk;
+            //     }
+            // }
 
             return new AutoTradingInstrumentsDedicationResponse
             {
                 Instruments = instruments,
                 Risks = userSettings.risksPerMarket != null ? userSettings.risksPerMarket : new Dictionary<string, int>(),
+                GroupRisks = userSettings.risksPerGroup != null ? userSettings.risksPerGroup : new Dictionary<string, int>(),
                 AccountRisk = userSettings.accountRisk,
                 UseManualTrading = userSettings.useManualTrading,
                 BotShutDown = userSettings.botShutDown,
                 DefaultMarketRisk = userSettings.defaultMarketRisk,
+                DefaultGroupRisk = userSettings.defaultGroupRisk,
                 DisabledInstruments = disabledMarkets
             };
         }
@@ -364,6 +399,24 @@ namespace Algoserver.API.Services.CacheServices
                 datafeed = "OANDA";
             }
 
+            if (string.Equals(symbol, "SOL_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(symbol, "SOL_USDT", StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(symbol, "SOLUSD", StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(symbol, "SOLUSDT", StringComparison.InvariantCultureIgnoreCase))
+            {
+                symbol = "SOL_USD";
+                datafeed = "OANDA";
+            }
+
+            if (string.Equals(symbol, "LTC_USD", StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(symbol, "LTC_USDT", StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(symbol, "LTCUSD", StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(symbol, "LTCUSDT", StringComparison.InvariantCultureIgnoreCase))
+            {
+                symbol = "LTC_USD";
+                datafeed = "OANDA";
+            }
+
             try
             {
                 lock (_data)
@@ -388,41 +441,12 @@ namespace Algoserver.API.Services.CacheServices
 
         private int relatedSymbolsCount(string symbol, Dictionary<string, AutoTradingSymbolInfoResponse> symbols)
         {
-            var symbolType = getSymbolsType(symbol);
-            var curencies = symbol.Split("_");
-
-            if (curencies.Length != 2)
-            {
-                return 1;
-            }
-
-            var curency1 = curencies[0];
-            var curency2 = curencies[1];
-
-
-            var count = 1;
+            var symbol1Type = InstrumentsHelper.GetInstrumentGroup(symbol);
+            var count = 0;
             foreach (var s in symbols)
             {
-                var c = s.Key.Split("_");
-                if (c.Length != 2 || s.Key == symbol)
-                {
-                    continue;
-                }
-
-                var sT = getSymbolsType(s.Key);
-                if (symbolType != sT)
-                {
-                    continue;
-                }
-
-                var c1 = c[0];
-                var c2 = c[1];
-
-                if (c1 == curency1)
-                {
-                    count++;
-                }
-                if (c2 == curency2)
+                var symbol2Type = InstrumentsHelper.GetInstrumentGroup(s.Key);
+                if (symbol1Type == symbol2Type)
                 {
                     count++;
                 }

@@ -59,6 +59,14 @@ namespace Algoserver.API.Services
             if (String.Equals(symbol, "ETH_USD", StringComparison.InvariantCultureIgnoreCase))
             {
                 return false;
+            } 
+            if (String.Equals(symbol, "SOL_USD", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return false;
+            }
+            if (String.Equals(symbol, "LTC_USD", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return false;
             }
             return true;
         }
