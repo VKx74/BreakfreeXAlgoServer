@@ -6,7 +6,7 @@ namespace Algoserver.API.Services
 {
     public static class LowTimeframeNLevelStrategy
     {
-        private static bool ShowLogs = false;
+        private static bool ShowLogs = true;
 
         private static void WriteLog(string str)
         {
@@ -57,7 +57,7 @@ namespace Algoserver.API.Services
             }
             else
             {
-                WriteLog($"{mesaResponse.Symbol} AutoMode - month/mid group drive filter");
+                WriteLog($"{mesaResponse.Symbol} AutoMode - m1Phase/m5Phase group drive filter");
             }
 
             return false;
