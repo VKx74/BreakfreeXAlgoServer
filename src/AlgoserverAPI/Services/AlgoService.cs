@@ -772,7 +772,7 @@ namespace Algoserver.API.Services
             // result.TradingState = ShortPeriodDriveStrategy.GetState(result, summaryForSymbol, symbol.ToUpper());
             if (summaryForSymbol != null)
             {
-                result.TradingState = MonthDriveStrategy.GetState(result, summaryForSymbol, symbol.ToUpper());
+                result.TradingState = LowTimeframeNLevelStrategy.GetState(result, summaryForSymbol, mesa_additional, symbol.ToUpper());
             }
 
             return result;
