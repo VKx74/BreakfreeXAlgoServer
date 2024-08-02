@@ -146,7 +146,7 @@ namespace Algoserver.API.Services
         public static bool IsStrengthIncreasing(AutoTradingSymbolInfoResponse symbolInfo, MesaResponse mesa_additional)
         {
             var decreasePeriod = 22;
-            var resetPeriod = 369;
+            var resetPeriod = 69;
             //   if (symbolInfo.TrendDirection == 1)
             // {
             //     // Uptrend
