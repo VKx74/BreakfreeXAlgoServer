@@ -6,7 +6,7 @@ namespace Algoserver.API.Services
 {
     public static class LowTimeframeNLevelStrategy
     {
-        private static bool ShowLogs = true;
+        private static bool ShowLogs = false;
 
         private static void WriteLog(string str)
         {
@@ -147,9 +147,6 @@ namespace Algoserver.API.Services
         {
             var decreasePeriod = 22;
             var resetPeriod = 69;
-            //   if (symbolInfo.TrendDirection == 1)
-            // {
-            //     // Uptrend
 
             if (!mesa_additional.mesa.TryGetValue(TimeframeHelper.MIN1_GRANULARITY, out var decreaseData))
             {

@@ -772,7 +772,19 @@ namespace Algoserver.API.Services
             // result.TradingState = ShortPeriodDriveStrategy.GetState(result, summaryForSymbol, symbol.ToUpper());
             if (summaryForSymbol != null)
             {
-                result.TradingState = LowTimeframeNLevelStrategy.GetState(result, summaryForSymbol, mesa_additional, symbol.ToUpper());
+                result.TradingState = MonthDriveStrategy.GetState(result, summaryForSymbol, symbol.ToUpper());
+
+                // if not a capitulation
+                if (result.TradingState != 3)
+                {
+                    var nLevelStrategyState = LowTimeframeNLevelStrategy.GetState(result, summaryForSymbol, mesa_additional, symbol.ToUpper());
+                    if (nLevelStrategyState == 2)
+                    {
+                        // N level strategy is active
+                        result.TradingState = 2;
+                        result.StrategyType = 2; // 2 - N strategy
+                    }
+                }
             }
 
             return result;

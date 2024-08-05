@@ -283,7 +283,8 @@ namespace Algoserver.API.Services.CacheServices
                 {
                     Symbol = symbol.Key,
                     Risk = isDisabled ? 0 : risk,
-                    IsDisabled = isDisabled
+                    IsDisabled = isDisabled,
+                    StrategyType = symbol.Value.StrategyType
                 });
             }
 

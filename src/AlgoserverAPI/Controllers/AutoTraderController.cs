@@ -712,7 +712,11 @@ namespace Algoserver.API.Controllers
 
             var result = string.Empty;
 
-            if (request.Version == "2.1")
+            if (request.Version == "3.0")
+            {
+                result = await GetAutoTradeInstrumentsAsyncV3_0(request.Account);
+            }
+            else if (request.Version == "2.1")
             {
                 result = await GetAutoTradeInstrumentsAsyncV2_1(request.Account);
             }
@@ -852,7 +856,7 @@ namespace Algoserver.API.Controllers
             foreach (var item in instruments)
             {
                 var instrumentRisk = GetInstrumentRisk(dedications, item.Symbol);
-                if (!item.IsDisabled)
+                if (!item.IsDisabled && item.StrategyType != 2)
                 {
                     stringResult.AppendLine($"{item.Symbol}={Math.Round(item.Risk, 2)};{instrumentRisk}");
                 }
@@ -881,6 +885,18 @@ namespace Algoserver.API.Controllers
         [NonAction]
         private async Task<string> GetAutoTradeInstrumentsAsyncV2_1(string account)
         {
+            return await GetAutoTradeInstrumentsAsyncV2_1And3_0(account, 2);
+        }
+        
+        [NonAction]
+        private async Task<string> GetAutoTradeInstrumentsAsyncV3_0(string account)
+        {
+            return await GetAutoTradeInstrumentsAsyncV2_1And3_0(account, -1);
+        }
+        
+        [NonAction]
+        private async Task<string> GetAutoTradeInstrumentsAsyncV2_1And3_0(string account, int strategyFilter)
+        {
             var dedications = await _autoTradingPreloaderService.GetAutoTradingInstrumentsDedication(account);
             var stringResult = new StringBuilder();
             var instruments = dedications.Instruments;
@@ -888,7 +904,7 @@ namespace Algoserver.API.Controllers
             foreach (var item in instruments)
             {
                 var instrumentRisk = GetInstrumentRisk(dedications, item.Symbol);
-                if (!item.IsDisabled)
+                if (!item.IsDisabled && item.StrategyType != strategyFilter)
                 {
                     stringResult.AppendLine($"{item.Symbol}={Math.Round(item.Risk, 2)};{instrumentRisk}");
                 }
@@ -963,6 +979,7 @@ namespace Algoserver.API.Controllers
             stringResult.AppendLine($"strengthTotal={Math.Round(result.TotalStrength * 100, 2)}");
             stringResult.AppendLine($"generalStopLoss={Math.Round(useOpposite ? result.OppositeSL : result.SL, 5)}");
             stringResult.AppendLine($"trendDirection={trendDirection}");
+            stringResult.AppendLine($"strategyType={result.StrategyType}");
 
             stringResult.AppendLine($"hbh1m={Math.Round(result.HalfBand1M, 5)}");
             stringResult.AppendLine($"hbh5m={Math.Round(result.HalfBand5M, 5)}");
@@ -1120,29 +1137,29 @@ namespace Algoserver.API.Controllers
                 return false;
             }
 
-            if (int.TryParse(minorVersionString, out var minor))
-            {
-                if (minor < 17)
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                return false;
-            }
+            // if (int.TryParse(minorVersionString, out var minor))
+            // {
+            //     if (minor < 17)
+            //     {
+            //         return false;
+            //     }
+            // }
+            // else
+            // {
+            //     return false;
+            // }
 
-            if (int.TryParse(buildVersionString, out var build))
-            {
-                if (build < 3)
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                return false;
-            }
+            // if (int.TryParse(buildVersionString, out var build))
+            // {
+            //     if (build < 3)
+            //     {
+            //         return false;
+            //     }
+            // }
+            // else
+            // {
+            //     return false;
+            // }
 
             return true;
         }
