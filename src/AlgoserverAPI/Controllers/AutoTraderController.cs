@@ -777,7 +777,8 @@ namespace Algoserver.API.Controllers
                     MaxRisks = instrumentRisk,
                     Risks = (double)item.Risk,
                     Symbol = item.Symbol,
-                    IsDisabled = item.IsDisabled
+                    IsDisabled = item.IsDisabled,
+                    StrategyType = item.StrategyType
                 });
             }
 
