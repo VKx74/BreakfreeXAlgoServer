@@ -19,7 +19,7 @@ namespace Algoserver.API.Services
                 if (_rates.ContainsKey(id))
                 {
                     _rates[id]++;
-                    return _rates[id] < 15;
+                    return _rates[id] < 30;
                 }
 
                 _rates.Add(id, 1);
@@ -35,7 +35,7 @@ namespace Algoserver.API.Services
                 var keys = _rates.Keys.Select((_) => _).ToList();
                 foreach (var key in keys)
                 {
-                    _rates[key]--;
+                    _rates[key] = _rates[key] - 2;
                     if (_rates[key] < 0)
                     {
                         _rates.Remove(key);
