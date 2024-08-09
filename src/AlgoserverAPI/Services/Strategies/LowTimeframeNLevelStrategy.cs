@@ -6,7 +6,7 @@ namespace Algoserver.API.Services
 {
     public static class LowTimeframeNLevelStrategy
     {
-        private static bool ShowLogs = false;
+        private static bool ShowLogs = true;
 
         private static void WriteLog(string str)
         {
@@ -50,7 +50,7 @@ namespace Algoserver.API.Services
                 return false;
             }
 
-            if (m1Phase == PhaseState.Drive && m5Phase == PhaseState.Drive && IsEnoughStrength(symbolInfo, 0, 11))
+            if (m1Phase == PhaseState.Drive && m5Phase == PhaseState.Drive  && m15Phase == PhaseState.Drive && IsEnoughStrength(symbolInfo, 0, 11))
             {
                 WriteLog($"{mesaResponse.Symbol} AutoMode - active");
                 return true;
@@ -145,70 +145,69 @@ namespace Algoserver.API.Services
 
         public static bool IsStrengthIncreasing(AutoTradingSymbolInfoResponse symbolInfo, MesaResponse mesa_additional)
         {
-            var decreasePeriod = 22;
-            var resetPeriod = 69;
+            var decreasePeriod = 5;
+            var resetPeriod = 5;
 
             if (!mesa_additional.mesa.TryGetValue(TimeframeHelper.MIN1_GRANULARITY, out var decreaseData))
             {
                 return true;
             }
-            if (!mesa_additional.mesa.TryGetValue(TimeframeHelper.MIN5_GRANULARITY, out var resetData))
+            if (!mesa_additional.mesa.TryGetValue(TimeframeHelper.MIN15_GRANULARITY, out var resetData))
             {
                 return true;
             }
 
-            long lastDecreaseTime = 0;            
-            for (var i = decreasePeriod; i < decreaseData.Count; i++)
+            var startIndex = decreaseData.Count - decreasePeriod - 1;
+            var fV = decreaseData[startIndex].f - decreaseData[startIndex].s;
+            var reduceDetected = true;
+            for (var i = startIndex; i < decreaseData.Count; i++)
             {
-                var p = decreaseData[i - decreasePeriod];
+                var p = decreaseData[i - 1];
                 var c = decreaseData[i];
                 var pV = p.f - p.s;
                 var cV = c.f - c.s;
+
                 if (symbolInfo.TrendDirection == 1)
                 {
-                    if (cV < pV)
-                    {
-                        lastDecreaseTime = c.t;
-                    }
+                    reduceDetected = cV < fV && cV < pV;
                 }
                 else if (symbolInfo.TrendDirection == -1)
                 {
-                    if (cV > pV)
-                    {
-                        lastDecreaseTime = c.t;
-                    }
+                    reduceDetected = cV > fV && cV > pV;
+                }
+
+                if (!reduceDetected)
+                {
+                    break;
                 }
             }
             
-            long lastResetTime = 0;            
-            for (var i = resetPeriod; i < resetData.Count; i++)
+            startIndex = resetData.Count - resetPeriod - 1;
+            fV = resetData[startIndex].f - resetData[startIndex].s;
+            var resetDetected = true;
+            for (var i = startIndex; i < resetData.Count; i++)
             {
-                var p = resetData[i - resetPeriod];
+                var p = resetData[i - 1];
                 var c = resetData[i];
                 var pV = p.f - p.s;
                 var cV = c.f - c.s;
+
                 if (symbolInfo.TrendDirection == 1)
                 {
-                    if (cV > pV)
-                    {
-                        lastResetTime = c.t;
-                    }
+                    resetDetected = cV > fV && cV > pV;
                 }
                 else if (symbolInfo.TrendDirection == -1)
                 {
-                    if (cV < pV)
-                    {
-                        lastResetTime = c.t;
-                    }
+                    resetDetected = cV < fV && cV < pV;
+                }
+
+                if (!resetDetected)
+                {
+                    break;
                 }
             }
 
-            if (lastResetTime == 0 || lastDecreaseTime == 0)
-            {
-                return true;
-            }
-
-            return lastResetTime > lastDecreaseTime;
+            return !reduceDetected && resetDetected;
         }
 
         public static uint GetState(AutoTradingSymbolInfoResponse symbolInfo, MESADataSummary mesaResponse, MesaResponse mesa_additional, string symbol)
