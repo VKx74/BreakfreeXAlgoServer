@@ -1033,6 +1033,13 @@ namespace Algoserver.API.Controllers
             // stringResult.AppendLine($"st1y={result.State1Y}");
             // stringResult.AppendLine($"st10y={result.State10Y}");
 
+            stringResult.AppendLine($"sl1m={Math.Round(useOpposite ? result.OppositeSL1M : result.SL1M, 5)}");
+            stringResult.AppendLine($"sl5m={Math.Round(useOpposite ? result.OppositeSL5M : result.SL5M, 5)}");
+            stringResult.AppendLine($"sl15m={Math.Round(useOpposite ? result.OppositeSL15M : result.SL15M, 5)}");
+            stringResult.AppendLine($"sl1h={Math.Round(useOpposite ? result.OppositeSL1H : result.SL1H, 5)}");
+            stringResult.AppendLine($"sl4h={Math.Round(useOpposite ? result.OppositeSL4H : result.SL4H, 5)}");
+            stringResult.AppendLine($"sl1d={Math.Round(useOpposite ? result.OppositeSL1D : result.SL1D, 5)}");
+
             stringResult.AppendLine($"vol1m={result.Volatility1M}");
             stringResult.AppendLine($"vol15m={result.Volatility15M}");
             stringResult.AppendLine($"vol1h={result.Volatility1H}");

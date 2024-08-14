@@ -49,13 +49,22 @@ namespace Algoserver.API.Services
             var mesa15minDataPoints = new List<MESADataPoint>();
             var mesa1hDataPoints = new List<MESADataPoint>();
             var mesa4hDataPoints = new List<MESADataPoint>();
+            var mesa1minNotCompressedDataPoints = new List<MESADataPoint>();
 
             var minuteTimesCut = minHistory.TakeLast(longMinHistoryCount).Select(_ => _.Timestamp).ToList();
             for (var i = 0; i < minuteTimesCut.Count; i++)
             {
-                if (minuteTimesCut[i] % (60 * 5) == 0 || i == minuteTimesCut.Count - 1)
+                var tt = minuteTimesCut[i];
+                mesa1minNotCompressedDataPoints.Add(new MESADataPoint
                 {
-                    var tt = minuteTimesCut[i];
+                    f = (float)mesa1minCut[i].Fast,
+                    s = (float)mesa1minCut[i].Slow,
+                    t = (uint)tt,
+                    v = volDriver.GetValueOrDefault(tt, 0)
+                });
+                
+                if (tt % (60 * 5) == 0 || i == minuteTimesCut.Count - 1)
+                {
                     mesa1driverDataPoints.Add(new MESADataPoint
                     {
                         f = (float)mesa1driverCut[i].Fast,
@@ -185,6 +194,9 @@ namespace Algoserver.API.Services
             mesaDataPointsMap.Add(TimeframeHelper.MONTHLY_GRANULARITY, mesa1monthDataPoints);
             mesaDataPointsMap.Add(TimeframeHelper.YEARLY_GRANULARITY, mesa1yearDataPoints);
             mesaDataPointsMap.Add(TimeframeHelper.YEAR10_GRANULARITY, mesa10yearDataPoints);
+
+            // not compressed
+            mesaDataPointsMap.Add(TimeframeHelper.MIN1_GRANULARITY * -1, mesa1minNotCompressedDataPoints.TakeLast(1440 * 5).ToList());
 
             var tfSummary = new Dictionary<int, MESADataPoint>();
             tfSummary.Add(TimeframeHelper.DRIVER_GRANULARITY, mesa1driverDataPoints.LastOrDefault());

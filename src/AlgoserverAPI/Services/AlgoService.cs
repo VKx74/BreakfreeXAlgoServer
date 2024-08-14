@@ -764,7 +764,19 @@ namespace Algoserver.API.Services
                 MidGroupStrength = (decimal)midGroupStrength,
                 LongGroupStrength = (decimal)longGroupStrength,
                 CurrentPrice = lastPrice,
-                TradingState = 0
+                TradingState = 0,
+                SL1M = sl_price,
+                SL5M = sl_price,
+                SL15M = sl_price,
+                SL1H = sl_price,
+                SL4H = sl_price,
+                SL1D = sl_price,
+                OppositeSL1M = opposite_sl_price,
+                OppositeSL5M = opposite_sl_price,
+                OppositeSL15M = opposite_sl_price,
+                OppositeSL1H = opposite_sl_price,
+                OppositeSL4H = opposite_sl_price,
+                OppositeSL1D = opposite_sl_price
             };
 
             // result.TradingState = GlobalDriveStrategy.GetState(result);
@@ -772,18 +784,26 @@ namespace Algoserver.API.Services
             // result.TradingState = ShortPeriodDriveStrategy.GetState(result, summaryForSymbol, symbol.ToUpper());
             if (summaryForSymbol != null)
             {
-                result.TradingState = MonthDriveStrategy.GetState(result, summaryForSymbol, symbol.ToUpper());
+                // result.TradingState = MonthDriveStrategy.GetState(result, summaryForSymbol, symbol.ToUpper());
 
                 // if not a capitulation
                 if (result.TradingState != 3)
                 {
-                    var nLevelStrategyState = LowTimeframeNLevelStrategy.GetState(result, summaryForSymbol, mesa_additional, symbol.ToUpper());
-                    if (nLevelStrategyState == 2)
-                    {
-                        // N level strategy is active
-                        result.TradingState = 2;
-                        result.StrategyType = 2; // 2 - N strategy
-                    }
+                    var nLevelStrategyState = await LowTimeframeNLevelStrategy.Calculate(result, summaryForSymbol, mesa_additional, levelsResponse, symbol.ToUpper(), datafeed, exchange, type, _historyService);
+                    result.TradingState = nLevelStrategyState.State;
+                    result.StrategyType = nLevelStrategyState.StrategyType;
+                    result.SL1M = nLevelStrategyState.SL1M;
+                    result.SL5M = nLevelStrategyState.SL5M;
+                    result.SL15M = nLevelStrategyState.SL15M;
+                    result.SL1H = nLevelStrategyState.SL1H;
+                    result.SL4H = nLevelStrategyState.SL4H;
+                    result.SL1D = nLevelStrategyState.SL1D;
+                    result.OppositeSL1M = nLevelStrategyState.OppositeSL1M;
+                    result.OppositeSL5M = nLevelStrategyState.OppositeSL5M;
+                    result.OppositeSL15M = nLevelStrategyState.OppositeSL15M;
+                    result.OppositeSL1H = nLevelStrategyState.OppositeSL1H;
+                    result.OppositeSL4H = nLevelStrategyState.OppositeSL4H;
+                    result.OppositeSL1D = nLevelStrategyState.OppositeSL1D;
                 }
             }
 
@@ -1296,6 +1316,7 @@ namespace Algoserver.API.Services
             {
                 granularityList.Add(TimeframeHelper.DRIVER_GRANULARITY);
                 granularityList.Add(TimeframeHelper.MIN1_GRANULARITY);
+                granularityList.Add(TimeframeHelper.MIN1_GRANULARITY * -1);
                 granularityList.Add(TimeframeHelper.MIN5_GRANULARITY);
                 granularityList.Add(TimeframeHelper.MIN15_GRANULARITY);
                 granularityList.Add(TimeframeHelper.HOURLY_GRANULARITY);

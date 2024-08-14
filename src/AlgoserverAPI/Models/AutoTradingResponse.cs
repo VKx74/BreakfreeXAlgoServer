@@ -101,6 +101,18 @@ namespace Algoserver.API.Models.REST
         public decimal OppositeEntry4H { get; set; }
         public decimal OppositeEntry1D { get; set; }
         public int OppositeTrendDirection { get; set; }
+        public decimal SL1M { get; set; }
+        public decimal SL5M { get; set; }
+        public decimal SL15M { get; set; }
+        public decimal SL1H { get; set; }
+        public decimal SL4H { get; set; }
+        public decimal SL1D { get; set; }
+        public decimal OppositeSL1M { get; set; }
+        public decimal OppositeSL5M { get; set; }
+        public decimal OppositeSL15M { get; set; }
+        public decimal OppositeSL1H { get; set; }
+        public decimal OppositeSL4H { get; set; }
+        public decimal OppositeSL1D { get; set; }
     }
 
     [Serializable]
