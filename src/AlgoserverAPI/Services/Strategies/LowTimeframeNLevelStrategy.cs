@@ -460,6 +460,7 @@ namespace Algoserver.API.Services
             var state = await GetState(symbolInfo, mesaResponse, mesa_additional, levelsResponse, symbol.ToUpper(), datafeed, exchange, type, historyService);
             var hourSL = GetSL(TimeframeHelper.HOURLY_GRANULARITY, levelsResponse, symbolInfo.TrendDirection);
             var oppositeHourSL = GetSL(TimeframeHelper.HOURLY_GRANULARITY, levelsResponse, symbolInfo.TrendDirection > 0 ? -1 : 1);
+
             var result = new StrategyResponse
             {
                 State = state,
@@ -467,15 +468,9 @@ namespace Algoserver.API.Services
                 SL1M = hourSL,
                 SL5M = hourSL,
                 SL15M = hourSL,
-                SL1H = hourSL,
-                SL4H = hourSL,
-                SL1D = hourSL,
                 OppositeSL1M = oppositeHourSL,
                 OppositeSL5M = oppositeHourSL,
                 OppositeSL15M = oppositeHourSL,
-                OppositeSL1H = oppositeHourSL,
-                OppositeSL4H = oppositeHourSL,
-                OppositeSL1D = oppositeHourSL
             };
             return result;
         }
