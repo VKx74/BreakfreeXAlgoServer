@@ -1038,7 +1038,6 @@ namespace Algoserver.API.Controllers
             stringResult.AppendLine($"sl15m={Math.Round(useOpposite ? result.OppositeSL15M : result.SL15M, 5)}");
             stringResult.AppendLine($"sl1h={Math.Round(useOpposite ? result.OppositeSL1H : result.SL1H, 5)}");
             stringResult.AppendLine($"sl4h={Math.Round(useOpposite ? result.OppositeSL4H : result.SL4H, 5)}");
-            stringResult.AppendLine($"sl1d={Math.Round(useOpposite ? result.OppositeSL1D : result.SL1D, 5)}");
 
             stringResult.AppendLine($"vol1m={result.Volatility1M}");
             stringResult.AppendLine($"vol15m={result.Volatility15M}");
@@ -1053,6 +1052,23 @@ namespace Algoserver.API.Controllers
             stringResult.AppendLine($"shortGroupStrength={Math.Round(result.ShortGroupStrength * 100, 2)}");
             stringResult.AppendLine($"midGroupStrength={Math.Round(result.MidGroupStrength * 100, 2)}");
             stringResult.AppendLine($"longGroupStrength={Math.Round(result.LongGroupStrength * 100, 2)}");
+
+            stringResult.AppendLine($"skipTrade1m={(result.Skip1MinTrades ? 1 : 0)}");
+            stringResult.AppendLine($"skipTrade5m={(result.Skip5MinTrades ? 1 : 0)}");
+            stringResult.AppendLine($"skipTrade15m={(result.Skip15MinTrades ? 1 : 0)}");
+            stringResult.AppendLine($"skipTrade1h={(result.Skip1HourTrades ? 1 : 0)}");
+            stringResult.AppendLine($"skipTrade4h={(result.Skip4HourTrades ? 1 : 0)}");
+
+            stringResult.AppendLine($"minStrength1m={Math.Round(result.MinStrength1M, 0)}");
+            stringResult.AppendLine($"minStrength5m={Math.Round(result.MinStrength5M, 0)}");
+            stringResult.AppendLine($"minStrength15m={Math.Round(result.MinStrength15M, 0)}");
+            stringResult.AppendLine($"minStrength1h={Math.Round(result.MinStrength1H, 0)}");
+            stringResult.AppendLine($"minStrength4h={Math.Round(result.MinStrength4H, 0)}");
+
+            stringResult.AppendLine($"ddClosePositions={(result.DDClosePositions ? 1 : 0)}");
+            stringResult.AppendLine($"ddCloseInitialInterval={result.DDCloseInitialInterval}");
+            stringResult.AppendLine($"ddCloseIncreasePeriod={result.DDCloseIncreasePeriod}");
+            stringResult.AppendLine($"ddCloseIncreaseThreshold={Math.Round(result.DDCloseIncreaseThreshold, 2)}");
 
             stringResult.AppendLine($"tradingState={result.TradingState}");
             stringResult.AppendLine($"tt={result.Time}");
