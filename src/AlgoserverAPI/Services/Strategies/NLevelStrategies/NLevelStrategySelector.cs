@@ -6,6 +6,10 @@ namespace Algoserver.Strategies.NLevelStrategy
     {
         public static NLevelStrategyBase SelectStrategy(NLevelStrategyInputContext context)
         {
+            if (context.symbol == "XAU_USD")
+            {
+                return new NLevelStrategy_XAUUSD(context);
+            } 
             if (context.symbol.ToUpper().EndsWith("USD"))
             {
                 return new NLevelStrategy_EURUSD(context);

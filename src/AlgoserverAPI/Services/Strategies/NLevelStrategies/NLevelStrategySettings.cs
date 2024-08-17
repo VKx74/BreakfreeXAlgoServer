@@ -7,6 +7,10 @@ namespace Algoserver.Strategies.NLevelStrategy
         public int VolatilityGranularity { get; set; }
         public int VolatilityMin { get; set; }
         public int VolatilityMax { get; set; }
+        public bool UseVolatilityFilter2 { get; set; }
+        public int VolatilityGranularity2 { get; set; }
+        public int VolatilityMin2 { get; set; }
+        public int VolatilityMax2 { get; set; }
 
         // Zone settings
         public bool UseOverheatZone1DFilter { get; set; }

@@ -82,6 +82,13 @@ namespace Algoserver.Strategies.NLevelStrategy
                 return false;
             }
 
+            // Volatility logic
+            if (settings.UseVolatilityFilter2 && IsTooMatchVolatility(settings.VolatilityGranularity2, settings.VolatilityMin2, settings.VolatilityMax2))
+            {
+                WriteLog($"{symbol} AutoMode - volatility filter");
+                return false;
+            }
+
             // Zone logic
             if (settings.UseOverheatZone1DFilter && IsInOverheatOn1DZone(settings.OverheatZone1DThreshold))
             {
