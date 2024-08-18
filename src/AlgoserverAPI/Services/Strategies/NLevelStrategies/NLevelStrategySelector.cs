@@ -9,6 +9,10 @@ namespace Algoserver.Strategies.NLevelStrategy
             if (context.symbol == "XAU_USD")
             {
                 return new NLevelStrategy_XAUUSD(context);
+            }  
+            if (context.symbol == "AUD_CAD")
+            {
+                return new NLevelStrategy_AUDCAD(context);
             } 
             if (context.symbol.ToUpper().EndsWith("USD"))
             {
