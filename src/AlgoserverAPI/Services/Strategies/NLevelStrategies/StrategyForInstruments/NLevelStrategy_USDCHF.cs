@@ -36,7 +36,7 @@ namespace Algoserver.Strategies.NLevelStrategy
                 RSIMax = 75,
                 RSIPeriod = 57,
                 CheckStrengthIncreasing = true,
-                CheckStrengthReducePeriod = 9,
+                CheckStrengthReducePeriod = 2, // 9 in MQL settings, but in algo all data compressed and exists just on 5min interval so each value must be divided by 5
                 CheckStrengthResetPeriod = 27,
                 CheckStrengthReduceGranularity = TimeframeHelper.DAILY_GRANULARITY,
                 CheckStrengthResetGranularity = TimeframeHelper.MIN1_GRANULARITY * -1,

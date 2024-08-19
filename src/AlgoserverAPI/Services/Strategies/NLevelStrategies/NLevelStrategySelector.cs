@@ -14,11 +14,15 @@ namespace Algoserver.Strategies.NLevelStrategy
             {
                 return new NLevelStrategy_AUDCAD(context);
             } 
-            if (context.symbol.ToUpper().EndsWith("USD"))
+            if (context.symbol == "USD_JPY")
+            {
+                return new NLevelStrategy_USDJPY(context);
+            } 
+            if (context.symbol == "EUR_USD")
             {
                 return new NLevelStrategy_EURUSD(context);
             }
-            if (context.symbol.ToUpper().EndsWith("CHF"))
+            if (context.symbol == "USD_CHF")
             {
                 return new NLevelStrategy_USDCHF(context);
             }

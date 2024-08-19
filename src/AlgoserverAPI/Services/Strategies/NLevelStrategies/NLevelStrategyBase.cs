@@ -76,16 +76,8 @@ namespace Algoserver.Strategies.NLevelStrategy
             var symbol = context.mesaResponse.Symbol;
 
             // Volatility logic
-            if (settings.UseVolatilityFilter && IsTooMatchVolatility(settings.VolatilityGranularity, settings.VolatilityMin, settings.VolatilityMax))
+            if (!IsVolatilityCorrect(settings))
             {
-                WriteLog($"{symbol} AutoMode - volatility filter");
-                return false;
-            }
-
-            // Volatility logic
-            if (settings.UseVolatilityFilter2 && IsTooMatchVolatility(settings.VolatilityGranularity2, settings.VolatilityMin2, settings.VolatilityMax2))
-            {
-                WriteLog($"{symbol} AutoMode - volatility filter");
                 return false;
             }
 
@@ -118,14 +110,14 @@ namespace Algoserver.Strategies.NLevelStrategy
             {
                 WriteLog($"{symbol} AutoMode - trends strength is not enough");
                 return false;
-            } 
-            
+            }
+
             if (settings.CheckStrengthIncreasing && !IsStrengthIncreasing(settings.CheckStrengthReducePeriod, settings.CheckStrengthResetPeriod, settings.CheckStrengthReduceGranularity, settings.CheckStrengthResetGranularity))
             {
                 WriteLog($"{symbol} AutoMode - strength decrease detected");
                 return false;
-            } 
-            
+            }
+
             if (settings.CheckPeaks && IsPeakDetected(settings.PeakDetectionGranularity, settings.PeakDetectionPeriod, settings.PeakDetectionThreshold))
             {
                 WriteLog($"{symbol} AutoMode - strength decrease detected");
@@ -554,6 +546,26 @@ namespace Algoserver.Strategies.NLevelStrategy
             var currentStrengthPercentage = currentStrength / avg * 100;
             var res = currentStrengthPercentage >= peakDetectionThreshold;
             return res;
+        }
+
+        protected virtual bool IsVolatilityCorrect(NLevelStrategySettings settings)
+        {
+            var symbol = context.mesaResponse.Symbol;
+            
+            // Volatility logic
+            if (settings.UseVolatilityFilter && IsTooMatchVolatility(settings.VolatilityGranularity, settings.VolatilityMin, settings.VolatilityMax))
+            {
+                WriteLog($"{symbol} AutoMode - volatility filter");
+                return false;
+            }
+
+            // Volatility logic
+            if (settings.UseVolatilityFilter2 && IsTooMatchVolatility(settings.VolatilityGranularity2, settings.VolatilityMin2, settings.VolatilityMax2))
+            {
+                WriteLog($"{symbol} AutoMode - volatility filter");
+                return false;
+            }
+            return true;
         }
 
         protected virtual bool IsTrendCorrect()
