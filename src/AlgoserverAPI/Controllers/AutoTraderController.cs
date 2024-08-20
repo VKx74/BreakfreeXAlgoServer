@@ -788,9 +788,7 @@ namespace Algoserver.API.Controllers
                     MaxRisks = instrumentRisk,
                     Risks = (double)item.Risk,
                     Symbol = item.Symbol,
-                    IsDisabled = item.IsDisabled,
-                    TradingStateSR = item.TradingStateSR,
-                    TradingStateN = item.TradingStateN,
+                    IsDisabled = item.IsDisabled
                 });
             }
 

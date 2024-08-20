@@ -136,7 +136,5 @@ namespace Algoserver.API.Models.REST
         public double MaxRisks { get; set; }
         public bool IsTradable { get; set; }
         public bool IsDisabled { get; set; }
-        public uint TradingStateSR { get; set; }
-        public uint TradingStateN { get; set; }    
     }
 }
