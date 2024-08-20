@@ -29,7 +29,6 @@ namespace Algoserver.Strategies.NLevelStrategy
             var result = new NLevelStrategyResponse
             {
                 State = state,
-                StrategyType = 2,
                 SL1M = sl,
                 SL5M = sl,
                 SL15M = sl,

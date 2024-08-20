@@ -765,7 +765,8 @@ namespace Algoserver.API.Services
                 MidGroupStrength = (decimal)midGroupStrength,
                 LongGroupStrength = (decimal)longGroupStrength,
                 CurrentPrice = lastPrice,
-                TradingState = 0,
+                TradingStateSR = 0,
+                TradingStateN = 0,
                 SL1M = sl_price,
                 SL5M = sl_price,
                 SL15M = sl_price,
@@ -783,56 +784,52 @@ namespace Algoserver.API.Services
             // result.TradingState = ShortPeriodDriveStrategy.GetState(result, summaryForSymbol, symbol.ToUpper());
             if (summaryForSymbol != null)
             {
-                // result.TradingState = MonthDriveStrategy.GetState(result, summaryForSymbol, symbol.ToUpper());
+                result.TradingStateSR = MonthDriveStrategy.GetState(result, summaryForSymbol, symbol.ToUpper());
 
-                // if not a capitulation
-                if (result.TradingState != 3)
+                var context = new NLevelStrategyInputContext
                 {
-                    var context = new NLevelStrategyInputContext
-                    {
-                        datafeed = datafeed,
-                        exchange = exchange,
-                        symbol = symbol.ToUpper(),
-                        type = type,
-                        symbolInfo = result,
-                        levelsResponse = levelsResponse,
-                        mesaResponse = summaryForSymbol,
-                        mesaAdditional = mesa_additional,
-                        historyService = _historyService
-                    };
-                    
-                    var nLevelStrategyState = await NLevelStrategySelector.Calculate(context);
+                    datafeed = datafeed,
+                    exchange = exchange,
+                    symbol = symbol.ToUpper(),
+                    type = type,
+                    symbolInfo = result,
+                    levelsResponse = levelsResponse,
+                    mesaResponse = summaryForSymbol,
+                    mesaAdditional = mesa_additional,
+                    historyService = _historyService
+                };
 
-                    if (nLevelStrategyState != null)
-                    {
-                        result.TradingState = nLevelStrategyState.State;
-                        result.StrategyType = nLevelStrategyState.StrategyType;
-                        result.SL1M = nLevelStrategyState.SL1M > 0 ? nLevelStrategyState.SL1M : sl_price;
-                        result.SL5M = nLevelStrategyState.SL5M > 0 ? nLevelStrategyState.SL5M : sl_price;
-                        result.SL15M = nLevelStrategyState.SL15M > 0 ? nLevelStrategyState.SL15M : sl_price;
-                        result.SL1H = nLevelStrategyState.SL1H > 0 ? nLevelStrategyState.SL1H : sl_price;
-                        result.SL4H = nLevelStrategyState.SL4H > 0 ? nLevelStrategyState.SL4H : sl_price;
-                        result.OppositeSL1M = nLevelStrategyState.OppositeSL1M > 0 ? nLevelStrategyState.OppositeSL1M : opposite_sl_price;
-                        result.OppositeSL5M = nLevelStrategyState.OppositeSL5M > 0 ? nLevelStrategyState.OppositeSL5M : opposite_sl_price;
-                        result.OppositeSL15M = nLevelStrategyState.OppositeSL15M > 0 ? nLevelStrategyState.OppositeSL15M : opposite_sl_price;
-                        result.OppositeSL1H = nLevelStrategyState.OppositeSL1H > 0 ? nLevelStrategyState.OppositeSL1H : opposite_sl_price;
-                        result.OppositeSL4H = nLevelStrategyState.OppositeSL4H > 0 ? nLevelStrategyState.OppositeSL4H : opposite_sl_price;
-                        result.Skip1MinTrades = nLevelStrategyState.Skip1MinTrades;
-                        result.Skip5MinTrades = nLevelStrategyState.Skip5MinTrades;
-                        result.Skip15MinTrades = nLevelStrategyState.Skip15MinTrades;
-                        result.Skip1HourTrades = nLevelStrategyState.Skip1HourTrades;
-                        result.Skip4HourTrades = nLevelStrategyState.Skip4HourTrades;
-                        result.MinStrength1M = nLevelStrategyState.MinStrength1M;
-                        result.MinStrength5M = nLevelStrategyState.MinStrength5M;
-                        result.MinStrength15M = nLevelStrategyState.MinStrength15M;
-                        result.MinStrength1H = nLevelStrategyState.MinStrength1H;
-                        result.MinStrength4H = nLevelStrategyState.MinStrength4H;
-                        result.DDClosePositions = nLevelStrategyState.DDClosePositions;
-                        result.DDCloseInitialInterval = nLevelStrategyState.DDCloseInitialInterval;
-                        result.DDCloseIncreasePeriod = nLevelStrategyState.DDCloseIncreasePeriod;
-                        result.DDCloseIncreaseThreshold = nLevelStrategyState.DDCloseIncreaseThreshold;
-                    }
+                var nLevelStrategyState = await NLevelStrategySelector.Calculate(context);
+
+                if (nLevelStrategyState != null)
+                {
+                    result.TradingStateN = nLevelStrategyState.State;
+                    result.SL1M = nLevelStrategyState.SL1M > 0 ? nLevelStrategyState.SL1M : sl_price;
+                    result.SL5M = nLevelStrategyState.SL5M > 0 ? nLevelStrategyState.SL5M : sl_price;
+                    result.SL15M = nLevelStrategyState.SL15M > 0 ? nLevelStrategyState.SL15M : sl_price;
+                    result.SL1H = nLevelStrategyState.SL1H > 0 ? nLevelStrategyState.SL1H : sl_price;
+                    result.SL4H = nLevelStrategyState.SL4H > 0 ? nLevelStrategyState.SL4H : sl_price;
+                    result.OppositeSL1M = nLevelStrategyState.OppositeSL1M > 0 ? nLevelStrategyState.OppositeSL1M : opposite_sl_price;
+                    result.OppositeSL5M = nLevelStrategyState.OppositeSL5M > 0 ? nLevelStrategyState.OppositeSL5M : opposite_sl_price;
+                    result.OppositeSL15M = nLevelStrategyState.OppositeSL15M > 0 ? nLevelStrategyState.OppositeSL15M : opposite_sl_price;
+                    result.OppositeSL1H = nLevelStrategyState.OppositeSL1H > 0 ? nLevelStrategyState.OppositeSL1H : opposite_sl_price;
+                    result.OppositeSL4H = nLevelStrategyState.OppositeSL4H > 0 ? nLevelStrategyState.OppositeSL4H : opposite_sl_price;
+                    result.Skip1MinTrades = nLevelStrategyState.Skip1MinTrades;
+                    result.Skip5MinTrades = nLevelStrategyState.Skip5MinTrades;
+                    result.Skip15MinTrades = nLevelStrategyState.Skip15MinTrades;
+                    result.Skip1HourTrades = nLevelStrategyState.Skip1HourTrades;
+                    result.Skip4HourTrades = nLevelStrategyState.Skip4HourTrades;
+                    result.MinStrength1M = nLevelStrategyState.MinStrength1M;
+                    result.MinStrength5M = nLevelStrategyState.MinStrength5M;
+                    result.MinStrength15M = nLevelStrategyState.MinStrength15M;
+                    result.MinStrength1H = nLevelStrategyState.MinStrength1H;
+                    result.MinStrength4H = nLevelStrategyState.MinStrength4H;
+                    result.DDClosePositions = nLevelStrategyState.DDClosePositions;
+                    result.DDCloseInitialInterval = nLevelStrategyState.DDCloseInitialInterval;
+                    result.DDCloseIncreasePeriod = nLevelStrategyState.DDCloseIncreasePeriod;
+                    result.DDCloseIncreaseThreshold = nLevelStrategyState.DDCloseIncreaseThreshold;
                 }
+
             }
 
             return result;
@@ -1469,7 +1466,7 @@ namespace Algoserver.API.Services
             }
             return 0;
         }
-        
+
         private decimal GetVolatility(int granularity, MESADataSummary mesaDataSummary)
         {
             if (mesaDataSummary != null && mesaDataSummary.Volatility.TryGetValue(granularity, out var item))

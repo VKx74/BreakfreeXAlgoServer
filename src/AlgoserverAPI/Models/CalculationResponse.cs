@@ -344,7 +344,8 @@ namespace Algoserver.API.Models.REST
         public float price86400 { get; set; }
         public uint current_phase { get; set; }
         public uint next_phase { get; set; }
-        public uint trading_state { get; set; }
+        public uint trading_state_n { get; set; }
+        public uint trading_state_sr { get; set; }
     }
 
 }

@@ -606,7 +606,14 @@ namespace Algoserver.API.Controllers
                 return Unauthorized("Invalid trading account");
             }
 
-            return await CalculateSymbolInfoAsync(request);
+            if (request.Version == "3.0")
+            {
+                // Just N strategy
+                return await CalculateSymbolInfoAsync(request, EStrategyType.N);
+            }
+            
+            // Just SR strategy
+            return await CalculateSymbolInfoAsync(request, EStrategyType.SR);
         }
 
         [HttpPost(Routes.ApexMarkets)]
@@ -714,18 +721,22 @@ namespace Algoserver.API.Controllers
 
             if (request.Version == "3.0")
             {
+                // Just N strategy
                 result = await GetAutoTradeInstrumentsAsyncV3_0(request.Account);
             }
             else if (request.Version == "2.1")
             {
+                // Just SR strategy
                 result = await GetAutoTradeInstrumentsAsyncV2_1(request.Account);
             }
             else if (request.Version == "2.0")
             {
+                // Just SR strategy
                 result = await GetAutoTradeInstrumentsAsyncV2(request.Account);
             }
             else
             {
+                // Not support anymore
                 result = await GetAutoTradeInstrumentsAsyncV1(request.Account);
             }
 
@@ -765,7 +776,7 @@ namespace Algoserver.API.Controllers
             }
 
             var result = new List<AutoTradingInstrumentConfigResponse>();
-            var dedications = await _autoTradingPreloaderService.GetAutoTradingInstrumentsDedication(request.Account);
+            var dedications = await _autoTradingPreloaderService.GetAutoTradingInstrumentsDedication(request.Account, (EStrategyType)request.Strategy);
             var instruments = dedications.Instruments;
 
             foreach (var item in instruments)
@@ -778,7 +789,8 @@ namespace Algoserver.API.Controllers
                     Risks = (double)item.Risk,
                     Symbol = item.Symbol,
                     IsDisabled = item.IsDisabled,
-                    StrategyType = item.StrategyType
+                    TradingStateSR = item.TradingStateSR,
+                    TradingStateN = item.TradingStateN,
                 });
             }
 
@@ -837,27 +849,20 @@ namespace Algoserver.API.Controllers
         [NonAction]
         private async Task<string> GetAutoTradeInstrumentsAsyncV1(string account)
         {
-            var items = await _autoTradingPreloaderService.GetAutoTradeInstruments(account);
-            var stringResult = new StringBuilder();
-            foreach (var item in items)
-            {
-                stringResult.AppendLine($"{item.Symbol}={Math.Round(item.Risk, 2)}");
-            }
-
-            return stringResult.ToString();
+            return "Not supported version";
         }
 
         [NonAction]
         private async Task<string> GetAutoTradeInstrumentsAsyncV2(string account)
         {
-            var dedications = await _autoTradingPreloaderService.GetAutoTradingInstrumentsDedication(account);
+            var dedications = await _autoTradingPreloaderService.GetAutoTradingInstrumentsDedication(account, EStrategyType.SR);
             var stringResult = new StringBuilder();
             var instruments = dedications.Instruments;
 
             foreach (var item in instruments)
             {
                 var instrumentRisk = GetInstrumentRisk(dedications, item.Symbol);
-                if (!item.IsDisabled && item.StrategyType != 2)
+                if (!item.IsDisabled)
                 {
                     stringResult.AppendLine($"{item.Symbol}={Math.Round(item.Risk, 2)};{instrumentRisk}");
                 }
@@ -886,26 +891,26 @@ namespace Algoserver.API.Controllers
         [NonAction]
         private async Task<string> GetAutoTradeInstrumentsAsyncV2_1(string account)
         {
-            return await GetAutoTradeInstrumentsAsyncV2_1And3_0(account, 2);
+            return await GetAutoTradeInstrumentsAsyncV2_1And3_0(account, EStrategyType.SR);
         }
         
         [NonAction]
         private async Task<string> GetAutoTradeInstrumentsAsyncV3_0(string account)
         {
-            return await GetAutoTradeInstrumentsAsyncV2_1And3_0(account, -1);
+            return await GetAutoTradeInstrumentsAsyncV2_1And3_0(account, EStrategyType.N);
         }
         
         [NonAction]
-        private async Task<string> GetAutoTradeInstrumentsAsyncV2_1And3_0(string account, int strategyFilter)
+        private async Task<string> GetAutoTradeInstrumentsAsyncV2_1And3_0(string account, EStrategyType strategyType)
         {
-            var dedications = await _autoTradingPreloaderService.GetAutoTradingInstrumentsDedication(account);
+            var dedications = await _autoTradingPreloaderService.GetAutoTradingInstrumentsDedication(account, strategyType);
             var stringResult = new StringBuilder();
             var instruments = dedications.Instruments;
 
             foreach (var item in instruments)
             {
                 var instrumentRisk = GetInstrumentRisk(dedications, item.Symbol);
-                if (!item.IsDisabled && item.StrategyType != strategyFilter)
+                if (!item.IsDisabled)
                 {
                     stringResult.AppendLine($"{item.Symbol}={Math.Round(item.Risk, 2)};{instrumentRisk}");
                 }
@@ -945,7 +950,7 @@ namespace Algoserver.API.Controllers
             return dedications.DefaultMarketRisk;
         }
 
-        private async Task<IActionResult> CalculateSymbolInfoAsync(AutoTradingSymbolInfoRequest request)
+        private async Task<IActionResult> CalculateSymbolInfoAsync(AutoTradingSymbolInfoRequest request, EStrategyType strategyType)
         {
             var mappedSymbol = SymbolMapper(request.Instrument.Id);
             if (string.IsNullOrEmpty(mappedSymbol))
@@ -955,9 +960,10 @@ namespace Algoserver.API.Controllers
 
             var result = await _autoTradingPreloaderService.GetAutoTradingSymbolInfo(mappedSymbol, request.Instrument.Datafeed, request.Instrument.Exchange, request.Instrument.Type);
             var userSettings = _autoTradingUserInfoService.GetUserInfo(request.Account);
-            return Ok(BuildBotStringResponse(result, mappedSymbol, userSettings));
+            return Ok(BuildBotStringResponse(result, mappedSymbol, userSettings, strategyType));
         }
-        private string BuildBotStringResponse(AutoTradingSymbolInfoResponse result, string symbol, UserInfoData userSettings)
+
+        private string BuildBotStringResponse(AutoTradingSymbolInfoResponse result, string symbol, UserInfoData userSettings, EStrategyType strategyType)
         {
             var normalizedMarket = InstrumentsHelper.NormalizeInstrument(symbol);
             var existingMarket = userSettings.markets.FirstOrDefault((_) => string.Equals(InstrumentsHelper.NormalizeInstrument(_.symbol), normalizedMarket, StringComparison.InvariantCultureIgnoreCase));
@@ -965,11 +971,11 @@ namespace Algoserver.API.Controllers
 
             if (existingMarket != null && existingMarket.tradingDirection != TradingDirection.Auto)
             {
-                if (result.TradingState > 0 && existingMarket.tradingDirection == TradingDirection.Short)
+                if (result.TrendDirection > 0 && existingMarket.tradingDirection == TradingDirection.Short)
                 {
                     useOpposite = true;
                 }
-                if (result.TradingState < 0 && existingMarket.tradingDirection == TradingDirection.Long)
+                if (result.TrendDirection < 0 && existingMarket.tradingDirection == TradingDirection.Long)
                 {
                     useOpposite = true;
                 }
@@ -980,7 +986,7 @@ namespace Algoserver.API.Controllers
             stringResult.AppendLine($"strengthTotal={Math.Round(result.TotalStrength * 100, 2)}");
             stringResult.AppendLine($"generalStopLoss={Math.Round(useOpposite ? result.OppositeSL : result.SL, 5)}");
             stringResult.AppendLine($"trendDirection={trendDirection}");
-            stringResult.AppendLine($"strategyType={result.StrategyType}");
+            stringResult.AppendLine($"strategyType={(strategyType == EStrategyType.N ? 2 : 0)}");
 
             stringResult.AppendLine($"hbh1m={Math.Round(result.HalfBand1M, 5)}");
             stringResult.AppendLine($"hbh5m={Math.Round(result.HalfBand5M, 5)}");
@@ -1070,7 +1076,7 @@ namespace Algoserver.API.Controllers
             stringResult.AppendLine($"ddCloseIncreasePeriod={result.DDCloseIncreasePeriod}");
             stringResult.AppendLine($"ddCloseIncreaseThreshold={Math.Round(result.DDCloseIncreaseThreshold, 2)}");
 
-            stringResult.AppendLine($"tradingState={result.TradingState}");
+            stringResult.AppendLine($"tradingState={(strategyType == EStrategyType.N ? result.TradingStateN : result.TradingStateSR)}");
             stringResult.AppendLine($"tt={result.Time}");
 
             return stringResult.ToString();

@@ -9,7 +9,8 @@ namespace Algoserver.API.Models.REST
         public string Symbol { get; set; }
         public decimal Risk { get; set; }
         public bool IsDisabled { get; set; }
-        public uint StrategyType { get; set; }        
+        public uint TradingStateSR { get; set; }
+        public uint TradingStateN { get; set; }  
     }
     
     [Serializable]
@@ -91,8 +92,8 @@ namespace Algoserver.API.Models.REST
         public int NextPhase { get; set; }
         public decimal CurrentPrice { get; set; }
         public long Time { get; set; }
-        public uint TradingState { get; set; }
-        public uint StrategyType { get; set; }        
+        public uint TradingStateSR { get; set; }
+        public uint TradingStateN { get; set; }    
         public decimal OppositeSL { get; set; }
         public decimal OppositeEntry1M { get; set; }
         public decimal OppositeEntry5M { get; set; }
@@ -135,6 +136,7 @@ namespace Algoserver.API.Models.REST
         public double MaxRisks { get; set; }
         public bool IsTradable { get; set; }
         public bool IsDisabled { get; set; }
-        public uint StrategyType { get; set; }     
+        public uint TradingStateSR { get; set; }
+        public uint TradingStateN { get; set; }    
     }
 }

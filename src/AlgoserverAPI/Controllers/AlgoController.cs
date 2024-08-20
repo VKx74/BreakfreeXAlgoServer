@@ -323,7 +323,8 @@ namespace Algoserver.API.Controllers
                     timeframe_state = r.TimeframeState,
                     current_phase = r.CurrentPhase,
                     next_phase = r.NextPhase,
-                    trading_state = autoTradingInfo != null ? autoTradingInfo.TradingState : 0
+                    trading_state_n = autoTradingInfo != null ? autoTradingInfo.TradingStateN : 0,
+                    trading_state_sr = autoTradingInfo != null ? autoTradingInfo.TradingStateSR : 0
                 });
             }
             return result;

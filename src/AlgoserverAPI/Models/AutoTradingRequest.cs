@@ -54,5 +54,8 @@ namespace Algoserver.API.Models.REST
     {
         [JsonProperty("account")]
         public string Account { get; set; }
+
+        [JsonProperty("strategy")]
+        public int Strategy { get; set; }
     }
 }

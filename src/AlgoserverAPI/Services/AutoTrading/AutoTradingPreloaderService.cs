@@ -7,6 +7,12 @@ using Algoserver.API.Models.REST;
 
 namespace Algoserver.API.Services.CacheServices
 {
+    public enum EStrategyType
+    {
+        SR = 0,
+        N = 2,
+    }
+
     public class AutoTradingPreloaderService
     {
         private readonly ICacheService _cache;
@@ -89,106 +95,7 @@ namespace Algoserver.API.Services.CacheServices
             return result;
         }
 
-        [Obsolete]
-        public async Task<List<AutoTradingInstrumentsResponse>> GetAutoTradeInstruments(string account)
-        {
-            var result = new List<AutoTradingInstrumentsResponse>();
-            var symbols = new Dictionary<string, AutoTradingSymbolInfoResponse>();
-            var userSettings = _autoTradingUserInfoService.GetUserInfo(account);
-            var maxAmount = _autoTradingAccountsService.GetMaxTradingInstrumentsCount(account);
-            var isHITLEnabled = userSettings != null && userSettings.useManualTrading && userSettings.markets != null;
-            var isHITLOverride = maxAmount != int.MaxValue && isHITLEnabled;
-
-            lock (_data)
-            {
-                foreach (var types in _data)
-                {
-                    foreach (var symbol in types.Value)
-                    {
-                        if (symbol.Value.TradingState == 0)
-                        {
-                            continue;
-                        }
-
-                        var name = symbol.Key.Split("_");
-                        name = name.TakeLast(name.Length - 1).ToArray();
-                        var instrument = String.Join("_", name).ToUpper();
-                        var canAutoTrade = symbol.Value.TradingState == 2;
-                        if (canAutoTrade && !isHITLOverride)
-                        {
-                            symbols.Add(instrument, symbol.Value);
-                        }
-                        else if (isHITLEnabled)
-                        {
-                            var canTradeInHITLMode = symbol.Value.TradingState == 1;
-                            if (!canTradeInHITLMode)
-                            {
-                                continue;
-                            }
-                            var s = getNormalizedInstrument(instrument);
-                            var marketConfig = userSettings.markets.FirstOrDefault((_) => !string.IsNullOrEmpty(_.symbol) && string.Equals(getNormalizedInstrument(_.symbol), s, StringComparison.InvariantCultureIgnoreCase));
-                            if (marketConfig != null)
-                            {
-                                symbols.Add(instrument, symbol.Value);
-                            }
-                        }
-                    }
-                }
-            }
-
-            symbols = symbols.Take(maxAmount).ToDictionary((_) => _.Key, (_) => _.Value);
-
-            foreach (var symbol in symbols)
-            {
-                var cnt = relatedSymbolsCount(symbol.Key, symbols);
-                var group = InstrumentsHelper.GetInstrumentGroup(symbol.Key);
-                var groupRisk = userSettings.risksPerGroup != null && userSettings.risksPerGroup.ContainsKey(group) ? userSettings.risksPerGroup[group] : -1;
-                if (groupRisk < 0)
-                {
-                    groupRisk = userSettings.defaultGroupRisk;
-                    if (groupRisk <= 0)
-                    {
-                        groupRisk = 30;
-                    }
-                }
-
-                var risk = groupRisk / cnt;
-
-                result.Add(new AutoTradingInstrumentsResponse
-                {
-                    Symbol = symbol.Key,
-                    Risk = risk
-                });
-            }
-
-            foreach (var r in result)
-            {
-                if (string.Equals(r.Symbol, "BTC_USD", StringComparison.InvariantCultureIgnoreCase) ||
-                    string.Equals(r.Symbol, "BTCUSD", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    r.Symbol = "BTC_USDT";
-                }
-                if (string.Equals(r.Symbol, "ETH_USD", StringComparison.InvariantCultureIgnoreCase) ||
-                    string.Equals(r.Symbol, "ETHUSD", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    r.Symbol = "ETH_USDT";
-                }
-                if (string.Equals(r.Symbol, "SOL_USD", StringComparison.InvariantCultureIgnoreCase) ||
-                    string.Equals(r.Symbol, "SOLUSD", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    r.Symbol = "SOL_USDT";
-                }
-                if (string.Equals(r.Symbol, "LTC_USD", StringComparison.InvariantCultureIgnoreCase) ||
-                    string.Equals(r.Symbol, "LTCUSD", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    r.Symbol = "LTC_USDT";
-                }
-            }
-
-            return result;
-        }
-
-        public async Task<AutoTradingInstrumentsDedicationResponse> GetAutoTradingInstrumentsDedication(string account)
+        public async Task<AutoTradingInstrumentsDedicationResponse> GetAutoTradingInstrumentsDedication(string account, EStrategyType strategyType)
         {
             var instruments = new List<AutoTradingInstrumentsResponse>();
             var autoSymbols = new Dictionary<string, AutoTradingSymbolInfoResponse>();
@@ -213,14 +120,14 @@ namespace Algoserver.API.Services.CacheServices
                         var name = symbol.Key.Split("_");
                         name = name.TakeLast(name.Length - 1).ToArray();
                         var instrument = string.Join("_", name).ToUpper();
-                        var canAutoTrade = symbol.Value.TradingState == 2;
+                        var canAutoTrade = strategyType == EStrategyType.N ? symbol.Value.TradingStateN == 2 : symbol.Value.TradingStateSR == 2;
                         if (canAutoTrade)
                         {
                             autoSymbols.Add(instrument, symbol.Value);
                         }
                         else if (isHITLEnabled)
                         {
-                            var canTradeInHITLMode = symbol.Value.TradingState == 1;
+                            var canTradeInHITLMode = strategyType == EStrategyType.N ? symbol.Value.TradingStateN == 1 : symbol.Value.TradingStateSR == 1;
                             if (!canTradeInHITLMode)
                             {
                                 continue;
@@ -284,7 +191,8 @@ namespace Algoserver.API.Services.CacheServices
                     Symbol = symbol.Key,
                     Risk = isDisabled ? 0 : risk,
                     IsDisabled = isDisabled,
-                    StrategyType = symbol.Value.StrategyType
+                    TradingStateSR = symbol.Value.TradingStateSR,
+                    TradingStateN = symbol.Value.TradingStateN,
                 });
             }
 

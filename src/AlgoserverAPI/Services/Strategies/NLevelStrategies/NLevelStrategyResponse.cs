@@ -3,7 +3,6 @@ namespace Algoserver.Strategies.NLevelStrategy
     public class NLevelStrategyResponse
     {
         public uint State { get; set; }
-        public uint StrategyType { get; set; }
         public decimal SL1M { get; set; }
         public decimal SL5M { get; set; }
         public decimal SL15M { get; set; }
