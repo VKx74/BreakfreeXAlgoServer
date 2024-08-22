@@ -22,6 +22,7 @@ namespace Algoserver.Strategies.NLevelStrategy
 
         // Trend settings
         public bool CheckTrends { get; set; }
+        public TrendFiltersSettings TrendFilters { get; set; }
         public bool CheckTrendsStrength { get; set; }
         public decimal LowGroupStrength { get; set; }
         public decimal HighGroupStrength { get; set; }

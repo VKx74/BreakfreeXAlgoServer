@@ -19,35 +19,43 @@ namespace Algoserver.Strategies.NLevelStrategy
             {
                 UseVolatilityFilter = true,
                 VolatilityGranularity = TimeframeHelper.MIN15_GRANULARITY,
-                VolatilityMin = -65,
-                VolatilityMax = 50,
+                VolatilityMin = -90,
+                VolatilityMax = 100,
                 UseVolatilityFilter2 = true,
                 VolatilityGranularity2 = TimeframeHelper.MIN1_GRANULARITY,
-                VolatilityMin2 = -85,
-                VolatilityMax2 = 40,
-                CheckTrends = false,
+                VolatilityMin2 = -60,
+                VolatilityMax2 = 100,
+                UseOverheatZone1DFilter = true,
+                OverheatZone1DThreshold = 5,
+                CheckTrends = true,
+                TrendFilters = new TrendFiltersSettings {
+                    strengthConditionFilter1m = true,
+                    strengthConditionFilter5m = true,
+                    strengthConditionFilter15m = true,
+                    strengthConditionFilter1h = true,
+                },
                 CheckTrendsStrength = true,
                 LowGroupStrength = 0, 
                 HighGroupStrength = 1,
                 CheckRSI = true,
-                RSIMin = 39,
-                RSIMax = 65,
+                RSIMin = 15,
+                RSIMax = 100,
                 RSIPeriod = 30,
                 CheckStrengthIncreasing = true,
-                CheckStrengthReducePeriod = 2, // 3 in MQL settings, but in algo all data compressed and exists just on 5min interval so each value must be divided by 5
-                CheckStrengthResetPeriod = 22,
-                CheckStrengthReduceGranularity = TimeframeHelper.DAILY_GRANULARITY,
+                CheckStrengthReducePeriod = 4,
+                CheckStrengthResetPeriod = 6,
+                CheckStrengthReduceGranularity = TimeframeHelper.MIN1_GRANULARITY * -1,
                 CheckStrengthResetGranularity = TimeframeHelper.MIN1_GRANULARITY * -1,
                 CheckPeaks = true,
-                PeakDetectionGranularity = TimeframeHelper.DAILY_GRANULARITY,
-                PeakDetectionPeriod = 5,
-                PeakDetectionThreshold = 40,
+                PeakDetectionGranularity = TimeframeHelper.MIN5_GRANULARITY,
+                PeakDetectionPeriod = 90,
+                PeakDetectionThreshold = 30,
             };
 
             var result = await CalculateInternal(settings);
             result.DDClosePositions = true;
-            result.DDCloseInitialInterval = 120;
-            result.DDCloseIncreasePeriod = 330;
+            result.DDCloseInitialInterval = 9;
+            result.DDCloseIncreasePeriod = 30;
             result.DDCloseIncreaseThreshold = 0.1m;
             return result;
         }

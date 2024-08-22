@@ -54,7 +54,7 @@ namespace Algoserver.Strategies.NLevelStrategy
             return result;
         }
 
-        protected override bool IsTrendCorrect()
+        protected override bool IsTrendCorrect(TrendFiltersSettings settings)
         {
             var si = context.symbolInfo;
             var dir = si.TrendDirection;

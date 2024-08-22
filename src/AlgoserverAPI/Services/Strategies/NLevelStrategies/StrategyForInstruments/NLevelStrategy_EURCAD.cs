@@ -7,9 +7,9 @@ using Algoserver.API.Services;
 
 namespace Algoserver.Strategies.NLevelStrategy
 {
-    public class NLevelStrategy_EURUSD : NLevelStrategyBase
+    public class NLevelStrategy_EURCAD : NLevelStrategyBase
     {
-        public NLevelStrategy_EURUSD(NLevelStrategyInputContext _context) : base(_context)
+        public NLevelStrategy_EURCAD(NLevelStrategyInputContext _context) : base(_context)
         {
         }
 
@@ -19,41 +19,39 @@ namespace Algoserver.Strategies.NLevelStrategy
             {
                 UseVolatilityFilter = true,
                 VolatilityGranularity = TimeframeHelper.MIN15_GRANULARITY,
-                VolatilityMin = -90,
-                VolatilityMax = 100,
+                VolatilityMin = -30,
+                VolatilityMax = 10,
                 UseVolatilityFilter2 = true,
                 VolatilityGranularity2 = TimeframeHelper.MIN1_GRANULARITY,
-                VolatilityMin2 = -60,
-                VolatilityMax2 = 100,
+                VolatilityMin2 = -30,
+                VolatilityMax2 = 90,
                 UseOverheatZone1DFilter = true,
                 OverheatZone1DThreshold = 5,
                 CheckTrends = true,
                 TrendFilters = new TrendFiltersSettings {
-                    trendfilter1x = true,
-                    trendfilter2x = true,
-                    trendfilter3x = true,
+                    strengthConditionFilter1h = true
                 },
                 CheckTrendsStrength = true,
                 LowGroupStrength = 0,
                 HighGroupStrength = 1,
                 CheckRSI = true,
-                RSIMin = 15,
-                RSIMax = 100,
-                RSIPeriod = 30,
+                RSIMin = 27,
+                RSIMax = 71,
+                RSIPeriod = 104,
                 CheckStrengthIncreasing = true,
                 CheckStrengthReducePeriod = 4,
                 CheckStrengthResetPeriod = 6,
                 CheckStrengthReduceGranularity = TimeframeHelper.MIN1_GRANULARITY * -1,
                 CheckStrengthResetGranularity = TimeframeHelper.MIN1_GRANULARITY * -1,
                 CheckPeaks = true,
-                PeakDetectionGranularity = TimeframeHelper.MIN15_GRANULARITY,
-                PeakDetectionPeriod = 93,
-                PeakDetectionThreshold = 80,
+                PeakDetectionGranularity = TimeframeHelper.MIN5_GRANULARITY,
+                PeakDetectionPeriod = 96,
+                PeakDetectionThreshold = 65,
             };
 
             var result = await CalculateInternal(settings);
             result.DDClosePositions = true;
-            result.DDCloseInitialInterval = 30;
+            result.DDCloseInitialInterval = 9;
             result.DDCloseIncreasePeriod = 30;
             result.DDCloseIncreaseThreshold = 0.1m;
 

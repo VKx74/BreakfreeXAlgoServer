@@ -7,7 +7,6 @@ using Algoserver.API.Services;
 
 namespace Algoserver.Strategies.NLevelStrategy
 {
-
     public abstract class NLevelStrategyBase
     {
         protected readonly bool ShowLogs = true;
@@ -99,7 +98,7 @@ namespace Algoserver.Strategies.NLevelStrategy
                 return false;
             }
 
-            if (settings.CheckTrends && !IsTrendCorrect())
+            if (settings.CheckTrends && !IsTrendCorrect(settings.TrendFilters))
             {
                 WriteLog($"{symbol} AutoMode - trends state is not valid");
                 return false;
@@ -550,7 +549,7 @@ namespace Algoserver.Strategies.NLevelStrategy
         protected virtual bool IsVolatilityCorrect(NLevelStrategySettings settings)
         {
             var symbol = context.mesaResponse.Symbol;
-            
+
             // Volatility logic
             if (settings.UseVolatilityFilter && IsTooMatchVolatility(settings.VolatilityGranularity, settings.VolatilityMin, settings.VolatilityMax))
             {
@@ -567,28 +566,71 @@ namespace Algoserver.Strategies.NLevelStrategy
             return true;
         }
 
-        protected virtual bool IsTrendCorrect()
+        protected virtual bool IsTrendCorrect(TrendFiltersSettings settings)
         {
             var si = context.symbolInfo;
             var dir = si.TrendDirection;
             var UPTREND = 1;
             var DOWNTREND = -1;
 
-            var condition1 = (dir == DOWNTREND && si.Strength5M <= si.Strength1M && si.Strength15M <= si.Strength5M) ||
-                (dir == UPTREND && si.Strength5M >= si.Strength1M && si.Strength15M >= si.Strength5M);
+            var strengthConditionFilter1m = (si.Strength1M > 0 && si.Strength5M < 0) ||  // Prevent trading if 1m is positive and 5m is negative
+                             (si.Strength1M < 0 && si.Strength5M > 0);     // Prevent trading if 1m is negative and 5m is positive
 
-            var condition2 = !(si.Strength5M > 0 && si.Strength15M < 0); // Prevent trading if 5m is positive and 15m is negative in uptrend
-            var condition3 = !(si.Strength5M < 0 && si.Strength15M > 0); // Prevent trading if 5m is negative and 15m is positive in downtrend
-            var condition4 = !(si.Strength15M > 0 && si.Strength1H < 0); // Prevent trading if 15m is positive and 1h is negative in uptrend
-            var condition5 = !(si.Strength15M < 0 && si.Strength1H > 0); // Prevent trading if 15m is negative and 1h is positive in downtrend
+            var strengthConditionFilter5m = (si.Strength5M > 0 && si.Strength15M < 0) ||  // Prevent trading if 5m is positive and 15m is negative
+                             (si.Strength5M < 0 && si.Strength15M > 0);     // Prevent trading if 5m is negative and 15m is positive
 
+            var strengthConditionFilter15m = (si.Strength15M > 0 && si.Strength1H < 0) ||  // Prevent trading if 15m is positive and 1h is negative
+                             (si.Strength15M < 0 && si.Strength1H > 0);     // Prevent trading if 15m is negative and 1h is positive
 
-            if (condition1 && condition2 && condition3 && condition4 && condition5)
+            var strengthConditionFilter1h = (si.Strength1H > 0 && si.Strength4H < 0) ||  // Prevent trading if 1h is positive and 4h is negative
+                             (si.Strength1H < 0 && si.Strength4H > 0);     // Prevent trading if 1h is negative and 4h is positive
+
+            if (settings.strengthConditionFilter1m && !strengthConditionFilter1m)
             {
-                return true;
+                return false;
+            }
+            if (settings.strengthConditionFilter5m && !strengthConditionFilter5m)
+            {
+                return false;
+            }
+            if (settings.strengthConditionFilter15m && !strengthConditionFilter15m)
+            {
+                return false;
+            }
+            if (settings.strengthConditionFilter1h && !strengthConditionFilter1h)
+            {
+                return false;
             }
 
-            return false;
+            if (settings.trendfilter1x)
+            {
+                if (!(dir == DOWNTREND && si.Strength5M <= si.Strength1M) &&
+                    !(dir == UPTREND && si.Strength5M >= si.Strength1M))
+                {
+                    return false;
+                }
+            }
+
+            if (settings.trendfilter2x)
+            {
+                if (!(dir == DOWNTREND && si.Strength5M <= si.Strength1M && si.Strength15M <= si.Strength5M) &&
+                    !(dir == UPTREND && si.Strength5M >= si.Strength1M && si.Strength15M >= si.Strength5M))
+                {
+                    return false;
+                }
+            }
+
+
+            if (settings.trendfilter3x)
+            {
+                if (!(dir == DOWNTREND && si.Strength5M <= si.Strength1M && si.Strength15M <= si.Strength5M && si.Strength1H <= si.Strength15M) &&
+                    !(dir == UPTREND && si.Strength5M >= si.Strength1M && si.Strength15M >= si.Strength5M && si.Strength1H >= si.Strength15M))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         protected decimal GetDefaultSL()

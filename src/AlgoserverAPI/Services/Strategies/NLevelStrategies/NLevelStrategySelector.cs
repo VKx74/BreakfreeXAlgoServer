@@ -15,6 +15,10 @@ namespace Algoserver.Strategies.NLevelStrategy
             {
                 return new NLevelStrategy_AUDCAD(context);
             }
+            if (context.symbol == "EUR_CAD")
+            {
+                return new NLevelStrategy_EURCAD(context);
+            }
             if (context.symbol == "USD_JPY")
             {
                 return new NLevelStrategy_USDJPY(context);
@@ -43,7 +47,7 @@ namespace Algoserver.Strategies.NLevelStrategy
 
             if (context.symbol.ToUpper().EndsWith("CAD"))
             {
-                return new NLevelStrategy_AUDCAD(context);
+                return new NLevelStrategy_EURCAD(context);
             }
             if (context.symbol.ToUpper().EndsWith("JPY"))
             {
