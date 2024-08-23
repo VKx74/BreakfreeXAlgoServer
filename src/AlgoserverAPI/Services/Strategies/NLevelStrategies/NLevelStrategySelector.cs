@@ -31,6 +31,10 @@ namespace Algoserver.Strategies.NLevelStrategy
             {
                 return new NLevelStrategy_USDCHF(context);
             } 
+            if (context.symbol == "BTC_USD" || context.symbol == "BTCUSD" || context.symbol == "BTC_USDT" || context.symbol == "BTCUSDT")
+            {
+                return new NLevelStrategy_BTCUSD(context);
+            } 
 
             
             var type = InstrumentsHelper.GetInstrumentType(context.symbol);
