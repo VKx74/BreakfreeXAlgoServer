@@ -7,6 +7,8 @@ namespace Algoserver.Strategies.NLevelStrategy
     {
         public static NLevelStrategyBase SelectStrategy(NLevelStrategyInputContext context)
         {
+            return new NLevelStrategy_GeneralStochastic(context);
+            
             if (context.symbol == "XAU_USD")
             {
                 return new NLevelStrategy_XAUUSD(context);

@@ -132,6 +132,16 @@ namespace Algoserver.Strategies.NLevelStrategy
                 }
             }
 
+            if (settings.CheckStochastic)
+            {
+                var result = await CheckStochastic(settings.StochasticGranularity, settings.StochasticPeriodK, settings.StochasticPeriodD, settings.StochasticSmooth, settings.StochasticThreshold);
+                if (!result)
+                {
+                    WriteLog($"{symbol} Stochastic - is not valid");
+                    return false;
+                }
+            }
+
             return true;
         }
 
@@ -631,6 +641,112 @@ namespace Algoserver.Strategies.NLevelStrategy
             }
 
             return true;
+        }
+
+        protected async Task<bool> CheckStochastic(int granularity, int periodK, int periodD, int smooth, int threshold)
+        {
+            var barsCount = Math.Max(Math.Max(periodK, periodD), 100) * 3;
+            var history = await context.historyService.GetHistory(context.symbol, granularity, context.datafeed, context.exchange, context.type, 0, 300);
+            var high = history.Bars.Select((_) => _.High).ToArray();
+            var low = history.Bars.Select((_) => _.Low).ToArray();
+            var close = history.Bars.Select((_) => _.Close).ToArray();
+
+            var stoch = TechCalculations.Stochastic(high, low, close, 14, 7, 3);
+            var isValid = ValidateStochastic(stoch[0], stoch[1], threshold);
+            return isValid;
+        }
+
+        protected bool ValidateStochastic(decimal[] stochasticBuffer, decimal[] signalBuffer, int stochRSIThreshold)
+        {
+            var si = context.symbolInfo;
+            var dir = si.TrendDirection;
+            var UPTREND = 1;
+            var DOWNTREND = -1;
+            var isUpTrend = dir == UPTREND;
+
+            int count = stochasticBuffer.Length;
+            var lastRSIMain = stochasticBuffer[count - 2];
+            var previouseRSIMain = stochasticBuffer[count - 3];
+
+            var lastRSISignal = signalBuffer[count - 2];
+
+            var result = true;
+            var upLevel = 100 - stochRSIThreshold;
+            var downLevel = stochRSIThreshold;
+            var isInsideThreshold = lastRSIMain > downLevel && lastRSIMain < upLevel;
+            var stochRSICheckTrendDirection = false;
+            var stochRSICheckLevelCrossed = true;
+
+            if (isUpTrend)
+            {
+                bool stochRSITrendDirectionFilter = false;
+                if (stochRSICheckTrendDirection)
+                {
+                    stochRSITrendDirectionFilter = previouseRSIMain > lastRSIMain;
+                }
+                // Check direction
+                if (stochRSITrendDirectionFilter || lastRSIMain <= lastRSISignal || !isInsideThreshold)
+                {
+                    result = false;
+                }
+                else
+                {
+                    if (stochRSICheckLevelCrossed)
+                    {
+                        result = false;
+                        // check is previouse rsi crossover was in right up/down wave
+                        for (int i = count - 2; i >= 0; i--)
+                        {
+                            var value = stochasticBuffer[i];
+                            if (value >= upLevel)
+                            {
+                                break;
+                            }
+                            if (value <= downLevel)
+                            {
+                                result = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                bool stochRSITrendDirectionFilter = false;
+                if (stochRSICheckTrendDirection)
+                {
+                    stochRSITrendDirectionFilter = previouseRSIMain < lastRSIMain;
+                }
+                // Check direction
+                if (stochRSITrendDirectionFilter || lastRSIMain >= lastRSISignal || !isInsideThreshold)
+                {
+                    result = false;
+                }
+                else
+                {
+                    if (stochRSICheckLevelCrossed)
+                    {
+                        result = false;
+                        // check is previouse rsi crossover was in right up/down wave
+                        for (int i = count - 2; i >= 0; i--)
+                        {
+                            var value = stochasticBuffer[i];
+                            if (value >= upLevel)
+                            {
+                                result = true;
+                                break;
+                            }
+                            if (value <= downLevel)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return result;
         }
 
         protected decimal GetDefaultSL()

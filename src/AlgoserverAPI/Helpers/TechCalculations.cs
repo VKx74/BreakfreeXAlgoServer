@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Algoserver.API.Models.Algo;
+using Org.BouncyCastle.Security;
 
 namespace Algoserver.API.Helpers
 {
@@ -14,7 +15,7 @@ namespace Algoserver.API.Helpers
         public uint t { get; set; }
         public float v { get; set; }
     }
-    
+
     [Serializable]
     public class TrendPeriodDescription
     {
@@ -202,13 +203,22 @@ namespace Algoserver.API.Helpers
 
         public static decimal[] Sma(decimal[] data, int period)
         {
-            var res = new List<decimal>();
-            for (var i = 0; i < data.Length; i++)
+            decimal[] buffer = new decimal[period];
+            decimal[] output = new decimal[data.Length];
+            var current_index = 0;
+
+            for (int i = 0; i < data.Length; i++)
             {
-                var sum = data[i] + (i > 0 ? res[i - 1] : 0) - (i >= period ? data[i - period] : 0);
-                res.Add(sum);
+                buffer[current_index] = data[i] / period;
+                decimal ma = 0m;
+                for (int j = 0; j < period; j++)
+                {
+                    ma += buffer[j];
+                }
+                output[i] = ma;
+                current_index = (current_index + 1) % period;
             }
-            return res.ToArray();
+            return output;
         }
 
         public static decimal[] Ema(decimal[] data, int period)
@@ -1098,6 +1108,111 @@ namespace Algoserver.API.Helpers
             }
 
             return 1; // Capitulation
+        }
+
+        public static decimal[][] Stochastic(decimal[] high, decimal[] low, decimal[] close, int periodK, int periodD, int slowing, bool useEma = false)
+        {
+            // let min0 = this._min.values.get(0).get(0);
+            // let now0 = this.close.get(0) - min0;
+            // this._nom.set(now0);
+
+            // let dev0 = this._max.values.get(0).get(0) - min0;
+            // this._den.set(dev0);
+
+            // let fastK0;
+            // if (ExtensionJavaScript.approxCompare(this._den.get(0), 0) === 0) {
+            //     fastK0 = this.currentBar === 0 ? 50 : this._fastK.get(1);
+            // } else {
+            //     fastK0 = Math.min(100, Math.max(0, 100 * this._nom.get(0) / this._den.get(0)));
+            // }
+            // this._fastK.set(fastK0);
+
+            // this._k.set(this._smaFastK.values.get(0).get(0));
+            // this._d.set(this._smaK.values.get(0).get(0));
+
+            if (high.Length != low.Length || close.Length != low.Length)
+            {
+                throw new InvalidParameterException("High/Low/Close data series - different length");
+            }
+
+            var fastK = new List<decimal>();
+            for (var i = 0; i < high.Length; i++)
+            {
+                var min = Minimum(low.Take(i + 1).ToArray(), periodK);
+                var max = Maximum(high.Take(i + 1).ToArray(), periodK);
+
+                var now = close[i] - min;
+                var dev = max - min;
+
+                var fastK0 = 0m;
+                if (dev == 0)
+                {
+                    fastK0 = fastK.Any() ? fastK.LastOrDefault() : 50;
+                }
+                else
+                {
+                    fastK0 = Math.Min(100m, Math.Max(0, 100m * now / dev));
+                }
+                fastK.Add(fastK0);
+            }
+
+            var resMain = useEma ? Ema(fastK.ToArray(), slowing) : Sma(fastK.ToArray(), slowing); // main
+            var resSignal = useEma ? Ema(resMain.ToArray(), periodD) : Sma(resMain.ToArray(), periodD); // signal
+
+            var result = new decimal[2][];
+            result[0] = resMain;
+            result[1] = resSignal;
+            return result;
+        }
+
+        public static decimal Minimum(decimal[] values, int period)
+        {
+            if (values.Length == 0)
+            {
+                return 0;
+            }
+
+            var minimum = decimal.MaxValue;
+            var k = 0;
+            for (var i = values.Length - 1; i >= 0; i--)
+            {
+                if (k >= period)
+                {
+                    return minimum;
+                }
+                if (values[i] < minimum)
+                {
+                    minimum = values[i];
+                }
+                k++;
+            }
+
+            return minimum;
+        }
+
+        public static decimal Maximum(decimal[] values, int period)
+        {
+            if (values.Length == 0)
+            {
+                return 0;
+            }
+
+            var maximum = decimal.MinValue;
+            var k = 0;
+            for (var i = values.Length - 1; i >= 0; i--)
+            {
+                if (k >= period)
+                {
+                    return maximum;
+                }
+                if (values[i] > maximum)
+                {
+                    maximum = values[i];
+                }
+                k++;
+            }
+
+            return maximum;
         }
     }
 }

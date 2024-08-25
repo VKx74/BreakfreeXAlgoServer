@@ -32,6 +32,14 @@ namespace Algoserver.Strategies.NLevelStrategy
         public int RSIMin { get; set; }
         public int RSIMax { get; set; }
         public int RSIPeriod { get; set; }
+        
+        // RSI filter
+        public bool CheckStochastic { get; set; }
+        public int StochasticPeriodK { get; set; }
+        public int StochasticPeriodD { get; set; }
+        public int StochasticSmooth { get; set; }
+        public int StochasticThreshold { get; set; }
+        public int StochasticGranularity { get; set; }
 
         // Strength increase filter
         public bool CheckStrengthIncreasing { get; set; }
