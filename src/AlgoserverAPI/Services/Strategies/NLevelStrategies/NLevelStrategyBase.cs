@@ -651,7 +651,7 @@ namespace Algoserver.Strategies.NLevelStrategy
             var low = history.Bars.Select((_) => _.Low).ToArray();
             var close = history.Bars.Select((_) => _.Close).ToArray();
 
-            var stoch = TechCalculations.Stochastic(high, low, close, 14, 7, 3);
+            var stoch = TechCalculations.Stochastic(high, low, close, periodK, periodD, smooth);
             var isValid = ValidateStochastic(stoch[0], stoch[1], threshold);
             return isValid;
         }

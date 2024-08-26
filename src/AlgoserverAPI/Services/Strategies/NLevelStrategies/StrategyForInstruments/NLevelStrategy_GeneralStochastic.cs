@@ -18,14 +18,14 @@ namespace Algoserver.Strategies.NLevelStrategy
         {
             var settings = new NLevelStrategySettings
             {
-                UseVolatilityFilter = true,
-                VolatilityGranularity = TimeframeHelper.MIN15_GRANULARITY,
-                VolatilityMin = -83,
-                VolatilityMax = 70,
-                UseVolatilityFilter2 = true,
-                VolatilityGranularity2 = TimeframeHelper.MIN1_GRANULARITY,
-                VolatilityMin2 = -83,
-                VolatilityMax2 = 70,
+                UseVolatilityFilter = false,
+                // VolatilityGranularity = TimeframeHelper.MIN15_GRANULARITY,
+                // VolatilityMin = -83,
+                // VolatilityMax = 70,
+                UseVolatilityFilter2 = false,
+                // VolatilityGranularity2 = TimeframeHelper.MIN1_GRANULARITY,
+                // VolatilityMin2 = -83,
+                // VolatilityMax2 = 70,
                 UseOverheatZone1DFilter = true,
                 OverheatZone1DThreshold = 5,
                 CheckTrends = false,
@@ -34,9 +34,9 @@ namespace Algoserver.Strategies.NLevelStrategy
                 //     trendfilter2x = true,
                 //     trendfilter3x = true,
                 // },
-                CheckTrendsStrength = true,
-                LowGroupStrength = 0,
-                HighGroupStrength = 1,
+                CheckTrendsStrength = false,
+                // LowGroupStrength = 0,
+                // HighGroupStrength = 1,
                 CheckRSI = true,
                 RSIMin = 0,
                 RSIMax = 75,
@@ -55,6 +55,7 @@ namespace Algoserver.Strategies.NLevelStrategy
                 StochasticPeriodK = 120, // 60 in settings for 8H TF, 120 for 4H
                 StochasticPeriodD = 60, // 30 in settings for 8H TF, 60 for 4H
                 StochasticSmooth = 78, // 39 in settings for 8H TF, 78 for 4H
+                StochasticThreshold = 39
             };
 
             var result = await CalculateInternal(settings);
