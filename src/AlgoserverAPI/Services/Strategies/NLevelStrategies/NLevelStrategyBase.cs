@@ -142,6 +142,26 @@ namespace Algoserver.Strategies.NLevelStrategy
                 }
             }
 
+            if (settings.UseCatReflex)
+            {
+                var result = await CheckReflexOscillator(settings.CatReflexGranularity, settings.CatReflexPeriodSuperSmoother, settings.CatReflexPeriodReflex, settings.CatReflexPeriodPostSmooth, settings.CatReflexMinLevel, settings.CatReflexMaxLevel);
+                if (!result)
+                {
+                    WriteLog($"{symbol} CatReflex - is not valid");
+                    return false;
+                }
+            }
+
+            if (settings.UseCatReflex2)
+            {
+                var result = await CheckReflexOscillator(settings.CatReflexGranularity2, settings.CatReflexPeriodSuperSmoother2, settings.CatReflexPeriodReflex2, settings.CatReflexPeriodPostSmooth2, settings.CatReflexMinLevel2, settings.CatReflexMaxLevel2);
+                if (!result)
+                {
+                    WriteLog($"{symbol} CatReflex2 - is not valid");
+                    return false;
+                }
+            }
+
             return true;
         }
 
@@ -646,7 +666,7 @@ namespace Algoserver.Strategies.NLevelStrategy
         protected async Task<bool> CheckStochastic(int granularity, int periodK, int periodD, int smooth, int threshold)
         {
             var barsCount = Math.Max(Math.Max(periodK, periodD), 100) * 3;
-            var history = await context.historyService.GetHistory(context.symbol, granularity, context.datafeed, context.exchange, context.type, 0, 300);
+            var history = await context.historyService.GetHistory(context.symbol, granularity, context.datafeed, context.exchange, context.type, 0, barsCount);
             var high = history.Bars.Select((_) => _.High).ToArray();
             var low = history.Bars.Select((_) => _.Low).ToArray();
             var close = history.Bars.Select((_) => _.Close).ToArray();
@@ -654,6 +674,50 @@ namespace Algoserver.Strategies.NLevelStrategy
             var stoch = TechCalculations.Stochastic(high, low, close, periodK, periodD, smooth);
             var isValid = ValidateStochastic(stoch[0], stoch[1], threshold);
             return isValid;
+        }
+
+        protected async Task<bool> CheckReflexOscillator(int granularity, double periodSuperSmoother, int reflexPeriod, double periodPostSmooth, double min, double max)
+        {
+            var si = context.symbolInfo;
+            var dir = si.TrendDirection;
+            var UPTREND = 1;
+            var DOWNTREND = -1;
+
+            // var barsCount = (int)Math.Max(Math.Max(periodSuperSmoother, reflexPeriod), periodPostSmooth) * 3;
+            var barsCount = 500;
+
+            var history = await context.historyService.GetHistory(context.symbol, granularity, context.datafeed, context.exchange, context.type, 0, barsCount);
+            var close = history.Bars.Select((_) => _.Close).TakeLast(barsCount).Reverse().ToArray();
+
+            var reflexValues = TechCalculations.ReflexOscillator(close, periodSuperSmoother, reflexPeriod, periodPostSmooth);
+
+            double currentReflexValue = reflexValues[0];
+            double previouse1ReflexValue = reflexValues[1];
+            double previouse2ReflexValue = reflexValues[2];
+
+            bool result = true;
+            if (dir == UPTREND)
+            {
+                if (!(currentReflexValue > min && currentReflexValue < max) || previouse1ReflexValue >= currentReflexValue || previouse2ReflexValue >= currentReflexValue || previouse2ReflexValue >= previouse1ReflexValue)
+                {
+                    result = false;
+                }
+            }
+            else if (dir == DOWNTREND)
+            {
+                if (!(currentReflexValue < min * -1 && currentReflexValue > max * -1) || previouse1ReflexValue <= currentReflexValue || previouse2ReflexValue <= currentReflexValue || previouse2ReflexValue <= previouse1ReflexValue)
+                {
+                    result = false;
+                }
+            }
+            else
+            {
+                result = false;
+            }
+            
+            WriteLog($"{si}_{granularity}({reflexPeriod}, {periodSuperSmoother}, {periodPostSmooth}) => {currentReflexValue}, {previouse1ReflexValue}, {previouse2ReflexValue}");
+
+            return result;
         }
 
         protected bool ValidateStochastic(decimal[] stochasticBuffer, decimal[] signalBuffer, int stochRSIThreshold)

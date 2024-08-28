@@ -32,7 +32,7 @@ namespace Algoserver.Strategies.NLevelStrategy
         public int RSIMin { get; set; }
         public int RSIMax { get; set; }
         public int RSIPeriod { get; set; }
-        
+
         // RSI filter
         public bool CheckStochastic { get; set; }
         public int StochasticPeriodK { get; set; }
@@ -53,5 +53,24 @@ namespace Algoserver.Strategies.NLevelStrategy
         public int PeakDetectionGranularity { get; set; }
         public int PeakDetectionPeriod { get; set; }
         public int PeakDetectionThreshold { get; set; }
+
+        // Cat Reflex 1
+        public bool UseCatReflex { get; set; }
+        public int CatReflexGranularity { get; set; }
+        public int CatReflexPeriodReflex { get; set; }
+        public double CatReflexPeriodSuperSmoother { get; set; }
+        public double CatReflexPeriodPostSmooth { get; set; }
+        public double CatReflexMinLevel { get; set; }
+        public double CatReflexMaxLevel { get; set; }
+
+        // Cat Reflex 2
+        public bool UseCatReflex2 { get; set; }
+        public int CatReflexGranularity2 { get; set; }
+        public int CatReflexPeriodReflex2 { get; set; }
+        public double CatReflexPeriodSuperSmoother2 { get; set; }
+        public double CatReflexPeriodPostSmooth2 { get; set; }
+        public double CatReflexMinLevel2 { get; set; }
+        public double CatReflexMaxLevel2 { get; set; }
+
     }
 }

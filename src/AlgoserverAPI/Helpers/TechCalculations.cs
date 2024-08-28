@@ -1214,5 +1214,59 @@ namespace Algoserver.API.Helpers
 
             return maximum;
         }
+
+        // series must be reversed - newest records in start of array
+        public static double[] ReflexOscillator(decimal[] Series, double SSPeriod, int ReflexPeriod, double PeriodEMA)
+        {
+            double SQRT2xPI = Math.Sqrt(8.0) * Math.Asin(1.0); // 4.44288293815 Constant
+            double alpha = SQRT2xPI / SSPeriod;
+            double beta = Math.Exp(-alpha);
+            double gamma = -beta * beta;
+            double delta = 2.0 * beta * Math.Cos(alpha);
+
+            int bars = Series.Length;
+
+            // SuperSmoother buffer
+            double[] superSmooth = new double[bars];
+
+            // EMA buffer
+            double[] EMA = new double[bars];
+
+            // Reflex buffer
+            double[] result = new double[bars];
+
+            // E buffer
+            double[] EBuff = new double[bars];
+
+            // slope buffer
+            double[] slopeBuff = new double[bars];
+
+            // Go through input
+            for (int i = bars - 3; i >= 0; i--)
+            {
+                superSmooth[i] = (1.0 - delta - gamma) * ((double)Series[i] + (double)Series[i + 1]) * 0.5 + delta * superSmooth[i + 1] + gamma * superSmooth[i + 2];
+
+                double ssPeriodsBack = i + ReflexPeriod < bars ? superSmooth[i + ReflexPeriod] : 0;
+                double slope = (ssPeriodsBack - superSmooth[i]) / ReflexPeriod;
+                slopeBuff[i] = slope;
+
+                double E = 0;
+                for (int j = 1; j < ReflexPeriod; j++)
+                {
+                    double ssPeriodsBack2 = i + j < bars ? superSmooth[i + j] : 0;
+                    E += (superSmooth[i] + j * slope) - ssPeriodsBack2;
+                }
+
+                EBuff[i] = E;
+
+                double epsilon = E / ReflexPeriod;
+                double zeta = 2.0 / (PeriodEMA + 1.0);
+
+                EMA[i] = (zeta * epsilon * epsilon) + ((1.0 - zeta) * EMA[i + 1]);
+                result[i] = EMA[i] == 0 ? 0 : epsilon / Math.Sqrt(EMA[i]);
+            }
+
+            return result;
+        }
     }
 }
