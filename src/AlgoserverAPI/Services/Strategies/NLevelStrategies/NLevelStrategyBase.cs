@@ -715,7 +715,7 @@ namespace Algoserver.Strategies.NLevelStrategy
                 result = false;
             }
             
-            WriteLog($"{si}_{granularity}({reflexPeriod}, {periodSuperSmoother}, {periodPostSmooth}) => {currentReflexValue}, {previouse1ReflexValue}, {previouse2ReflexValue}");
+            WriteLog($"{context.symbol}_{granularity}({reflexPeriod}, {periodSuperSmoother}, {periodPostSmooth}) => {currentReflexValue}, {previouse1ReflexValue}, {previouse2ReflexValue}");
 
             return result;
         }
