@@ -61,6 +61,7 @@ namespace Algoserver.Strategies.NLevelStrategy
                 CatReflexPeriodReflex = 30,
                 CatReflexPeriodSuperSmoother = 8,
                 CatReflexPeriodPostSmooth = 30,
+                CatReflexConfirmationPeriod = 5,
                 CatReflexMinLevel = 0,
                 CatReflexMaxLevel = 2,
                 UseCatReflex2 = true,
@@ -68,6 +69,7 @@ namespace Algoserver.Strategies.NLevelStrategy
                 CatReflexPeriodReflex2 = 30,
                 CatReflexPeriodSuperSmoother2 = 8,
                 CatReflexPeriodPostSmooth2 = 30,
+                CatReflexConfirmationPeriod2 = 5,
                 CatReflexMinLevel2 = 0,
                 CatReflexMaxLevel2 = 2
             };

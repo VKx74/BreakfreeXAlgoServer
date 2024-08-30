@@ -62,6 +62,7 @@ namespace Algoserver.Strategies.NLevelStrategy
         public double CatReflexPeriodPostSmooth { get; set; }
         public double CatReflexMinLevel { get; set; }
         public double CatReflexMaxLevel { get; set; }
+        public int CatReflexConfirmationPeriod { get; set; }
 
         // Cat Reflex 2
         public bool UseCatReflex2 { get; set; }
@@ -71,6 +72,17 @@ namespace Algoserver.Strategies.NLevelStrategy
         public double CatReflexPeriodPostSmooth2 { get; set; }
         public double CatReflexMinLevel2 { get; set; }
         public double CatReflexMaxLevel2 { get; set; }
+        public int CatReflexConfirmationPeriod2 { get; set; }
+
+        // Cat Reflex 3
+        public bool UseCatReflex3 { get; set; }
+        public int CatReflexGranularity3 { get; set; }
+        public int CatReflexPeriodReflex3 { get; set; }
+        public double CatReflexPeriodSuperSmoother3 { get; set; }
+        public double CatReflexPeriodPostSmooth3 { get; set; }
+        public double CatReflexMinLevel3 { get; set; }
+        public double CatReflexMaxLevel3 { get; set; }
+        public int CatReflexConfirmationPeriod3 { get; set; }
 
     }
 }

@@ -9,6 +9,10 @@ namespace Algoserver.Strategies.NLevelStrategy
 {
     public abstract class NLevelStrategyBase
     {
+        const int UPTREND = 1;
+        const int DOWNTREND = -1;
+        const int SIDEWAYS = 0;
+
         protected readonly bool ShowLogs = true;
         protected readonly NLevelStrategyInputContext context;
 
@@ -144,7 +148,7 @@ namespace Algoserver.Strategies.NLevelStrategy
 
             if (settings.UseCatReflex)
             {
-                var result = await CheckReflexOscillator(settings.CatReflexGranularity, settings.CatReflexPeriodSuperSmoother, settings.CatReflexPeriodReflex, settings.CatReflexPeriodPostSmooth, settings.CatReflexMinLevel, settings.CatReflexMaxLevel);
+                var result = await CheckReflexOscillator(settings.CatReflexGranularity, settings.CatReflexPeriodSuperSmoother, settings.CatReflexPeriodReflex, settings.CatReflexPeriodPostSmooth, settings.CatReflexMinLevel, settings.CatReflexMaxLevel, settings.CatReflexConfirmationPeriod);
                 if (!result)
                 {
                     WriteLog($"{symbol} CatReflex - is not valid");
@@ -154,7 +158,17 @@ namespace Algoserver.Strategies.NLevelStrategy
 
             if (settings.UseCatReflex2)
             {
-                var result = await CheckReflexOscillator(settings.CatReflexGranularity2, settings.CatReflexPeriodSuperSmoother2, settings.CatReflexPeriodReflex2, settings.CatReflexPeriodPostSmooth2, settings.CatReflexMinLevel2, settings.CatReflexMaxLevel2);
+                var result = await CheckReflexOscillator(settings.CatReflexGranularity2, settings.CatReflexPeriodSuperSmoother2, settings.CatReflexPeriodReflex2, settings.CatReflexPeriodPostSmooth2, settings.CatReflexMinLevel2, settings.CatReflexMaxLevel2, settings.CatReflexConfirmationPeriod2);
+                if (!result)
+                {
+                    WriteLog($"{symbol} CatReflex2 - is not valid");
+                    return false;
+                }
+            }
+
+            if (settings.UseCatReflex3)
+            {
+                var result = await CheckReflexOscillator(settings.CatReflexGranularity3, settings.CatReflexPeriodSuperSmoother3, settings.CatReflexPeriodReflex3, settings.CatReflexPeriodPostSmooth3, settings.CatReflexMinLevel3, settings.CatReflexMaxLevel3, settings.CatReflexConfirmationPeriod3);
                 if (!result)
                 {
                     WriteLog($"{symbol} CatReflex2 - is not valid");
@@ -600,8 +614,6 @@ namespace Algoserver.Strategies.NLevelStrategy
         {
             var si = context.symbolInfo;
             var dir = si.TrendDirection;
-            var UPTREND = 1;
-            var DOWNTREND = -1;
 
             var strengthConditionFilter1m = (si.Strength1M > 0 && si.Strength5M < 0) ||  // Prevent trading if 1m is positive and 5m is negative
                              (si.Strength1M < 0 && si.Strength5M > 0);     // Prevent trading if 1m is negative and 5m is positive
@@ -676,14 +688,8 @@ namespace Algoserver.Strategies.NLevelStrategy
             return isValid;
         }
 
-        protected async Task<bool> CheckReflexOscillator(int granularity, double periodSuperSmoother, int reflexPeriod, double periodPostSmooth, double min, double max)
+        protected async Task<bool> CheckReflexOscillator(int granularity, double periodSuperSmoother, int reflexPeriod, double periodPostSmooth, double min, double max, int confirmationPeriod)
         {
-            var si = context.symbolInfo;
-            var dir = si.TrendDirection;
-            var UPTREND = 1;
-            var DOWNTREND = -1;
-
-            // var barsCount = (int)Math.Max(Math.Max(periodSuperSmoother, reflexPeriod), periodPostSmooth) * 3;
             var barsCount = 500;
 
             var history = await context.historyService.GetHistory(context.symbol, granularity, context.datafeed, context.exchange, context.type, 0, barsCount);
@@ -691,41 +697,123 @@ namespace Algoserver.Strategies.NLevelStrategy
 
             var reflexValues = TechCalculations.ReflexOscillator(close, periodSuperSmoother, reflexPeriod, periodPostSmooth);
 
+            var result = true;
+
+            if (!CheckReflexIndicatorConditions(reflexValues, min, max, confirmationPeriod))
+            {
+                WriteLog($"{context.symbol}_{granularity}({reflexPeriod}, {periodSuperSmoother}, {periodPostSmooth}) => base conditions not correct");
+                result = false;
+            }
+
+            if (result)
+            {
+                if (!CheckReflexIndicatorResetCondition(reflexValues, min, max, confirmationPeriod))
+                {
+                    WriteLog($"{context.symbol}_{granularity}({reflexPeriod}, {periodSuperSmoother}, {periodPostSmooth}) => reset conditions not correct");
+                    result = false;
+                }
+            }
+
             double currentReflexValue = reflexValues[0];
             double previouse1ReflexValue = reflexValues[1];
             double previouse2ReflexValue = reflexValues[2];
 
-            bool result = true;
-            if (dir == UPTREND)
-            {
-                if (!(currentReflexValue > min && currentReflexValue < max) || previouse1ReflexValue >= currentReflexValue || previouse2ReflexValue >= currentReflexValue || previouse2ReflexValue >= previouse1ReflexValue)
-                {
-                    result = false;
-                }
-            }
-            else if (dir == DOWNTREND)
-            {
-                if (!(currentReflexValue < min * -1 && currentReflexValue > max * -1) || previouse1ReflexValue <= currentReflexValue || previouse2ReflexValue <= currentReflexValue || previouse2ReflexValue <= previouse1ReflexValue)
-                {
-                    result = false;
-                }
-            }
-            else
-            {
-                result = false;
-            }
-            
             WriteLog($"{context.symbol}_{granularity}({reflexPeriod}, {periodSuperSmoother}, {periodPostSmooth}) => {currentReflexValue}, {previouse1ReflexValue}, {previouse2ReflexValue}");
 
             return result;
+        }
+
+        protected bool CheckReflexIndicatorResetCondition(double[] data, double min, double max, int confirmationPeriod)
+        {
+            double firstValue = data[0];
+            int dataCount = data.Length;
+            int end = dataCount - confirmationPeriod - 1;
+            bool stopTradingConditionDetected = false;
+            for (int i = 1; i < end; i++)
+            {
+                double currentValue = data[i];
+                // reverse detected
+                if ((firstValue > 0 && currentValue < 0) || (firstValue < 0 && currentValue > 0))
+                {
+                    return true;
+                }
+
+                double[] source = data.Skip(i).ToArray();
+                bool canTrade = CheckReflexIndicatorConditions(source, min, max, confirmationPeriod);
+                if (!canTrade && !stopTradingConditionDetected)
+                {
+                    stopTradingConditionDetected = true;
+                }
+
+                if (canTrade && stopTradingConditionDetected)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        protected bool CheckReflexIndicatorConditions(double[] data, double min, double max, int confirmationPeriod)
+        {
+            var si = context.symbolInfo;
+            var dir = si.TrendDirection;
+
+            if (dir == SIDEWAYS)
+            {
+                return false;
+            }
+
+            double currentReflexValue = data[0];
+            if (dir == UPTREND)
+            {
+                if (!(currentReflexValue > min && currentReflexValue < max))
+                {
+                    return false;
+                }
+            }
+            if (dir == DOWNTREND)
+            {
+                if (!(currentReflexValue < min * -1 && currentReflexValue > max * -1))
+                {
+                    return false;
+                }
+            }
+
+            if (!ConfirmReflexIndicatorDirection(data, confirmationPeriod, dir))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        protected bool ConfirmReflexIndicatorDirection(double[] data, int period, int dir)
+        {
+            int arraySize = data.Length;
+            int end = Math.Min(arraySize - 1, period);
+
+            for (int i = 0; i < end; i++)
+            {
+                double current = data[i];
+                double previouse = data[i + 1];
+
+                if (dir == UPTREND && current < previouse)
+                {
+                    return false;
+                }
+                if (dir == DOWNTREND && current > previouse)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         protected bool ValidateStochastic(decimal[] stochasticBuffer, decimal[] signalBuffer, int stochRSIThreshold)
         {
             var si = context.symbolInfo;
             var dir = si.TrendDirection;
-            var UPTREND = 1;
-            var DOWNTREND = -1;
             var isUpTrend = dir == UPTREND;
 
             int count = stochasticBuffer.Length;
