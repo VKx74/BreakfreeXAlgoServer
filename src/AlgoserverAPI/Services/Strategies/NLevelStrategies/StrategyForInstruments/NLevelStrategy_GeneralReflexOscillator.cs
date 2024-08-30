@@ -65,7 +65,7 @@ namespace Algoserver.Strategies.NLevelStrategy
                 CatReflexMinLevel = 0,
                 CatReflexMaxLevel = 2,
                 UseCatReflex2 = true,
-                CatReflexGranularity2 = TimeframeHelper.DAILY_GRANULARITY,
+                CatReflexGranularity2 = TimeframeHelper.MIN15_GRANULARITY,
                 CatReflexPeriodReflex2 = 30,
                 CatReflexPeriodSuperSmoother2 = 8,
                 CatReflexPeriodPostSmooth2 = 30,

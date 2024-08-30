@@ -1216,7 +1216,7 @@ namespace Algoserver.API.Helpers
         }
 
         // series must be reversed - newest records in start of array
-        public static double[] ReflexOscillator(decimal[] Series, double SSPeriod, int ReflexPeriod, double PeriodEMA)
+        public static double[] ReflexOscillatorTradingView(decimal[] Series, double SSPeriod, int ReflexPeriod, double PeriodEMA)
         {
             double SQRT2xPI = Math.Sqrt(8.0) * Math.Asin(1.0); // 4.44288293815 Constant
             double alpha = SQRT2xPI / SSPeriod;
@@ -1267,6 +1267,69 @@ namespace Algoserver.API.Helpers
             }
 
             return result;
+        }
+
+        // series must be reversed - newest records in start of array
+        public static double[] ReflexOscillatorMQL(decimal[] Series, double SSPeriod, int ReflexPeriod, double PSPeriod)
+        {
+            double a1 = Math.Exp(-1.414 * Math.PI / SSPeriod);
+            double b1 = 2.0 * a1 * Math.Cos(1.414 * Math.PI / SSPeriod);
+            double m_c2 = b1;
+            double m_c3 = -a1 * a1;
+            double m_c1 = 1.0 - m_c2 - m_c3;
+
+            double m_multi = 1.0;
+            for (int k = 1; k < ReflexPeriod; k++)
+            {
+                m_multi += (k + 1);
+            }
+
+            int bars = Series.Length;
+
+            double[] ssm = new double[bars];
+            double[] sum = new double[bars];
+            double[] ms = new double[bars];
+            double[] reflex = new double[bars];
+
+            // Go through input
+            for (int i = bars - 1; i >= 0; i--)
+            {
+            
+                var val = (double)Series[i];
+                if (i <= bars - 3)
+                {
+                    val = m_c1 * ((double)Series[i] + (double)Series[i + 1]) / 2.0 + m_c2 * ssm[i + 1] + m_c3 * ssm[i + 2];
+                }
+
+                ssm[i] = val;
+
+                if (i + ReflexPeriod < bars)
+                {
+                    sum[i] = sum[i + 1] + ssm[i] - ssm[i + ReflexPeriod];
+                }
+                else
+                {
+                    sum[i] = ssm[i];
+                    for (int k = 1; k < ReflexPeriod && (i + k) < bars; k++)
+                    {
+                        sum[i] += ssm[i + k];
+                    }
+                }
+
+                double slope = 0;
+                if (i + ReflexPeriod < bars)
+                {
+                    slope = (ssm[i + ReflexPeriod] - ssm[i]) / ReflexPeriod;
+                }
+
+                double sumValue = ReflexPeriod * ssm[i] + m_multi * slope - sum[i];
+                sumValue /= ReflexPeriod;
+                double zeta = 2.0 / (PSPeriod + 1.0);
+
+                ms[i] = (i + 1 < bars) ? zeta * sumValue * sumValue + (1 - zeta) * ms[i + 1] : 0;
+                reflex[i] = ms[i] != 0 ? sumValue / Math.Sqrt(ms[i]) : 0;
+            }
+            return reflex;
         }
     }
 }
