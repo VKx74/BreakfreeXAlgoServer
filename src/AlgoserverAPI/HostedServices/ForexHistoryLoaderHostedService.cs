@@ -70,10 +70,10 @@ namespace Algoserver.API.HostedServices
                             _mesaPreloaderService.UpdateMesaSummary(mesaInfo.MesaSummary);
                         }
                         Console.WriteLine(">>> Forex Calculate Minute Mesa ends");
-                        Console.WriteLine(">>> Forex Auto Trading Precalculation start: " + DateTime.UtcNow.ToShortTimeString());
+                        Console.WriteLine(">>> Forex Auto Trading Precalculation start: " + DateTime.UtcNow.ToLongTimeString());
                         var instruments = _scannerHistory.getInstrumentsForLongHistory();
                         await _autoTradingPrecalculationService.CalculateInstruments(instruments, "Forex");
-                        Console.WriteLine(">>> Forex Auto Trading Precalculation ends" + DateTime.UtcNow.ToShortTimeString());
+                        Console.WriteLine(">>> Forex Auto Trading Precalculation ends: " + DateTime.UtcNow.ToLongTimeString());
                         await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken).ConfigureAwait(false);
                         // Console.WriteLine(">>> Forex ScanMarkets start");
                         // _scannerCache.ScanMarkets();
