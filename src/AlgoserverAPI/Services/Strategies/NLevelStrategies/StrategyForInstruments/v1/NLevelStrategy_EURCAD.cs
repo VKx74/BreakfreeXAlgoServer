@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Algoserver.API.Helpers;
 using Algoserver.API.Services;
 
-namespace Algoserver.Strategies.NLevelStrategy
+namespace Algoserver.Strategies.NLevelStrategy.V1
 {
     public class NLevelStrategy_EURCAD : NLevelStrategyBase
     {

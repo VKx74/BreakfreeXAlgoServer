@@ -1,49 +1,40 @@
 using System.Threading.Tasks;
 using Algoserver.API.Helpers;
+using Algoserver.Strategies.NLevelStrategy.V2;
 
 namespace Algoserver.Strategies.NLevelStrategy
 {
     public static class NLevelStrategySelector
     {
         public static NLevelStrategyBase SelectStrategy(NLevelStrategyInputContext context)
-        {
-            return new NLevelStrategy_GeneralReflexOscillator(context);
-            
+        {   
             if (context.symbol == "XAU_USD")
             {
-                return new NLevelStrategy_XAUUSD(context);
-            }
-            if (context.symbol == "AUD_CAD")
-            {
-                return new NLevelStrategy_AUDCAD(context);
-            }
-            if (context.symbol == "EUR_CAD")
-            {
-                return new NLevelStrategy_EURCAD(context);
-            }
-            if (context.symbol == "USD_JPY")
-            {
-                return new NLevelStrategy_USDJPY(context);
+                return new NLevelStrategy_XAUUSD_v2(context);
             }
             if (context.symbol == "EUR_USD")
             {
-                return new NLevelStrategy_EURUSD(context);
+                return new NLevelStrategy_EURUSD_v2(context);
             } 
-            if (context.symbol == "USD_CHF")
+            if (context.symbol == "USD_JPY")
             {
-                return new NLevelStrategy_USDCHF(context);
+                return new NLevelStrategy_USDJPY_v2(context);
             } 
-            if (context.symbol == "BTC_USD" || context.symbol == "BTCUSD" || context.symbol == "BTC_USDT" || context.symbol == "BTCUSDT")
+            if (context.symbol == "AUD_NZD")
             {
-                return new NLevelStrategy_BTCUSD(context);
+                return new NLevelStrategy_AUDNZD_v2(context);
             } 
+            // if (context.symbol == "BTC_USD" || context.symbol == "BTCUSD" || context.symbol == "BTC_USDT" || context.symbol == "BTCUSDT")
+            // {
+            //     return new NLevelStrategy_BTCUSD(context);
+            // } 
 
             
             var type = InstrumentsHelper.GetInstrumentType(context.symbol);
 
             if (type == InstrumentTypes.Metals)
             {
-                return new NLevelStrategy_XAUUSD(context);
+                return new NLevelStrategy_XAUUSD_v2(context);
             }
 
             if (type != InstrumentTypes.MajorForex && type != InstrumentTypes.ForexMinors && type != InstrumentTypes.ForexExotics)
@@ -51,21 +42,17 @@ namespace Algoserver.Strategies.NLevelStrategy
                 return null;
             }
 
-            if (context.symbol.ToUpper().EndsWith("CAD"))
-            {
-                return new NLevelStrategy_EURCAD(context);
-            }
             if (context.symbol.ToUpper().EndsWith("JPY"))
             {
-                return new NLevelStrategy_USDJPY(context);
+                return new NLevelStrategy_USDJPY_v2(context);
             }
             if (context.symbol.ToUpper().EndsWith("USD"))
             {
-                return new NLevelStrategy_EURUSD(context);
+                return new NLevelStrategy_EURUSD_v2(context);
             } 
-            if (context.symbol.ToUpper().EndsWith("CHF"))
+            if (context.symbol.ToUpper().EndsWith("NZD"))
             {
-                return new NLevelStrategy_USDCHF(context);
+                return new NLevelStrategy_AUDNZD_v2(context);
             } 
             return null;
         }
