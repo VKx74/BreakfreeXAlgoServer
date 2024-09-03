@@ -1163,14 +1163,14 @@ namespace Algoserver.API.Controllers
             }
 
             var versions = naversion.Split(".");
-            if (versions.Length != 3)
+            if (versions.Length < 2)
             {
                 return false;
             }
 
             var majorVersionString = Regex.Replace(versions[0], @"[^\d]", String.Empty);
             var minorVersionString = Regex.Replace(versions[1], @"[^\d]", String.Empty);
-            var buildVersionString = Regex.Replace(versions[2], @"[^\d]", String.Empty);
+            // var buildVersionString = Regex.Replace(versions[2], @"[^\d]", String.Empty);
 
             if (int.TryParse(majorVersionString, out var major))
             {
