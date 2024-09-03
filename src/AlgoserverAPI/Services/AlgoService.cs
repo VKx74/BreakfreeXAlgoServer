@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using Algoserver.Strategies.NLevelStrategy;
+using Algoserver.Strategies.LevelStrategy;
+using Algoserver.Strategies.SRLevelStrategy;
 
 namespace Algoserver.API.Services
 {
@@ -784,9 +786,7 @@ namespace Algoserver.API.Services
             // result.TradingState = ShortPeriodDriveStrategy.GetState(result, summaryForSymbol, symbol.ToUpper());
             if (summaryForSymbol != null)
             {
-                result.TradingStateSR = MonthDriveStrategy.GetState(result, summaryForSymbol, symbol.ToUpper());
-
-                var context = new NLevelStrategyInputContext
+                var context = new StrategyInputContext
                 {
                     datafeed = datafeed,
                     exchange = exchange,
@@ -799,7 +799,13 @@ namespace Algoserver.API.Services
                     historyService = _historyService
                 };
 
+                var srLevelStrategyState = await SRLevelStrategySelector.Calculate(context);
                 var nLevelStrategyState = await NLevelStrategySelector.Calculate(context);
+
+                if (srLevelStrategyState != null)
+                {
+                    result.TradingStateSR = srLevelStrategyState.State;
+                }
 
                 if (nLevelStrategyState != null)
                 {

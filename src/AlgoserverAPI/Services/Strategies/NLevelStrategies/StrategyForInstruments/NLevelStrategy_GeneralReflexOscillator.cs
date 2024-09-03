@@ -1,16 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Algoserver.API.Helpers;
-using Algoserver.API.Models.REST;
 using Algoserver.API.Services;
+using Algoserver.Strategies.LevelStrategy;
 
 namespace Algoserver.Strategies.NLevelStrategy
 {
     public class NLevelStrategy_GeneralReflexOscillator : NLevelStrategyBase
     {
-        public NLevelStrategy_GeneralReflexOscillator(NLevelStrategyInputContext _context) : base(_context)
+        public NLevelStrategy_GeneralReflexOscillator(StrategyInputContext _context) : base(_context)
         {
         }
 

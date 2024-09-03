@@ -63,6 +63,7 @@ namespace Algoserver.Strategies.NLevelStrategy
         public double CatReflexMinLevel { get; set; }
         public double CatReflexMaxLevel { get; set; }
         public int CatReflexConfirmationPeriod { get; set; }
+        public bool CatReflexValidateZeroCrossover { get; set; }
 
         // Cat Reflex 2
         public bool UseCatReflex2 { get; set; }
@@ -73,6 +74,7 @@ namespace Algoserver.Strategies.NLevelStrategy
         public double CatReflexMinLevel2 { get; set; }
         public double CatReflexMaxLevel2 { get; set; }
         public int CatReflexConfirmationPeriod2 { get; set; }
+        public bool CatReflexValidateZeroCrossover2 { get; set; }
 
         // Cat Reflex 3
         public bool UseCatReflex3 { get; set; }
@@ -83,6 +85,7 @@ namespace Algoserver.Strategies.NLevelStrategy
         public double CatReflexMinLevel3 { get; set; }
         public double CatReflexMaxLevel3 { get; set; }
         public int CatReflexConfirmationPeriod3 { get; set; }
+        public bool CatReflexValidateZeroCrossover3 { get; set; }
 
     }
 }

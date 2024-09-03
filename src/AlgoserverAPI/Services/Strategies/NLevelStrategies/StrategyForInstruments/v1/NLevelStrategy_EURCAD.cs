@@ -1,15 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Algoserver.API.Helpers;
 using Algoserver.API.Services;
+using Algoserver.Strategies.LevelStrategy;
 
 namespace Algoserver.Strategies.NLevelStrategy.V1
 {
     public class NLevelStrategy_EURCAD : NLevelStrategyBase
     {
-        public NLevelStrategy_EURCAD(NLevelStrategyInputContext _context) : base(_context)
+        public NLevelStrategy_EURCAD(StrategyInputContext _context) : base(_context)
         {
         }
 

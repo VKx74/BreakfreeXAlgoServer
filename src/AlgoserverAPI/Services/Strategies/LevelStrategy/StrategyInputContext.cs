@@ -3,9 +3,9 @@ using Algoserver.API.Helpers;
 using Algoserver.API.Models.REST;
 using Algoserver.API.Services;
 
-namespace Algoserver.Strategies.NLevelStrategy
+namespace Algoserver.Strategies.LevelStrategy
 {
-    public class NLevelStrategyInputContext
+    public class StrategyInputContext
     {
         public AutoTradingSymbolInfoResponse symbolInfo { get; set; }
         public MESADataSummary mesaResponse { get; set; }

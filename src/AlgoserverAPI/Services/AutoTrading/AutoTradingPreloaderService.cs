@@ -9,8 +9,10 @@ namespace Algoserver.API.Services.CacheServices
 {
     public enum EStrategyType
     {
+        AUTO = -1,
         SR = 0,
         N = 2,
+
     }
 
     public class AutoTradingPreloaderService
@@ -120,14 +122,41 @@ namespace Algoserver.API.Services.CacheServices
                         var name = symbol.Key.Split("_");
                         name = name.TakeLast(name.Length - 1).ToArray();
                         var instrument = string.Join("_", name).ToUpper();
-                        var canAutoTrade = strategyType == EStrategyType.N ? symbol.Value.TradingStateN == 2 : symbol.Value.TradingStateSR == 2;
+
+                        var canAutoTrade = false;
+                        if (strategyType == EStrategyType.N)
+                        {
+                            canAutoTrade = symbol.Value.TradingStateN == 2;
+                        }
+                        else if (strategyType == EStrategyType.SR)
+                        {
+                            canAutoTrade = symbol.Value.TradingStateSR == 2;
+                        }
+                        else
+                        {
+                            canAutoTrade = symbol.Value.TradingStateN == 2 || symbol.Value.TradingStateSR == 2;
+                        }
+
                         if (canAutoTrade)
                         {
                             autoSymbols.Add(instrument, symbol.Value);
                         }
                         else if (isHITLEnabled)
                         {
-                            var canTradeInHITLMode = strategyType == EStrategyType.N ? symbol.Value.TradingStateN == 1 : symbol.Value.TradingStateSR == 1;
+                            var canTradeInHITLMode = false;
+                            if (strategyType == EStrategyType.N)
+                            {
+                                canTradeInHITLMode = symbol.Value.TradingStateN == 1;
+                            }
+                            else if (strategyType == EStrategyType.SR)
+                            {
+                                canTradeInHITLMode = symbol.Value.TradingStateSR == 1;
+                            }
+                            else
+                            {
+                                canTradeInHITLMode = symbol.Value.TradingStateN == 1 || symbol.Value.TradingStateSR == 1;
+                            }
+
                             if (!canTradeInHITLMode)
                             {
                                 continue;

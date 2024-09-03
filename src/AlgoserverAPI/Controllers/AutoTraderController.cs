@@ -608,10 +608,14 @@ namespace Algoserver.API.Controllers
 
             if (request.Version == "3.0")
             {
-                // Just N strategy
-                return await CalculateSymbolInfoAsync(request, EStrategyType.N);
+                var strategy = request.Strategy;
+                if (string.IsNullOrEmpty(strategy) || !int.TryParse(strategy, out var strategyType))
+                {
+                    strategyType = -1;
+                }
+                return await CalculateSymbolInfoAsync(request, (EStrategyType)strategyType);
             }
-            
+
             // Just SR strategy
             return await CalculateSymbolInfoAsync(request, EStrategyType.SR);
         }
@@ -721,8 +725,8 @@ namespace Algoserver.API.Controllers
 
             if (request.Version == "3.0")
             {
-                // Just N strategy
-                result = await GetAutoTradeInstrumentsAsyncV3_0(request.Account);
+                // SR or N strategy
+                result = await GetAutoTradeInstrumentsAsyncV3_0(request.Account, request.Strategy);
             }
             else if (request.Version == "2.1")
             {
@@ -891,13 +895,18 @@ namespace Algoserver.API.Controllers
         {
             return await GetAutoTradeInstrumentsAsyncV2_1And3_0(account, EStrategyType.SR);
         }
-        
+
         [NonAction]
-        private async Task<string> GetAutoTradeInstrumentsAsyncV3_0(string account)
+        private async Task<string> GetAutoTradeInstrumentsAsyncV3_0(string account, string strategy)
         {
-            return await GetAutoTradeInstrumentsAsyncV2_1And3_0(account, EStrategyType.N);
+            if (string.IsNullOrEmpty(strategy) || !int.TryParse(strategy, out var strategyType))
+            {
+                strategyType = -1;
+            }
+
+            return await GetAutoTradeInstrumentsAsyncV2_1And3_0(account, (EStrategyType)strategyType);
         }
-        
+
         [NonAction]
         private async Task<string> GetAutoTradeInstrumentsAsyncV2_1And3_0(string account, EStrategyType strategyType)
         {
@@ -979,12 +988,22 @@ namespace Algoserver.API.Controllers
                 }
             }
 
+            int type = result.TradingStateN == 2 ? (int)EStrategyType.N : (int)EStrategyType.SR;
+            if (strategyType == EStrategyType.N)
+            {
+                type = (int)EStrategyType.N;
+            }
+            if (strategyType == EStrategyType.SR)
+            {
+                type = (int)EStrategyType.SR;
+            }
+
             var trendDirection = useOpposite ? result.OppositeTrendDirection : result.TrendDirection;
             var stringResult = new StringBuilder();
             stringResult.AppendLine($"strengthTotal={Math.Round(result.TotalStrength * 100, 2)}");
             stringResult.AppendLine($"generalStopLoss={Math.Round(useOpposite ? result.OppositeSL : result.SL, 5)}");
             stringResult.AppendLine($"trendDirection={trendDirection}");
-            stringResult.AppendLine($"strategyType={(strategyType == EStrategyType.N ? 2 : 0)}");
+            stringResult.AppendLine($"strategyType={type}");
 
             stringResult.AppendLine($"hbh1m={Math.Round(result.HalfBand1M, 5)}");
             stringResult.AppendLine($"hbh5m={Math.Round(result.HalfBand5M, 5)}");
@@ -1074,7 +1093,7 @@ namespace Algoserver.API.Controllers
             stringResult.AppendLine($"ddCloseIncreasePeriod={result.DDCloseIncreasePeriod}");
             stringResult.AppendLine($"ddCloseIncreaseThreshold={Math.Round(result.DDCloseIncreaseThreshold, 2)}");
 
-            stringResult.AppendLine($"tradingState={(strategyType == EStrategyType.N ? result.TradingStateN : result.TradingStateSR)}");
+            stringResult.AppendLine($"tradingState={(type == (int)EStrategyType.N ? result.TradingStateN : result.TradingStateSR)}");
             stringResult.AppendLine($"tt={result.Time}");
 
             return stringResult.ToString();

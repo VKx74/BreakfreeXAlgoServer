@@ -1,12 +1,13 @@
 using System.Threading.Tasks;
 using Algoserver.API.Helpers;
+using Algoserver.Strategies.LevelStrategy;
 using Algoserver.Strategies.NLevelStrategy.V2;
 
 namespace Algoserver.Strategies.NLevelStrategy
 {
     public static class NLevelStrategySelector
     {
-        public static NLevelStrategyBase SelectStrategy(NLevelStrategyInputContext context)
+        public static NLevelStrategyBase SelectStrategy(StrategyInputContext context)
         {   
             if (context.symbol == "XAU_USD")
             {
@@ -54,10 +55,11 @@ namespace Algoserver.Strategies.NLevelStrategy
             {
                 return new NLevelStrategy_AUDNZD_v2(context);
             } 
-            return null;
+            
+            return new NLevelStrategy_GeneralReflexOscillator(context);
         }
 
-        public static async Task<NLevelStrategyResponse> Calculate(NLevelStrategyInputContext context)
+        public static async Task<NLevelStrategyResponse> Calculate(StrategyInputContext context)
         {
             var strategy = SelectStrategy(context);
             if (strategy == null)
