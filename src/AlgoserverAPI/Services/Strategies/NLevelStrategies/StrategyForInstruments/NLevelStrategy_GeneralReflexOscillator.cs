@@ -30,7 +30,7 @@ namespace Algoserver.Strategies.NLevelStrategy
                 //     trendfilter2x = true,
                 //     trendfilter3x = true,
                 // },
-                CheckTrendsStrength = true,
+                CheckTrendsStrength = false,
                 LowGroupStrength = 0,
                 HighGroupStrength = 1,
                 CheckRSI = false,
