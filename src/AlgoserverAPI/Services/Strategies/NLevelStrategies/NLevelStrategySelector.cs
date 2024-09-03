@@ -9,7 +9,6 @@ namespace Algoserver.Strategies.NLevelStrategy
     {
         public static NLevelStrategyBase SelectStrategy(StrategyInputContext context)
         {   
-            return new NLevelStrategy_GeneralReflexOscillator(context);
             if (context.symbol == "XAU_USD")
             {
                 return new NLevelStrategy_XAUUSD_v2(context);

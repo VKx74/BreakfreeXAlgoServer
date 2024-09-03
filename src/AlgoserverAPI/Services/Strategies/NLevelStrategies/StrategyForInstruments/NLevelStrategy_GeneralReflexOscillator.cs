@@ -30,7 +30,7 @@ namespace Algoserver.Strategies.NLevelStrategy
                 //     trendfilter2x = true,
                 //     trendfilter3x = true,
                 // },
-                CheckTrendsStrength = false,
+                CheckTrendsStrength = true,
                 LowGroupStrength = 0,
                 HighGroupStrength = 1,
                 CheckRSI = false,
@@ -52,9 +52,9 @@ namespace Algoserver.Strategies.NLevelStrategy
                 // StochasticPeriodD = 60, // 30 in settings for 8H TF, 60 for 4H
                 // StochasticSmooth = 78, // 39 in settings for 8H TF, 78 for 4H
                 // StochasticThreshold = 39,
-                UseCatReflex = false,
+                UseCatReflex = true,
                 CatReflexGranularity = TimeframeHelper.HOURLY_GRANULARITY,
-                CatReflexPeriodReflex = 30,
+                CatReflexPeriodReflex = 50,
                 CatReflexPeriodSuperSmoother = 8,
                 CatReflexPeriodPostSmooth = 30,
                 CatReflexConfirmationPeriod = 5,
