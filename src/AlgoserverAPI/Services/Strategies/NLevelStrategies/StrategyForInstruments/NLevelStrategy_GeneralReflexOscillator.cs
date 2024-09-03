@@ -52,7 +52,7 @@ namespace Algoserver.Strategies.NLevelStrategy
                 // StochasticPeriodD = 60, // 30 in settings for 8H TF, 60 for 4H
                 // StochasticSmooth = 78, // 39 in settings for 8H TF, 78 for 4H
                 // StochasticThreshold = 39,
-                UseCatReflex = true,
+                UseCatReflex = false,
                 CatReflexGranularity = TimeframeHelper.HOURLY_GRANULARITY,
                 CatReflexPeriodReflex = 30,
                 CatReflexPeriodSuperSmoother = 8,

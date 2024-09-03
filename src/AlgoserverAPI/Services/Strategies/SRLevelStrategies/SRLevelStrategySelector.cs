@@ -8,6 +8,7 @@ namespace Algoserver.Strategies.SRLevelStrategy
     {
         public static SRLevelStrategyBase SelectStrategy(StrategyInputContext context)
         {   
+            return new SRLevelStrategy_GeneralReflexOscillator(context);
             if (context.symbol == "XAU_USD")
             {
                 return new SRLevelStrategy_XAUUSD(context);
