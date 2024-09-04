@@ -4,9 +4,9 @@ using Algoserver.Strategies.LevelStrategy;
 
 namespace Algoserver.Strategies.NLevelStrategy.V2
 {
-    public class NLevelStrategy_AUDNZD_v2 : NLevelStrategyBase
+    public class NLevelStrategy_SPX500_v2 : NLevelStrategyBase
     {
-        public NLevelStrategy_AUDNZD_v2(StrategyInputContext _context) : base(_context)
+        public NLevelStrategy_SPX500_v2(StrategyInputContext _context) : base(_context)
         {
         }
 
@@ -16,17 +16,17 @@ namespace Algoserver.Strategies.NLevelStrategy.V2
             {
                 UseVolatilityFilter = false,
                 // VolatilityGranularity = TimeframeHelper.MIN15_GRANULARITY,
-                // VolatilityMin = -80,
-                // VolatilityMax = 97,
+                // VolatilityMin = -47,
+                // VolatilityMax = 103,
                 UseVolatilityFilter2 = false,
                 // VolatilityGranularity2 = TimeframeHelper.MIN1_GRANULARITY,
-                // VolatilityMin2 = -59,
-                // VolatilityMax2 = 79,
+                // VolatilityMin2 = -50,
+                // VolatilityMax2 = 94,
                 UseOverheatZone1DFilter = true,
                 OverheatZone1DThreshold = 5,
                 CheckTrends = false,
                 // TrendFilters = new TrendFiltersSettings {
-                //     strengthConditionFilter5m = true
+                //     strengthConditionFilter1h = true
                 // },
                 CheckTrendsStrength = true,
                 LowGroupStrength = 0,
@@ -41,9 +41,9 @@ namespace Algoserver.Strategies.NLevelStrategy.V2
                 // CheckStrengthReduceGranularity = TimeframeHelper.MIN1_GRANULARITY * -1,
                 // CheckStrengthResetGranularity = TimeframeHelper.MIN1_GRANULARITY * -1,
                 CheckPeaks = false,
-                // PeakDetectionGranularity = TimeframeHelper.MIN15_GRANULARITY,
-                // PeakDetectionPeriod = 93,
-                // PeakDetectionThreshold = 80,
+                // PeakDetectionGranularity = TimeframeHelper.DAILY_GRANULARITY,
+                // PeakDetectionPeriod = 37,
+                // PeakDetectionThreshold = 90,
                 CheckStochastic = false,
                 // StochasticGranularity = TimeframeHelper.HOUR4_GRANULARITY, // 8H in settings, we dont have this TF
                 // StochasticPeriodK = 120, // 60 in settings for 8H TF, 120 for 4H
@@ -53,21 +53,21 @@ namespace Algoserver.Strategies.NLevelStrategy.V2
 
                 UseCatReflex = true,
                 CatReflexGranularity = TimeframeHelper.MIN5_GRANULARITY,
-                CatReflexPeriodReflex = 20,
-                CatReflexPeriodSuperSmoother = 38,
-                CatReflexPeriodPostSmooth = 13,
-                CatReflexConfirmationPeriod = 3,
-                CatReflexMinLevel = 0.03,
-                CatReflexMaxLevel = 2.0,
-                CatReflexValidateZeroCrossover = false,
+                CatReflexPeriodReflex = 126,
+                CatReflexPeriodSuperSmoother = 45,
+                CatReflexPeriodPostSmooth = 58,
+                CatReflexConfirmationPeriod = 11,
+                CatReflexMinLevel = 0.04,
+                CatReflexMaxLevel = 1.8,
+                CatReflexValidateZeroCrossover = true,
 
                 UseCatReflex2 = true,
                 CatReflexGranularity2 = TimeframeHelper.HOUR4_GRANULARITY,
-                CatReflexPeriodReflex2 = 91,
-                CatReflexPeriodSuperSmoother2 = 100,
-                CatReflexPeriodPostSmooth2 = 150,
-                CatReflexConfirmationPeriod2 = 4,
-                CatReflexMinLevel2 = 0.1,
+                CatReflexPeriodReflex2 = 178,
+                CatReflexPeriodSuperSmoother2 = 143,
+                CatReflexPeriodPostSmooth2 = 132,
+                CatReflexConfirmationPeriod2 = 2,
+                CatReflexMinLevel2 = 0.09,
                 CatReflexMaxLevel2 = 2.0,
                 CatReflexValidateZeroCrossover2 = true
             };

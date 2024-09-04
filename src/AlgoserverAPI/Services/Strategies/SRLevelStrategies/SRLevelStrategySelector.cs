@@ -20,6 +20,22 @@ namespace Algoserver.Strategies.SRLevelStrategy
             {
                 return new SRLevelStrategy_USDJPY(context);
             } 
+            if (context.symbol == "AUD_NZD")
+            {
+                return new SRLevelStrategy_AUDNZD(context);
+            } 
+            if (context.symbol == "AUD_CAD")
+            {
+                return new SRLevelStrategy_AUDCAD(context);
+            } 
+            if (context.symbol == "BTC_USD" || context.symbol == "BTCUSD" || context.symbol == "BTC_USDT" || context.symbol == "BTCUSDT")
+            {
+                return new SRLevelStrategy_BTCUSD(context);
+            } 
+            if (context.symbol == "SPX500_USD" || context.symbol == "SPX500" || context.symbol == "US500")
+            {
+                return new SRLevelStrategy_SPX500(context);
+            } 
 
             var type = InstrumentsHelper.GetInstrumentType(context.symbol);
 
@@ -40,6 +56,14 @@ namespace Algoserver.Strategies.SRLevelStrategy
             if (context.symbol.ToUpper().EndsWith("USD"))
             {
                 return new SRLevelStrategy_EURUSD(context);
+            } 
+            if (context.symbol.ToUpper().EndsWith("NZD"))
+            {
+                return new SRLevelStrategy_AUDNZD(context);
+            } 
+            if (context.symbol.ToUpper().EndsWith("CAD"))
+            {
+                return new SRLevelStrategy_AUDCAD(context);
             } 
 
             return new SRLevelStrategy_GeneralReflexOscillator(context);

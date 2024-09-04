@@ -25,12 +25,19 @@ namespace Algoserver.Strategies.NLevelStrategy
             {
                 return new NLevelStrategy_AUDNZD_v2(context);
             } 
-            // if (context.symbol == "BTC_USD" || context.symbol == "BTCUSD" || context.symbol == "BTC_USDT" || context.symbol == "BTCUSDT")
-            // {
-            //     return new NLevelStrategy_BTCUSD(context);
-            // } 
+            if (context.symbol == "AUD_CAD")
+            {
+                return new NLevelStrategy_AUDCAD_v2(context);
+            } 
+            if (context.symbol == "BTC_USD" || context.symbol == "BTCUSD" || context.symbol == "BTC_USDT" || context.symbol == "BTCUSDT")
+            {
+                return new NLevelStrategy_BTCUSD_v2(context);
+            } 
+            if (context.symbol == "SPX500_USD" || context.symbol == "SPX500" || context.symbol == "US500")
+            {
+                return new NLevelStrategy_SPX500_v2(context);
+            } 
 
-            
             var type = InstrumentsHelper.GetInstrumentType(context.symbol);
 
             if (type == InstrumentTypes.Metals)
@@ -54,6 +61,10 @@ namespace Algoserver.Strategies.NLevelStrategy
             if (context.symbol.ToUpper().EndsWith("NZD"))
             {
                 return new NLevelStrategy_AUDNZD_v2(context);
+            } 
+            if (context.symbol.ToUpper().EndsWith("CAD"))
+            {
+                return new NLevelStrategy_AUDCAD_v2(context);
             } 
             
             return new NLevelStrategy_GeneralReflexOscillator(context);

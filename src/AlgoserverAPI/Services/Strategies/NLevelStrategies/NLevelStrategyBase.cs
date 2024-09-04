@@ -53,11 +53,11 @@ namespace Algoserver.Strategies.NLevelStrategy
             var symbol = context.mesaResponse.Symbol;
 
             // Capitulation logic
-            if (IsAutoTradeCapitulationConfirmed())
-            {
-                WriteLog($"{symbol} AutoMode - capitulation filter");
-                return 3; // Capitulation
-            }
+            // if (IsAutoTradeCapitulationConfirmed())
+            // {
+            //     WriteLog($"{symbol} AutoMode - capitulation filter");
+            //     return 3; // Capitulation
+            // }
 
             var canAutoTrade = await IsAutoTradeModeEnabled(settings);
             if (canAutoTrade)

@@ -4,9 +4,9 @@ using Algoserver.Strategies.LevelStrategy;
 
 namespace Algoserver.Strategies.NLevelStrategy.V2
 {
-    public class NLevelStrategy_AUDNZD_v2 : NLevelStrategyBase
+    public class NLevelStrategy_BTCUSD_v2 : NLevelStrategyBase
     {
-        public NLevelStrategy_AUDNZD_v2(StrategyInputContext _context) : base(_context)
+        public NLevelStrategy_BTCUSD_v2(StrategyInputContext _context) : base(_context)
         {
         }
 
@@ -53,23 +53,23 @@ namespace Algoserver.Strategies.NLevelStrategy.V2
 
                 UseCatReflex = true,
                 CatReflexGranularity = TimeframeHelper.MIN5_GRANULARITY,
-                CatReflexPeriodReflex = 20,
-                CatReflexPeriodSuperSmoother = 38,
-                CatReflexPeriodPostSmooth = 13,
-                CatReflexConfirmationPeriod = 3,
+                CatReflexPeriodReflex = 44,
+                CatReflexPeriodSuperSmoother = 17,
+                CatReflexPeriodPostSmooth = 86,
+                CatReflexConfirmationPeriod = 7,
                 CatReflexMinLevel = 0.03,
-                CatReflexMaxLevel = 2.0,
+                CatReflexMaxLevel = 1.8,
                 CatReflexValidateZeroCrossover = false,
 
                 UseCatReflex2 = true,
                 CatReflexGranularity2 = TimeframeHelper.HOUR4_GRANULARITY,
-                CatReflexPeriodReflex2 = 91,
-                CatReflexPeriodSuperSmoother2 = 100,
-                CatReflexPeriodPostSmooth2 = 150,
-                CatReflexConfirmationPeriod2 = 4,
-                CatReflexMinLevel2 = 0.1,
-                CatReflexMaxLevel2 = 2.0,
-                CatReflexValidateZeroCrossover2 = true
+                CatReflexPeriodReflex2 = 170,
+                CatReflexPeriodSuperSmoother2 = 84,
+                CatReflexPeriodPostSmooth2 = 139,
+                CatReflexConfirmationPeriod2 = 6,
+                CatReflexMinLevel2 = 0.05,
+                CatReflexMaxLevel2 = 2.1,
+                CatReflexValidateZeroCrossover2 = false
             };
 
             var result = await CalculateInternal(settings);

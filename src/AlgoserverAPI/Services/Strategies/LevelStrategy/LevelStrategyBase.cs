@@ -21,7 +21,7 @@ namespace Algoserver.Strategies.LevelStrategy
 
         protected async Task<bool> CheckReflexOscillator(int granularity, double periodSuperSmoother, int reflexPeriod, double periodPostSmooth, double min, double max, int confirmationPeriod, bool validateZeroCrossover)
         {
-            var barsCount = 500;
+            var barsCount = 1000;
 
             var history = await context.historyService.GetHistory(context.symbol, granularity, context.datafeed, context.exchange, context.type, 0, barsCount);
             var close = history.Bars.Select((_) => _.Close).TakeLast(barsCount).Reverse().ToArray();
