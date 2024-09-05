@@ -4,12 +4,9 @@ using Algoserver.Strategies.LevelStrategy;
 
 namespace Algoserver.Strategies.SRLevelStrategy
 {
-    // 16408 - 1d
-    // 16388 - 4h
-    // 16385 - 1h
-    public class SRLevelStrategy_GeneralReflexOscillator : SRLevelStrategyBase
+    public class SRLevelStrategy_USDCHF : SRLevelStrategyBase
     {
-        public SRLevelStrategy_GeneralReflexOscillator(StrategyInputContext _context) : base(_context)
+        public SRLevelStrategy_USDCHF(StrategyInputContext _context) : base(_context)
         {
         }
 
@@ -19,12 +16,13 @@ namespace Algoserver.Strategies.SRLevelStrategy
             {
                 UseCatReflex = true,
                 CatReflexGranularity = TimeframeHelper.DAILY_GRANULARITY,
-                CatReflexPeriodReflex = 30,
-                CatReflexPeriodSuperSmoother = 15,
-                CatReflexPeriodPostSmooth = 30,
-                CatReflexConfirmationPeriod = 5,
+                CatReflexPeriodReflex = 15,
+                CatReflexPeriodSuperSmoother = 67.2,
+                CatReflexPeriodPostSmooth = 165,
+                CatReflexConfirmationPeriod = 8,
                 CatReflexMinLevel = 0,
-                CatReflexMaxLevel = 2,
+                CatReflexMaxLevel = 21,
+                CatReflexValidateZeroCrossover = false
             };
 
             var result = await CalculateInternal(settings);

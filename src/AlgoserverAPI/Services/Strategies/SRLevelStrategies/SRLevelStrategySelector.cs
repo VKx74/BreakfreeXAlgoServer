@@ -28,6 +28,14 @@ namespace Algoserver.Strategies.SRLevelStrategy
             {
                 return new SRLevelStrategy_AUDCAD(context);
             } 
+            if (context.symbol == "GBP_USD")
+            {
+                return new SRLevelStrategy_GBPUSD(context);
+            } 
+            if (context.symbol == "USD_CHF")
+            {
+                return new SRLevelStrategy_USDCHF(context);
+            } 
             if (context.symbol == "BTC_USD" || context.symbol == "BTCUSD" || context.symbol == "BTC_USDT" || context.symbol == "BTCUSDT")
             {
                 return new SRLevelStrategy_BTCUSD(context);

@@ -29,6 +29,14 @@ namespace Algoserver.Strategies.NLevelStrategy
             {
                 return new NLevelStrategy_AUDCAD_v2(context);
             } 
+            if (context.symbol == "GBP_USD")
+            {
+                return new NLevelStrategy_GBPUSD_v2(context);
+            } 
+            if (context.symbol == "USD_CHF")
+            {
+                return new NLevelStrategy_USDCHF_v2(context);
+            } 
             if (context.symbol == "BTC_USD" || context.symbol == "BTCUSD" || context.symbol == "BTC_USDT" || context.symbol == "BTCUSDT")
             {
                 return new NLevelStrategy_BTCUSD_v2(context);

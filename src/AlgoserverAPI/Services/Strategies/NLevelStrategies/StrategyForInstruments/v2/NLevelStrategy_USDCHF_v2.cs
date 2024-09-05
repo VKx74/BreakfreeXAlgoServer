@@ -2,11 +2,11 @@ using System.Threading.Tasks;
 using Algoserver.API.Services;
 using Algoserver.Strategies.LevelStrategy;
 
-namespace Algoserver.Strategies.NLevelStrategy
+namespace Algoserver.Strategies.NLevelStrategy.V2
 {
-    public class NLevelStrategy_GeneralReflexOscillator : NLevelStrategyBase
+    public class NLevelStrategy_USDCHF_v2 : NLevelStrategyBase
     {
-        public NLevelStrategy_GeneralReflexOscillator(StrategyInputContext _context) : base(_context)
+        public NLevelStrategy_USDCHF_v2(StrategyInputContext _context) : base(_context)
         {
         }
 
@@ -16,19 +16,17 @@ namespace Algoserver.Strategies.NLevelStrategy
             {
                 UseVolatilityFilter = false,
                 // VolatilityGranularity = TimeframeHelper.MIN15_GRANULARITY,
-                // VolatilityMin = -83,
-                // VolatilityMax = 70,
+                // VolatilityMin = -47,
+                // VolatilityMax = 103,
                 UseVolatilityFilter2 = false,
                 // VolatilityGranularity2 = TimeframeHelper.MIN1_GRANULARITY,
-                // VolatilityMin2 = -83,
-                // VolatilityMax2 = 70,
-                UseOverheatZone1DFilter = false,
+                // VolatilityMin2 = -50,
+                // VolatilityMax2 = 94,
+                UseOverheatZone1DFilter = true,
                 OverheatZone1DThreshold = 5,
                 CheckTrends = false,
                 // TrendFilters = new TrendFiltersSettings {
-                //     trendfilter1x = true,
-                //     trendfilter2x = true,
-                //     trendfilter3x = true,
+                //     strengthConditionFilter15m = true
                 // },
                 CheckTrendsStrength = true,
                 LowGroupStrength = 0,
@@ -52,27 +50,31 @@ namespace Algoserver.Strategies.NLevelStrategy
                 // StochasticPeriodD = 60, // 30 in settings for 8H TF, 60 for 4H
                 // StochasticSmooth = 78, // 39 in settings for 8H TF, 78 for 4H
                 // StochasticThreshold = 39,
+
                 UseCatReflex = true,
-                CatReflexGranularity = TimeframeHelper.HOURLY_GRANULARITY,
+                CatReflexGranularity = TimeframeHelper.MIN5_GRANULARITY,
                 CatReflexPeriodReflex = 50,
-                CatReflexPeriodSuperSmoother = 25,
-                CatReflexPeriodPostSmooth = 30,
-                CatReflexConfirmationPeriod = 5,
+                CatReflexPeriodSuperSmoother = 90,
+                CatReflexPeriodPostSmooth = 118,
+                CatReflexConfirmationPeriod = 13,
                 CatReflexMinLevel = 0,
-                CatReflexMaxLevel = 2,
+                CatReflexMaxLevel = 2.2,
+                CatReflexValidateZeroCrossover = true,
+
                 UseCatReflex2 = true,
-                CatReflexGranularity2 = TimeframeHelper.MIN5_GRANULARITY,
-                CatReflexPeriodReflex2 = 30,
-                CatReflexPeriodSuperSmoother2 = 15,
-                CatReflexPeriodPostSmooth2 = 30,
-                CatReflexConfirmationPeriod2 = 5,
-                CatReflexMinLevel2 = 0,
-                CatReflexMaxLevel2 = 2
+                CatReflexGranularity2 = TimeframeHelper.HOUR4_GRANULARITY,
+                CatReflexPeriodReflex2 = 98,
+                CatReflexPeriodSuperSmoother2 = 137,
+                CatReflexPeriodPostSmooth2 = 83,
+                CatReflexConfirmationPeriod2 = 1,
+                CatReflexMinLevel2 = 0.07,
+                CatReflexMaxLevel2 = 2.1,
+                CatReflexValidateZeroCrossover2 = true,
             };
 
             var result = await CalculateInternal(settings);
             result.DDClosePositions = true;
-            result.DDCloseInitialInterval = 175;
+            result.DDCloseInitialInterval = 176;
             result.DDCloseIncreasePeriod = 135;
             result.DDCloseIncreaseThreshold = 0.5m;
             

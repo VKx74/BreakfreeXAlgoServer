@@ -781,9 +781,6 @@ namespace Algoserver.API.Services
                 OppositeSL4H = opposite_sl_price
             };
 
-            // result.TradingState = GlobalDriveStrategy.GetState(result);
-            // result.TradingState = DriveCapitulationStrategy.GetState(result, summaryForSymbol, symbol.ToUpper(), _cache);
-            // result.TradingState = ShortPeriodDriveStrategy.GetState(result, summaryForSymbol, symbol.ToUpper());
             if (summaryForSymbol != null)
             {
                 var context = new StrategyInputContext
