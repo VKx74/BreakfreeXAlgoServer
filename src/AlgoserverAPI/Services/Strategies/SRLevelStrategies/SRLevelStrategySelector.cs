@@ -45,6 +45,8 @@ namespace Algoserver.Strategies.SRLevelStrategy
                 return new SRLevelStrategy_SPX500(context);
             } 
 
+            return null;
+
             var type = InstrumentsHelper.GetInstrumentType(context.symbol);
 
             if (type == InstrumentTypes.Metals)

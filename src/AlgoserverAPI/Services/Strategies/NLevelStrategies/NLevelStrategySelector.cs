@@ -45,6 +45,8 @@ namespace Algoserver.Strategies.NLevelStrategy
             {
                 return new NLevelStrategy_SPX500_v2(context);
             } 
+            
+            return null;
 
             var type = InstrumentsHelper.GetInstrumentType(context.symbol);
 
