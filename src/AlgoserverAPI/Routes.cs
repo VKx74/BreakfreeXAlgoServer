@@ -18,6 +18,7 @@
         public const string BacktestExtensions = "backtest_ext";
         public const string BacktestScanner = "backtest_scanner";
         public const string RTCalculation = "rtd";
+        public const string ReflexCalculation = "cflex";
         public const string RTCalculationGuest = "rtd_guest";
         public const string ScanInstrument = "scan_instrument";
         public const string RefreshInstruments = "refresh_instruments";

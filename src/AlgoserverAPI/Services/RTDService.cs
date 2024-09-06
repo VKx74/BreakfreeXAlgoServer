@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Algoserver.API.Helpers;
@@ -20,7 +19,7 @@ namespace Algoserver.API.Services
             _logger = logger;
             _historyService = historyService;
         }
-        
+
         internal Task<RTDCalculationResponse> CalculateMESARTD(RTDCalculationRequest req, CancellationToken token)
         {
             return Task.Run(() =>
@@ -29,7 +28,8 @@ namespace Algoserver.API.Services
             }, token);
         }
 
-        private async Task<RTDCalculationResponse> calculateMESARTD(RTDCalculationRequest req) {
+        private async Task<RTDCalculationResponse> calculateMESARTD(RTDCalculationRequest req)
+        {
 
             var Exchange = req.Instrument.Exchange.ToLowerInvariant();
             var Datafeed = req.Instrument.Datafeed.ToLowerInvariant();
@@ -57,22 +57,26 @@ namespace Algoserver.API.Services
 
             var rtd1 = TechCalculations.MESA(calculation_input, req.FastLimit, req.SlowLimit);
             var rtd2 = TechCalculations.MESA(calculation_input, req.FastLimit2, req.SlowLimit2);
-            
+
             var trendsStrength = TrendDetector.MeasureTrendsStrength(rtd2, rtd1);
 
-            if (rtd1.Length > req.BarsCount + 1) {
+            if (rtd1.Length > req.BarsCount + 1)
+            {
                 rtd1 = rtd1.TakeLast(req.BarsCount + 1).ToArray();
             }
-            if (rtd2.Length > req.BarsCount + 1) {
+            if (rtd2.Length > req.BarsCount + 1)
+            {
                 rtd2 = rtd2.TakeLast(req.BarsCount + 1).ToArray();
             }
 
             var dates = dailyPriceData.Bars.Select(_ => _.Timestamp).ToArray();
-            if (dates.Length > req.BarsCount + 1) {
+            if (dates.Length > req.BarsCount + 1)
+            {
                 dates = dates.TakeLast(req.BarsCount + 1).ToArray();
             }
 
-            return new RTDCalculationResponse {
+            return new RTDCalculationResponse
+            {
                 dates = dates,
                 fast = rtd1.Select(_ => _.Fast),
                 slow = rtd1.Select(_ => _.Slow),

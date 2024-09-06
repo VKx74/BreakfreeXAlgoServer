@@ -103,6 +103,7 @@ namespace Algoserver.API
             services.AddSingleton<ScannerCryptoCacheService>();
             services.AddSingleton<ScannerResultService>();
             services.AddSingleton<RTDService>();
+            services.AddSingleton<ReflexCalculationService>();
             services.AddSingleton<StatisticsService>();
             services.AddSingleton<LevelsPredictionService>();
             services.AddSingleton<EconomicCalendarService>();
