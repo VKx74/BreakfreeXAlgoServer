@@ -36,6 +36,14 @@ namespace Algoserver.Strategies.SRLevelStrategy
             {
                 return new SRLevelStrategy_USDCHF(context);
             } 
+            if (context.symbol == "EUR_CHF")
+            {
+                return new SRLevelStrategy_EURCHF(context);
+            } 
+            if (context.symbol == "EUR_GBP")
+            {
+                return new SRLevelStrategy_EURGBP(context);
+            } 
             if (context.symbol == "BTC_USD" || context.symbol == "BTCUSD" || context.symbol == "BTC_USDT" || context.symbol == "BTCUSDT")
             {
                 return new SRLevelStrategy_BTCUSD(context);

@@ -4,9 +4,9 @@ using Algoserver.Strategies.LevelStrategy;
 
 namespace Algoserver.Strategies.SRLevelStrategy
 {
-    public class SRLevelStrategy_USDCHF : SRLevelStrategyBase
+    public class SRLevelStrategy_EURCHF : SRLevelStrategyBase
     {
-        public SRLevelStrategy_USDCHF(StrategyInputContext _context) : base(_context)
+        public SRLevelStrategy_EURCHF(StrategyInputContext _context) : base(_context)
         {
         }
 
@@ -16,12 +16,12 @@ namespace Algoserver.Strategies.SRLevelStrategy
             {
                 UseCatReflex = true,
                 CatReflexGranularity = TimeframeHelper.DAILY_GRANULARITY,
-                CatReflexPeriodReflex = 15,
-                CatReflexPeriodSuperSmoother = 67.2,
-                CatReflexPeriodPostSmooth = 165,
-                CatReflexConfirmationPeriod = 8,
-                CatReflexMinLevel = 0,
-                CatReflexMaxLevel = 2.1,
+                CatReflexPeriodReflex = 9,
+                CatReflexPeriodSuperSmoother = 14.4,
+                CatReflexPeriodPostSmooth = 68,
+                CatReflexConfirmationPeriod = 15,
+                CatReflexMinLevel = 0.4,
+                CatReflexMaxLevel = 1.7,
                 CatReflexValidateZeroCrossover = false
             };
 
