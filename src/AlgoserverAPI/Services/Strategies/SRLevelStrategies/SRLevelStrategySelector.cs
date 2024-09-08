@@ -12,6 +12,10 @@ namespace Algoserver.Strategies.SRLevelStrategy
             {
                 return new SRLevelStrategy_XAUUSD(context);
             }
+            if (context.symbol == "XAG_USD")
+            {
+                return new SRLevelStrategy_XAGUSD(context);
+            }
             if (context.symbol == "EUR_USD")
             {
                 return new SRLevelStrategy_EURUSD(context);

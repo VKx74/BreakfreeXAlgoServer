@@ -13,6 +13,10 @@ namespace Algoserver.Strategies.NLevelStrategy
             {
                 return new NLevelStrategy_XAUUSD_v2(context);
             }
+            if (context.symbol == "XAG_USD")
+            {
+                return new NLevelStrategy_XAGUSD_v2(context);
+            }
             if (context.symbol == "EUR_USD")
             {
                 return new NLevelStrategy_EURUSD_v2(context);
