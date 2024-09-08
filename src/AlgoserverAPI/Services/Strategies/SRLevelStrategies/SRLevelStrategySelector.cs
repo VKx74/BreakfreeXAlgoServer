@@ -20,6 +20,10 @@ namespace Algoserver.Strategies.SRLevelStrategy
             {
                 return new SRLevelStrategy_USDJPY(context);
             } 
+            if (context.symbol == "EUR_JPY")
+            {
+                return new SRLevelStrategy_EURJPY(context);
+            } 
             if (context.symbol == "AUD_NZD")
             {
                 return new SRLevelStrategy_AUDNZD(context);
@@ -51,6 +55,10 @@ namespace Algoserver.Strategies.SRLevelStrategy
             if (context.symbol == "SPX500_USD" || context.symbol == "SPX500" || context.symbol == "US500")
             {
                 return new SRLevelStrategy_SPX500(context);
+            } 
+            if (context.symbol == "NAS100_USD" || context.symbol == "NAS100" || context.symbol == "US100")
+            {
+                return new SRLevelStrategy_NAS100(context);
             } 
 
             return null;

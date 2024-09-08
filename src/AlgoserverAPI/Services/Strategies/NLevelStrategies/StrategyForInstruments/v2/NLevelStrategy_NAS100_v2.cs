@@ -4,9 +4,9 @@ using Algoserver.Strategies.LevelStrategy;
 
 namespace Algoserver.Strategies.NLevelStrategy.V2
 {
-    public class NLevelStrategy_USDJPY_v2 : NLevelStrategyBase
+    public class NLevelStrategy_NAS100_v2 : NLevelStrategyBase
     {
-        public NLevelStrategy_USDJPY_v2(StrategyInputContext _context) : base(_context)
+        public NLevelStrategy_NAS100_v2(StrategyInputContext _context) : base(_context)
         {
         }
 
@@ -54,23 +54,23 @@ namespace Algoserver.Strategies.NLevelStrategy.V2
 
                 UseCatReflex = true,
                 CatReflexGranularity = TimeframeHelper.MIN1_GRANULARITY,
-                CatReflexPeriodReflex = 88,
-                CatReflexPeriodSuperSmoother = 86,
-                CatReflexPeriodPostSmooth = 46,
-                CatReflexConfirmationPeriod = 4,
-                CatReflexMinLevel = 0.01,
-                CatReflexMaxLevel = 1.8,
-                CatReflexValidateZeroCrossover = true,
+                CatReflexPeriodReflex = 85,
+                CatReflexPeriodSuperSmoother = 20,
+                CatReflexPeriodPostSmooth = 141,
+                CatReflexConfirmationPeriod = 2,
+                CatReflexMinLevel = 0.1,
+                CatReflexMaxLevel = 2.0,
+                CatReflexValidateZeroCrossover = false,
 
                 UseCatReflex2 = true,
                 CatReflexGranularity2 = TimeframeHelper.HOUR4_GRANULARITY,
-                CatReflexPeriodReflex2 = 143,
+                CatReflexPeriodReflex2 = 24,
                 CatReflexPeriodSuperSmoother2 = 86,
-                CatReflexPeriodPostSmooth2 = 119,
-                CatReflexConfirmationPeriod2 = 5,
-                CatReflexMinLevel2 = 0.06,
-                CatReflexMaxLevel2 = 2,
-                CatReflexValidateZeroCrossover2 = true
+                CatReflexPeriodPostSmooth2 = 171,
+                CatReflexConfirmationPeriod2 = 10,
+                CatReflexMinLevel2 = 0.05,
+                CatReflexMaxLevel2 = 1.9,
+                CatReflexValidateZeroCrossover2 = false
             };
 
             var result = await CalculateInternal(settings);
