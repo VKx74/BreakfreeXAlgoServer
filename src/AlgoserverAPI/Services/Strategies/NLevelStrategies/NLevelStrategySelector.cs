@@ -33,6 +33,10 @@ namespace Algoserver.Strategies.NLevelStrategy
             {
                 return new NLevelStrategy_AUDNZD_v2(context);
             } 
+            if (context.symbol == "EUR_NZD")
+            {
+                return new NLevelStrategy_EURNZD_v2(context);
+            } 
             if (context.symbol == "AUD_CAD")
             {
                 return new NLevelStrategy_AUDCAD_v2(context);
@@ -40,6 +44,10 @@ namespace Algoserver.Strategies.NLevelStrategy
             if (context.symbol == "GBP_USD")
             {
                 return new NLevelStrategy_GBPUSD_v2(context);
+            } 
+            if (context.symbol == "GBP_AUD")
+            {
+                return new NLevelStrategy_GBPAUD_v2(context);
             } 
             if (context.symbol == "USD_CHF")
             {

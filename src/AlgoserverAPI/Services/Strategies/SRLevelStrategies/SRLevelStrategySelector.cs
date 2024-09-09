@@ -32,6 +32,10 @@ namespace Algoserver.Strategies.SRLevelStrategy
             {
                 return new SRLevelStrategy_AUDNZD(context);
             } 
+            if (context.symbol == "EUR_NZD")
+            {
+                return new SRLevelStrategy_EURNZD(context);
+            } 
             if (context.symbol == "AUD_CAD")
             {
                 return new SRLevelStrategy_AUDCAD(context);
@@ -39,6 +43,10 @@ namespace Algoserver.Strategies.SRLevelStrategy
             if (context.symbol == "GBP_USD")
             {
                 return new SRLevelStrategy_GBPUSD(context);
+            } 
+            if (context.symbol == "GBP_AUD")
+            {
+                return new SRLevelStrategy_GBPAUD(context);
             } 
             if (context.symbol == "USD_CHF")
             {
