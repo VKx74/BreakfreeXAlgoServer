@@ -777,7 +777,7 @@ namespace Algoserver.API.Controllers
         [ProducesResponseType(typeof(Response<string>), 200)]
         public async Task<IActionResult> GetAutoTradeMarketsConfigAsync([FromBody] AutoTradeMarketsConfigRequest request)
         {
-            AutoTraderStatisticService.AddRequest(Routes.ApexMarkets);
+            AutoTraderStatisticService.AddRequest(Routes.MarketsConfig);
 
             if (!ModelState.IsValid)
             {
@@ -961,6 +961,7 @@ namespace Algoserver.API.Controllers
             stringResult.AppendLine($"accountRisk={dedications.AccountRisk}");
             stringResult.AppendLine($"useManualTrading={dedications.UseManualTrading}");
             stringResult.AppendLine($"botShutDown={dedications.BotShutDown}");
+            stringResult.AppendLine($"strategy={dedications.Strategy}");
             stringResult.AppendLine($"disabled={String.Join(",", dedications.DisabledInstruments)}");
 
             return stringResult.ToString();

@@ -275,6 +275,7 @@ namespace Algoserver.API.Services.CacheServices
                 AccountRisk = userSettings.accountRisk,
                 UseManualTrading = userSettings.useManualTrading,
                 BotShutDown = userSettings.botShutDown,
+                Strategy = (int)userSettings.strategy,
                 DefaultMarketRisk = userSettings.defaultMarketRisk,
                 DefaultGroupRisk = userSettings.defaultGroupRisk,
                 DisabledInstruments = disabledMarkets

@@ -25,6 +25,7 @@ namespace Algoserver.API.Models.REST
         public int DefaultGroupRisk { get; set; }
         public bool UseManualTrading { get; set; }
         public bool BotShutDown { get; set; }
+        public int Strategy { get; set; }
     }
 
     [Serializable]
