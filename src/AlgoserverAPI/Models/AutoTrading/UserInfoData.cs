@@ -100,8 +100,14 @@ namespace Algoserver.API.Models
             
             if (version == 0)
             {
-                version = 1;
+                version = 2;
                 useManualTrading = true;
+                strategy = EStrategyType.AUTO;
+            }  
+            if (version == 1)
+            {
+                version = 2;
+                strategy = EStrategyType.AUTO;
             }
 
             var excludeInstruments = InstrumentsHelper.ExcludeListForLongHistory.Select((_) => InstrumentsHelper.NormalizedInstrumentWithCrypto(_));
