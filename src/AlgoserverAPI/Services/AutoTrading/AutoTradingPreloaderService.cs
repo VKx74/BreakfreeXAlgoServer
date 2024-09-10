@@ -97,7 +97,7 @@ namespace Algoserver.API.Services.CacheServices
             return result;
         }
 
-        public async Task<AutoTradingInstrumentsDedicationResponse> GetAutoTradingInstrumentsDedication(string account, EStrategyType strategyType)
+        public async Task<AutoTradingInstrumentsDedicationResponse> GetAutoTradingInstrumentsDedication(string account, EStrategyType? strategyTypeFilter = null)
         {
             var instruments = new List<AutoTradingInstrumentsResponse>();
             var autoSymbols = new Dictionary<string, AutoTradingSymbolInfoResponse>();
@@ -107,6 +107,7 @@ namespace Algoserver.API.Services.CacheServices
             var disabledMarkets = userSettings.disabledMarkets != null ? userSettings.disabledMarkets : new List<string>();
             var isHITLEnabled = userSettings != null && userSettings.useManualTrading;
             // var isHITLOverride = maxAmount != int.MaxValue && isHITLEnabled;
+            var strategyType = strategyTypeFilter.GetValueOrDefault(userSettings.strategy);
 
             lock (_data)
             {

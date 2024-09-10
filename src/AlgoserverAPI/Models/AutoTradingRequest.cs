@@ -18,9 +18,6 @@ namespace Algoserver.API.Models.REST
 
         [JsonProperty("naversion")]
         public string NNVersion { get; set; }
-        
-        [JsonProperty("strategy")]
-        public string Strategy { get; set; }
     }
     
     public class AutoTradeInstrumentsRequest
@@ -51,9 +48,6 @@ namespace Algoserver.API.Models.REST
 
         [JsonProperty("naversion")]
         public string Naversion { get; set; }
-
-        [JsonProperty("strategy")]
-        public string Strategy { get; set; }
     }
     
     public class AutoTradeMarketsConfigRequest

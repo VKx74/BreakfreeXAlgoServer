@@ -10,6 +10,11 @@ namespace Algoserver.Strategies.NLevelStrategy.V2
         {
         }
 
+        protected override async Task<uint> GetState(NLevelStrategySettings settings)
+        {
+            return 2; // Auto allowed
+        }
+
         public override async Task<NLevelStrategyResponse> Calculate()
         {
             var settings = new NLevelStrategySettings

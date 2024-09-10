@@ -318,5 +318,13 @@ namespace Algoserver.API.Services
             UpdateUserInfo(account, info);
             return info;
         }
+
+        public UserInfoData UpdateBotStrategy(string account, EStrategyType strategy)
+        {
+            var info = GetUserInfo(account);
+            info.strategy = strategy;
+            UpdateUserInfo(account, info);
+            return info;
+        }
     }
 }

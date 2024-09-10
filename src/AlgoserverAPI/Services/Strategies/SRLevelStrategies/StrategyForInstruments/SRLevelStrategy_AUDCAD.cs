@@ -10,6 +10,11 @@ namespace Algoserver.Strategies.SRLevelStrategy
         {
         }
 
+        protected override async Task<uint> GetState(SRLevelStrategySettings settings)
+        {
+            return 2; // Auto allowed
+        }
+
         public override async Task<SRLevelStrategyResponse> Calculate()
         {
             var settings = new SRLevelStrategySettings

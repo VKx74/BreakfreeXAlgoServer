@@ -390,6 +390,37 @@ namespace Algoserver.API.Controllers
         }
 
         [Authorize]
+        [HttpPost("config/change-bot-strategy")]
+        public async Task<IActionResult> UserInfoChangeStrategyAsync([FromBody] UserInfoChangeStrategyRequest request)
+        {
+            AutoTraderStatisticService.AddRequest("[POST]config/change-bot-strategy/" + request.Account);
+
+            if (String.IsNullOrEmpty(request.Account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            AutoTraderStatisticService.AddAccount(request.Account);
+
+            if (!_autoTradingRateLimitsService.Validate(request.Account))
+            {
+                AutoTraderStatisticService.AddError("429");
+                return StatusCode(429);
+            }
+
+            if (!_autoTradingAccountsService.Validate(request.Account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            var result = _autoTradingUserInfoService.UpdateBotStrategy(request.Account, (EStrategyType)request.Strategy);
+
+            return await ToResponse(result, CancellationToken.None);
+        }
+
+        [Authorize]
         [HttpPost("config/reset-bot-settings")]
         public async Task<IActionResult> ResetBotSettingsAsync([FromBody] ResetBotSettingsRequest request)
         {
@@ -608,12 +639,7 @@ namespace Algoserver.API.Controllers
 
             if (request.Version == "3.0")
             {
-                var strategy = request.Strategy;
-                if (string.IsNullOrEmpty(strategy) || !int.TryParse(strategy, out var strategyType))
-                {
-                    strategyType = -1;
-                }
-                return await CalculateSymbolInfoAsync(request, (EStrategyType)strategyType);
+                return await CalculateSymbolInfoAsync(request, null);
             }
 
             // Just SR strategy
@@ -726,7 +752,7 @@ namespace Algoserver.API.Controllers
             if (request.Version == "3.0")
             {
                 // SR or N strategy
-                result = await GetAutoTradeInstrumentsAsyncV3_0(request.Account, request.Strategy);
+                result = await GetAutoTradeInstrumentsAsyncV3_0(request.Account);
             }
             else if (request.Version == "2.1")
             {
@@ -897,18 +923,13 @@ namespace Algoserver.API.Controllers
         }
 
         [NonAction]
-        private async Task<string> GetAutoTradeInstrumentsAsyncV3_0(string account, string strategy)
+        private async Task<string> GetAutoTradeInstrumentsAsyncV3_0(string account)
         {
-            if (string.IsNullOrEmpty(strategy) || !int.TryParse(strategy, out var strategyType))
-            {
-                strategyType = -1;
-            }
-
-            return await GetAutoTradeInstrumentsAsyncV2_1And3_0(account, (EStrategyType)strategyType);
+            return await GetAutoTradeInstrumentsAsyncV2_1And3_0(account, null);
         }
 
         [NonAction]
-        private async Task<string> GetAutoTradeInstrumentsAsyncV2_1And3_0(string account, EStrategyType strategyType)
+        private async Task<string> GetAutoTradeInstrumentsAsyncV2_1And3_0(string account, EStrategyType? strategyType)
         {
             var dedications = await _autoTradingPreloaderService.GetAutoTradingInstrumentsDedication(account, strategyType);
             var stringResult = new StringBuilder();
@@ -957,7 +978,7 @@ namespace Algoserver.API.Controllers
             return dedications.DefaultMarketRisk;
         }
 
-        private async Task<IActionResult> CalculateSymbolInfoAsync(AutoTradingSymbolInfoRequest request, EStrategyType strategyType)
+        private async Task<IActionResult> CalculateSymbolInfoAsync(AutoTradingSymbolInfoRequest request, EStrategyType? strategyTypeFilter)
         {
             var mappedSymbol = SymbolMapper(request.Instrument.Id);
             if (string.IsNullOrEmpty(mappedSymbol))
@@ -967,6 +988,7 @@ namespace Algoserver.API.Controllers
 
             var result = await _autoTradingPreloaderService.GetAutoTradingSymbolInfo(mappedSymbol, request.Instrument.Datafeed, request.Instrument.Exchange, request.Instrument.Type);
             var userSettings = _autoTradingUserInfoService.GetUserInfo(request.Account);
+            var strategyType = strategyTypeFilter.GetValueOrDefault(userSettings.strategy);
             return Ok(BuildBotStringResponse(result, mappedSymbol, userSettings, strategyType));
         }
 
