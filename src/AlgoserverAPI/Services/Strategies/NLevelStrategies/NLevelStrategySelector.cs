@@ -60,7 +60,28 @@ namespace Algoserver.Strategies.NLevelStrategy
             if (context.symbol == "EUR_GBP")
             {
                 return new NLevelStrategy_EURGBP_v2(context);
+            }
+            if (context.symbol == "AUD_USD")
+            {
+                return new NLevelStrategy_AUDUSD_v2(context);
             } 
+            if (context.symbol == "EUR_CAD")
+            {
+                return new NLevelStrategy_EURCAD_v2(context);
+            } 
+            if (context.symbol == "GBP_JPY")
+            {
+                return new NLevelStrategy_GBPJPY_v2(context);
+            } 
+            if (context.symbol == "NZD_CAD")
+            {
+                return new NLevelStrategy_NZDCAD_v2(context);
+            } 
+            if (context.symbol == "USD_ZAR")
+            {
+                return new NLevelStrategy_USDZAR_v2(context);
+            } 
+
             if (context.symbol == "BTC_USD" || context.symbol == "BTCUSD" || context.symbol == "BTC_USDT" || context.symbol == "BTCUSDT")
             {
                 return new NLevelStrategy_BTCUSD_v2(context);

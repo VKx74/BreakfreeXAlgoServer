@@ -60,6 +60,27 @@ namespace Algoserver.Strategies.SRLevelStrategy
             {
                 return new SRLevelStrategy_EURGBP(context);
             } 
+            if (context.symbol == "AUD_USD")
+            {
+                return new SRLevelStrategy_AUDUSD(context);
+            } 
+            if (context.symbol == "EUR_CAD")
+            {
+                return new SRLevelStrategy_EURCAD(context);
+            } 
+            if (context.symbol == "GBP_JPY")
+            {
+                return new SRLevelStrategy_GBPJPY(context);
+            } 
+            if (context.symbol == "NZD_CAD")
+            {
+                return new SRLevelStrategy_NZDCAD(context);
+            } 
+            if (context.symbol == "USD_ZAR")
+            {
+                return new SRLevelStrategy_USDZAR(context);
+            } 
+
             if (context.symbol == "BTC_USD" || context.symbol == "BTCUSD" || context.symbol == "BTC_USDT" || context.symbol == "BTCUSDT")
             {
                 return new SRLevelStrategy_BTCUSD(context);
