@@ -35,7 +35,7 @@ namespace Algoserver.API.Services
                 var keys = _rates.Keys.Select((_) => _).ToList();
                 foreach (var key in keys)
                 {
-                    _rates[key]--;
+                    _rates[key] = _rates[key] - 2;
                     if (_rates[key] < 0)
                     {
                         _rates.Remove(key);

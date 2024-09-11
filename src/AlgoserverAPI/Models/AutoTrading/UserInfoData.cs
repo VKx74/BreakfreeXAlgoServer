@@ -28,6 +28,7 @@ namespace Algoserver.API.Models
     [Serializable]
     public class UserInfoData
     {
+        public EStrategyType strategy { get; set; }
         public Dictionary<string, int> risksPerMarket { get; set; }
         public Dictionary<string, int> risksPerGroup { get; set; }
         public List<UserDefinedMarketData> markets { get; set; }
@@ -52,6 +53,7 @@ namespace Algoserver.API.Models
             accountRisk = 30;
             defaultGroupRisk = 30;
             defaultMarketRisk = 12;
+            strategy = EStrategyType.AUTO;
         }
 
         public void Validate()
@@ -90,11 +92,22 @@ namespace Algoserver.API.Models
             {
                 defaultMarketRisk = 12;
             } 
+
+            if (strategy != EStrategyType.AUTO && strategy != EStrategyType.N && strategy != EStrategyType.SR)
+            {
+                strategy = EStrategyType.AUTO;
+            } 
             
             if (version == 0)
             {
-                version = 1;
+                version = 2;
                 useManualTrading = true;
+                strategy = EStrategyType.AUTO;
+            }  
+            if (version == 1)
+            {
+                version = 2;
+                strategy = EStrategyType.AUTO;
             }
 
             var excludeInstruments = InstrumentsHelper.ExcludeListForLongHistory.Select((_) => InstrumentsHelper.NormalizedInstrumentWithCrypto(_));

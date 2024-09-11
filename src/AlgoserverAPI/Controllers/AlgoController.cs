@@ -21,9 +21,10 @@ namespace Algoserver.API.Controllers
         private AutoTradingPreloaderService _autoTradingPreloaderService;
         private AlgoService _algoService;
         private RTDService _rtdService;
+        private ReflexCalculationService _reflexCalculationService;
         private ScannerService _scanerService;
 
-        public AlgoController(AlgoService algoService, RTDService rtdService, ScannerService scanerService, ScannerResultService scannerResultService, MesaPreloaderService mesaPreloaderService, AutoTradingPreloaderService autoTradingPreloaderService)
+        public AlgoController(AlgoService algoService, RTDService rtdService, ReflexCalculationService reflexCalculationService, ScannerService scanerService, ScannerResultService scannerResultService, MesaPreloaderService mesaPreloaderService, AutoTradingPreloaderService autoTradingPreloaderService)
         {
             _algoService = algoService;
             _rtdService = rtdService;
@@ -31,6 +32,7 @@ namespace Algoserver.API.Controllers
             _scannerResultService = scannerResultService;
             _mesaPreloaderService = mesaPreloaderService;
             _autoTradingPreloaderService = autoTradingPreloaderService;
+            _reflexCalculationService = reflexCalculationService;
         }
 
         [Authorize(Policy = "free_user_restriction")]
@@ -133,6 +135,20 @@ namespace Algoserver.API.Controllers
             }
 
             var result = await _rtdService.CalculateMESARTD(request, HttpContext.RequestAborted);
+            return await ToEncryptedResponse(result, HttpContext.RequestAborted);
+        }
+
+        [Authorize(Policy = "free_user_restriction")]
+        [HttpPost(Routes.ReflexCalculation)]
+        [ProducesResponseType(typeof(Response<ReflexCalculationResponse>), 200)]
+        public async Task<IActionResult> CalculateReflex([FromBody] ReflexCalculationRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
+            }
+
+            var result = await _reflexCalculationService.CalculateReflex(request, HttpContext.RequestAborted);
             return await ToEncryptedResponse(result, HttpContext.RequestAborted);
         }
 
@@ -323,7 +339,8 @@ namespace Algoserver.API.Controllers
                     timeframe_state = r.TimeframeState,
                     current_phase = r.CurrentPhase,
                     next_phase = r.NextPhase,
-                    trading_state = autoTradingInfo != null ? autoTradingInfo.TradingState : 0
+                    trading_state_n = autoTradingInfo != null ? autoTradingInfo.TradingStateN : 0,
+                    trading_state_sr = autoTradingInfo != null ? autoTradingInfo.TradingStateSR : 0
                 });
             }
             return result;

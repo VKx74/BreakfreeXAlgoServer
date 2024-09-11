@@ -390,6 +390,37 @@ namespace Algoserver.API.Controllers
         }
 
         [Authorize]
+        [HttpPost("config/change-bot-strategy")]
+        public async Task<IActionResult> UserInfoChangeStrategyAsync([FromBody] UserInfoChangeStrategyRequest request)
+        {
+            AutoTraderStatisticService.AddRequest("[POST]config/change-bot-strategy/" + request.Account);
+
+            if (String.IsNullOrEmpty(request.Account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            AutoTraderStatisticService.AddAccount(request.Account);
+
+            if (!_autoTradingRateLimitsService.Validate(request.Account))
+            {
+                AutoTraderStatisticService.AddError("429");
+                return StatusCode(429);
+            }
+
+            if (!_autoTradingAccountsService.Validate(request.Account))
+            {
+                AutoTraderStatisticService.AddError("401");
+                return Unauthorized("Invalid trading account");
+            }
+
+            var result = _autoTradingUserInfoService.UpdateBotStrategy(request.Account, (EStrategyType)request.Strategy);
+
+            return await ToResponse(result, CancellationToken.None);
+        }
+
+        [Authorize]
         [HttpPost("config/reset-bot-settings")]
         public async Task<IActionResult> ResetBotSettingsAsync([FromBody] ResetBotSettingsRequest request)
         {
@@ -606,7 +637,13 @@ namespace Algoserver.API.Controllers
                 return Unauthorized("Invalid trading account");
             }
 
-            return await CalculateSymbolInfoAsync(request);
+            if (request.Version == "3.0")
+            {
+                return await CalculateSymbolInfoAsync(request, null);
+            }
+
+            // Just SR strategy
+            return await CalculateSymbolInfoAsync(request, EStrategyType.SR);
         }
 
         [HttpPost(Routes.ApexMarkets)]
@@ -712,16 +749,24 @@ namespace Algoserver.API.Controllers
 
             var result = string.Empty;
 
-            if (request.Version == "2.1")
+            if (request.Version == "3.0")
             {
+                // SR or N strategy
+                result = await GetAutoTradeInstrumentsAsyncV3_0(request.Account);
+            }
+            else if (request.Version == "2.1")
+            {
+                // Just SR strategy
                 result = await GetAutoTradeInstrumentsAsyncV2_1(request.Account);
             }
             else if (request.Version == "2.0")
             {
+                // Just SR strategy
                 result = await GetAutoTradeInstrumentsAsyncV2(request.Account);
             }
             else
             {
+                // Not support anymore
                 result = await GetAutoTradeInstrumentsAsyncV1(request.Account);
             }
 
@@ -732,7 +777,7 @@ namespace Algoserver.API.Controllers
         [ProducesResponseType(typeof(Response<string>), 200)]
         public async Task<IActionResult> GetAutoTradeMarketsConfigAsync([FromBody] AutoTradeMarketsConfigRequest request)
         {
-            AutoTraderStatisticService.AddRequest(Routes.ApexMarkets);
+            AutoTraderStatisticService.AddRequest(Routes.MarketsConfig);
 
             if (!ModelState.IsValid)
             {
@@ -761,7 +806,7 @@ namespace Algoserver.API.Controllers
             }
 
             var result = new List<AutoTradingInstrumentConfigResponse>();
-            var dedications = await _autoTradingPreloaderService.GetAutoTradingInstrumentsDedication(request.Account);
+            var dedications = await _autoTradingPreloaderService.GetAutoTradingInstrumentsDedication(request.Account, (EStrategyType)request.Strategy);
             var instruments = dedications.Instruments;
 
             foreach (var item in instruments)
@@ -832,20 +877,13 @@ namespace Algoserver.API.Controllers
         [NonAction]
         private async Task<string> GetAutoTradeInstrumentsAsyncV1(string account)
         {
-            var items = await _autoTradingPreloaderService.GetAutoTradeInstruments(account);
-            var stringResult = new StringBuilder();
-            foreach (var item in items)
-            {
-                stringResult.AppendLine($"{item.Symbol}={Math.Round(item.Risk, 2)}");
-            }
-
-            return stringResult.ToString();
+            return "Not supported version";
         }
 
         [NonAction]
         private async Task<string> GetAutoTradeInstrumentsAsyncV2(string account)
         {
-            var dedications = await _autoTradingPreloaderService.GetAutoTradingInstrumentsDedication(account);
+            var dedications = await _autoTradingPreloaderService.GetAutoTradingInstrumentsDedication(account, EStrategyType.SR);
             var stringResult = new StringBuilder();
             var instruments = dedications.Instruments;
 
@@ -881,7 +919,19 @@ namespace Algoserver.API.Controllers
         [NonAction]
         private async Task<string> GetAutoTradeInstrumentsAsyncV2_1(string account)
         {
-            var dedications = await _autoTradingPreloaderService.GetAutoTradingInstrumentsDedication(account);
+            return await GetAutoTradeInstrumentsAsyncV2_1And3_0(account, EStrategyType.SR);
+        }
+
+        [NonAction]
+        private async Task<string> GetAutoTradeInstrumentsAsyncV3_0(string account)
+        {
+            return await GetAutoTradeInstrumentsAsyncV2_1And3_0(account, null);
+        }
+
+        [NonAction]
+        private async Task<string> GetAutoTradeInstrumentsAsyncV2_1And3_0(string account, EStrategyType? strategyType)
+        {
+            var dedications = await _autoTradingPreloaderService.GetAutoTradingInstrumentsDedication(account, strategyType);
             var stringResult = new StringBuilder();
             var instruments = dedications.Instruments;
 
@@ -911,6 +961,7 @@ namespace Algoserver.API.Controllers
             stringResult.AppendLine($"accountRisk={dedications.AccountRisk}");
             stringResult.AppendLine($"useManualTrading={dedications.UseManualTrading}");
             stringResult.AppendLine($"botShutDown={dedications.BotShutDown}");
+            stringResult.AppendLine($"strategy={dedications.Strategy}");
             stringResult.AppendLine($"disabled={String.Join(",", dedications.DisabledInstruments)}");
 
             return stringResult.ToString();
@@ -928,7 +979,7 @@ namespace Algoserver.API.Controllers
             return dedications.DefaultMarketRisk;
         }
 
-        private async Task<IActionResult> CalculateSymbolInfoAsync(AutoTradingSymbolInfoRequest request)
+        private async Task<IActionResult> CalculateSymbolInfoAsync(AutoTradingSymbolInfoRequest request, EStrategyType? strategyTypeFilter)
         {
             var mappedSymbol = SymbolMapper(request.Instrument.Id);
             if (string.IsNullOrEmpty(mappedSymbol))
@@ -938,9 +989,11 @@ namespace Algoserver.API.Controllers
 
             var result = await _autoTradingPreloaderService.GetAutoTradingSymbolInfo(mappedSymbol, request.Instrument.Datafeed, request.Instrument.Exchange, request.Instrument.Type);
             var userSettings = _autoTradingUserInfoService.GetUserInfo(request.Account);
-            return Ok(BuildBotStringResponse(result, mappedSymbol, userSettings));
+            var strategyType = strategyTypeFilter.GetValueOrDefault(userSettings.strategy);
+            return Ok(BuildBotStringResponse(result, mappedSymbol, userSettings, strategyType));
         }
-        private string BuildBotStringResponse(AutoTradingSymbolInfoResponse result, string symbol, UserInfoData userSettings)
+
+        private string BuildBotStringResponse(AutoTradingSymbolInfoResponse result, string symbol, UserInfoData userSettings, EStrategyType strategyType)
         {
             var normalizedMarket = InstrumentsHelper.NormalizeInstrument(symbol);
             var existingMarket = userSettings.markets.FirstOrDefault((_) => string.Equals(InstrumentsHelper.NormalizeInstrument(_.symbol), normalizedMarket, StringComparison.InvariantCultureIgnoreCase));
@@ -948,14 +1001,24 @@ namespace Algoserver.API.Controllers
 
             if (existingMarket != null && existingMarket.tradingDirection != TradingDirection.Auto)
             {
-                if (result.TradingState > 0 && existingMarket.tradingDirection == TradingDirection.Short)
+                if (result.TrendDirection > 0 && existingMarket.tradingDirection == TradingDirection.Short)
                 {
                     useOpposite = true;
                 }
-                if (result.TradingState < 0 && existingMarket.tradingDirection == TradingDirection.Long)
+                if (result.TrendDirection < 0 && existingMarket.tradingDirection == TradingDirection.Long)
                 {
                     useOpposite = true;
                 }
+            }
+
+            int type = result.TradingStateN == 2 ? (int)EStrategyType.N : (int)EStrategyType.SR;
+            if (strategyType == EStrategyType.N)
+            {
+                type = (int)EStrategyType.N;
+            }
+            if (strategyType == EStrategyType.SR)
+            {
+                type = (int)EStrategyType.SR;
             }
 
             var trendDirection = useOpposite ? result.OppositeTrendDirection : result.TrendDirection;
@@ -963,6 +1026,7 @@ namespace Algoserver.API.Controllers
             stringResult.AppendLine($"strengthTotal={Math.Round(result.TotalStrength * 100, 2)}");
             stringResult.AppendLine($"generalStopLoss={Math.Round(useOpposite ? result.OppositeSL : result.SL, 5)}");
             stringResult.AppendLine($"trendDirection={trendDirection}");
+            stringResult.AppendLine($"strategyType={type}");
 
             stringResult.AppendLine($"hbh1m={Math.Round(result.HalfBand1M, 5)}");
             stringResult.AppendLine($"hbh5m={Math.Round(result.HalfBand5M, 5)}");
@@ -1015,6 +1079,12 @@ namespace Algoserver.API.Controllers
             // stringResult.AppendLine($"st1y={result.State1Y}");
             // stringResult.AppendLine($"st10y={result.State10Y}");
 
+            stringResult.AppendLine($"sl1m={Math.Round(useOpposite ? result.OppositeSL1M : result.SL1M, 5)}");
+            stringResult.AppendLine($"sl5m={Math.Round(useOpposite ? result.OppositeSL5M : result.SL5M, 5)}");
+            stringResult.AppendLine($"sl15m={Math.Round(useOpposite ? result.OppositeSL15M : result.SL15M, 5)}");
+            stringResult.AppendLine($"sl1h={Math.Round(useOpposite ? result.OppositeSL1H : result.SL1H, 5)}");
+            stringResult.AppendLine($"sl4h={Math.Round(useOpposite ? result.OppositeSL4H : result.SL4H, 5)}");
+
             stringResult.AppendLine($"vol1m={result.Volatility1M}");
             stringResult.AppendLine($"vol15m={result.Volatility15M}");
             stringResult.AppendLine($"vol1h={result.Volatility1H}");
@@ -1029,7 +1099,24 @@ namespace Algoserver.API.Controllers
             stringResult.AppendLine($"midGroupStrength={Math.Round(result.MidGroupStrength * 100, 2)}");
             stringResult.AppendLine($"longGroupStrength={Math.Round(result.LongGroupStrength * 100, 2)}");
 
-            stringResult.AppendLine($"tradingState={result.TradingState}");
+            stringResult.AppendLine($"skipTrade1m={(result.Skip1MinTrades ? 1 : 0)}");
+            stringResult.AppendLine($"skipTrade5m={(result.Skip5MinTrades ? 1 : 0)}");
+            stringResult.AppendLine($"skipTrade15m={(result.Skip15MinTrades ? 1 : 0)}");
+            stringResult.AppendLine($"skipTrade1h={(result.Skip1HourTrades ? 1 : 0)}");
+            stringResult.AppendLine($"skipTrade4h={(result.Skip4HourTrades ? 1 : 0)}");
+
+            stringResult.AppendLine($"minStrength1m={Math.Round(result.MinStrength1M, 0)}");
+            stringResult.AppendLine($"minStrength5m={Math.Round(result.MinStrength5M, 0)}");
+            stringResult.AppendLine($"minStrength15m={Math.Round(result.MinStrength15M, 0)}");
+            stringResult.AppendLine($"minStrength1h={Math.Round(result.MinStrength1H, 0)}");
+            stringResult.AppendLine($"minStrength4h={Math.Round(result.MinStrength4H, 0)}");
+
+            stringResult.AppendLine($"ddClosePositions={(result.DDClosePositions ? 1 : 0)}");
+            stringResult.AppendLine($"ddCloseInitialInterval={result.DDCloseInitialInterval}");
+            stringResult.AppendLine($"ddCloseIncreasePeriod={result.DDCloseIncreasePeriod}");
+            stringResult.AppendLine($"ddCloseIncreaseThreshold={Math.Round(result.DDCloseIncreaseThreshold, 2)}");
+
+            stringResult.AppendLine($"tradingState={(type == (int)EStrategyType.N ? result.TradingStateN : result.TradingStateSR)}");
             stringResult.AppendLine($"tt={result.Time}");
 
             return stringResult.ToString();
@@ -1101,14 +1188,14 @@ namespace Algoserver.API.Controllers
             }
 
             var versions = naversion.Split(".");
-            if (versions.Length != 3)
+            if (versions.Length < 2)
             {
                 return false;
             }
 
             var majorVersionString = Regex.Replace(versions[0], @"[^\d]", String.Empty);
             var minorVersionString = Regex.Replace(versions[1], @"[^\d]", String.Empty);
-            var buildVersionString = Regex.Replace(versions[2], @"[^\d]", String.Empty);
+            // var buildVersionString = Regex.Replace(versions[2], @"[^\d]", String.Empty);
 
             if (int.TryParse(majorVersionString, out var major))
             {
@@ -1122,29 +1209,29 @@ namespace Algoserver.API.Controllers
                 return false;
             }
 
-            if (int.TryParse(minorVersionString, out var minor))
-            {
-                if (minor < 17)
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                return false;
-            }
+            // if (int.TryParse(minorVersionString, out var minor))
+            // {
+            //     if (minor < 17)
+            //     {
+            //         return false;
+            //     }
+            // }
+            // else
+            // {
+            //     return false;
+            // }
 
-            if (int.TryParse(buildVersionString, out var build))
-            {
-                if (build < 3)
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                return false;
-            }
+            // if (int.TryParse(buildVersionString, out var build))
+            // {
+            //     if (build < 3)
+            //     {
+            //         return false;
+            //     }
+            // }
+            // else
+            // {
+            //     return false;
+            // }
 
             return true;
 

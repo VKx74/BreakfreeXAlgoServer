@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Algoserver.API.Models.Algo;
+using Org.BouncyCastle.Security;
 
 namespace Algoserver.API.Helpers
 {
@@ -14,7 +15,7 @@ namespace Algoserver.API.Helpers
         public uint t { get; set; }
         public float v { get; set; }
     }
-    
+
     [Serializable]
     public class TrendPeriodDescription
     {
@@ -202,13 +203,22 @@ namespace Algoserver.API.Helpers
 
         public static decimal[] Sma(decimal[] data, int period)
         {
-            var res = new List<decimal>();
-            for (var i = 0; i < data.Length; i++)
+            decimal[] buffer = new decimal[period];
+            decimal[] output = new decimal[data.Length];
+            var current_index = 0;
+
+            for (int i = 0; i < data.Length; i++)
             {
-                var sum = data[i] + (i > 0 ? res[i - 1] : 0) - (i >= period ? data[i - period] : 0);
-                res.Add(sum);
+                buffer[current_index] = data[i] / period;
+                decimal ma = 0m;
+                for (int j = 0; j < period; j++)
+                {
+                    ma += buffer[j];
+                }
+                output[i] = ma;
+                current_index = (current_index + 1) % period;
             }
-            return res.ToArray();
+            return output;
         }
 
         public static decimal[] Ema(decimal[] data, int period)
@@ -1098,6 +1108,228 @@ namespace Algoserver.API.Helpers
             }
 
             return 1; // Capitulation
+        }
+
+        public static decimal[][] Stochastic(decimal[] high, decimal[] low, decimal[] close, int periodK, int periodD, int slowing, bool useEma = false)
+        {
+            // let min0 = this._min.values.get(0).get(0);
+            // let now0 = this.close.get(0) - min0;
+            // this._nom.set(now0);
+
+            // let dev0 = this._max.values.get(0).get(0) - min0;
+            // this._den.set(dev0);
+
+            // let fastK0;
+            // if (ExtensionJavaScript.approxCompare(this._den.get(0), 0) === 0) {
+            //     fastK0 = this.currentBar === 0 ? 50 : this._fastK.get(1);
+            // } else {
+            //     fastK0 = Math.min(100, Math.max(0, 100 * this._nom.get(0) / this._den.get(0)));
+            // }
+            // this._fastK.set(fastK0);
+
+            // this._k.set(this._smaFastK.values.get(0).get(0));
+            // this._d.set(this._smaK.values.get(0).get(0));
+
+            if (high.Length != low.Length || close.Length != low.Length)
+            {
+                throw new InvalidParameterException("High/Low/Close data series - different length");
+            }
+
+            var fastK = new List<decimal>();
+            for (var i = 0; i < high.Length; i++)
+            {
+                var min = Minimum(low.Take(i + 1).ToArray(), periodK);
+                var max = Maximum(high.Take(i + 1).ToArray(), periodK);
+
+                var now = close[i] - min;
+                var dev = max - min;
+
+                var fastK0 = 0m;
+                if (dev == 0)
+                {
+                    fastK0 = fastK.Any() ? fastK.LastOrDefault() : 50;
+                }
+                else
+                {
+                    fastK0 = Math.Min(100m, Math.Max(0, 100m * now / dev));
+                }
+                fastK.Add(fastK0);
+            }
+
+            var resMain = useEma ? Ema(fastK.ToArray(), slowing) : Sma(fastK.ToArray(), slowing); // main
+            var resSignal = useEma ? Ema(resMain.ToArray(), periodD) : Sma(resMain.ToArray(), periodD); // signal
+
+            var result = new decimal[2][];
+            result[0] = resMain;
+            result[1] = resSignal;
+            return result;
+        }
+
+        public static decimal Minimum(decimal[] values, int period)
+        {
+            if (values.Length == 0)
+            {
+                return 0;
+            }
+
+            var minimum = decimal.MaxValue;
+            var k = 0;
+            for (var i = values.Length - 1; i >= 0; i--)
+            {
+                if (k >= period)
+                {
+                    return minimum;
+                }
+                if (values[i] < minimum)
+                {
+                    minimum = values[i];
+                }
+                k++;
+            }
+
+            return minimum;
+        }
+
+        public static decimal Maximum(decimal[] values, int period)
+        {
+            if (values.Length == 0)
+            {
+                return 0;
+            }
+
+            var maximum = decimal.MinValue;
+            var k = 0;
+            for (var i = values.Length - 1; i >= 0; i--)
+            {
+                if (k >= period)
+                {
+                    return maximum;
+                }
+                if (values[i] > maximum)
+                {
+                    maximum = values[i];
+                }
+                k++;
+            }
+
+            return maximum;
+        }
+
+        // series must be reversed - newest records in start of array
+        public static double[] ReflexOscillatorTradingView(decimal[] Series, double SSPeriod, int ReflexPeriod, double PeriodEMA)
+        {
+            double SQRT2xPI = Math.Sqrt(8.0) * Math.Asin(1.0); // 4.44288293815 Constant
+            double alpha = SQRT2xPI / SSPeriod;
+            double beta = Math.Exp(-alpha);
+            double gamma = -beta * beta;
+            double delta = 2.0 * beta * Math.Cos(alpha);
+
+            int bars = Series.Length;
+
+            // SuperSmoother buffer
+            double[] superSmooth = new double[bars];
+
+            // EMA buffer
+            double[] EMA = new double[bars];
+
+            // Reflex buffer
+            double[] result = new double[bars];
+
+            // E buffer
+            double[] EBuff = new double[bars];
+
+            // slope buffer
+            double[] slopeBuff = new double[bars];
+
+            // Go through input
+            for (int i = bars - 3; i >= 0; i--)
+            {
+                superSmooth[i] = (1.0 - delta - gamma) * ((double)Series[i] + (double)Series[i + 1]) * 0.5 + delta * superSmooth[i + 1] + gamma * superSmooth[i + 2];
+
+                double ssPeriodsBack = i + ReflexPeriod < bars ? superSmooth[i + ReflexPeriod] : 0;
+                double slope = (ssPeriodsBack - superSmooth[i]) / ReflexPeriod;
+                slopeBuff[i] = slope;
+
+                double E = 0;
+                for (int j = 1; j < ReflexPeriod; j++)
+                {
+                    double ssPeriodsBack2 = i + j < bars ? superSmooth[i + j] : 0;
+                    E += (superSmooth[i] + j * slope) - ssPeriodsBack2;
+                }
+
+                EBuff[i] = E;
+
+                double epsilon = E / ReflexPeriod;
+                double zeta = 2.0 / (PeriodEMA + 1.0);
+
+                EMA[i] = (zeta * epsilon * epsilon) + ((1.0 - zeta) * EMA[i + 1]);
+                result[i] = EMA[i] == 0 ? 0 : epsilon / Math.Sqrt(EMA[i]);
+            }
+
+            return result;
+        }
+
+        // series must be reversed - newest records in start of array
+        public static double[] ReflexOscillatorMQL(decimal[] Series, double SSPeriod, int ReflexPeriod, double PSPeriod)
+        {
+            double a1 = Math.Exp(-1.414 * Math.PI / SSPeriod);
+            double b1 = 2.0 * a1 * Math.Cos(1.414 * Math.PI / SSPeriod);
+            double m_c2 = b1;
+            double m_c3 = -a1 * a1;
+            double m_c1 = 1.0 - m_c2 - m_c3;
+
+            double m_multi = 1.0;
+            for (int k = 1; k < ReflexPeriod; k++)
+            {
+                m_multi += (k + 1);
+            }
+
+            int bars = Series.Length;
+
+            double[] ssm = new double[bars];
+            double[] sum = new double[bars];
+            double[] ms = new double[bars];
+            double[] reflex = new double[bars];
+
+            // Go through input
+            for (int i = bars - 1; i >= 0; i--)
+            {
+            
+                var val = (double)Series[i];
+                if (i <= bars - 3)
+                {
+                    val = m_c1 * ((double)Series[i] + (double)Series[i + 1]) / 2.0 + m_c2 * ssm[i + 1] + m_c3 * ssm[i + 2];
+                }
+
+                ssm[i] = val;
+
+                if (i + ReflexPeriod < bars)
+                {
+                    sum[i] = sum[i + 1] + ssm[i] - ssm[i + ReflexPeriod];
+                }
+                else
+                {
+                    sum[i] = ssm[i];
+                    for (int k = 1; k < ReflexPeriod && (i + k) < bars; k++)
+                    {
+                        sum[i] += ssm[i + k];
+                    }
+                }
+
+                double slope = 0;
+                if (i + ReflexPeriod < bars)
+                {
+                    slope = (ssm[i + ReflexPeriod] - ssm[i]) / ReflexPeriod;
+                }
+
+                double sumValue = ReflexPeriod * ssm[i] + m_multi * slope - sum[i];
+                sumValue /= ReflexPeriod;
+                double zeta = 2.0 / (PSPeriod + 1.0);
+
+                ms[i] = (i + 1 < bars) ? zeta * sumValue * sumValue + (1 - zeta) * ms[i + 1] : 0;
+                reflex[i] = ms[i] != 0 ? sumValue / Math.Sqrt(ms[i]) : 0;
+            }
+            return reflex;
         }
     }
 }
