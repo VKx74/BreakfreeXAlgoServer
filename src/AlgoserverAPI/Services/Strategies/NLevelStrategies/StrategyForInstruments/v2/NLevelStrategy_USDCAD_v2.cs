@@ -4,9 +4,9 @@ using Algoserver.Strategies.LevelStrategy;
 
 namespace Algoserver.Strategies.NLevelStrategy.V2
 {
-    public class NLevelStrategy_EURUSD_v2 : NLevelStrategyBase
+    public class NLevelStrategy_USDCAD_v2 : NLevelStrategyBase
     {
-        public NLevelStrategy_EURUSD_v2(StrategyInputContext _context) : base(_context)
+        public NLevelStrategy_USDCAD_v2(StrategyInputContext _context) : base(_context)
         {
         }
 
@@ -53,22 +53,22 @@ namespace Algoserver.Strategies.NLevelStrategy.V2
 
                 UseCatReflex = true,
                 CatReflexGranularity = TimeframeHelper.MIN5_GRANULARITY,
-                CatReflexPeriodReflex = 45,
-                CatReflexPeriodSuperSmoother = 173,
-                CatReflexPeriodPostSmooth = 64,
-                CatReflexConfirmationPeriod = 7,
+                CatReflexPeriodReflex = 100,
+                CatReflexPeriodSuperSmoother = 35,
+                CatReflexPeriodPostSmooth = 85,
+                CatReflexConfirmationPeriod = 4,
                 CatReflexMinLevel = 0.04,
-                CatReflexMaxLevel = 1.8,
-                CatReflexValidateZeroCrossover = false,
+                CatReflexMaxLevel = 2.2,
+                CatReflexValidateZeroCrossover = true,
 
                 UseCatReflex2 = true,
                 CatReflexGranularity2 = TimeframeHelper.HOUR4_GRANULARITY,
-                CatReflexPeriodReflex2 = 142,
-                CatReflexPeriodSuperSmoother2 = 59,
-                CatReflexPeriodPostSmooth2 = 1,
-                CatReflexConfirmationPeriod2 = 9,
-                CatReflexMinLevel2 = 0.04,
-                CatReflexMaxLevel2 = 2.1,
+                CatReflexPeriodReflex2 = 27,
+                CatReflexPeriodSuperSmoother2 = 83,
+                CatReflexPeriodPostSmooth2 = 146,
+                CatReflexConfirmationPeriod2 = 10,
+                CatReflexMinLevel2 = 0,
+                CatReflexMaxLevel2 = 2.2,
                 CatReflexValidateZeroCrossover2 = false,
             };
 

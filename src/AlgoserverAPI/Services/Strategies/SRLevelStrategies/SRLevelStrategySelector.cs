@@ -68,6 +68,10 @@ namespace Algoserver.Strategies.SRLevelStrategy
             {
                 return new SRLevelStrategy_EURCAD(context);
             } 
+            if (context.symbol == "USD_CAD")
+            {
+                return new SRLevelStrategy_USDCAD(context);
+            } 
             if (context.symbol == "GBP_JPY")
             {
                 return new SRLevelStrategy_GBPJPY(context);

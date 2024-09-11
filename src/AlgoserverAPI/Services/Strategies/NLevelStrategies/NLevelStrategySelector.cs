@@ -69,6 +69,10 @@ namespace Algoserver.Strategies.NLevelStrategy
             {
                 return new NLevelStrategy_EURCAD_v2(context);
             } 
+            if (context.symbol == "USD_CAD")
+            {
+                return new NLevelStrategy_USDCAD_v2(context);
+            } 
             if (context.symbol == "GBP_JPY")
             {
                 return new NLevelStrategy_GBPJPY_v2(context);
