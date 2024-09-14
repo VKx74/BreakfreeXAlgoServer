@@ -85,6 +85,30 @@ namespace Algoserver.Strategies.NLevelStrategy
             {
                 return new NLevelStrategy_USDZAR_v2(context);
             } 
+            if (context.symbol == "EUR_AUD")
+            {
+                return new NLevelStrategy_EURAUD_v2(context);
+            } 
+            if (context.symbol == "GBP_CAD")
+            {
+                return new NLevelStrategy_GBPCAD_v2(context);
+            } 
+            if (context.symbol == "GBP_CHF")
+            {
+                return new NLevelStrategy_GBPCHF_v2(context);
+            } 
+            if (context.symbol == "NZD_USD")
+            {
+                return new NLevelStrategy_NZDUSD_v2(context);
+            } 
+            if (context.symbol == "AUD_CHF")
+            {
+                return new NLevelStrategy_AUDCHF_v2(context);
+            } 
+            if (context.symbol == "AUD_JPY")
+            {
+                return new NLevelStrategy_AUDJPY_v2(context);
+            } 
 
             if (context.symbol == "BTC_USD" || context.symbol == "BTCUSD" || context.symbol == "BTC_USDT" || context.symbol == "BTCUSDT")
             {
@@ -97,6 +121,14 @@ namespace Algoserver.Strategies.NLevelStrategy
             if (context.symbol == "NAS100_USD" || context.symbol == "NAS100" || context.symbol == "US100")
             {
                 return new NLevelStrategy_NAS100_v2(context);
+            } 
+            if (context.symbol == "DE30_EUR" || context.symbol == "DE30" || context.symbol == "DE40_EUR" || context.symbol == "DE40")
+            {
+                return new NLevelStrategy_DE30_v2(context);
+            } 
+            if (context.symbol == "JP225_USD" || context.symbol == "JP225")
+            {
+                return new NLevelStrategy_JP225_v2(context);
             } 
             
             return null;

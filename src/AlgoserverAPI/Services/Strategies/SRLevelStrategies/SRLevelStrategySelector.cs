@@ -83,6 +83,30 @@ namespace Algoserver.Strategies.SRLevelStrategy
             if (context.symbol == "USD_ZAR")
             {
                 return new SRLevelStrategy_USDZAR(context);
+            }  
+            if (context.symbol == "EUR_AUD")
+            {
+                return new SRLevelStrategy_EURAUD(context);
+            } 
+            if (context.symbol == "GBP_CAD")
+            {
+                return new SRLevelStrategy_GBPCAD(context);
+            } 
+            if (context.symbol == "GBP_CHF")
+            {
+                return new SRLevelStrategy_GBPCHF(context);
+            } 
+            if (context.symbol == "NZD_USD")
+            {
+                return new SRLevelStrategy_NZDUSD(context);
+            }
+            if (context.symbol == "AUD_CHF")
+            {
+                return new SRLevelStrategy_AUDCHF(context);
+            } 
+            if (context.symbol == "AUD_JPY")
+            {
+                return new SRLevelStrategy_AUDJPY(context);
             } 
 
             if (context.symbol == "BTC_USD" || context.symbol == "BTCUSD" || context.symbol == "BTC_USDT" || context.symbol == "BTCUSDT")
@@ -96,6 +120,14 @@ namespace Algoserver.Strategies.SRLevelStrategy
             if (context.symbol == "NAS100_USD" || context.symbol == "NAS100" || context.symbol == "US100")
             {
                 return new SRLevelStrategy_NAS100(context);
+            } 
+            if (context.symbol == "DE30_EUR" || context.symbol == "DE30" || context.symbol == "DE40_EUR" || context.symbol == "DE40")
+            {
+                return new SRLevelStrategy_DE30(context);
+            } 
+            if (context.symbol == "JP225_USD" || context.symbol == "JP225")
+            {
+                return new SRLevelStrategy_JP225(context);
             } 
 
             return null;
