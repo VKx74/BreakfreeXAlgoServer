@@ -100,6 +100,14 @@ namespace Algoserver.Strategies.SRLevelStrategy
             {
                 return new SRLevelStrategy_NZDUSD(context);
             }
+            if (context.symbol == "AUD_CHF")
+            {
+                return new SRLevelStrategy_AUDCHF(context);
+            } 
+            if (context.symbol == "AUD_JPY")
+            {
+                return new SRLevelStrategy_AUDJPY(context);
+            } 
 
             if (context.symbol == "BTC_USD" || context.symbol == "BTCUSD" || context.symbol == "BTC_USDT" || context.symbol == "BTCUSDT")
             {
@@ -116,6 +124,10 @@ namespace Algoserver.Strategies.SRLevelStrategy
             if (context.symbol == "DE30_EUR" || context.symbol == "DE30" || context.symbol == "DE40_EUR" || context.symbol == "DE40")
             {
                 return new SRLevelStrategy_DE30(context);
+            } 
+            if (context.symbol == "JP225_USD" || context.symbol == "JP225")
+            {
+                return new SRLevelStrategy_JP225(context);
             } 
 
             return null;
