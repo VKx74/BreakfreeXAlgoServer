@@ -4,9 +4,9 @@ using Algoserver.Strategies.LevelStrategy;
 
 namespace Algoserver.Strategies.NLevelStrategy.V2
 {
-    public class NLevelStrategy_USDCAD_v2 : NLevelStrategyBase
+    public class NLevelStrategy_CADJPY_v2 : NLevelStrategyBase
     {
-        public NLevelStrategy_USDCAD_v2(StrategyInputContext _context) : base(_context)
+        public NLevelStrategy_CADJPY_v2(StrategyInputContext _context) : base(_context)
         {
         }
 
@@ -26,7 +26,8 @@ namespace Algoserver.Strategies.NLevelStrategy.V2
                 OverheatZone1DThreshold = 5,
                 CheckTrends = false,
                 // TrendFilters = new TrendFiltersSettings {
-                //     strengthConditionFilter15m = true
+                //     strengthConditionFilter15m = true,
+                //     strengthConditionFilter1h = true,
                 // },
                 CheckTrendsStrength = true,
                 LowGroupStrength = 0,
@@ -53,23 +54,23 @@ namespace Algoserver.Strategies.NLevelStrategy.V2
 
                 UseCatReflex = true,
                 CatReflexGranularity = TimeframeHelper.MIN5_GRANULARITY,
-                CatReflexPeriodReflex = 31,
-                CatReflexPeriodSuperSmoother = 100,
-                CatReflexPeriodPostSmooth = 117,
-                CatReflexConfirmationPeriod = 2,
-                CatReflexMinLevel = 0.01,
-                CatReflexMaxLevel = 1.9,
+                CatReflexPeriodReflex = 35,
+                CatReflexPeriodSuperSmoother = 97,
+                CatReflexPeriodPostSmooth = 83,
+                CatReflexConfirmationPeriod = 13,
+                CatReflexMinLevel = 0.07,
+                CatReflexMaxLevel = 2.2,
                 CatReflexValidateZeroCrossover = false,
 
                 UseCatReflex2 = true,
                 CatReflexGranularity2 = TimeframeHelper.HOUR4_GRANULARITY,
-                CatReflexPeriodReflex2 = 150,
-                CatReflexPeriodSuperSmoother2 = 95,
-                CatReflexPeriodPostSmooth2 = 160,
-                CatReflexConfirmationPeriod2 = 14,
-                CatReflexMinLevel2 = 0.05,
-                CatReflexMaxLevel2 = 2.0,
-                CatReflexValidateZeroCrossover2 = false,
+                CatReflexPeriodReflex2 = 106,
+                CatReflexPeriodSuperSmoother2 = 53,
+                CatReflexPeriodPostSmooth2 = 1,
+                CatReflexConfirmationPeriod2 = 8,
+                CatReflexMinLevel2 = 0.01,
+                CatReflexMaxLevel2 = 2.1,
+                CatReflexValidateZeroCrossover2 = true
             };
 
             var result = await CalculateInternal(settings);
