@@ -16,12 +16,12 @@ namespace Algoserver.Strategies.SRLevelStrategy
             {
                 UseCatReflex = true,
                 CatReflexGranularity = TimeframeHelper.DAILY_GRANULARITY,
-                CatReflexPeriodReflex = 5,
+                CatReflexPeriodReflex = 121,
                 CatReflexPeriodSuperSmoother = 128,
-                CatReflexPeriodPostSmooth = 167,
-                CatReflexConfirmationPeriod = 6,
-                CatReflexMinLevel = 0.04,
-                CatReflexMaxLevel = 1.7,
+                CatReflexPeriodPostSmooth = 59,
+                CatReflexConfirmationPeriod = 7,
+                CatReflexMinLevel = 0.06,
+                CatReflexMaxLevel = 1.9,
                 CatReflexValidateZeroCrossover = false
             };
 

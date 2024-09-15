@@ -16,13 +16,13 @@ namespace Algoserver.Strategies.SRLevelStrategy
             {
                 UseCatReflex = true,
                 CatReflexGranularity = TimeframeHelper.DAILY_GRANULARITY,
-                CatReflexPeriodReflex = 86,
-                CatReflexPeriodSuperSmoother = 166.6,
-                CatReflexPeriodPostSmooth = 29,
-                CatReflexConfirmationPeriod = 11,
-                CatReflexMinLevel = 0.03,
-                CatReflexMaxLevel = 2.3,
-                CatReflexValidateZeroCrossover = true
+                CatReflexPeriodReflex = 64,
+                CatReflexPeriodSuperSmoother = 38.4,
+                CatReflexPeriodPostSmooth = 49,
+                CatReflexConfirmationPeriod = 3,
+                CatReflexMinLevel = 0.0,
+                CatReflexMaxLevel = 1.8,
+                CatReflexValidateZeroCrossover = false
             };
 
             var result = await CalculateInternal(settings);
