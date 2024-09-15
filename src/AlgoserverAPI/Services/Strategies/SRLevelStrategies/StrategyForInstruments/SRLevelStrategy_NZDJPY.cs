@@ -4,9 +4,9 @@ using Algoserver.Strategies.LevelStrategy;
 
 namespace Algoserver.Strategies.SRLevelStrategy
 {
-    public class SRLevelStrategy_USDCAD : SRLevelStrategyBase
+    public class SRLevelStrategy_NZDJPY : SRLevelStrategyBase
     {
-        public SRLevelStrategy_USDCAD(StrategyInputContext _context) : base(_context)
+        public SRLevelStrategy_NZDJPY(StrategyInputContext _context) : base(_context)
         {
         }
 
@@ -16,13 +16,13 @@ namespace Algoserver.Strategies.SRLevelStrategy
             {
                 UseCatReflex = true,
                 CatReflexGranularity = TimeframeHelper.DAILY_GRANULARITY,
-                CatReflexPeriodReflex = 17,
-                CatReflexPeriodSuperSmoother = 159.2,
-                CatReflexPeriodPostSmooth = 56,
-                CatReflexConfirmationPeriod = 15,
-                CatReflexMinLevel = 0,
-                CatReflexMaxLevel = 2.3,
-                CatReflexValidateZeroCrossover = false
+                CatReflexPeriodReflex = 52,
+                CatReflexPeriodSuperSmoother = 119.2,
+                CatReflexPeriodPostSmooth = 180,
+                CatReflexConfirmationPeriod = 8,
+                CatReflexMinLevel = 0.05,
+                CatReflexMaxLevel = 2,
+                CatReflexValidateZeroCrossover = true
             };
 
             var result = await CalculateInternal(settings);

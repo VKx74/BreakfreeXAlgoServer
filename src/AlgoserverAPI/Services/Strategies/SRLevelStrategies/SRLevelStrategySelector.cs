@@ -108,6 +108,18 @@ namespace Algoserver.Strategies.SRLevelStrategy
             {
                 return new SRLevelStrategy_AUDJPY(context);
             } 
+            if (context.symbol == "CAD_JPY")
+            {
+                return new SRLevelStrategy_CADJPY(context);
+            } 
+            if (context.symbol == "NZD_CHF")
+            {
+                return new SRLevelStrategy_NZDCHF(context);
+            } 
+            if (context.symbol == "NZD_JPY")
+            {
+                return new SRLevelStrategy_NZDJPY(context);
+            } 
 
             if (context.symbol == "BTC_USD" || context.symbol == "BTCUSD" || context.symbol == "BTC_USDT" || context.symbol == "BTCUSDT")
             {
