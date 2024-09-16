@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Algoserver.API.Helpers;
+using Algoserver.API.Services;
 
 namespace Algoserver.Strategies.LevelStrategy
 {
@@ -141,6 +142,68 @@ namespace Algoserver.Strategies.LevelStrategy
             return true;
         }
 
+        protected decimal GetDefaultSL()
+        {
+            var hourSL = GetSL(TimeframeHelper.HOURLY_GRANULARITY, context.symbolInfo.TrendDirection);
+            return hourSL;
+        }
+
+        protected decimal GetDefaultOppositeSL()
+        {
+            var oppositeHourSL = GetSL(TimeframeHelper.HOURLY_GRANULARITY, context.symbolInfo.TrendDirection > 0 ? -1 : 1);
+            return oppositeHourSL;
+        }
+
+        protected decimal GetSL(int granularity, int trendDirection)
+        {
+            var data = context.levelsResponse;
+            if (data.TryGetValue(granularity, out var item))
+            {
+                var lastSar = item.sar.LastOrDefault();
+                if (lastSar == null)
+                {
+                    return 0;
+                }
+
+                var halsBand = GetHalfBand(granularity, trendDirection);
+                if (trendDirection > 0)
+                {
+                    return lastSar.s - halsBand;
+                }
+                if (trendDirection < 0)
+                {
+                    return lastSar.r + halsBand;
+                }
+            }
+            return 0;
+        }
+        
+        protected decimal GetHalfBand(int granularity, int trendDirection)
+        {
+            var data = context.levelsResponse;
+            if (data.TryGetValue(granularity, out var item))
+            {
+                var lastSar = item.sar.LastOrDefault();
+                if (lastSar == null)
+                {
+                    return 0;
+                }
+
+                var rH = (lastSar.r_p28 - lastSar.r) / 6;
+                var sH = (lastSar.s - lastSar.s_m28) / 6;
+
+                if (trendDirection > 0)
+                {
+                    return sH;
+                }
+                if (trendDirection < 0)
+                {
+                    return rH;
+                }
+            }
+            return 0;
+        }
+
         protected void WriteLog(string str)
         {
             if (!ShowLogs)
@@ -150,6 +213,5 @@ namespace Algoserver.Strategies.LevelStrategy
 
             Console.WriteLine($"{StrategyName} >>> {str}");
         }
-
     }
 }

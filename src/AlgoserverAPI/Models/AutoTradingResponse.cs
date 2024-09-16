@@ -103,30 +103,55 @@ namespace Algoserver.API.Models.REST
         public decimal OppositeEntry4H { get; set; }
         public decimal OppositeEntry1D { get; set; }
         public int OppositeTrendDirection { get; set; }
-        public decimal SL1M { get; set; }
-        public decimal SL5M { get; set; }
-        public decimal SL15M { get; set; }
-        public decimal SL1H { get; set; }
-        public decimal SL4H { get; set; }
-        public decimal OppositeSL1M { get; set; }
-        public decimal OppositeSL5M { get; set; }
-        public decimal OppositeSL15M { get; set; }
-        public decimal OppositeSL1H { get; set; }
-        public decimal OppositeSL4H { get; set; }  
-        public bool Skip1MinTrades { get; set; }
-        public bool Skip5MinTrades { get; set; }
-        public bool Skip15MinTrades { get; set; }
-        public bool Skip1HourTrades { get; set; }
-        public bool Skip4HourTrades { get; set; }
-        public decimal MinStrength1M { get; set; }
-        public decimal MinStrength5M { get; set; }
-        public decimal MinStrength15M { get; set; }
-        public decimal MinStrength1H { get; set; }
-        public decimal MinStrength4H { get; set; }
-        public bool DDClosePositions { get; set; }
-        public int DDCloseInitialInterval { get; set; }
-        public int DDCloseIncreasePeriod { get; set; }
-        public decimal DDCloseIncreaseThreshold { get; set; }
+        public decimal SL1M_N { get; set; }
+        public decimal SL5M_N { get; set; }
+        public decimal SL15M_N { get; set; }
+        public decimal SL1H_N { get; set; }
+        public decimal SL4H_N { get; set; }
+        public decimal OppositeSL1M_N { get; set; }
+        public decimal OppositeSL5M_N { get; set; }
+        public decimal OppositeSL15M_N { get; set; }
+        public decimal OppositeSL1H_N { get; set; }
+        public decimal OppositeSL4H_N { get; set; }  
+        public bool Skip1MinTrades_N { get; set; }
+        public bool Skip5MinTrades_N { get; set; }
+        public bool Skip15MinTrades_N { get; set; }
+        public bool Skip1HourTrades_N { get; set; }
+        public bool Skip4HourTrades_N { get; set; }
+        public decimal MinStrength1M_N { get; set; }
+        public decimal MinStrength5M_N { get; set; }
+        public decimal MinStrength15M_N { get; set; }
+        public decimal MinStrength1H_N { get; set; }
+        public decimal MinStrength4H_N { get; set; }
+        public bool DDClosePositions_N { get; set; }
+        public int DDCloseInitialInterval_N { get; set; }
+        public int DDCloseIncreasePeriod_N { get; set; }
+        public decimal DDCloseIncreaseThreshold_N { get; set; }
+
+        public decimal SL1M_SR { get; set; }
+        public decimal SL5M_SR { get; set; }
+        public decimal SL15M_SR { get; set; }
+        public decimal SL1H_SR { get; set; }
+        public decimal SL4H_SR { get; set; }
+        public decimal OppositeSL1M_SR { get; set; }
+        public decimal OppositeSL5M_SR { get; set; }
+        public decimal OppositeSL15M_SR { get; set; }
+        public decimal OppositeSL1H_SR { get; set; }
+        public decimal OppositeSL4H_SR { get; set; }  
+        public bool Skip1MinTrades_SR { get; set; }
+        public bool Skip5MinTrades_SR { get; set; }
+        public bool Skip15MinTrades_SR { get; set; }
+        public bool Skip1HourTrades_SR { get; set; }
+        public bool Skip4HourTrades_SR { get; set; }
+        public decimal MinStrength1M_SR { get; set; }
+        public decimal MinStrength5M_SR { get; set; }
+        public decimal MinStrength15M_SR { get; set; }
+        public decimal MinStrength1H_SR { get; set; }
+        public decimal MinStrength4H_SR { get; set; }
+        public bool DDClosePositions_SR { get; set; }
+        public int DDCloseInitialInterval_SR { get; set; }
+        public int DDCloseIncreasePeriod_SR { get; set; }
+        public decimal DDCloseIncreaseThreshold_SR { get; set; }
     }
 
     [Serializable]
