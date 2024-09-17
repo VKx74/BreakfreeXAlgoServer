@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Algoserver.API.Helpers;
 using Algoserver.Strategies.LevelStrategy;
 using Algoserver.Strategies.NLevelStrategy.V2;
+using Algoserver.Strategies.NLevelStrategy.V3;
 
 namespace Algoserver.Strategies.NLevelStrategy
 {
@@ -9,6 +10,25 @@ namespace Algoserver.Strategies.NLevelStrategy
     {
         public static NLevelStrategyBase SelectStrategy(StrategyInputContext context)
         {   
+            if (context.symbol == "CAD_CHF")
+            {
+                return new NLevelStrategy_CADCHF_v3(context);
+            } 
+            if (context.symbol == "EUR_CHF")
+            {
+                return new NLevelStrategy_EURCHF_v3(context);
+            } 
+            if (context.symbol == "EUR_USD")
+            {
+                return new NLevelStrategy_EURUSD_v3(context);
+            } 
+            if (context.symbol == "USD_CAD")
+            {
+                return new NLevelStrategy_USDCAD_v3(context);
+            } 
+
+            return null;
+
             if (context.symbol == "XAU_USD")
             {
                 return new NLevelStrategy_XAUUSD_v2(context);

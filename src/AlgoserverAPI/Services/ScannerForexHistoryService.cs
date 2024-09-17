@@ -65,7 +65,12 @@ namespace Algoserver.API.Services
                 PricePrecision = 0.00000001m
             });
 
-            return instruments;
+            return instruments.Where(((_) => 
+                _.Symbol == "CAD_CHF" ||
+                _.Symbol == "EUR_CHF" ||
+                _.Symbol == "EUR_USD" ||
+                _.Symbol == "USD_CAD"
+            )).ToList();
         }
 
         public override List<IInstrument> getInstrumentsForLongHistory()
@@ -122,8 +127,13 @@ namespace Algoserver.API.Services
                 Type = "Crypto",
                 PricePrecision = 0.00000001m
             });
-
-            return instruments;
+            
+            return instruments.Where(((_) => 
+                _.Symbol == "CAD_CHF" ||
+                _.Symbol == "EUR_CHF" ||
+                _.Symbol == "EUR_USD" ||
+                _.Symbol == "USD_CAD"
+            )).ToList();
         }
     }
 }
