@@ -18,29 +18,10 @@ namespace Algoserver.Strategies.SRLevelStrategy
         protected virtual async Task<SRLevelStrategyResponse> CalculateInternal(SRLevelStrategySettings settings)
         {
             var state = await GetState(settings);
-            var sl = GetDefaultSL();
-            var oppositeSl = GetDefaultOppositeSL();
 
             var result = new SRLevelStrategyResponse
             {
-                State = state,
-                SL1M = sl,
-                SL5M = sl,
-                SL15M = sl,
-                OppositeSL1M = oppositeSl,
-                OppositeSL5M = oppositeSl,
-                OppositeSL15M = oppositeSl,
-                DDClosePositions = false,
-                // DDCloseInitialInterval = 30,
-                // DDCloseIncreasePeriod = 30,
-                // DDCloseIncreaseThreshold = 0.1m,
-                MinStrength1M = 1,
-                MinStrength5M = 1,
-                MinStrength15M = 1,
-                MinStrength1H = 1,
-                MinStrength4H = 1,
-                Skip1HourTrades = true,
-                Skip4HourTrades = true
+                State = state
             };
 
             return result;
