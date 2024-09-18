@@ -25,6 +25,27 @@ namespace Algoserver.Strategies.SRLevelStrategy
             {
                 return new SRLevelStrategy_USDCAD_v3(context);
             } 
+            if (context.symbol == "XAU_USD")
+            {
+                return new SRLevelStrategy_XAUUSD_v3(context);
+            }
+            if (context.symbol == "CAD_JPY")
+            {
+                return new SRLevelStrategy_CADJPY_v3(context);
+            } 
+
+            if (context.symbol == "BTC_USD" || context.symbol == "BTCUSD" || context.symbol == "BTC_USDT" || context.symbol == "BTCUSDT")
+            {
+                return new SRLevelStrategy_BTCUSD_v3(context);
+            } 
+            if (context.symbol == "SPX500_USD" || context.symbol == "SPX500" || context.symbol == "US500")
+            {
+                return new SRLevelStrategy_SPX500_v3(context);
+            } 
+            if (context.symbol == "US30_USD" || context.symbol == "US30")
+            {
+                return new SRLevelStrategy_US30_v3(context);
+            } 
 
             return null;
 

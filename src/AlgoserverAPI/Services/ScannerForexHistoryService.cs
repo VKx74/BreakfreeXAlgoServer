@@ -69,7 +69,12 @@ namespace Algoserver.API.Services
                 _.Symbol == "CAD_CHF" ||
                 _.Symbol == "EUR_CHF" ||
                 _.Symbol == "EUR_USD" ||
-                _.Symbol == "USD_CAD"
+                _.Symbol == "USD_CAD" ||
+                _.Symbol == "XAU_USD" ||
+                _.Symbol == "CAD_JPY" ||
+                _.Symbol == "BTC_USD" ||
+                _.Symbol == "SPX500_USD" ||
+                _.Symbol == "US30_USD"
             )).ToList();
         }
 
@@ -132,7 +137,12 @@ namespace Algoserver.API.Services
                 _.Symbol == "CAD_CHF" ||
                 _.Symbol == "EUR_CHF" ||
                 _.Symbol == "EUR_USD" ||
-                _.Symbol == "USD_CAD"
+                _.Symbol == "USD_CAD" ||
+                _.Symbol == "XAU_USD" ||
+                _.Symbol == "CAD_JPY" ||
+                _.Symbol == "BTC_USD" ||
+                _.Symbol == "SPX500_USD" ||
+                _.Symbol == "US30_USD"
             )).ToList();
         }
     }
