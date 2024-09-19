@@ -2,6 +2,13 @@ namespace Algoserver.Strategies.NLevelStrategy
 {
     public class NLevelStrategySettings
     {
+        public NLevelStrategySettings()
+        {
+            CheckTrendsStrength = true;
+            LowGroupStrength = 0;
+            HighGroupStrength = 1;
+        }
+
         // Volatility settings
         public bool UseVolatilityFilter { get; set; }
         public int VolatilityGranularity { get; set; }

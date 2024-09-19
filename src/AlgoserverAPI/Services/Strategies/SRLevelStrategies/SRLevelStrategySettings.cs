@@ -2,6 +2,18 @@ namespace Algoserver.Strategies.SRLevelStrategy
 {
     public class SRLevelStrategySettings
     {
+        public SRLevelStrategySettings()
+        {
+            CheckTrendsStrength = true;
+            LowGroupStrength = 0;
+            HighGroupStrength = 1;
+        }
+
+        // Strength settings
+        public bool CheckTrendsStrength { get; set; }
+        public decimal LowGroupStrength { get; set; }
+        public decimal HighGroupStrength { get; set; }
+
         // Cat Reflex 1
         public bool UseCatReflex { get; set; }
         public int CatReflexGranularity { get; set; }
@@ -34,6 +46,8 @@ namespace Algoserver.Strategies.SRLevelStrategy
         public double CatReflexMaxLevel3 { get; set; }
         public int CatReflexConfirmationPeriod3 { get; set; }
         public bool CatReflexValidateZeroCrossover3 { get; set; }
+
+
 
     }
 }

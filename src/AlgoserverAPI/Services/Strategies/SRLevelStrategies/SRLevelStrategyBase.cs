@@ -50,6 +50,12 @@ namespace Algoserver.Strategies.SRLevelStrategy
         {
             var symbol = context.mesaResponse.Symbol;
 
+            if (settings.CheckTrendsStrength && !IsEnoughStrength(settings.LowGroupStrength, settings.HighGroupStrength))
+            {
+                WriteLog($"{symbol} AutoMode - trends strength is not enough");
+                return false;
+            }
+
             if (settings.UseCatReflex)
             {
                 var result = await CheckReflexOscillator(settings.CatReflexGranularity, settings.CatReflexPeriodSuperSmoother, settings.CatReflexPeriodReflex, settings.CatReflexPeriodPostSmooth, settings.CatReflexMinLevel, settings.CatReflexMaxLevel, settings.CatReflexConfirmationPeriod, settings.CatReflexValidateZeroCrossover);

@@ -140,6 +140,38 @@ namespace Algoserver.Strategies.LevelStrategy
 
             return true;
         }
+        
+        protected bool IsEnoughStrength(decimal lowStrength, decimal highStrength)
+        {
+            var symbolInfo = context.symbolInfo;
+            var shortGroupStrength = symbolInfo.ShortGroupStrength * 100;
+            var midGroupStrength = symbolInfo.MidGroupStrength * 100;
+            var longGroupStrength = symbolInfo.LongGroupStrength * 100;
+
+            if (symbolInfo.TrendDirection == 1)
+            {
+                // Uptrend
+                if (longGroupStrength < highStrength || midGroupStrength < highStrength || shortGroupStrength < lowStrength)
+                {
+                    return false;
+                }
+            }
+            else if (symbolInfo.TrendDirection == -1)
+            {
+                // Downtrend
+                if (longGroupStrength > highStrength * -1 || midGroupStrength > highStrength * -1 || shortGroupStrength > lowStrength * -1)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+
+            return true;
+        }
+
 
         protected void WriteLog(string str)
         {
