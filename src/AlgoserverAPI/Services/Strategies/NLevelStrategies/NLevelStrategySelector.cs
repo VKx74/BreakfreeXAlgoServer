@@ -9,10 +9,10 @@ namespace Algoserver.Strategies.NLevelStrategy
     {
         public static NLevelStrategyBase SelectStrategy(StrategyInputContext context)
         {   
-            if (context.symbol == "XAU_USD")
-            {
-                return new NLevelStrategy_XAUUSD_v2(context);
-            }
+            // if (context.symbol == "XAU_USD")
+            // {
+            //     return new NLevelStrategy_XAUUSD_v2(context);
+            // }
             if (context.symbol == "XAG_USD")
             {
                 return new NLevelStrategy_XAGUSD_v2(context);

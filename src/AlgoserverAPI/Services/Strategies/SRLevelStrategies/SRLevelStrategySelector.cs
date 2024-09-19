@@ -8,10 +8,10 @@ namespace Algoserver.Strategies.SRLevelStrategy
     {
         public static SRLevelStrategyBase SelectStrategy(StrategyInputContext context)
         {   
-            if (context.symbol == "XAU_USD")
-            {
-                return new SRLevelStrategy_XAUUSD(context);
-            }
+            // if (context.symbol == "XAU_USD")
+            // {
+            //     return new SRLevelStrategy_XAUUSD(context);
+            // }
             if (context.symbol == "XAG_USD")
             {
                 return new SRLevelStrategy_XAGUSD(context);
