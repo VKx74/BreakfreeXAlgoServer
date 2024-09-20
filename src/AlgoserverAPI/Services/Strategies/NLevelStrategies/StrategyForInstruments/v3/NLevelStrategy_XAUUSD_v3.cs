@@ -53,12 +53,12 @@ namespace Algoserver.Strategies.NLevelStrategy.V3
 
                 UseCatReflex = true,
                 CatReflexGranularity = TimeframeHelper.MIN1_GRANULARITY,
-                CatReflexPeriodReflex = 544,
-                CatReflexPeriodSuperSmoother = 69,
-                CatReflexPeriodPostSmooth = 67,
-                CatReflexConfirmationPeriod = 4,
-                CatReflexMinLevel = 0.07,
-                CatReflexMaxLevel = 1.8,
+                CatReflexPeriodReflex = 14,
+                CatReflexPeriodSuperSmoother = 27,
+                CatReflexPeriodPostSmooth = 441,
+                CatReflexConfirmationPeriod = 3,
+                CatReflexMinLevel = 0,
+                CatReflexMaxLevel = 3.4,
                 CatReflexValidateZeroCrossover = false,
 
                 UseCatReflex2 = true,
@@ -68,8 +68,18 @@ namespace Algoserver.Strategies.NLevelStrategy.V3
                 CatReflexPeriodPostSmooth2 = 56,
                 CatReflexConfirmationPeriod2 = 3,
                 CatReflexMinLevel2 = 0,
-                CatReflexMaxLevel2 = 1.8,
+                CatReflexMaxLevel2 = 3.4,
                 CatReflexValidateZeroCrossover2 = false,
+
+                UseCatReflex3 = true,
+                CatReflexGranularity3 = TimeframeHelper.HOURLY_GRANULARITY,
+                CatReflexPeriodReflex3 = 29,
+                CatReflexPeriodSuperSmoother3 = 35,
+                CatReflexPeriodPostSmooth3 = 366,
+                CatReflexConfirmationPeriod3 = 3,
+                CatReflexMinLevel3 = 0,
+                CatReflexMaxLevel3 = 3.4,
+                CatReflexValidateZeroCrossover3 = false,
             };
 
             var result = await CalculateInternal(settings);
