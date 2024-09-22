@@ -37,7 +37,6 @@ namespace Algoserver.Strategies.SRLevelStrategy.V3
             };
 
             var result = await CalculateInternal(settings);
-            result.Skip1MinTrades = true;
             return result;
         }
     }

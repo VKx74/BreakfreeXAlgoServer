@@ -39,6 +39,7 @@ namespace Algoserver.Strategies.SRLevelStrategy
                 MinStrength15M = 1,
                 MinStrength1H = 1,
                 MinStrength4H = 1,
+                Skip1MinTrades = true,
                 Skip1HourTrades = true,
                 Skip4HourTrades = true
             };
