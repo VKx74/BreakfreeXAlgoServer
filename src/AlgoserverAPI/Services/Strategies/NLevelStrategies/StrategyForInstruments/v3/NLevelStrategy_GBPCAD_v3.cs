@@ -4,10 +4,10 @@ using Algoserver.Strategies.LevelStrategy;
 
 namespace Algoserver.Strategies.NLevelStrategy.V3
 {
-    // Settings version BTCUSD_combined_v4.2_2209.set
-    public class NLevelStrategy_BTCUSD_v3 : NLevelStrategyBase
+    // Settings version GBPCAD_combined_v4.2_2209.set
+    public class NLevelStrategy_GBPCAD_v3 : NLevelStrategyBase
     {
-        public NLevelStrategy_BTCUSD_v3(StrategyInputContext _context) : base(_context)
+        public NLevelStrategy_GBPCAD_v3(StrategyInputContext _context) : base(_context)
         {
         }
 
@@ -54,29 +54,29 @@ namespace Algoserver.Strategies.NLevelStrategy.V3
 
                 UseCatReflex = true,
                 CatReflexGranularity = TimeframeHelper.MIN1_GRANULARITY,
-                CatReflexPeriodReflex = 38,
-                CatReflexPeriodSuperSmoother = 86,
-                CatReflexPeriodPostSmooth = 216,
+                CatReflexPeriodReflex = 27,
+                CatReflexPeriodSuperSmoother = 33,
+                CatReflexPeriodPostSmooth = 435,
                 CatReflexConfirmationPeriod = 3,
                 CatReflexMinLevel = 0,
                 CatReflexMaxLevel = 3.4,
                 CatReflexValidateZeroCrossover = false,
 
                 UseCatReflex2 = true,
-                CatReflexGranularity2 = TimeframeHelper.HOURLY_GRANULARITY,
-                CatReflexPeriodReflex2 = 18,
-                CatReflexPeriodSuperSmoother2 = 72,
-                CatReflexPeriodPostSmooth2 = 228,
+                CatReflexGranularity2 = TimeframeHelper.HOUR4_GRANULARITY,
+                CatReflexPeriodReflex2 = 78,
+                CatReflexPeriodSuperSmoother2 = 99,
+                CatReflexPeriodPostSmooth2 = 39,
                 CatReflexConfirmationPeriod2 = 3,
                 CatReflexMinLevel2 = 0,
                 CatReflexMaxLevel2 = 3.4,
                 CatReflexValidateZeroCrossover2 = false,
 
                 UseCatReflex3 = true,
-                CatReflexGranularity3 = TimeframeHelper.HOUR4_GRANULARITY,
-                CatReflexPeriodReflex3 = 18,
-                CatReflexPeriodSuperSmoother3 = 54,
-                CatReflexPeriodPostSmooth3 = 186,
+                CatReflexGranularity3 = TimeframeHelper.HOURLY_GRANULARITY,
+                CatReflexPeriodReflex3 = 48,
+                CatReflexPeriodSuperSmoother3 = 12,
+                CatReflexPeriodPostSmooth3 = 300,
                 CatReflexConfirmationPeriod3 = 3,
                 CatReflexMinLevel3 = 0,
                 CatReflexMaxLevel3 = 3.4,
