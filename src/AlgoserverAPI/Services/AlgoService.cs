@@ -855,6 +855,11 @@ namespace Algoserver.API.Services
                     result.DDCloseInitialInterval_N = nLevelStrategyState.DDCloseInitialInterval;
                     result.DDCloseIncreasePeriod_N = nLevelStrategyState.DDCloseIncreasePeriod;
                     result.DDCloseIncreaseThreshold_N = nLevelStrategyState.DDCloseIncreaseThreshold;
+                } else {
+                    result.DDClosePositions_N = true;
+                    result.DDCloseInitialInterval_N = 176;
+                    result.DDCloseIncreasePeriod_N = 135;
+                    result.DDCloseIncreaseThreshold_N = 0.5m;
                 }
 
             }
