@@ -14,18 +14,6 @@ namespace Algoserver.Strategies.NLevelStrategy
             {
                 return new NLevelStrategy_CADCHF_v3(context);
             } 
-            if (context.symbol == "EUR_CHF")
-            {
-                return new NLevelStrategy_EURCHF_v3(context);
-            } 
-            if (context.symbol == "EUR_USD")
-            {
-                return new NLevelStrategy_EURUSD_v3(context);
-            } 
-            if (context.symbol == "USD_CAD")
-            {
-                return new NLevelStrategy_USDCAD_v3(context);
-            } 
             if (context.symbol == "USD_CAD")
             {
                 return new NLevelStrategy_USDCAD_v3(context);
@@ -39,20 +27,26 @@ namespace Algoserver.Strategies.NLevelStrategy
                 return new NLevelStrategy_CADJPY_v3(context);
             } 
 
-            if (context.symbol == "BTC_USD" || context.symbol == "BTCUSD" || context.symbol == "BTC_USDT" || context.symbol == "BTCUSDT")
-            {
-                return new NLevelStrategy_BTCUSD_v3(context);
-            } 
+            // if (context.symbol == "EUR_CHF")
+            // {
+            //     return new NLevelStrategy_EURCHF_v3(context);
+            // } 
+            // if (context.symbol == "EUR_USD")
+            // {
+            //     return new NLevelStrategy_EURUSD_v3(context);
+            // } 
+            // if (context.symbol == "BTC_USD" || context.symbol == "BTCUSD" || context.symbol == "BTC_USDT" || context.symbol == "BTCUSDT")
+            // {
+            //     return new NLevelStrategy_BTCUSD_v3(context);
+            // } 
             if (context.symbol == "SPX500_USD" || context.symbol == "SPX500" || context.symbol == "US500")
             {
                 return new NLevelStrategy_SPX500_v3(context);
             } 
-            if (context.symbol == "US30_USD" || context.symbol == "US30")
-            {
-                return new NLevelStrategy_US30_v3(context);
-            } 
-
-            return null;
+            // if (context.symbol == "US30_USD" || context.symbol == "US30")
+            // {
+            //     return new NLevelStrategy_US30_v3(context);
+            // } 
 
             if (context.symbol == "XAU_USD")
             {

@@ -4,6 +4,7 @@ using Algoserver.Strategies.LevelStrategy;
 
 namespace Algoserver.Strategies.NLevelStrategy.V3
 {
+    // Settings version XAUUSD_combined_v4.2_2009.set
     public class NLevelStrategy_XAUUSD_v3 : NLevelStrategyBase
     {
         public NLevelStrategy_XAUUSD_v3(StrategyInputContext _context) : base(_context)

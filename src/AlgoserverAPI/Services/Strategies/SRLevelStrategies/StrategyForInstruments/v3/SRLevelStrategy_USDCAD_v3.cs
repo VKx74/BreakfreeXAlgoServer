@@ -4,6 +4,7 @@ using Algoserver.Strategies.LevelStrategy;
 
 namespace Algoserver.Strategies.SRLevelStrategy.V3
 {
+    // Settings version USDCAD_combined_v4.2_2209.set
     public class SRLevelStrategy_USDCAD_v3 : SRLevelStrategyBase
     {
         public SRLevelStrategy_USDCAD_v3(StrategyInputContext _context) : base(_context)
@@ -15,14 +16,24 @@ namespace Algoserver.Strategies.SRLevelStrategy.V3
             var settings = new SRLevelStrategySettings
             {
                 UseCatReflex = true,
-                CatReflexGranularity = TimeframeHelper.HOURLY_GRANULARITY,
-                CatReflexPeriodReflex = 188,
-                CatReflexPeriodSuperSmoother = 192,
-                CatReflexPeriodPostSmooth = 75,
-                CatReflexConfirmationPeriod = 7,
-                CatReflexMinLevel = 0.02,
-                CatReflexMaxLevel = 1.9,
-                CatReflexValidateZeroCrossover = false
+                CatReflexGranularity = TimeframeHelper.HOUR4_GRANULARITY,
+                CatReflexPeriodReflex = 6,
+                CatReflexPeriodSuperSmoother = 48,
+                CatReflexPeriodPostSmooth = 534,
+                CatReflexConfirmationPeriod = 3,
+                CatReflexMinLevel = 0,
+                CatReflexMaxLevel = 3.4,
+                CatReflexValidateZeroCrossover = false,
+
+                UseCatReflex2 = true,
+                CatReflexGranularity2 = TimeframeHelper.MIN1_GRANULARITY,
+                CatReflexPeriodReflex2 = 12,
+                CatReflexPeriodSuperSmoother2 = 15,
+                CatReflexPeriodPostSmooth2 = 408,
+                CatReflexConfirmationPeriod2 = 3,
+                CatReflexMinLevel2 = 0,
+                CatReflexMaxLevel2 = 3.4,
+                CatReflexValidateZeroCrossover2 = false
             };
 
             var result = await CalculateInternal(settings);

@@ -4,6 +4,7 @@ using Algoserver.Strategies.LevelStrategy;
 
 namespace Algoserver.Strategies.SRLevelStrategy.V3
 {
+    // Settings version XAUUSD_combined_v4.2_2009.set
     public class SRLevelStrategy_XAUUSD_v3 : SRLevelStrategyBase
     {
         public SRLevelStrategy_XAUUSD_v3(StrategyInputContext _context) : base(_context)
