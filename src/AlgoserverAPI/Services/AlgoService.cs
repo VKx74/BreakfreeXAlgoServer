@@ -769,16 +769,16 @@ namespace Algoserver.API.Services
                 CurrentPrice = lastPrice,
                 TradingStateSR = 0,
                 TradingStateN = 0,
-                SL1M = sl_price,
-                SL5M = sl_price,
-                SL15M = sl_price,
-                SL1H = sl_price,
-                SL4H = sl_price,
-                OppositeSL1M = opposite_sl_price,
-                OppositeSL5M = opposite_sl_price,
-                OppositeSL15M = opposite_sl_price,
-                OppositeSL1H = opposite_sl_price,
-                OppositeSL4H = opposite_sl_price
+                SL1M_N = sl_price,
+                SL5M_N = sl_price,
+                SL15M_N = sl_price,
+                SL1H_N = sl_price,
+                SL4H_N = sl_price,
+                OppositeSL1M_N = opposite_sl_price,
+                OppositeSL5M_N = opposite_sl_price,
+                OppositeSL15M_N = opposite_sl_price,
+                OppositeSL1H_N = opposite_sl_price,
+                OppositeSL4H_N = opposite_sl_price
             };
 
             if (summaryForSymbol != null)
@@ -802,35 +802,59 @@ namespace Algoserver.API.Services
                 if (srLevelStrategyState != null)
                 {
                     result.TradingStateSR = srLevelStrategyState.State;
+                    result.SL1M_SR = srLevelStrategyState.SL1M > 0 ? srLevelStrategyState.SL1M : sl_price;
+                    result.SL5M_SR = srLevelStrategyState.SL5M > 0 ? srLevelStrategyState.SL5M : sl_price;
+                    result.SL15M_SR = srLevelStrategyState.SL15M > 0 ? srLevelStrategyState.SL15M : sl_price;
+                    result.SL1H_SR = srLevelStrategyState.SL1H > 0 ? srLevelStrategyState.SL1H : sl_price;
+                    result.SL4H_SR = srLevelStrategyState.SL4H > 0 ? srLevelStrategyState.SL4H : sl_price;
+                    result.OppositeSL1M_SR = srLevelStrategyState.OppositeSL1M > 0 ? srLevelStrategyState.OppositeSL1M : opposite_sl_price;
+                    result.OppositeSL5M_SR = srLevelStrategyState.OppositeSL5M > 0 ? srLevelStrategyState.OppositeSL5M : opposite_sl_price;
+                    result.OppositeSL15M_SR = srLevelStrategyState.OppositeSL15M > 0 ? srLevelStrategyState.OppositeSL15M : opposite_sl_price;
+                    result.OppositeSL1H_SR = srLevelStrategyState.OppositeSL1H > 0 ? srLevelStrategyState.OppositeSL1H : opposite_sl_price;
+                    result.OppositeSL4H_SR = srLevelStrategyState.OppositeSL4H > 0 ? srLevelStrategyState.OppositeSL4H : opposite_sl_price;
+                    result.Skip1MinTrades_SR = srLevelStrategyState.Skip1MinTrades;
+                    result.Skip5MinTrades_SR = srLevelStrategyState.Skip5MinTrades;
+                    result.Skip15MinTrades_SR = srLevelStrategyState.Skip15MinTrades;
+                    result.Skip1HourTrades_SR = srLevelStrategyState.Skip1HourTrades;
+                    result.Skip4HourTrades_SR = srLevelStrategyState.Skip4HourTrades;
+                    result.MinStrength1M_SR = srLevelStrategyState.MinStrength1M;
+                    result.MinStrength5M_SR = srLevelStrategyState.MinStrength5M;
+                    result.MinStrength15M_SR = srLevelStrategyState.MinStrength15M;
+                    result.MinStrength1H_SR = srLevelStrategyState.MinStrength1H;
+                    result.MinStrength4H_SR = srLevelStrategyState.MinStrength4H;
+                    result.DDClosePositions_SR = srLevelStrategyState.DDClosePositions;
+                    result.DDCloseInitialInterval_SR = srLevelStrategyState.DDCloseInitialInterval;
+                    result.DDCloseIncreasePeriod_SR = srLevelStrategyState.DDCloseIncreasePeriod;
+                    result.DDCloseIncreaseThreshold_SR = srLevelStrategyState.DDCloseIncreaseThreshold;
                 }
 
                 if (nLevelStrategyState != null)
                 {
                     result.TradingStateN = nLevelStrategyState.State;
-                    result.SL1M = nLevelStrategyState.SL1M > 0 ? nLevelStrategyState.SL1M : sl_price;
-                    result.SL5M = nLevelStrategyState.SL5M > 0 ? nLevelStrategyState.SL5M : sl_price;
-                    result.SL15M = nLevelStrategyState.SL15M > 0 ? nLevelStrategyState.SL15M : sl_price;
-                    result.SL1H = nLevelStrategyState.SL1H > 0 ? nLevelStrategyState.SL1H : sl_price;
-                    result.SL4H = nLevelStrategyState.SL4H > 0 ? nLevelStrategyState.SL4H : sl_price;
-                    result.OppositeSL1M = nLevelStrategyState.OppositeSL1M > 0 ? nLevelStrategyState.OppositeSL1M : opposite_sl_price;
-                    result.OppositeSL5M = nLevelStrategyState.OppositeSL5M > 0 ? nLevelStrategyState.OppositeSL5M : opposite_sl_price;
-                    result.OppositeSL15M = nLevelStrategyState.OppositeSL15M > 0 ? nLevelStrategyState.OppositeSL15M : opposite_sl_price;
-                    result.OppositeSL1H = nLevelStrategyState.OppositeSL1H > 0 ? nLevelStrategyState.OppositeSL1H : opposite_sl_price;
-                    result.OppositeSL4H = nLevelStrategyState.OppositeSL4H > 0 ? nLevelStrategyState.OppositeSL4H : opposite_sl_price;
-                    result.Skip1MinTrades = nLevelStrategyState.Skip1MinTrades;
-                    result.Skip5MinTrades = nLevelStrategyState.Skip5MinTrades;
-                    result.Skip15MinTrades = nLevelStrategyState.Skip15MinTrades;
-                    result.Skip1HourTrades = nLevelStrategyState.Skip1HourTrades;
-                    result.Skip4HourTrades = nLevelStrategyState.Skip4HourTrades;
-                    result.MinStrength1M = nLevelStrategyState.MinStrength1M;
-                    result.MinStrength5M = nLevelStrategyState.MinStrength5M;
-                    result.MinStrength15M = nLevelStrategyState.MinStrength15M;
-                    result.MinStrength1H = nLevelStrategyState.MinStrength1H;
-                    result.MinStrength4H = nLevelStrategyState.MinStrength4H;
-                    result.DDClosePositions = nLevelStrategyState.DDClosePositions;
-                    result.DDCloseInitialInterval = nLevelStrategyState.DDCloseInitialInterval;
-                    result.DDCloseIncreasePeriod = nLevelStrategyState.DDCloseIncreasePeriod;
-                    result.DDCloseIncreaseThreshold = nLevelStrategyState.DDCloseIncreaseThreshold;
+                    result.SL1M_N = nLevelStrategyState.SL1M > 0 ? nLevelStrategyState.SL1M : sl_price;
+                    result.SL5M_N = nLevelStrategyState.SL5M > 0 ? nLevelStrategyState.SL5M : sl_price;
+                    result.SL15M_N = nLevelStrategyState.SL15M > 0 ? nLevelStrategyState.SL15M : sl_price;
+                    result.SL1H_N = nLevelStrategyState.SL1H > 0 ? nLevelStrategyState.SL1H : sl_price;
+                    result.SL4H_N = nLevelStrategyState.SL4H > 0 ? nLevelStrategyState.SL4H : sl_price;
+                    result.OppositeSL1M_N = nLevelStrategyState.OppositeSL1M > 0 ? nLevelStrategyState.OppositeSL1M : opposite_sl_price;
+                    result.OppositeSL5M_N = nLevelStrategyState.OppositeSL5M > 0 ? nLevelStrategyState.OppositeSL5M : opposite_sl_price;
+                    result.OppositeSL15M_N = nLevelStrategyState.OppositeSL15M > 0 ? nLevelStrategyState.OppositeSL15M : opposite_sl_price;
+                    result.OppositeSL1H_N = nLevelStrategyState.OppositeSL1H > 0 ? nLevelStrategyState.OppositeSL1H : opposite_sl_price;
+                    result.OppositeSL4H_N = nLevelStrategyState.OppositeSL4H > 0 ? nLevelStrategyState.OppositeSL4H : opposite_sl_price;
+                    result.Skip1MinTrades_N = nLevelStrategyState.Skip1MinTrades;
+                    result.Skip5MinTrades_N = nLevelStrategyState.Skip5MinTrades;
+                    result.Skip15MinTrades_N = nLevelStrategyState.Skip15MinTrades;
+                    result.Skip1HourTrades_N = nLevelStrategyState.Skip1HourTrades;
+                    result.Skip4HourTrades_N = nLevelStrategyState.Skip4HourTrades;
+                    result.MinStrength1M_N = nLevelStrategyState.MinStrength1M;
+                    result.MinStrength5M_N = nLevelStrategyState.MinStrength5M;
+                    result.MinStrength15M_N = nLevelStrategyState.MinStrength15M;
+                    result.MinStrength1H_N = nLevelStrategyState.MinStrength1H;
+                    result.MinStrength4H_N = nLevelStrategyState.MinStrength4H;
+                    result.DDClosePositions_N = nLevelStrategyState.DDClosePositions;
+                    result.DDCloseInitialInterval_N = nLevelStrategyState.DDCloseInitialInterval;
+                    result.DDCloseIncreasePeriod_N = nLevelStrategyState.DDCloseIncreasePeriod;
+                    result.DDCloseIncreaseThreshold_N = nLevelStrategyState.DDCloseIncreaseThreshold;
                 }
 
             }
