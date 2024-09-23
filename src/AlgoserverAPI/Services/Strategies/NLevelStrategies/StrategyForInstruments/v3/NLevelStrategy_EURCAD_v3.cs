@@ -4,10 +4,10 @@ using Algoserver.Strategies.LevelStrategy;
 
 namespace Algoserver.Strategies.NLevelStrategy.V3
 {
-    // Settings version EURUSD_combined_v4.21_2309.set
-    public class NLevelStrategy_EURUSD_v3 : NLevelStrategyBase
+    // Settings version EURCAD_combined_v4.21_2309.set
+    public class NLevelStrategy_EURCAD_v3 : NLevelStrategyBase
     {
-        public NLevelStrategy_EURUSD_v3(StrategyInputContext _context) : base(_context)
+        public NLevelStrategy_EURCAD_v3(StrategyInputContext _context) : base(_context)
         {
         }
 
@@ -54,9 +54,9 @@ namespace Algoserver.Strategies.NLevelStrategy.V3
 
                 UseCatReflex = true,
                 CatReflexGranularity = TimeframeHelper.MIN1_GRANULARITY,
-                CatReflexPeriodReflex = 12,
-                CatReflexPeriodSuperSmoother = 33,
-                CatReflexPeriodPostSmooth = 147,
+                CatReflexPeriodReflex = 27,
+                CatReflexPeriodSuperSmoother = 87,
+                CatReflexPeriodPostSmooth = 397,
                 CatReflexConfirmationPeriod = 3,
                 CatReflexMinLevel = 0,
                 CatReflexMaxLevel = 3.4,
@@ -64,9 +64,9 @@ namespace Algoserver.Strategies.NLevelStrategy.V3
 
                 UseCatReflex2 = true,
                 CatReflexGranularity2 = TimeframeHelper.HOURLY_GRANULARITY,
-                CatReflexPeriodReflex2 = 9,
-                CatReflexPeriodSuperSmoother2 = 81,
-                CatReflexPeriodPostSmooth2 = 174,
+                CatReflexPeriodReflex2 = 30,
+                CatReflexPeriodSuperSmoother2 = 72,
+                CatReflexPeriodPostSmooth2 = 397,
                 CatReflexConfirmationPeriod2 = 3,
                 CatReflexMinLevel2 = 0,
                 CatReflexMaxLevel2 = 3.4,
@@ -74,13 +74,13 @@ namespace Algoserver.Strategies.NLevelStrategy.V3
 
                 UseCatReflex3 = true,
                 CatReflexGranularity3 = TimeframeHelper.HOUR4_GRANULARITY,
-                CatReflexPeriodReflex3 = 162,
-                CatReflexPeriodSuperSmoother3 = 108,
-                CatReflexPeriodPostSmooth3 = 129,
+                CatReflexPeriodReflex3 = 39,
+                CatReflexPeriodSuperSmoother3 = 6,
+                CatReflexPeriodPostSmooth3 = 217,
                 CatReflexConfirmationPeriod3 = 3,
                 CatReflexMinLevel3 = 0,
                 CatReflexMaxLevel3 = 3.4,
-                CatReflexValidateZeroCrossover3 = false
+                CatReflexValidateZeroCrossover3 = false,
             };
 
             var result = await CalculateInternal(settings);

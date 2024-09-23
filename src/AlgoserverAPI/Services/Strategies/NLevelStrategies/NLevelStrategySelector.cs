@@ -30,6 +30,14 @@ namespace Algoserver.Strategies.NLevelStrategy
             {
                 return new NLevelStrategy_CADJPY_v3(context);
             } 
+            if (context.symbol == "EUR_CAD")
+            {
+                return new NLevelStrategy_EURCAD_v3(context);
+            } 
+            if (context.symbol == "EUR_USD")
+            {
+                return new NLevelStrategy_EURUSD_v3(context);
+            } 
             if (context.symbol == "BTC_USD" || context.symbol == "BTCUSD" || context.symbol == "BTC_USDT" || context.symbol == "BTCUSDT")
             {
                 return new NLevelStrategy_BTCUSD_v3(context);
