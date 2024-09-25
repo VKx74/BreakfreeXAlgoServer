@@ -65,7 +65,8 @@ namespace Algoserver.Strategies.SRLevelStrategy
             {
                 return new SRLevelStrategy_SPX500(context);
             } 
-
+            
+            return null;
             // All
             if (context.symbol == "AUD_CAD")
             {
