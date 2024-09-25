@@ -152,6 +152,8 @@ namespace Algoserver.API.Models.REST
         public int DDCloseInitialInterval_SR { get; set; }
         public int DDCloseIncreasePeriod_SR { get; set; }
         public decimal DDCloseIncreaseThreshold_SR { get; set; }
+        public string Logs_SR { get; set; }
+        public string Logs_N { get; set; }
     }
 
     [Serializable]

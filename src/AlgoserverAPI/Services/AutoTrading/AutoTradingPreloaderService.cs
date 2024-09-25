@@ -294,6 +294,31 @@ namespace Algoserver.API.Services.CacheServices
             return info;
         }
 
+        public Dictionary<string, AutoTradingSymbolInfoResponse> GetAllAutoTradingSymbolInfoFromCache()
+        {
+            var res = new Dictionary<string, AutoTradingSymbolInfoResponse>();
+            try
+            {
+                lock (_data)
+                {
+                    foreach (var i in _data)
+                    {
+                        foreach (var j in i.Value)
+                        {
+                            res.TryAdd($"{i.Key}_{j.Key}", j.Value);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+
+            return res;
+
+        }
+
         public AutoTradingSymbolInfoResponse GetAutoTradingSymbolInfoFromCache(string symbol, string datafeed, string type)
         {
             type = type.ToLower();

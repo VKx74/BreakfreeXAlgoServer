@@ -27,6 +27,7 @@ namespace Algoserver.Strategies.NLevelStrategy
         public int DDCloseInitialInterval { get; set; }
         public int DDCloseIncreasePeriod { get; set; }
         public decimal DDCloseIncreaseThreshold { get; set; }
+        public string Logs { get; set; }
     }
 
 }

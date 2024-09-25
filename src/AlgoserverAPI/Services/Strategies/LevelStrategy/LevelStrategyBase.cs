@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Algoserver.API.Helpers;
 using Algoserver.API.Services;
@@ -13,11 +14,16 @@ namespace Algoserver.Strategies.LevelStrategy
         protected const int SIDEWAYS = 0;
         protected bool ShowLogs = true;
         protected string StrategyName = "LevelsStrategy";
+        protected StringBuilder Logs = new StringBuilder();
         protected readonly StrategyInputContext context;
 
         protected LevelStrategyBase(StrategyInputContext _context)
         {
             context = _context;
+        }
+        
+        public string GetLogs() {
+            return Logs.ToString();
         }
 
         protected async Task<bool> CheckReflexOscillator(int granularity, double periodSuperSmoother, int reflexPeriod, double periodPostSmooth, double min, double max, int confirmationPeriod, bool validateZeroCrossover)
@@ -238,6 +244,8 @@ namespace Algoserver.Strategies.LevelStrategy
 
         protected void WriteLog(string str)
         {
+            Logs.AppendLine(str);
+
             if (!ShowLogs)
             {
                 return;
