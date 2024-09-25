@@ -691,15 +691,5 @@ namespace Algoserver.Strategies.NLevelStrategy
             return result;
         }
 
-        protected void WriteLog(string str)
-        {
-            if (!ShowLogs)
-            {
-                return;
-            }
-
-            Console.WriteLine($"NLevelStrategy >>> {str}");
-        }
-
     }
 }

@@ -296,6 +296,15 @@ namespace Algoserver.API.Controllers
             return await ToResponse(result, HttpContext.RequestAborted);
         }
 
+        [Authorize]
+        [HttpGet(Routes.TrendsAdminOverview)]
+        [ProducesResponseType(typeof(Dictionary<string, AutoTradingSymbolInfoResponse>), 200)]
+        public async Task<IActionResult> GetTrendsAdminOverview()
+        {
+            var autoTradingInfo = _autoTradingPreloaderService.GetAllAutoTradingSymbolInfoFromCache();
+            return await ToResponse(autoTradingInfo, HttpContext.RequestAborted);
+        }
+
         private List<MesaSummaryResponse> getMesaSummaryResponse()
         {
             var res = _mesaPreloaderService.GetMesaSummary();

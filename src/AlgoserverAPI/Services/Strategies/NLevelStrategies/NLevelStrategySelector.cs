@@ -216,6 +216,7 @@ namespace Algoserver.Strategies.NLevelStrategy
             }
 
             var res = await strategy.Calculate();
+            res.Logs = strategy.GetLogs();
             return res;
         }
     }

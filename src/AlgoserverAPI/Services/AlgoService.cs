@@ -826,6 +826,7 @@ namespace Algoserver.API.Services
                     result.DDCloseInitialInterval_SR = srLevelStrategyState.DDCloseInitialInterval;
                     result.DDCloseIncreasePeriod_SR = srLevelStrategyState.DDCloseIncreasePeriod;
                     result.DDCloseIncreaseThreshold_SR = srLevelStrategyState.DDCloseIncreaseThreshold;
+                    result.Logs_SR = srLevelStrategyState.Logs;
                 }
 
                 if (nLevelStrategyState != null)
@@ -855,6 +856,7 @@ namespace Algoserver.API.Services
                     result.DDCloseInitialInterval_N = nLevelStrategyState.DDCloseInitialInterval;
                     result.DDCloseIncreasePeriod_N = nLevelStrategyState.DDCloseIncreasePeriod;
                     result.DDCloseIncreaseThreshold_N = nLevelStrategyState.DDCloseIncreaseThreshold;
+                    result.Logs_N = nLevelStrategyState.Logs;
                 } else {
                     result.DDClosePositions_N = true;
                     result.DDCloseInitialInterval_N = 176;
