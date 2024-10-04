@@ -66,7 +66,6 @@ namespace Algoserver.API.Services
             });
 
             return instruments.Where(((_) => 
-                _.Symbol == "EUR_USD" ||
                 _.Symbol == "BTC_USD"
             )).ToList();
             
@@ -129,7 +128,6 @@ namespace Algoserver.API.Services
             });
             
             return instruments.Where(((_) => 
-                _.Symbol == "EUR_USD" ||
                 _.Symbol == "BTC_USD"
             )).ToList();
 

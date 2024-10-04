@@ -3,6 +3,7 @@ using Algoserver.API.Helpers;
 using Algoserver.Strategies.LevelStrategy;
 using Algoserver.Strategies.NLevelStrategy.V2;
 using Algoserver.Strategies.NLevelStrategy.V5;
+using Algoserver.Strategies.NLevelStrategy.V6;
 
 namespace Algoserver.Strategies.NLevelStrategy
 {
@@ -10,13 +11,9 @@ namespace Algoserver.Strategies.NLevelStrategy
     {
         public static NLevelStrategyBase SelectStrategy(StrategyInputContext context)
         {
-            if (context.symbol == "EUR_USD")
-            {
-                return new NLevelStrategy_EURUSD_v5(context);
-            }
             if (context.symbol == "BTC_USD" || context.symbol == "BTCUSD" || context.symbol == "BTC_USDT" || context.symbol == "BTCUSDT")
             {
-                return new NLevelStrategy_BTCUSD_v5(context);
+                return new NLevelStrategy_BTCUSD_v6(context);
             }
 
             return null;

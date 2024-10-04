@@ -10,6 +10,7 @@ namespace Algoserver.Strategies.SRLevelStrategy
     {
         public static SRLevelStrategyBase SelectStrategy(StrategyInputContext context)
         {   
+            return null; 
             if (context.symbol == "EUR_USD")
             {
                 return new SRLevelStrategy_EURUSD_v5(context);
