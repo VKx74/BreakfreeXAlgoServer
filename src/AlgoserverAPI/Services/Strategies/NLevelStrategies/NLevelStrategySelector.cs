@@ -15,6 +15,18 @@ namespace Algoserver.Strategies.NLevelStrategy
             {
                 return new NLevelStrategy_BTCUSD_v6(context);
             }
+            if (context.symbol == "SPX500_USD" || context.symbol == "SPX500" || context.symbol == "US500")
+            {
+                return new NLevelStrategy_SPX500_v6(context);
+            }
+            if (context.symbol == "EUR_USD")
+            {
+                return new NLevelStrategy_EURUSD_v6(context);
+            }
+            if (context.symbol == "XAU_USD")
+            {
+                return new NLevelStrategy_XAUUSD_v6(context);
+            }
 
             return null;
             if (context.symbol == "EUR_USD")

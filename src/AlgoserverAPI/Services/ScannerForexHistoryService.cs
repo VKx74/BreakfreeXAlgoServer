@@ -66,7 +66,10 @@ namespace Algoserver.API.Services
             });
 
             return instruments.Where(((_) => 
-                _.Symbol == "BTC_USD"
+                _.Symbol == "BTC_USD" ||
+                _.Symbol == "SPX500_USD" ||
+                _.Symbol == "EUR_USD" ||
+                _.Symbol == "XAU_USD"
             )).ToList();
             
             return instruments.ToList();
@@ -126,9 +129,12 @@ namespace Algoserver.API.Services
                 Type = "Crypto",
                 PricePrecision = 0.00000001m
             });
-            
+
             return instruments.Where(((_) => 
-                _.Symbol == "BTC_USD"
+                _.Symbol == "BTC_USD" ||
+                _.Symbol == "SPX500_USD" ||
+                _.Symbol == "EUR_USD" ||
+                _.Symbol == "XAU_USD"
             )).ToList();
 
             return instruments.ToList();
