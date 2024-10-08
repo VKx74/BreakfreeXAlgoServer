@@ -4,8 +4,8 @@ using Algoserver.Strategies.LevelStrategy;
 
 namespace Algoserver.Strategies.NLevelStrategy.V6
 {
-    // Settings version BTCUSD_combined_v6.set
-    public class NLevelStrategy_ETHSD_v6 : NLevelStrategyBase
+    // Settings version ETHUSD_combined_v6.set
+    public class NLevelStrategy_ETHUSD_v6 : NLevelStrategyBase
     {
         public NLevelStrategy_ETHUSD_v6(StrategyInputContext _context) : base(_context)
         {
