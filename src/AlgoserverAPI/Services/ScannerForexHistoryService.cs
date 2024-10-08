@@ -132,6 +132,7 @@ namespace Algoserver.API.Services
 
             return instruments.Where(((_) => 
                 _.Symbol == "BTC_USD" ||
+                _.Symbol == "ETH_USD" ||
                 _.Symbol == "SPX500_USD" ||
                 _.Symbol == "EUR_USD" ||
                 _.Symbol == "XAU_USD"

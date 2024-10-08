@@ -15,6 +15,10 @@ namespace Algoserver.Strategies.NLevelStrategy
             {
                 return new NLevelStrategy_BTCUSD_v6(context);
             }
+            if (context.symbol == "ETH_USD" || context.symbol == "ETHUSD" || context.symbol == "ETH_USDT" || context.symbol == "ETHUSDT")
+            {
+                return new NLevelStrategy_ETHUSD_v6(context);
+            }
             if (context.symbol == "SPX500_USD" || context.symbol == "SPX500" || context.symbol == "US500")
             {
                 return new NLevelStrategy_SPX500_v6(context);
