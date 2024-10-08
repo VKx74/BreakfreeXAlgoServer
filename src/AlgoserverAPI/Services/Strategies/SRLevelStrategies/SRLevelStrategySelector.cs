@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 using Algoserver.API.Helpers;
 using Algoserver.Strategies.LevelStrategy;
 using Algoserver.Strategies.SRLevelStrategy.V3;
-using Algoserver.Strategies.SRLevelStrategy.V5;
 
 namespace Algoserver.Strategies.SRLevelStrategy
 {
@@ -10,17 +9,6 @@ namespace Algoserver.Strategies.SRLevelStrategy
     {
         public static SRLevelStrategyBase SelectStrategy(StrategyInputContext context)
         {   
-            return null; 
-            if (context.symbol == "EUR_USD")
-            {
-                return new SRLevelStrategy_EURUSD_v5(context);
-            }
-            if (context.symbol == "BTC_USD" || context.symbol == "BTCUSD" || context.symbol == "BTC_USDT" || context.symbol == "BTCUSDT")
-            {
-                return new SRLevelStrategy_BTCUSD_v5(context);
-            } 
-
-            return null; 
             if (context.symbol == "EUR_USD")
             {
                 return new SRLevelStrategy_EURUSD(context);

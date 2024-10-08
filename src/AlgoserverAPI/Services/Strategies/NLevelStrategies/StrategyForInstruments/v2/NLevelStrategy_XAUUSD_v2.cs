@@ -74,6 +74,7 @@ namespace Algoserver.Strategies.NLevelStrategy.V2
             };
 
             var result = await CalculateInternal(settings);
+            result.State = 1;
             result.DDClosePositions = true;
             result.DDCloseInitialInterval = 176;
             result.DDCloseIncreasePeriod = 135;

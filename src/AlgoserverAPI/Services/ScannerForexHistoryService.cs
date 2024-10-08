@@ -65,12 +65,17 @@ namespace Algoserver.API.Services
                 PricePrecision = 0.00000001m
             });
 
-            return instruments.Where(((_) => 
-                _.Symbol == "BTC_USD" ||
-                _.Symbol == "SPX500_USD" ||
-                _.Symbol == "EUR_USD" ||
-                _.Symbol == "XAU_USD"
-            )).ToList();
+            // return instruments.Where(((_) => 
+            //     _.Symbol == "CAD_CHF" ||
+            //     _.Symbol == "EUR_CHF" ||
+            //     _.Symbol == "EUR_USD" ||
+            //     _.Symbol == "USD_CAD" ||
+            //     _.Symbol == "XAU_USD" ||
+            //     _.Symbol == "CAD_JPY" ||
+            //     _.Symbol == "BTC_USD" ||
+            //     _.Symbol == "SPX500_USD" ||
+            //     _.Symbol == "US30_USD"
+            // )).ToList();
             
             return instruments.ToList();
         }
@@ -129,14 +134,18 @@ namespace Algoserver.API.Services
                 Type = "Crypto",
                 PricePrecision = 0.00000001m
             });
-
-            return instruments.Where(((_) => 
-                _.Symbol == "BTC_USD" ||
-                _.Symbol == "ETH_USD" ||
-                _.Symbol == "SPX500_USD" ||
-                _.Symbol == "EUR_USD" ||
-                _.Symbol == "XAU_USD"
-            )).ToList();
+            
+            // return instruments.Where(((_) => 
+            //     _.Symbol == "CAD_CHF" ||
+            //     _.Symbol == "EUR_CHF" ||
+            //     _.Symbol == "EUR_USD" ||
+            //     _.Symbol == "USD_CAD" ||
+            //     _.Symbol == "XAU_USD" ||
+            //     _.Symbol == "CAD_JPY" ||
+            //     _.Symbol == "BTC_USD" ||
+            //     _.Symbol == "SPX500_USD" ||
+            //     _.Symbol == "US30_USD"
+            // )).ToList();
 
             return instruments.ToList();
         }
