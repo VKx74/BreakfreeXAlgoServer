@@ -57,6 +57,8 @@ namespace Algoserver.API.Services
                 return 0;
             }
 
+            return int.MaxValue;
+
             var neural = "Neural";
             var pro = "Pro";
             var discovery = "Discovery";
