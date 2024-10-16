@@ -62,23 +62,6 @@ namespace Algoserver.API.Controllers
             var result = await _algoService.CalculateV3Async(request);
             return await ToEncryptedResponse(result, CancellationToken.None);
         }
-        
-        [HttpPost(Routes.CalculateV3Guest)]
-        [ProducesResponseType(typeof(Response<CalculationResponseV3>), 200)]
-        public async Task<IActionResult> CalculateV3GuestAsync([FromBody] CalculationRequestV3 request)
-        {
-            if (!ModelState.IsValid)
-            {
-                return StatusCode(StatusCodes.Status400BadRequest, "Invalid input parameters");
-            }
-
-            if (request.Instrument.Id.ToLower() != "eur_usd") {
-                return StatusCode(StatusCodes.Status403Forbidden, "Only EURUSD allowed for free users");
-            }
-
-            var result = await _algoService.CalculateV3Async(request);
-            return await ToEncryptedResponse(result, CancellationToken.None);
-        }
 
         [Authorize]
         [HttpPost(Routes.CalculatePositionSize)]
