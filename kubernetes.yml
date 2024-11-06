@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: algoserver
+  namespace: prod
+  labels:
+    app: algoserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: algoserver
+  template:
+    metadata:
+      labels:
+        app: algoserver
+    spec:
+      containers:
+       - name: algoserver
+         image: kubernetes-prod:5000/algoserver:latest
+         ports:
+         - containerPort: 80
+      imagePullSecrets:
+       - name: registry-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: algoserver-svc
+  namespace: prod
+spec:
+  selector:
+    app: algoserver
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 80
+  type: LoadBalancer
+  externalIPs:
+    - 24.199.123.189
