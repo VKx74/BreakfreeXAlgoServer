@@ -1,0 +1,38 @@
+{
+  "ConnectionStrings": {
+        "DefaultConnection": "Server=mysqldb-stage-do-user-7370957-0.b.db.ondigitalocean.com;Port=25060;Database=algostatistics;Uid=doadmin;Pwd=rigjshjfz3lq69lg;"
+  },
+
+  "Logging": {
+    "LogLevel": {
+      "Default": "Error"
+    }
+  },
+
+  "AllowedHosts": "*",
+  "Authority": "https://auth-platform.breakfreetrading.com",
+
+  "IdentityOptions": {
+    "TokenAddrees": "https://auth-platform.breakfreetrading.com/connect/token",
+    "ClientId": "algo.client.credentials",
+    "ClientSecret": "algo.services.secret.key",
+    "Scope": "Datafeed Identity"
+  },
+  "RoutePrefix": "algoserver",
+  "DatafeedEndpoint": "https://feed.breakfreetrading.com",
+  "LevelsLgbmPrediction": "https://levelsprediction-lgbm-ml.breakfreetrading.com/predict",
+  "TrendPrediction": "https://trendprediction-ml.breakfreetrading.com/predict",
+  "ScanInstruments": true,
+  "RedisSettings": {
+    "InstanceName": "algo_",
+    "DefaultDatabase": 1,
+    "UseSSL": true,
+    "Password": "yq4vk381d0roeuk0",
+    "Host": "redisdb-stage-do-user-7370957-0.b.db.ondigitalocean.com",
+    "Port": 25061,
+    "ConnectRetry": 5,
+    "ConnectTimeout": 10000,
+    "SyncTimeout": 10000,
+    "AbortOnConnectFail": false
+  }
+}
